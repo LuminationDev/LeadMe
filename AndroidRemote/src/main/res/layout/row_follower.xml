@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="fill_parent"
     android:layout_height="wrap_content"
-    android:gravity="center"
+    android:gravity="center|center_vertical"
     android:orientation="vertical"
     android:padding="6dip"
     android:textAlignment="center">
@@ -22,12 +23,13 @@
         android:layout_height="match_parent"
         android:orientation="horizontal">
 
-        <CheckBox
-            android:id="@+id/student_checkbox"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:drawablePadding="0dp"
-            android:includeFontPadding="false" />
+        <ImageView
+            android:id="@+id/student_lock"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:layout_marginEnd="5dp"
+            android:layout_weight="1"
+            app:srcCompat="@drawable/lock" />
 
         <TextView
             android:id="@+id/student_name"
@@ -36,8 +38,8 @@
             android:layout_gravity="center_horizontal|center_vertical"
             android:layout_weight="1"
             android:fontFamily="@font/poppins"
-            android:foregroundGravity="top"
-            android:gravity="center_horizontal|top|center_vertical"
+            android:foregroundGravity="center_vertical"
+            android:gravity="center_horizontal|center_vertical"
             android:text="Name"
             android:textAlignment="center"
             android:textColor="@color/luminationMediumAccent"

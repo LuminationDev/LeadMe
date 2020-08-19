@@ -12,6 +12,10 @@
         "source": "C:\\Users\\Marissa\\CODE DEV\\RemoteControl\\AndroidRemote\\src\\main\\res\\mipmap-xxxhdpi\\unlock_icon.png"
     },
     {
+        "merged": "C:\\Users\\Marissa\\CODE DEV\\RemoteControl\\AndroidRemote\\build\\intermediates\\res\\merged\\debug\\layout_alert_textbox.xml.flat",
+        "source": "C:\\Users\\Marissa\\CODE DEV\\RemoteControl\\AndroidRemote\\src\\main\\res\\layout\\alert_textbox.xml"
+    },
+    {
         "merged": "C:\\Users\\Marissa\\CODE DEV\\RemoteControl\\AndroidRemote\\build\\intermediates\\res\\merged\\debug\\mipmap-hdpi_reset_app_icon.png.flat",
         "source": "C:\\Users\\Marissa\\CODE DEV\\RemoteControl\\AndroidRemote\\src\\main\\res\\mipmap-hdpi\\reset_app_icon.png"
     },
@@ -52,6 +56,14 @@
         "source": "C:\\Users\\Marissa\\CODE DEV\\RemoteControl\\AndroidRemote\\src\\main\\res\\drawable\\unlock.xml"
     },
     {
+        "merged": "C:\\Users\\Marissa\\CODE DEV\\RemoteControl\\AndroidRemote\\build\\intermediates\\res\\merged\\debug\\mipmap-xhdpi_return_icon.png.flat",
+        "source": "C:\\Users\\Marissa\\CODE DEV\\RemoteControl\\AndroidRemote\\src\\main\\res\\mipmap-xhdpi\\return_icon.png"
+    },
+    {
+        "merged": "C:\\Users\\Marissa\\CODE DEV\\RemoteControl\\AndroidRemote\\build\\intermediates\\res\\merged\\debug\\mipmap-xxhdpi_lockmain_icon.png.flat",
+        "source": "C:\\Users\\Marissa\\CODE DEV\\RemoteControl\\AndroidRemote\\src\\main\\res\\mipmap-xxhdpi\\lockmain_icon.png"
+    },
+    {
         "merged": "C:\\Users\\Marissa\\CODE DEV\\RemoteControl\\AndroidRemote\\build\\intermediates\\res\\merged\\debug\\layout_transparent_overlay.xml.flat",
         "source": "C:\\Users\\Marissa\\CODE DEV\\RemoteControl\\AndroidRemote\\src\\main\\res\\layout\\transparent_overlay.xml"
     },
@@ -68,8 +80,20 @@
         "source": "C:\\Users\\Marissa\\CODE DEV\\RemoteControl\\AndroidRemote\\src\\main\\res\\drawable-mdpi\\search_btn.png"
     },
     {
+        "merged": "C:\\Users\\Marissa\\CODE DEV\\RemoteControl\\AndroidRemote\\build\\intermediates\\res\\merged\\debug\\mipmap-xxhdpi_unlockmain_icon.png.flat",
+        "source": "C:\\Users\\Marissa\\CODE DEV\\RemoteControl\\AndroidRemote\\src\\main\\res\\mipmap-xxhdpi\\unlockmain_icon.png"
+    },
+    {
         "merged": "C:\\Users\\Marissa\\CODE DEV\\RemoteControl\\AndroidRemote\\build\\intermediates\\res\\merged\\debug\\mipmap-xxxhdpi_exit_icon_solid.png.flat",
         "source": "C:\\Users\\Marissa\\CODE DEV\\RemoteControl\\AndroidRemote\\src\\main\\res\\mipmap-xxxhdpi\\exit_icon_solid.png"
+    },
+    {
+        "merged": "C:\\Users\\Marissa\\CODE DEV\\RemoteControl\\AndroidRemote\\build\\intermediates\\res\\merged\\debug\\mipmap-xxxhdpi_lockmain_icon.png.flat",
+        "source": "C:\\Users\\Marissa\\CODE DEV\\RemoteControl\\AndroidRemote\\src\\main\\res\\mipmap-xxxhdpi\\lockmain_icon.png"
+    },
+    {
+        "merged": "C:\\Users\\Marissa\\CODE DEV\\RemoteControl\\AndroidRemote\\build\\intermediates\\res\\merged\\debug\\mipmap-mdpi_lockmain_icon.png.flat",
+        "source": "C:\\Users\\Marissa\\CODE DEV\\RemoteControl\\AndroidRemote\\src\\main\\res\\mipmap-mdpi\\lockmain_icon.png"
     },
     {
         "merged": "C:\\Users\\Marissa\\CODE DEV\\RemoteControl\\AndroidRemote\\build\\intermediates\\res\\merged\\debug\\drawable-hdpi_phone_btn.png.flat",
@@ -132,6 +156,10 @@
         "source": "C:\\Users\\Marissa\\CODE DEV\\RemoteControl\\AndroidRemote\\src\\main\\res\\drawable-mdpi\\phone_btn.png"
     },
     {
+        "merged": "C:\\Users\\Marissa\\CODE DEV\\RemoteControl\\AndroidRemote\\build\\intermediates\\res\\merged\\debug\\mipmap-hdpi_unlockmain_icon.png.flat",
+        "source": "C:\\Users\\Marissa\\CODE DEV\\RemoteControl\\AndroidRemote\\src\\main\\res\\mipmap-hdpi\\unlockmain_icon.png"
+    },
+    {
         "merged": "C:\\Users\\Marissa\\CODE DEV\\RemoteControl\\AndroidRemote\\build\\intermediates\\res\\merged\\debug\\mipmap-hdpi_visible_icon_solid.png.flat",
         "source": "C:\\Users\\Marissa\\CODE DEV\\RemoteControl\\AndroidRemote\\src\\main\\res\\mipmap-hdpi\\visible_icon_solid.png"
     },
@@ -188,6 +216,10 @@
         "source": "C:\\Users\\Marissa\\CODE DEV\\RemoteControl\\AndroidRemote\\src\\main\\res\\mipmap-mdpi\\lock_icon.png"
     },
     {
+        "merged": "C:\\Users\\Marissa\\CODE DEV\\RemoteControl\\AndroidRemote\\build\\intermediates\\res\\merged\\debug\\mipmap-xhdpi_lockmain_icon.png.flat",
+        "source": "C:\\Users\\Marissa\\CODE DEV\\RemoteControl\\AndroidRemote\\src\\main\\res\\mipmap-xhdpi\\lockmain_icon.png"
+    },
+    {
         "merged": "C:\\Users\\Marissa\\CODE DEV\\RemoteControl\\AndroidRemote\\build\\intermediates\\res\\merged\\debug\\drawable_host_indicator.xml.flat",
         "source": "C:\\Users\\Marissa\\CODE DEV\\RemoteControl\\AndroidRemote\\src\\main\\res\\drawable\\host_indicator.xml"
     },
@@ -214,6 +246,10 @@
     {
         "merged": "C:\\Users\\Marissa\\CODE DEV\\RemoteControl\\AndroidRemote\\build\\intermediates\\res\\merged\\debug\\drawable_button_disabled.xml.flat",
         "source": "C:\\Users\\Marissa\\CODE DEV\\RemoteControl\\AndroidRemote\\src\\main\\res\\drawable\\button_disabled.xml"
+    },
+    {
+        "merged": "C:\\Users\\Marissa\\CODE DEV\\RemoteControl\\AndroidRemote\\build\\intermediates\\res\\merged\\debug\\mipmap-xxxhdpi_unlockmain_icon.png.flat",
+        "source": "C:\\Users\\Marissa\\CODE DEV\\RemoteControl\\AndroidRemote\\src\\main\\res\\mipmap-xxxhdpi\\unlockmain_icon.png"
     },
     {
         "merged": "C:\\Users\\Marissa\\CODE DEV\\RemoteControl\\AndroidRemote\\build\\intermediates\\res\\merged\\debug\\mipmap-xhdpi_exit_icon_solid.png.flat",
@@ -248,6 +284,10 @@
         "source": "C:\\Users\\Marissa\\CODE DEV\\RemoteControl\\AndroidRemote\\src\\main\\res\\mipmap-hdpi\\lumination_icon_round.png"
     },
     {
+        "merged": "C:\\Users\\Marissa\\CODE DEV\\RemoteControl\\AndroidRemote\\build\\intermediates\\res\\merged\\debug\\mipmap-mdpi_unlockmain_icon.png.flat",
+        "source": "C:\\Users\\Marissa\\CODE DEV\\RemoteControl\\AndroidRemote\\src\\main\\res\\mipmap-mdpi\\unlockmain_icon.png"
+    },
+    {
         "merged": "C:\\Users\\Marissa\\CODE DEV\\RemoteControl\\AndroidRemote\\build\\intermediates\\res\\merged\\debug\\drawable-hdpi_network_btn.png.flat",
         "source": "C:\\Users\\Marissa\\CODE DEV\\RemoteControl\\AndroidRemote\\src\\main\\res\\drawable-hdpi\\network_btn.png"
     },
@@ -272,6 +312,10 @@
         "source": "C:\\Users\\Marissa\\CODE DEV\\RemoteControl\\AndroidRemote\\src\\main\\res\\mipmap-mdpi\\back_icon_solid.png"
     },
     {
+        "merged": "C:\\Users\\Marissa\\CODE DEV\\RemoteControl\\AndroidRemote\\build\\intermediates\\res\\merged\\debug\\mipmap-xxxhdpi_return_icon.png.flat",
+        "source": "C:\\Users\\Marissa\\CODE DEV\\RemoteControl\\AndroidRemote\\src\\main\\res\\mipmap-xxxhdpi\\return_icon.png"
+    },
+    {
         "merged": "C:\\Users\\Marissa\\CODE DEV\\RemoteControl\\AndroidRemote\\build\\intermediates\\res\\merged\\debug\\mipmap-xhdpi_reset_app_icon.png.flat",
         "source": "C:\\Users\\Marissa\\CODE DEV\\RemoteControl\\AndroidRemote\\src\\main\\res\\mipmap-xhdpi\\reset_app_icon.png"
     },
@@ -292,8 +336,16 @@
         "source": "C:\\Users\\Marissa\\CODE DEV\\RemoteControl\\AndroidRemote\\src\\main\\res\\mipmap-xhdpi\\visible_icon_solid.png"
     },
     {
+        "merged": "C:\\Users\\Marissa\\CODE DEV\\RemoteControl\\AndroidRemote\\build\\intermediates\\res\\merged\\debug\\mipmap-mdpi_return_icon.png.flat",
+        "source": "C:\\Users\\Marissa\\CODE DEV\\RemoteControl\\AndroidRemote\\src\\main\\res\\mipmap-mdpi\\return_icon.png"
+    },
+    {
         "merged": "C:\\Users\\Marissa\\CODE DEV\\RemoteControl\\AndroidRemote\\build\\intermediates\\res\\merged\\debug\\mipmap-xxhdpi_hidden_icon_solid.png.flat",
         "source": "C:\\Users\\Marissa\\CODE DEV\\RemoteControl\\AndroidRemote\\src\\main\\res\\mipmap-xxhdpi\\hidden_icon_solid.png"
+    },
+    {
+        "merged": "C:\\Users\\Marissa\\CODE DEV\\RemoteControl\\AndroidRemote\\build\\intermediates\\res\\merged\\debug\\mipmap-hdpi_lockmain_icon.png.flat",
+        "source": "C:\\Users\\Marissa\\CODE DEV\\RemoteControl\\AndroidRemote\\src\\main\\res\\mipmap-hdpi\\lockmain_icon.png"
     },
     {
         "merged": "C:\\Users\\Marissa\\CODE DEV\\RemoteControl\\AndroidRemote\\build\\intermediates\\res\\merged\\debug\\drawable_button.xml.flat",
@@ -336,6 +388,10 @@
         "source": "C:\\Users\\Marissa\\CODE DEV\\RemoteControl\\AndroidRemote\\src\\main\\res\\drawable-anydpi\\search_btn.xml"
     },
     {
+        "merged": "C:\\Users\\Marissa\\CODE DEV\\RemoteControl\\AndroidRemote\\build\\intermediates\\res\\merged\\debug\\mipmap-hdpi_return_icon.png.flat",
+        "source": "C:\\Users\\Marissa\\CODE DEV\\RemoteControl\\AndroidRemote\\src\\main\\res\\mipmap-hdpi\\return_icon.png"
+    },
+    {
         "merged": "C:\\Users\\Marissa\\CODE DEV\\RemoteControl\\AndroidRemote\\build\\intermediates\\res\\merged\\debug\\mipmap-mdpi_individual_icon.png.flat",
         "source": "C:\\Users\\Marissa\\CODE DEV\\RemoteControl\\AndroidRemote\\src\\main\\res\\mipmap-mdpi\\individual_icon.png"
     },
@@ -354,6 +410,10 @@
     {
         "merged": "C:\\Users\\Marissa\\CODE DEV\\RemoteControl\\AndroidRemote\\build\\intermediates\\res\\merged\\debug\\font_poppins_semibold.ttf.flat",
         "source": "C:\\Users\\Marissa\\CODE DEV\\RemoteControl\\AndroidRemote\\src\\main\\res\\font\\poppins_semibold.ttf"
+    },
+    {
+        "merged": "C:\\Users\\Marissa\\CODE DEV\\RemoteControl\\AndroidRemote\\build\\intermediates\\res\\merged\\debug\\mipmap-xxhdpi_return_icon.png.flat",
+        "source": "C:\\Users\\Marissa\\CODE DEV\\RemoteControl\\AndroidRemote\\src\\main\\res\\mipmap-xxhdpi\\return_icon.png"
     },
     {
         "merged": "C:\\Users\\Marissa\\CODE DEV\\RemoteControl\\AndroidRemote\\build\\intermediates\\res\\merged\\debug\\drawable_button_selector.xml.flat",
@@ -378,6 +438,10 @@
     {
         "merged": "C:\\Users\\Marissa\\CODE DEV\\RemoteControl\\AndroidRemote\\build\\intermediates\\res\\merged\\debug\\mipmap-xxhdpi_exit_icon_solid.png.flat",
         "source": "C:\\Users\\Marissa\\CODE DEV\\RemoteControl\\AndroidRemote\\src\\main\\res\\mipmap-xxhdpi\\exit_icon_solid.png"
+    },
+    {
+        "merged": "C:\\Users\\Marissa\\CODE DEV\\RemoteControl\\AndroidRemote\\build\\intermediates\\res\\merged\\debug\\drawable_student_selectedface.xml.flat",
+        "source": "C:\\Users\\Marissa\\CODE DEV\\RemoteControl\\AndroidRemote\\src\\main\\res\\drawable\\student_selectedface.xml"
     },
     {
         "merged": "C:\\Users\\Marissa\\CODE DEV\\RemoteControl\\AndroidRemote\\build\\intermediates\\res\\merged\\debug\\drawable-xhdpi_search_btn.png.flat",
@@ -410,6 +474,10 @@
     {
         "merged": "C:\\Users\\Marissa\\CODE DEV\\RemoteControl\\AndroidRemote\\build\\intermediates\\res\\merged\\debug\\mipmap-xxhdpi_everyone_icon.png.flat",
         "source": "C:\\Users\\Marissa\\CODE DEV\\RemoteControl\\AndroidRemote\\src\\main\\res\\mipmap-xxhdpi\\everyone_icon.png"
+    },
+    {
+        "merged": "C:\\Users\\Marissa\\CODE DEV\\RemoteControl\\AndroidRemote\\build\\intermediates\\res\\merged\\debug\\mipmap-xhdpi_unlockmain_icon.png.flat",
+        "source": "C:\\Users\\Marissa\\CODE DEV\\RemoteControl\\AndroidRemote\\src\\main\\res\\mipmap-xhdpi\\unlockmain_icon.png"
     },
     {
         "merged": "C:\\Users\\Marissa\\CODE DEV\\RemoteControl\\AndroidRemote\\build\\intermediates\\res\\merged\\debug\\menu_main_menu.xml.flat",

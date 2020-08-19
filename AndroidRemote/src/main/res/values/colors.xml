@@ -11,4 +11,5 @@
     <color name="luminationGreyLight">#D5D4D4</color>
     <color name="luminationGrey">#AEAEAE</color>
     <color name="luminationGreyDark">#8A8A8A</color>
+    <color name="luminationUnselectedStudent">#8FDCF6</color>
 </resources>

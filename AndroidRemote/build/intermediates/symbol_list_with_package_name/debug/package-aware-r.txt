@@ -796,6 +796,7 @@ color luminationLightAccent
 color luminationLightAccentTrans
 color luminationMediumAccent
 color luminationText
+color luminationUnselectedStudent
 color material_blue_grey_800
 color material_blue_grey_900
 color material_blue_grey_950
@@ -1052,6 +1053,7 @@ dimen item_touch_helper_swipe_escape_max_velocity
 dimen item_touch_helper_swipe_escape_velocity
 dimen large_height
 dimen logo_size
+dimen main_menu_padding
 dimen material_emphasis_disabled
 dimen material_emphasis_high_type
 dimen material_emphasis_medium
@@ -1396,6 +1398,7 @@ drawable notify_panel_notification_icon_bg
 drawable phone_btn
 drawable search_btn
 drawable student_placeholder
+drawable student_selectedface
 drawable switch_thumb
 drawable switch_track
 drawable test_custom_background
@@ -1473,6 +1476,7 @@ id add
 id adjust_height
 id adjust_width
 id alertCheckBox
+id alertTextBox
 id alertTitle
 id alignBounds
 id alignMargins
@@ -1685,8 +1689,8 @@ id statusView
 id status_container
 id stretch
 id studentListView
-id student_checkbox
 id student_icon
+id student_lock
 id student_name
 id student_status
 id submenuarrow
@@ -1731,6 +1735,7 @@ id transparentOverlay
 id unchecked
 id uniform
 id unlabeled
+id unlockBtnMain
 id up
 id urlForLaunch
 id useLogo
@@ -1805,6 +1810,7 @@ layout abc_search_view
 layout abc_select_dialog_material
 layout abc_tooltip
 layout alert_checkbox
+layout alert_textbox
 layout app_list
 layout custom_dialog
 layout design_bottom_navigation_item
@@ -1884,6 +1890,7 @@ mipmap exit_icon_solid
 mipmap hidden_icon_solid
 mipmap individual_icon
 mipmap lock_icon
+mipmap lockmain_icon
 mipmap logo_horiz
 mipmap logo_horiz_tag
 mipmap lumination_icon_round
@@ -1891,7 +1898,9 @@ mipmap lumination_icon_square
 mipmap lumination_logo
 mipmap menu_icon
 mipmap reset_app_icon
+mipmap return_icon
 mipmap unlock_icon
+mipmap unlockmain_icon
 mipmap visible_icon_solid
 plurals mtrl_badge_content_description
 raw spells
@@ -2032,6 +2041,7 @@ string search_menu_title
 string send_btn
 string status_bar_notification_info_overflow
 string student_actions_description
+string teacher_code_placeholder
 string tick_symbol
 string url_here_placeholder
 string waiting_for_peers

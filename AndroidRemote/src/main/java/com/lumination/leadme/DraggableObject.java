@@ -3,7 +3,6 @@ package com.lumination.leadme;
 import android.graphics.Rect;
 import android.view.MotionEvent;
 import android.view.View;
-import android.widget.ImageView;
 
 public class DraggableObject implements View.OnTouchListener {
 
@@ -30,23 +29,23 @@ public class DraggableObject implements View.OnTouchListener {
      */
     private void findTouchedSubview(View parent, int x, int y) {
         //final ImageView returnBtn = parent.findViewById(R.id.returnBtn);
-        final ImageView exitBtn = parent.findViewById(R.id.exitBtn);
-        final ImageView logoView = parent.findViewById(R.id.logoView);
-        final ImageView lockView = parent.findViewById(R.id.lockBtn);
+        //final ImageView exitBtn = parent.findViewById(R.id.exitBtn);
+        //final ImageView logoView = parent.findViewById(R.id.logoView);
+        //final ImageView lockView = parent.findViewById(R.id.lockBtn);
         //final ImageView visibilityView = parent.findViewById(R.id.visibilityBtn);
 
         Rect testRec = new Rect();
-        logoView.getHitRect(testRec);
+        main.returnBtnView.getHitRect(testRec);
         if (testRec.contains(x, y)) {
             main.returnToAppAndSendAction();
         }
 
-        exitBtn.getHitRect(testRec);
+        main.exitBtnView.getHitRect(testRec);
         if (testRec.contains(x, y)) {
             main.exitApp();
         }
 
-        lockView.getHitRect(testRec);
+        main.lockBtnView.getHitRect(testRec);
         if (testRec.contains(x, y)) {
             main.toggleStudentLock();
         }

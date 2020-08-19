@@ -173,6 +173,7 @@
     <color name="luminationLightAccentTrans">#2242BFEA</color>
     <color name="luminationMediumAccent">#FF0094d3</color>
     <color name="luminationText">#FF3A3A3A</color>
+    <color name="luminationUnselectedStudent">#8FDCF6</color>
     <color name="material_blue_grey_800">#ff37474f</color>
     <color name="material_blue_grey_900">#ff263238</color>
     <color name="material_blue_grey_950">#ff21272b</color>
@@ -372,6 +373,7 @@
     <dimen name="item_touch_helper_swipe_escape_velocity">120dp</dimen>
     <dimen name="large_height">200dp</dimen>
     <dimen name="logo_size">50dp</dimen>
+    <dimen name="main_menu_padding">15dp</dimen>
     <item format="float" name="material_emphasis_disabled" type="dimen">0.38</item>
     <item format="float" name="material_emphasis_high_type" type="dimen">0.87</item>
     <item format="float" name="material_emphasis_medium" type="dimen">0.6</item>
@@ -791,6 +793,7 @@
     <string name="send_btn">Send</string>
     <string name="status_bar_notification_info_overflow">999+</string>
     <string name="student_actions_description">Need help? Try one of these!</string>
+    <string name="teacher_code_placeholder">Please type in your unlock code</string>
     <string name="tick_symbol">✔</string>
     <string name="url_here_placeholder">Type YouTube or website URL here</string>
     <string name="waiting_for_peers">Waiting for connection!</string>

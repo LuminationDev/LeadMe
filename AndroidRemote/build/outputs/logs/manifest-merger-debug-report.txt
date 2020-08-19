@@ -7,7 +7,7 @@ INJECTED from C:\Users\Marissa\CODE DEV\RemoteControl\AndroidRemote\src\main\And
 MERGED from [androidx.gridlayout:gridlayout:1.0.0] C:\Users\Marissa\.gradle\caches\transforms-2\files-2.1\a20e02da78ae7241b325b795af2609fe\gridlayout-1.0.0\AndroidManifest.xml:17:1-22:12
 MERGED from [com.google.android.material:material:1.1.0] C:\Users\Marissa\.gradle\caches\transforms-2\files-2.1\880b7e418025ce421e62ae2f6f547833\material-1.1.0\AndroidManifest.xml:17:1-24:12
 MERGED from [com.google.android.gms:play-services-location:17.0.0] C:\Users\Marissa\.gradle\caches\transforms-2\files-2.1\9fc19bc18885249ef1a460bfbf368363\jetified-play-services-location-17.0.0\AndroidManifest.xml:2:1-9:12
-MERGED from [com.google.android.gms:play-services-nearby:16.0.0] C:\Users\Marissa\.gradle\caches\transforms-2\files-2.1\19e72ba2dc7c501f286e32a43db9ca4a\jetified-play-services-nearby-16.0.0\AndroidManifest.xml:2:1-11:12
+MERGED from [com.google.android.gms:play-services-nearby:16.0.0] C:\Users\Marissa\.gradle\caches\transforms-2\files-2.1\a9d59743d36de4754c2c31f5760e1d59\jetified-play-services-nearby-16.0.0\AndroidManifest.xml:2:1-11:12
 MERGED from [androidx.legacy:legacy-support-core-ui:1.0.0] C:\Users\Marissa\.gradle\caches\transforms-2\files-2.1\f5ec57ec49d0a3e9add695de66a9078c\legacy-support-core-ui-1.0.0\AndroidManifest.xml:17:1-22:12
 MERGED from [androidx.appcompat:appcompat:1.1.0] C:\Users\Marissa\.gradle\caches\transforms-2\files-2.1\f209091eb3926c649f0b3346884e478c\appcompat-1.1.0\AndroidManifest.xml:17:1-24:12
 MERGED from [androidx.coordinatorlayout:coordinatorlayout:1.1.0] C:\Users\Marissa\.gradle\caches\transforms-2\files-2.1\e491b027066b482b439af311917e1339\coordinatorlayout-1.1.0\AndroidManifest.xml:17:1-24:12
@@ -114,8 +114,8 @@ MERGED from [com.google.android.material:material:1.1.0] C:\Users\Marissa\.gradl
 MERGED from [com.google.android.material:material:1.1.0] C:\Users\Marissa\.gradle\caches\transforms-2\files-2.1\880b7e418025ce421e62ae2f6f547833\material-1.1.0\AndroidManifest.xml:22:5-20
 MERGED from [com.google.android.gms:play-services-location:17.0.0] C:\Users\Marissa\.gradle\caches\transforms-2\files-2.1\9fc19bc18885249ef1a460bfbf368363\jetified-play-services-location-17.0.0\AndroidManifest.xml:7:5-20
 MERGED from [com.google.android.gms:play-services-location:17.0.0] C:\Users\Marissa\.gradle\caches\transforms-2\files-2.1\9fc19bc18885249ef1a460bfbf368363\jetified-play-services-location-17.0.0\AndroidManifest.xml:7:5-20
-MERGED from [com.google.android.gms:play-services-nearby:16.0.0] C:\Users\Marissa\.gradle\caches\transforms-2\files-2.1\19e72ba2dc7c501f286e32a43db9ca4a\jetified-play-services-nearby-16.0.0\AndroidManifest.xml:9:5-20
-MERGED from [com.google.android.gms:play-services-nearby:16.0.0] C:\Users\Marissa\.gradle\caches\transforms-2\files-2.1\19e72ba2dc7c501f286e32a43db9ca4a\jetified-play-services-nearby-16.0.0\AndroidManifest.xml:9:5-20
+MERGED from [com.google.android.gms:play-services-nearby:16.0.0] C:\Users\Marissa\.gradle\caches\transforms-2\files-2.1\a9d59743d36de4754c2c31f5760e1d59\jetified-play-services-nearby-16.0.0\AndroidManifest.xml:9:5-20
+MERGED from [com.google.android.gms:play-services-nearby:16.0.0] C:\Users\Marissa\.gradle\caches\transforms-2\files-2.1\a9d59743d36de4754c2c31f5760e1d59\jetified-play-services-nearby-16.0.0\AndroidManifest.xml:9:5-20
 MERGED from [com.google.android.gms:play-services-base:17.0.0] C:\Users\Marissa\.gradle\caches\transforms-2\files-2.1\a1794986c7a3c4986f9feb2359005476\jetified-play-services-base-17.0.0\AndroidManifest.xml:22:5-27:19
 MERGED from [com.google.android.gms:play-services-base:17.0.0] C:\Users\Marissa\.gradle\caches\transforms-2\files-2.1\a1794986c7a3c4986f9feb2359005476\jetified-play-services-base-17.0.0\AndroidManifest.xml:22:5-27:19
 MERGED from [com.google.android.gms:play-services-places-placereport:17.0.0] C:\Users\Marissa\.gradle\caches\transforms-2\files-2.1\0019c31d14287ef1010e7db518ab7dac\jetified-play-services-places-placereport-17.0.0\AndroidManifest.xml:22:5-20
@@ -188,8 +188,8 @@ MERGED from [com.google.android.material:material:1.1.0] C:\Users\Marissa\.gradl
 MERGED from [com.google.android.material:material:1.1.0] C:\Users\Marissa\.gradle\caches\transforms-2\files-2.1\880b7e418025ce421e62ae2f6f547833\material-1.1.0\AndroidManifest.xml:20:5-44
 MERGED from [com.google.android.gms:play-services-location:17.0.0] C:\Users\Marissa\.gradle\caches\transforms-2\files-2.1\9fc19bc18885249ef1a460bfbf368363\jetified-play-services-location-17.0.0\AndroidManifest.xml:5:5-44
 MERGED from [com.google.android.gms:play-services-location:17.0.0] C:\Users\Marissa\.gradle\caches\transforms-2\files-2.1\9fc19bc18885249ef1a460bfbf368363\jetified-play-services-location-17.0.0\AndroidManifest.xml:5:5-44
-MERGED from [com.google.android.gms:play-services-nearby:16.0.0] C:\Users\Marissa\.gradle\caches\transforms-2\files-2.1\19e72ba2dc7c501f286e32a43db9ca4a\jetified-play-services-nearby-16.0.0\AndroidManifest.xml:5:5-44
-MERGED from [com.google.android.gms:play-services-nearby:16.0.0] C:\Users\Marissa\.gradle\caches\transforms-2\files-2.1\19e72ba2dc7c501f286e32a43db9ca4a\jetified-play-services-nearby-16.0.0\AndroidManifest.xml:5:5-44
+MERGED from [com.google.android.gms:play-services-nearby:16.0.0] C:\Users\Marissa\.gradle\caches\transforms-2\files-2.1\a9d59743d36de4754c2c31f5760e1d59\jetified-play-services-nearby-16.0.0\AndroidManifest.xml:5:5-44
+MERGED from [com.google.android.gms:play-services-nearby:16.0.0] C:\Users\Marissa\.gradle\caches\transforms-2\files-2.1\a9d59743d36de4754c2c31f5760e1d59\jetified-play-services-nearby-16.0.0\AndroidManifest.xml:5:5-44
 MERGED from [androidx.legacy:legacy-support-core-ui:1.0.0] C:\Users\Marissa\.gradle\caches\transforms-2\files-2.1\f5ec57ec49d0a3e9add695de66a9078c\legacy-support-core-ui-1.0.0\AndroidManifest.xml:20:5-44
 MERGED from [androidx.legacy:legacy-support-core-ui:1.0.0] C:\Users\Marissa\.gradle\caches\transforms-2\files-2.1\f5ec57ec49d0a3e9add695de66a9078c\legacy-support-core-ui-1.0.0\AndroidManifest.xml:20:5-44
 MERGED from [androidx.appcompat:appcompat:1.1.0] C:\Users\Marissa\.gradle\caches\transforms-2\files-2.1\f209091eb3926c649f0b3346884e478c\appcompat-1.1.0\AndroidManifest.xml:20:5-22:41
@@ -275,9 +275,9 @@ INJECTED from C:\Users\Marissa\CODE DEV\RemoteControl\AndroidRemote\src\main\And
 		ADDED from C:\Users\Marissa\CODE DEV\RemoteControl\AndroidRemote\src\main\AndroidManifest.xml
 		INJECTED from C:\Users\Marissa\CODE DEV\RemoteControl\AndroidRemote\src\main\AndroidManifest.xml
 uses-permission#android.permission.ACCESS_NETWORK_STATE
-ADDED from [com.google.android.gms:play-services-nearby:16.0.0] C:\Users\Marissa\.gradle\caches\transforms-2\files-2.1\19e72ba2dc7c501f286e32a43db9ca4a\jetified-play-services-nearby-16.0.0\AndroidManifest.xml:7:5-79
+ADDED from [com.google.android.gms:play-services-nearby:16.0.0] C:\Users\Marissa\.gradle\caches\transforms-2\files-2.1\a9d59743d36de4754c2c31f5760e1d59\jetified-play-services-nearby-16.0.0\AndroidManifest.xml:7:5-79
 	android:name
-		ADDED from [com.google.android.gms:play-services-nearby:16.0.0] C:\Users\Marissa\.gradle\caches\transforms-2\files-2.1\19e72ba2dc7c501f286e32a43db9ca4a\jetified-play-services-nearby-16.0.0\AndroidManifest.xml:7:22-76
+		ADDED from [com.google.android.gms:play-services-nearby:16.0.0] C:\Users\Marissa\.gradle\caches\transforms-2\files-2.1\a9d59743d36de4754c2c31f5760e1d59\jetified-play-services-nearby-16.0.0\AndroidManifest.xml:7:22-76
 activity#com.google.android.gms.common.api.GoogleApiActivity
 ADDED from [com.google.android.gms:play-services-base:17.0.0] C:\Users\Marissa\.gradle\caches\transforms-2\files-2.1\a1794986c7a3c4986f9feb2359005476\jetified-play-services-base-17.0.0\AndroidManifest.xml:23:9-26:75
 	android:exported

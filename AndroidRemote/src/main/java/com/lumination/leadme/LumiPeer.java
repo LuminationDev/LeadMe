@@ -4,19 +4,41 @@ public class LumiPeer {
     private String buddyName;
     private String id;
     private String status = "Connected";
+    private boolean selected = false;
+    private boolean locked = true;
 
-    public LumiPeer(NearbyPeersManager.Endpoint endpoint){
-        if(endpoint != null) {
+    public LumiPeer(NearbyPeersManager.Endpoint endpoint) {
+        if (endpoint != null) {
             buddyName = endpoint.getName();
             id = endpoint.getId();
         }
     }
 
-    public void setStatus(String status){
+    public boolean isLocked() {
+        return locked;
+    }
+
+    public void setLocked(boolean locked) {
+        this.locked = locked;
+    }
+
+    public boolean isSelected() {
+        return selected;
+    }
+
+    public void toggleSelected() {
+        selected = !selected;
+    }
+
+    public void setSelected(boolean selected) {
+        this.selected = selected;
+    }
+
+    public void setStatus(String status) {
         this.status = status;
     }
 
-    public  String getStatus(){
+    public String getStatus() {
         return status;
     }
 

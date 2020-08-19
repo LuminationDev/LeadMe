@@ -56,12 +56,14 @@ public class MainActivity extends FragmentActivity implements Handler.Callback {
 
     //tag to indicate what incoming message holds
     static final String ACTION_TAG = "LumiAction";
-    static final String BOOL_TAG = "LumiBool";
     static final String APP_TAG = "LumiAppLaunch";
     static final String EXIT_TAG = "LumiExit";
     static final String RETURN_TAG = "LumiReturnToApp";
+    static final String RETURN_CHOSEN_TAG = "LumiReturnToAppChosen:";
+    static final String LOCK_CHOSEN_TAG = "LumiStudentLockChosen:";
+    static final String UNLOCK_CHOSEN_TAG = "LumiStudentUnlockChosen:";
     static final String GESTURE_TAG = "LumiGesture";
-    public static final String MY_NAME_TAG = "LumiMyNameIs";
+    static final String YOUR_ID_IS = "LumiYourID:";
 
     static final String STUDENT_LOCK = "LumiStudentLock";
     static final String STUDENT_MENU = "LumiStudentMenu";
@@ -84,10 +86,21 @@ public class MainActivity extends FragmentActivity implements Handler.Callback {
     //gesture detection variables
     protected WindowManager windowManager;
     private InputMethodManager imm;
-    protected View overlayView;
     public GestureDetectionView gestureCaptureView;
     protected WindowManager.LayoutParams overlayParams;
     private RemoteDispatcherService remoteDispatcherService;
+    protected View overlayView;
+
+    //floating menu buttons
+    ImageView exitBtnView;
+    ImageView returnBtnView;
+    ImageView lockBtnView;
+
+    //main app equivalents
+    ImageView lockBtnMainView;
+    ImageView unlockBtnMainView;
+    ImageView returnBtnMainView;
+    ImageView whoBtn;
 
     //local variables for exitApp function only
     private long lastTap = 0;
@@ -219,7 +232,6 @@ public class MainActivity extends FragmentActivity implements Handler.Callback {
     @Override
     public void onResume() {
         super.onResume();
-        Log.i(TAG, "OnResume!");
 
         //hide keyboard
         if (getCurrentFocus() != null) {
@@ -230,7 +242,6 @@ public class MainActivity extends FragmentActivity implements Handler.Callback {
             permissionsInitialised = true;
 
         } else if (permissionManager.workThroughPermissions()) {
-            Log.d(TAG, "Setting P2P and Overlay from OnResume");
             startOverlayAndServices();
         }
 
@@ -272,7 +283,7 @@ public class MainActivity extends FragmentActivity implements Handler.Callback {
 
         if (hasFocus && returningToApp) {
             returningToApp = false; //returned!
-            if(isGuide) {
+            if (isGuide) {
                 showWhoToReturnDialog();
             }
         }
@@ -547,6 +558,47 @@ public class MainActivity extends FragmentActivity implements Handler.Callback {
             startOverlayAndServices();
         }
 
+        setUpControlButtons();
+    }
+
+    private boolean selectEveryone = false;
+
+    private void setUpControlButtons() {
+        whoBtn = findViewById(R.id.whoBtnMain);
+        returnBtnMainView = findViewById(R.id.returnToAppMain);
+        lockBtnMainView = findViewById(R.id.lockBtnMain);
+        unlockBtnMainView = findViewById(R.id.unlockBtnMain);
+
+        whoBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                selectEveryone = !selectEveryone;
+                //select or deselect all buddies
+                connectedStudentsFragment.selectAllPeers(selectEveryone);
+            }
+        });
+
+        returnBtnMainView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                returnToAppFromMainAction();
+            }
+        });
+
+        lockBtnMainView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                lockFromMainAction();
+            }
+        });
+
+        unlockBtnMainView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                unlockFromMainAction();
+            }
+        });
+
     }
 
     private void startOverlayAndServices() {
@@ -588,6 +640,11 @@ public class MainActivity extends FragmentActivity implements Handler.Callback {
 
         //add overlay to the window manager
         windowManager.addView(overlayView, overlayParams);
+
+        //get relevant floating menu buttons
+        lockBtnView = overlayView.findViewById(R.id.lockBtn);
+        exitBtnView = overlayView.findViewById(R.id.exitBtn);
+        returnBtnView = overlayView.findViewById(R.id.logoView);
 
         //set up the draggable menu and static menu
         View floatingMenu = overlayView.findViewById(R.id.floatingMenu);
@@ -654,11 +711,11 @@ public class MainActivity extends FragmentActivity implements Handler.Callback {
 
     public void setStudentLock(boolean lock) {
         studentLockOn = lock;
-        ImageView imageView = overlayView.findViewById(R.id.lockBtn);
+
         Log.d(TAG, "Is locked? " + studentLockOn);
         String status = "";
         if (studentLockOn) {
-            imageView.setImageResource(R.mipmap.lock_icon);
+            lockBtnView.setImageResource(R.mipmap.lock_icon);
 
             if (isGuide) {
                 status = "Students are now in FOLLOW mode";
@@ -667,7 +724,7 @@ public class MainActivity extends FragmentActivity implements Handler.Callback {
             }
 
         } else {
-            imageView.setImageResource(R.mipmap.unlock_icon);
+            lockBtnView.setImageResource(R.mipmap.unlock_icon);
             if (isGuide) {
                 status = "Students are now in FREE PLAY mode";
             } else {
@@ -689,7 +746,7 @@ public class MainActivity extends FragmentActivity implements Handler.Callback {
         if (url == null || url.length() < 3 || !url.contains(".")) {
             Toast toast = Toast.makeText(this, "Invalid URL", Toast.LENGTH_SHORT);
             toast.show();
-            getRemoteDispatchService().sendAction(MainActivity.ACTION_TAG, MainActivity.AUTO_INSTALL_FAILED + "Invalid URL:" + nearbyManager.getName());
+            getRemoteDispatchService().sendAction(MainActivity.ACTION_TAG, MainActivity.AUTO_INSTALL_FAILED + "Invalid URL:" + nearbyManager.getID());
             return false;
         }
 
@@ -710,7 +767,7 @@ public class MainActivity extends FragmentActivity implements Handler.Callback {
             if (ai != null) {
                 Log.w(TAG, "Selecting browser:  " + ai + " for " + uri.getHost());
                 startActivity(intent);
-                getRemoteDispatchService().sendAction(MainActivity.ACTION_TAG, MainActivity.LAUNCH_SUCCESS + uri.getHost() + ":" + nearbyManager.getName());
+                getRemoteDispatchService().sendAction(MainActivity.ACTION_TAG, MainActivity.LAUNCH_SUCCESS + uri.getHost() + ":" + nearbyManager.getID());
                 return true; //success!
             }
         }
@@ -721,12 +778,12 @@ public class MainActivity extends FragmentActivity implements Handler.Callback {
         List<ResolveInfo> list = pm.queryIntentActivities(intent, 0);
         if (list.size() > 0) {
             context.startActivity(intent);
-            getRemoteDispatchService().sendAction(MainActivity.ACTION_TAG, MainActivity.LAUNCH_SUCCESS + uri.getHost() + ":" + nearbyManager.getName());
+            getRemoteDispatchService().sendAction(MainActivity.ACTION_TAG, MainActivity.LAUNCH_SUCCESS + uri.getHost() + ":" + nearbyManager.getID());
             return true; //success!
         } else {
             Toast toast = Toast.makeText(this, "No browser available", Toast.LENGTH_SHORT);
             toast.show();
-            getRemoteDispatchService().sendAction(MainActivity.ACTION_TAG, MainActivity.AUTO_INSTALL_FAILED + "No browser:" + nearbyManager.getName());
+            getRemoteDispatchService().sendAction(MainActivity.ACTION_TAG, MainActivity.AUTO_INSTALL_FAILED + "No browser:" + nearbyManager.getID());
             return false; //no browser, failure
         }
     }
@@ -775,7 +832,7 @@ public class MainActivity extends FragmentActivity implements Handler.Callback {
 
         try {
             startActivity(appIntent);
-            getRemoteDispatchService().sendAction(MainActivity.ACTION_TAG, MainActivity.LAUNCH_SUCCESS + "YT id=" + id + ":" + nearbyManager.getName());
+            getRemoteDispatchService().sendAction(MainActivity.ACTION_TAG, MainActivity.LAUNCH_SUCCESS + "YT id=" + id + ":" + nearbyManager.getID());
             return true; //assume the best if we get to here
 
         } catch (Exception ex) {
@@ -865,13 +922,33 @@ public class MainActivity extends FragmentActivity implements Handler.Callback {
             //TODO if calling this after launching a 3rd party app from within Lead Me, it works perfectly
             //TODO if calling this after minimising Lead Me, it can take multiple taps to return to the app - weird behaviour?
             getRemoteDispatchService().bringMainToFront();
-
             activityManager.moveTaskToFront(getTaskId(), 0);
             if (appToast == null) {
                 returningToApp = true;
-                appToast = Toast.makeText(context, "Returning to Lumination Remote Guide app", Toast.LENGTH_SHORT);
+                appToast = Toast.makeText(context, "Returning to Lumination Lead Me app", Toast.LENGTH_SHORT);
                 appToast.show();
             }
+        }
+    }
+
+    public void lockFromMainAction() {
+        String connections = getConnectedStudentsFragment().getSelectedPeerIDList();
+        getRemoteDispatchService().sendAction(MainActivity.ACTION_TAG, MainActivity.LOCK_CHOSEN_TAG + connections);
+    }
+
+    public void unlockFromMainAction() {
+        String connections = getConnectedStudentsFragment().getSelectedPeerIDList();
+        getRemoteDispatchService().sendAction(MainActivity.ACTION_TAG, MainActivity.UNLOCK_CHOSEN_TAG + connections);
+    }
+
+    public void returnToAppFromMainAction() {
+        String connections = getConnectedStudentsFragment().getSelectedPeerIDList();
+        getRemoteDispatchService().sendAction(MainActivity.ACTION_TAG, MainActivity.RETURN_CHOSEN_TAG + connections);
+
+        if (appToast == null) {
+            returningToApp = true;
+            appToast = Toast.makeText(context, "Returning selected followers to Lumination Lead Me app", Toast.LENGTH_SHORT);
+            appToast.show();
         }
     }
 

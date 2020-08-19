@@ -118,7 +118,7 @@ public class RemoteAppLauncher extends Fragment {
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         main.startActivity(intent);
         lastApp = packageName;
-        main.getRemoteDispatchService().sendAction(MainActivity.ACTION_TAG, MainActivity.LAUNCH_SUCCESS + appName + ":" + main.nearbyManager.getName());
+        main.getRemoteDispatchService().sendAction(MainActivity.ACTION_TAG, MainActivity.LAUNCH_SUCCESS + appName + ":" + main.nearbyManager.getID());
     }
 
     public void launchApp(MainActivity main, String packageName, String appName) {

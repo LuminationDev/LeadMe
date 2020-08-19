@@ -57,8 +57,13 @@ import java.util.Set;
 public class NearbyPeersManager implements SensorEventListener {
 
     private static final String TAG = "NearbyManager";
+
     private CheckBox checkBox;
     private View checkBoxView;
+
+    private TextView textBox;
+    private View textBoxView;
+    private final String teachercode = "1990"; //hard coded for now
 
     private static int AUTO_DISCONNECT = -1; //-1 = unknown, 1 = yes, 0 = no
 
@@ -120,6 +125,7 @@ public class NearbyPeersManager implements SensorEventListener {
     private final MainActivity main;
 
     private String myName;
+    private String myId;
 
     /**
      * Starts discovery. Used in a postDelayed manor with {@link #mUiHandler}.
@@ -169,7 +175,6 @@ public class NearbyPeersManager implements SensorEventListener {
     public void onBackPressed() {
         //TODO I'm not sure about these states?
         if (main.isReadyToConnect && (getState() == State.CONNECTED || getState() == State.ADVERTISING)) {
-
             Log.i(TAG, "In back pressed - " + main.isGuide);
             setState(State.DISCOVERING);
             return;
@@ -198,7 +203,10 @@ public class NearbyPeersManager implements SensorEventListener {
                 //NOTE: this must be done on main thread
                 Log.d(TAG, "Am I the guide? " + main.isGuide);
                 if (main.isGuide) {
-                    main.getConnectedStudentsFragment().addStudent(new LumiPeer(endpoint));
+                    LumiPeer thisPeer = new LumiPeer(endpoint);
+                    main.getConnectedStudentsFragment().addStudent(thisPeer);
+                    //send the ID back to the student
+                    main.getRemoteDispatchService().sendAction(MainActivity.ACTION_TAG, MainActivity.YOUR_ID_IS + thisPeer.getID() + ":" + thisPeer.getDisplayName());
                 }
             }
         });
@@ -310,9 +318,6 @@ public class NearbyPeersManager implements SensorEventListener {
     }
 
     private void performDisconnection(final Endpoint endpoint) {
-        //main.stopLockTask();
-
-        //TODO something more informative
         mUiHandler.post(new Runnable() {
             @Override
             public void run() {
@@ -337,32 +342,37 @@ public class NearbyPeersManager implements SensorEventListener {
                                 checkBox = (CheckBox) checkBoxView.findViewById(R.id.alertCheckBox);
                             }
 
-                            AlertDialog disconnectPrompt = new AlertDialog.Builder(main)
-                                    .setTitle("Disconnect")
-                                    .setMessage("All followers have disconnected.\nDo you want to stop guiding now?")
-                                    .setView(checkBoxView)
+                            if (main.hasWindowFocus()) {
+                                AlertDialog disconnectPrompt = new AlertDialog.Builder(main)
+                                        .setTitle("Disconnect")
+                                        .setMessage("All followers have disconnected.\nDo you want to stop guiding now?")
+                                        .setView(checkBoxView)
 
-                                    // Specifying a listener allows you to take an action before dismissing the dialog.
-                                    // The dialog is automatically dismissed when a dialog button is clicked.
-                                    .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
-                                        public void onClick(DialogInterface dialog, int which) {
-                                            if (checkBox.isChecked()) {
-                                                AUTO_DISCONNECT = 1;
+                                        // Specifying a listener allows you to take an action before dismissing the dialog.
+                                        // The dialog is automatically dismissed when a dialog button is clicked.
+                                        .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
+                                            public void onClick(DialogInterface dialog, int which) {
+                                                if (checkBox.isChecked()) {
+                                                    AUTO_DISCONNECT = 1;
+                                                }
+                                                main.setUIDisconnected();
                                             }
-                                            main.setUIDisconnected();
-                                        }
-                                    })
+                                        })
 
-                                    // A null listener allows the button to dismiss the dialog and take no further action.
-                                    .setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
-                                        public void onClick(DialogInterface dialog, int which) {
-                                            if (checkBox.isChecked()) {
-                                                AUTO_DISCONNECT = 0;
+                                        // A null listener allows the button to dismiss the dialog and take no further action.
+                                        .setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
+                                            public void onClick(DialogInterface dialog, int which) {
+                                                if (checkBox.isChecked()) {
+                                                    AUTO_DISCONNECT = 0;
+                                                }
                                             }
-                                        }
-                                    })
-                                    .setIcon(android.R.drawable.ic_dialog_alert)
-                                    .show();
+                                        })
+                                        .setIcon(android.R.drawable.ic_dialog_alert)
+                                        .show();
+                            } else {
+                                main.returnToAppAction();
+                                //TODO and prompt to disconnect
+                            }
                         }
                     }
 
@@ -445,13 +455,66 @@ public class NearbyPeersManager implements SensorEventListener {
         }
     }
 
+    boolean dialogOpen = false;
+    private AlertDialog codePrompt;
+
     public void enactShake() {
         Log.d(TAG, "Device shaken");
-        //TODO pop up and ask for a teacher code. Only progress if code correct.
+        if (!dialogOpen) {
+            dialogOpen = true;
+
+            if (textBoxView == null) {
+                textBoxView = View.inflate(main, R.layout.alert_textbox, null);
+                textBox = (TextView) textBoxView.findViewById(R.id.alertTextBox);
+            }
+
+            //TODO change this to a saved code rather than hardcoded value
+            if (!main.isGuide && codePrompt == null) {
+                codePrompt = new AlertDialog.Builder(main)
+                        .setTitle("Teacher Lock")
+                        .setView(textBoxView)
+
+                        // Specifying a listener allows you to take an action before dismissing the dialog.
+                        // The dialog is automatically dismissed when a dialog button is clicked.
+                        .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int which) {
+                                dialogOpen = false;
+                                if (textBox != null && textBox.getText().toString().equals(teachercode)) {
+                                    setAsGuide();
+                                } else {
+                                    wrongCode();
+                                }
+                            }
+                        })
+
+                        // A null listener allows the button to dismiss the dialog and take no further action.
+                        .setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int which) {
+                                //no action
+                                dialogOpen = false;
+                            }
+                        })
+                        .setIcon(android.R.drawable.ic_dialog_alert)
+                        .show();
+
+            } else if (!main.isGuide) {
+                codePrompt.show();
+            }
+        }
+    }
+
+    private void setAsGuide() {
         main.isGuide = true; //update this
         main.hostSwitch.setChecked(true);
         setState(State.ADVERTISING);
         postDelayed(mDiscoverRunnable, ADVERTISING_DURATION);
+    }
+
+    private void wrongCode() {
+        AlertDialog codePrompt = new AlertDialog.Builder(main)
+                .setTitle("Wrong Code")
+                .setMessage("Sorry, wrong code!")
+                .show();
     }
 
     @Override
@@ -505,6 +568,18 @@ public class NearbyPeersManager implements SensorEventListener {
             main.nameView.setText(myName);
         }
         return myName;
+    }
+
+    public String getID() {
+        return myId;
+    }
+
+    public void setID(String id) {
+        if (myId != null) {
+            Log.e(TAG, "My ID is already " + myId + ", can't set it to " + id + "!");
+            return;
+        }
+        myId = id;
     }
 
     /**

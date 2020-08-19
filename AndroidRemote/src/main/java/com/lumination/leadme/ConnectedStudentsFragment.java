@@ -9,6 +9,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.GridView;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -44,7 +45,7 @@ public class ConnectedStudentsFragment extends Fragment {
         return mContentView;
     }
 
-    public boolean hasConnectedStudents(){
+    public boolean hasConnectedStudents() {
         return mAdapter.mData.size() > 0;
     }
 
@@ -52,7 +53,26 @@ public class ConnectedStudentsFragment extends Fragment {
         mAdapter.notifyDataUpdate();
     }
 
-    public boolean removeStudent(String id){
+    public String getSelectedPeerIDList() {
+        String res = "";
+        for (LumiPeer peer : mAdapter.mData) {
+            if (peer.isSelected()) {
+                res += "," + peer.getID();
+            }
+        }
+        Log.d(TAG, "SELECTED = " + res);
+        return res;
+    }
+
+    public void selectAllPeers(boolean select) {
+        Log.d(TAG, "Got: " + mAdapter.mData.size() + " and " + select);
+        for (LumiPeer peer : mAdapter.mData) {
+            peer.setSelected(select);
+        }
+        refresh();
+    }
+
+    public boolean removeStudent(String id) {
         LumiPeer found = getMatchingPeer(id);
         if (found != null) {
             //remove old one so we keep the newest version
@@ -77,24 +97,24 @@ public class ConnectedStudentsFragment extends Fragment {
         mAdapter.mData.add(peer);
         refresh();
 
-        Log.d(TAG, "Adding "+peer.getDisplayName()+" to my student list. Now: "+mAdapter.mData.size());
+        Log.d(TAG, "Adding " + peer.getDisplayName() + " to my student list. Now: " + mAdapter.mData.size());
     }
 
-    private LumiPeer getMatchingPeerByName(String peerName) {
-        if(mAdapter == null || mAdapter.mData == null || mAdapter.mData.size() == 0){
-            return null;
-        }
-
-        for (LumiPeer peer : mAdapter.mData) {
-            if (peer != null && peer.getDisplayName().equals(peerName)) {
-                return peer;
-            }
-        }
-        return null;
-    }
+//    private LumiPeer getMatchingPeerByName(String peerName) {
+//        if(mAdapter == null || mAdapter.mData == null || mAdapter.mData.size() == 0){
+//            return null;
+//        }
+//
+//        for (LumiPeer peer : mAdapter.mData) {
+//            if (peer != null && peer.getDisplayName().equals(peerName)) {
+//                return peer;
+//            }
+//        }
+//        return null;
+//    }
 
     private LumiPeer getMatchingPeer(String peerID) {
-        if(mAdapter == null || mAdapter.mData == null || mAdapter.mData.size() == 0){
+        if (mAdapter == null || mAdapter.mData == null || mAdapter.mData.size() == 0) {
             return null;
         }
 
@@ -106,16 +126,23 @@ public class ConnectedStudentsFragment extends Fragment {
         return null;
     }
 
+    public void updateLockStatus(String name, boolean locked) {
+        LumiPeer thisPeer = getMatchingPeer(name);
+        if (thisPeer != null) {
+            thisPeer.setLocked(locked);
+            refresh();
+        }
+    }
+
     public void updateStatus(String name, String status) {
-        LumiPeer thisPeer = getMatchingPeerByName(name);
-        Log.w(TAG, "Updating peer "+thisPeer+" with "+name+" to status="+status);
+        LumiPeer thisPeer = getMatchingPeer(name);
         if (thisPeer != null) {
             thisPeer.setStatus(status);
             refresh();
         }
 
         //certain states should alert the guide - e.g. failure to load or attempt to install
-        if(status.contains("fail") || status.contains("install")) {
+        if (status.contains("fail") || status.contains("install")) {
             Toast warningToast = Toast.makeText(main.getApplicationContext(), "WARNING: Peer " + thisPeer.getDisplayName() + " status is " + status, Toast.LENGTH_LONG);
             warningToast.show();
         }
@@ -144,7 +171,7 @@ public class ConnectedStudentsFragment extends Fragment {
         }
 
         public void notifyDataUpdate() {
-            Log.i(TAG, "Updating! "+mData.size());
+            Log.i(TAG, "Updating! " + mData.size());
             notifyDataSetChanged();
             super.notifyDataSetChanged();
         }
@@ -177,16 +204,33 @@ public class ConnectedStudentsFragment extends Fragment {
 
             TextView studentName = convertView.findViewById(R.id.student_name);
             TextView studentStatus = convertView.findViewById(R.id.student_status);
+            ImageView studentLocked = convertView.findViewById(R.id.student_lock);
+            ImageView studentIcon = convertView.findViewById(R.id.student_icon);
 
             final LumiPeer peer = mData.get(position);
             if (peer != null) {
                 studentName.setText(peer.getDisplayName());
                 studentStatus.setText(Html.fromHtml(peer.getStatus(), Html.FROM_HTML_MODE_LEGACY));
 
+                if (peer.isSelected()) {
+                    studentIcon.setImageResource(R.drawable.student_selectedface);
+                } else {
+                    studentIcon.setImageResource(R.drawable.student_placeholder);
+                }
+
+                if (peer.isLocked()) {
+                    studentLocked.setImageResource(R.mipmap.lock_icon);
+                } else {
+                    studentLocked.setImageResource(R.mipmap.unlock_icon);
+                }
+
+
                 convertView.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        //TODO something useful?
+                        Log.i(TAG, "Toggled on VIEW");
+                        peer.toggleSelected();
+                        notifyDataUpdate();
                     }
                 });
             }

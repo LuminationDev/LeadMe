@@ -43,4 +43,5 @@
     <string name="cross_symbol">&#x2716;</string>
     <string name="app_return_me">Just me</string>
     <string name="app_return_everyone">Everyone</string>
+    <string name="teacher_code_placeholder">Please type in your unlock code</string>
 </resources>

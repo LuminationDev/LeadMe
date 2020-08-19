@@ -408,7 +408,10 @@ public class RemoteDispatcherService extends AccessibilityService {
         p.recycle();
 
         //auto-install tags and success tag are exempt so students can alert teacher to their status
-        if (main.nearbyManager.isConnectedAsGuide() || action.startsWith(MainActivity.AUTO_INSTALL_FAILED) || action.startsWith(MainActivity.AUTO_INSTALL_ATTEMPT) || action.startsWith(MainActivity.LAUNCH_SUCCESS)) {
+        if (main.nearbyManager.isConnectedAsGuide() ||
+                action.startsWith(MainActivity.RETURN_TAG) ||
+                action.startsWith(MainActivity.AUTO_INSTALL_FAILED) || action.startsWith(MainActivity.AUTO_INSTALL_ATTEMPT) ||
+                action.startsWith(MainActivity.LAUNCH_SUCCESS)) {
             main.nearbyManager.write(bytes);
         } else {
             Log.i(TAG, "Sorry, you can't send actions!");
@@ -483,6 +486,7 @@ public class RemoteDispatcherService extends AccessibilityService {
             switch (action) {
                 case MainActivity.RETURN_TAG:
                     Log.d(TAG, "Trying to return to " + main.getApplicationContext().getPackageName());
+                    main.getRemoteDispatchService().sendAction(MainActivity.ACTION_TAG, MainActivity.LAUNCH_SUCCESS + "Lead Me" + ":" + main.nearbyManager.getID());
                     main.returnToAppAction();
                     break;
 
@@ -493,7 +497,44 @@ public class RemoteDispatcherService extends AccessibilityService {
                     break;
 
                 default:
-                    if (action.startsWith(MainActivity.AUTO_INSTALL_FAILED)) {
+                    if (action.startsWith(MainActivity.YOUR_ID_IS)) {
+                        String[] split = action.split(":");
+                        if (split.length == 3) {
+                            //Now I know my ID! Store it.
+                            if (split[2].equals(main.nearbyManager.getName())) {
+                                Log.d(TAG, "The Guide tells me my ID is " + split[1]);
+                                main.nearbyManager.setID(split[1]);
+                            }
+                        }
+                        break;
+                    } else if (action.startsWith(MainActivity.RETURN_CHOSEN_TAG)) {
+                        String[] split = action.split(":");
+                        if (split.length == 2 && split[1].contains(main.nearbyManager.getID())) {
+                            //I've been selected to return to app
+                            main.getRemoteDispatchService().sendAction(MainActivity.ACTION_TAG, MainActivity.LAUNCH_SUCCESS + "Lead Me" + ":" + main.nearbyManager.getID());
+                            main.returnToAppAction();
+                        }
+                        break;
+
+                    } else if (action.startsWith(MainActivity.LOCK_CHOSEN_TAG)) {
+                        String[] split = action.split(":");
+                        if (split.length == 2 && split[1].contains(main.nearbyManager.getID())) {
+                            //I've been selected to toggle student lock
+                            main.setStudentLock(true);
+                            main.getRemoteDispatchService().sendAction(MainActivity.ACTION_TAG, MainActivity.LAUNCH_SUCCESS + "LOCKON" + ":" + main.nearbyManager.getID());
+                        }
+                        break;
+
+                    } else if (action.startsWith(MainActivity.UNLOCK_CHOSEN_TAG)) {
+                        String[] split = action.split(":");
+                        if (split.length == 2 && split[1].contains(main.nearbyManager.getID())) {
+                            //I've been selected to toggle student lock
+                            main.setStudentLock(false);
+                            main.getRemoteDispatchService().sendAction(MainActivity.ACTION_TAG, MainActivity.LAUNCH_SUCCESS + "LOCKOFF" + ":" + main.nearbyManager.getID());
+                        }
+                        break;
+
+                    } else if (action.startsWith(MainActivity.AUTO_INSTALL_FAILED)) {
                         String[] split = action.split(":");
                         main.getConnectedStudentsFragment().updateStatus(split[2], "&#x2716; " + split[1]);
                         break;
@@ -505,7 +546,15 @@ public class RemoteDispatcherService extends AccessibilityService {
 
                     } else if (action.startsWith(MainActivity.LAUNCH_SUCCESS)) {
                         String[] split = action.split(":");
-                        main.getConnectedStudentsFragment().updateStatus(split[2], "&#x2714; " + split[1]);
+                        if (split[1].equals("LOCKON")) {
+                            main.getConnectedStudentsFragment().updateLockStatus(split[2], true);
+
+                        } else if (split[1].equals("LOCKOFF")) {
+                            main.getConnectedStudentsFragment().updateLockStatus(split[2], false);
+
+                        } else {
+                            main.getConnectedStudentsFragment().updateStatus(split[2], "&#x2714; " + split[1]);
+                        }
                         break;
 
                     } else if (action.startsWith(MainActivity.LAUNCH_URL)) {
@@ -530,8 +579,8 @@ public class RemoteDispatcherService extends AccessibilityService {
 
     }
 
-    public void launchDelayedApp(){
-        if(launchAppOnFocus != null) {
+    public void launchDelayedApp() {
+        if (launchAppOnFocus != null) {
             final String[] tmp = launchAppOnFocus;
             launchAppOnFocus = null; //reset
 
@@ -545,6 +594,7 @@ public class RemoteDispatcherService extends AccessibilityService {
     }
 
     private String[] launchAppOnFocus = null;
+
     public boolean openApp(byte[] bytes) {
         Parcel p = Parcel.obtain();
         p.unmarshall(bytes, 0, bytes.length);
