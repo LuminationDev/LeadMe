@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/transparentOverlay"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:background="#3258E2FA"
+    android:fillViewport="true"
+    android:gravity="center"
+    android:keepScreenOn="true"
+    android:orientation="vertical">
+
+
+    <LinearLayout
+        android:id="@+id/blockingView"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:layout_centerInParent="true"
+        android:background="#000000"
+        android:foregroundGravity="center"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:visibility="gone">
+
+        <ImageView
+            android:id="@+id/leadmeLogo"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginBottom="30dp"
+            android:contentDescription="@string/logo"
+            android:src="@android:drawable/ic_dialog_alert" />
+
+        <TextView
+            android:id="@+id/blockingMessage"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="@font/poppins_semibold"
+            android:gravity="center"
+            android:text="@string/student_view_blocked"
+            android:textAlignment="center"
+            android:textColor="#FFFFFF"
+            android:textSize="36sp"
+            android:textStyle="bold" />
+    </LinearLayout>
+
+
+</RelativeLayout>

@@ -1,0 +1,324 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/mainView"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:background="@color/luminationBG"
+    android:orientation="vertical"
+    android:padding="5dp">
+
+
+    <LinearLayout
+            android:id="@+id/titleBar"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:layout_marginBottom="10dp">
+
+        <ImageView
+            android:id="@+id/logo"
+            android:layout_width="60dp"
+            android:layout_height="match_parent"
+            android:layout_marginStart="5dp"
+            android:layout_marginEnd="10dp"
+            android:contentDescription="@string/logo_txt"
+            android:foregroundGravity="center"
+            android:minWidth="3dp"
+            android:src="@mipmap/lumination_logo"
+            app:srcCompat="@mipmap/lumination_logo" />
+
+        <TextView
+            android:id="@+id/titleText"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:fontFamily="@font/poppins_semibold"
+            android:gravity="center_vertical"
+            android:text="@string/app_title"
+            android:textColor="@color/luminationText"
+            android:textSize="22sp" />
+
+        <Switch
+                android:id="@+id/hostSwitch"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_marginTop="5dp"
+                android:layout_marginBottom="5dp"
+                android:switchMinWidth="@dimen/switch_width"
+                android:textOff="@string/client_label"
+                android:textOn="@string/host_label"
+                android:thumb="@drawable/thumb"
+                android:thumbTextPadding="10dp"
+                android:track="@drawable/track"
+                tools:checked="true" />
+
+        <ImageView
+            android:id="@+id/menuBtn"
+            android:layout_width="@dimen/icon_size"
+            android:layout_height="@dimen/icon_size"
+            android:layout_gravity="center_vertical"
+            android:layout_marginStart="15dp"
+            android:adjustViewBounds="true"
+            android:background="#00FFFFFF"
+            android:clickable="true"
+            android:contentDescription="@string/logo_txt"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
+            android:foregroundGravity="top|left"
+            android:scaleType="fitCenter"
+            android:src="@mipmap/menu_icon"
+            android:visibility="visible"
+            app:srcCompat="@mipmap/menu_icon"
+            tools:srcCompat="@mipmap/menu_icon"
+            tools:visibility="visible" />
+
+    </LinearLayout>
+
+    <TableRow
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="10dp"
+        android:layout_marginEnd="10dp"
+        android:gravity="center"
+        android:paddingTop="10dp"
+        android:paddingBottom="10dp">
+
+        <TextView
+            android:id="@+id/nameInputLabel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="15dp"
+            android:layout_weight="0"
+            android:fontFamily="@font/poppins_semibold"
+            android:text="@string/name_label"
+            android:textSize="14sp" />
+
+
+        <EditText
+            android:id="@+id/nameInput"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="start|center_vertical"
+            android:layout_weight="2"
+            android:autofillHints=""
+            android:digits="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ _"
+            android:focusableInTouchMode="true"
+            android:fontFamily="@font/poppins_regular"
+            android:hint="@string/name_placeholder"
+            android:imeOptions="actionDone"
+            android:inputType="textPersonName"
+            android:textSize="14sp"
+            android:visibility="visible"></EditText>
+
+        <Button
+            android:id="@+id/readyBtn"
+            style="?android:attr/buttonBarButtonStyle"
+            android:layout_width="80dp"
+            android:layout_height="35dp"
+            android:layout_marginStart="20dp"
+            android:layout_weight="0"
+            android:background="@drawable/button_selector"
+            android:singleLine="true"
+            android:text="@string/ready_label"
+            android:textAlignment="center"
+            android:textColor="@color/luminationBG"
+            android:textSize="13sp" />
+    </TableRow>
+
+
+    <LinearLayout
+        android:id="@+id/status_container"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:layout_marginBottom="10dp"
+        android:gravity="center_horizontal"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/statusView"
+            android:layout_width="0dp"
+            android:layout_height="fill_parent"
+            android:layout_marginStart="50dp"
+            android:layout_weight="1"
+            android:background="@color/luminationLightAccentTrans"
+            android:fontFamily="@font/poppins_regular"
+            android:gravity="center_horizontal|center_vertical"
+            android:text="@string/clickLetsGo"
+            android:textColor="@color/luminationDarkAccent" />
+
+        <ProgressBar
+            android:id="@+id/progressBar"
+            style="?android:attr/progressBarStyle"
+            android:layout_width="@dimen/progressbar_width"
+            android:layout_height="@dimen/progressbar_width"
+            android:layout_gravity="center"
+            android:layout_marginStart="10dp"
+            android:layout_marginEnd="10dp"
+            tools:visibility="invisible" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/controlBtns"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:orientation="horizontal"
+        android:visibility="gone">
+
+        <ImageView
+            android:id="@+id/whoBtnMain"
+            android:layout_width="@dimen/logo_size"
+            android:layout_height="@dimen/logo_size"
+            android:layout_gravity="center_vertical"
+            android:layout_marginEnd="@dimen/main_menu_padding"
+            android:adjustViewBounds="true"
+            android:background="#00FFFFFF"
+            android:clickable="true"
+            android:contentDescription="@string/logo_txt"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
+            android:foregroundGravity="top|left"
+            android:scaleType="fitCenter"
+            android:src="@mipmap/everyone_icon"
+            android:visibility="visible"
+            app:srcCompat="@mipmap/everyone_icon"
+            tools:srcCompat="@mipmap/everyone_icon"
+            tools:visibility="visible" />
+
+        <ImageView
+            android:id="@+id/blackoutBtnMain"
+            android:layout_width="@dimen/logo_size"
+            android:layout_height="@dimen/logo_size"
+            android:layout_gravity="center_vertical"
+            android:layout_marginStart="@dimen/main_menu_padding"
+            android:layout_weight="1"
+            android:adjustViewBounds="true"
+            android:background="#00FFFFFF"
+            android:baselineAlignBottom="false"
+            android:clickable="true"
+            android:contentDescription="@string/logo_txt"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
+            android:foregroundGravity="top|left"
+            android:scaleType="fitCenter"
+            android:src="@mipmap/blackout_icon"
+            android:visibility="visible"
+            app:srcCompat="@mipmap/blackout_icon"
+            tools:srcCompat="@mipmap/blackout_icon"
+            tools:visibility="visible" />
+
+        <ImageView
+            android:id="@+id/lockBtnMain"
+            android:layout_width="@dimen/logo_size"
+            android:layout_height="@dimen/logo_size"
+            android:layout_gravity="center_vertical"
+            android:layout_weight="1"
+            android:adjustViewBounds="true"
+            android:background="#00FFFFFF"
+            android:baselineAlignBottom="false"
+            android:clickable="true"
+            android:contentDescription="@string/logo_txt"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
+            android:foregroundGravity="top|left"
+            android:scaleType="fitCenter"
+            android:src="@mipmap/lockmain_icon"
+            android:visibility="visible"
+            app:srcCompat="@mipmap/lockmain_icon"
+            tools:srcCompat="@mipmap/lockmain_icon"
+            tools:visibility="visible" />
+
+        <ImageView
+            android:id="@+id/unlockBtnMain"
+            android:layout_width="@dimen/logo_size"
+            android:layout_height="@dimen/logo_size"
+            android:layout_gravity="center_vertical"
+            android:layout_weight="1"
+            android:adjustViewBounds="true"
+            android:background="#00FFFFFF"
+            android:baselineAlignBottom="false"
+            android:clickable="true"
+            android:contentDescription="@string/logo_txt"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
+            android:foregroundGravity="top|left"
+            android:scaleType="fitCenter"
+            android:src="@mipmap/unlockmain_icon"
+            android:visibility="visible"
+            app:srcCompat="@mipmap/unlockmain_icon"
+            tools:srcCompat="@mipmap/unlockmain_icon"
+            tools:visibility="visible" />
+
+        <ImageView
+            android:id="@+id/returnToAppMain"
+            android:layout_width="@dimen/logo_size"
+            android:layout_height="@dimen/logo_size"
+            android:layout_gravity="center_vertical"
+            android:adjustViewBounds="true"
+            android:background="#00FFFFFF"
+            android:baselineAlignBottom="false"
+            android:clickable="true"
+            android:contentDescription="@string/logo_txt"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
+            android:foregroundGravity="top|left"
+            android:scaleType="fitCenter"
+            android:src="@mipmap/return_icon"
+            android:visibility="visible"
+            app:srcCompat="@mipmap/return_icon"
+            tools:srcCompat="@mipmap/return_icon"
+            tools:visibility="visible" />
+
+    </LinearLayout>
+
+    <fragment
+        android:id="@+id/follower_layout"
+        android:name="com.lumination.leadme.ConnectedStudentsFragment"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/large_height"
+        android:visibility="visible"
+        tools:layout="@layout/follower_list" />
+
+    <fragment
+        android:id="@+id/frag_appList"
+        class="com.lumination.leadme.RemoteAppLauncher"
+        android:layout_width="match_parent"
+        android:layout_height="fill_parent"
+        android:layout_marginTop="15dp"
+        android:overScrollMode="ifContentScrolls"
+        android:persistentDrawingCache="scrolling"
+        tools:layout="@layout/app_list" />
+
+    <LinearLayout
+        android:id="@+id/client_main"
+        android:layout_width="match_parent"
+        android:layout_height="fill_parent"
+        android:gravity="center_horizontal|center_vertical"
+        android:orientation="vertical">
+
+
+        <TextView
+            android:id="@+id/client_text_state"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="54dp"
+            android:fontFamily="@font/poppins_semibold"
+            android:text="@string/client_connected_message_state"
+            android:textSize="18sp" />
+
+        <TextView
+            android:id="@+id/client_text_detail"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="100dp"
+            android:fontFamily="@font/poppins_regular"
+            android:gravity="center_horizontal|center_vertical"
+            android:padding="20dp"
+            android:text="@string/client_connected_message_detail" />
+    </LinearLayout>
+
+
+</LinearLayout>
