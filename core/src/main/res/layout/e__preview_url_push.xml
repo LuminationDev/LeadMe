@@ -1,0 +1,218 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="fill_parent"
+    android:layout_height="wrap_content"
+    android:layout_centerInParent="true"
+    android:layout_centerHorizontal="true"
+    android:layout_centerVertical="true"
+    android:background="@drawable/rounded_popup_white"
+    android:gravity="center"
+    android:orientation="vertical"
+    android:padding="20dp"
+    android:showDividers="middle|beginning|end">
+
+
+    <LinearLayout
+        android:id="@+id/preview_view"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:showDividers="middle|beginning|end"
+        android:visibility="visible">
+
+
+        <ImageView
+            android:id="@+id/preview_image"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:adjustViewBounds="true"
+            android:scaleType="centerCrop"
+            android:visibility="gone" />
+
+        <ProgressBar
+            android:id="@+id/preview_progress"
+            style="?android:attr/progressBarStyle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="20dp"
+            android:visibility="gone" />
+
+        <TextView
+            android:id="@+id/preview_message"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="25dp"
+            android:layout_marginBottom="25dp"
+            android:fontFamily="@font/poppins_semibold"
+            android:gravity="center_horizontal"
+            android:text="Preview unavailable"
+            android:textAlignment="center"
+            android:textColor="@color/leadme_medium_grey"
+            android:visibility="gone" />
+
+        <TextView
+            android:id="@+id/preview_title"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="15dp"
+            android:layout_marginBottom="5dp"
+            android:ellipsize="end"
+            android:fontFamily="@font/poppins_semibold"
+            android:maxLines="2"
+            android:text="Website title"
+            android:textAlignment="textStart"
+            android:textColor="@color/leadme_black"
+            android:textSize="16sp" />
+
+        <CheckBox
+            android:id="@+id/fav_checkbox"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="start"
+            android:layout_marginTop="5dp"
+            android:layout_marginBottom="20dp"
+            android:button="@drawable/star_checkbox"
+            android:checked="false"
+            android:fontFamily="@font/poppins_semibold"
+            android:includeFontPadding="false"
+            android:paddingStart="5dp"
+            android:text="Add to favourites"
+            android:textColor="@color/leadme_black"
+            android:textSize="14sp" />
+
+        <LinearLayout
+            android:id="@+id/preview_website"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="20dp"
+            android:divider="@drawable/divider_horizontal"
+            android:orientation="horizontal"
+            android:showDividers="middle">
+
+            <ImageView
+                android:id="@+id/preview_type_icon_web"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="5dp"
+                android:src="@drawable/task_website_icon" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/preview_type_web"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="@font/poppins_semibold"
+                    android:text="Website URL"
+                    android:textColor="@color/leadme_darkest_grey"
+                    android:textSize="14sp" />
+
+                <TextView
+                    android:id="@+id/preview_type_comment_web"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="@font/poppins_regular"
+                    android:text="Will open in your default browser"
+                    android:textColor="@color/leadme_dark_grey"
+                    android:textSize="12sp" />
+
+            </LinearLayout>
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/preview_youtube"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="20dp"
+            android:divider="@drawable/divider_horizontal"
+            android:orientation="horizontal"
+            android:showDividers="middle"
+            tools:visibility="gone">
+
+            <ImageView
+                android:id="@+id/preview_type_icon"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="5dp"
+                android:src="@drawable/task_vr_icon" />
+
+            <LinearLayout
+                android:id="@+id/preview_type_view"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/preview_type"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="@font/poppins_semibold"
+                    android:text="YouTube VR Video"
+                    android:textColor="@color/light"
+                    android:textSize="14sp" />
+
+                <TextView
+                    android:id="@+id/preview_type_comment"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="@font/poppins_regular"
+                    android:text="Will automatically load in VR mode"
+                    android:textColor="@color/leadme_medium_grey"
+                    android:textSize="12sp" />
+            </LinearLayout>
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/button_view"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="30dp"
+        android:orientation="vertical">
+
+        <Button
+            android:id="@+id/push_btn"
+            style="?android:attr/borderlessButtonStyle"
+            android:layout_width="@dimen/standard_btn_width"
+            android:layout_height="@dimen/standard_btn_height"
+            android:layout_gravity="center_horizontal"
+            android:accessibilityTraversalAfter="@id/back_btn"
+            android:accessibilityTraversalBefore="@id/codeInput4"
+            android:background="@drawable/bg_active"
+            android:clickable="true"
+            android:fontFamily="@font/poppins_semibold"
+            android:text="Push to selected"
+            android:textAllCaps="false"
+            android:textColor="@color/leadme_white"
+            android:textSize="16sp" />
+
+        <Space
+            android:layout_width="match_parent"
+            android:layout_height="10dp" />
+
+        <Button
+            android:id="@+id/back_btn"
+            style="?android:attr/borderlessButtonStyle"
+            android:layout_width="@dimen/standard_btn_width"
+            android:layout_height="@dimen/standard_btn_height"
+            android:layout_gravity="center_horizontal"
+            android:background="@drawable/bg_passive"
+            android:clickable="true"
+            android:fontFamily="@font/poppins_semibold"
+            android:text="@string/back"
+            android:textAllCaps="false"
+            android:textColor="@color/leadme_darkest_grey"
+            android:textSize="16sp" />
+
+    </LinearLayout>
+
+</LinearLayout>

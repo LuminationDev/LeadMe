@@ -1,73 +1,75 @@
 package com.lumination.leadme;
 
 import android.accessibilityservice.AccessibilityService;
-import android.content.Intent;
 import android.content.res.Configuration;
-import android.graphics.PixelFormat;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Parcel;
 import android.util.Log;
-import android.view.Gravity;
-import android.view.MotionEvent;
-import android.view.View;
+import android.view.OrientationEventListener;
 import android.view.WindowManager;
 import android.view.accessibility.AccessibilityEvent;
 import android.view.accessibility.AccessibilityNodeInfo;
-import android.widget.FrameLayout;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 
+import com.google.android.gms.nearby.connection.Payload;
+
 import java.util.List;
+import java.util.Set;
 
 public class RemoteDispatcherService extends AccessibilityService {
     //handler for executing on the main thread
     private Handler mainHandler = new Handler(Looper.getMainLooper());
 
-    private static MainActivity main;
+    private static LeadMeMain main;
     private String lastAppName, lastPackageName;
 
     private final String TAG = "RemoteDispatch";
 
     private static RemoteDispatcherService INSTANCE = new RemoteDispatcherService();
 
-    private void attachMain(MainActivity m) {
+    private void attachMain(LeadMeMain m) {
         main = m;
     }
 
-    public static RemoteDispatcherService getInstance(MainActivity m) {
+    public static RemoteDispatcherService getInstance(LeadMeMain m) {
         main = m;
         INSTANCE.attachMain(m);
         return INSTANCE;
     }
 
+    private boolean init = false;
     @Override
     public void onCreate() {
         super.onCreate();
-        Log.d(TAG, "Service CREATED!");
+        Log.d(TAG, "Service CREATED! " + main);
+        init = true;
 
-//        OrientationEventListener mOrientationListener = new OrientationEventListener(this) {
-//            @Override
-//            public void onOrientationChanged(int orientation) {
+        OrientationEventListener mOrientationListener = new OrientationEventListener(this) {
+            @Override
+            public void onOrientationChanged(int orientation) {
 //                if (orientation == 0 || orientation == 180) {
 //                    Log.d(TAG, "portrait");
 //                } else if (orientation == 90 || orientation == 270) {
 //                    Log.d(TAG, "landscape");
 //                }
-//                mainHandler.post(new Runnable() {
-//                    @Override
-//                    public void run() {
-//                        main.overlayView.invalidate();
-//                        main.overlayView.requestLayout();
-//                    }
-//                });
-//            }
-//        };
-//
-//        if (mOrientationListener.canDetectOrientation()) {
-//            mOrientationListener.enable();
-//        }
+                mainHandler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (main != null && main.overlayView != null) {
+                            main.overlayView.invalidate();
+                            //main.overlayView.requestLayout();
+                        }
+                    }
+                });
+            }
+        };
+
+        if (mOrientationListener.canDetectOrientation()) {
+            mOrientationListener.enable();
+        }
     }
 
     @Override
@@ -92,49 +94,8 @@ public class RemoteDispatcherService extends AccessibilityService {
         Log.d(TAG, "Service CONNECTED!");
         INSTANCE = this;
 
-        if (main != null) {
-            main.returnToAppFromSettings();
-        }
+        main.setupLayoutTouchListener();
 
-
-        ///////////////////
-
-        WindowManager windowManager = (WindowManager) getSystemService(WINDOW_SERVICE);
-        FrameLayout layout = new FrameLayout(this);
-
-        WindowManager.LayoutParams params = new WindowManager.LayoutParams(WindowManager.LayoutParams.MATCH_PARENT,
-                WindowManager.LayoutParams.MATCH_PARENT, WindowManager.LayoutParams.TYPE_ACCESSIBILITY_OVERLAY,
-                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE | WindowManager.LayoutParams.FLAG_FULLSCREEN |
-                        WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE |
-                        WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS |
-                        WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH,
-                PixelFormat.TRANSLUCENT);
-        params.gravity = Gravity.TOP;
-
-
-        if (windowManager != null) {
-            windowManager.addView(layout, params);
-            layout.setOnTouchListener(new View.OnTouchListener() {
-                @Override
-                public boolean onTouch(View v, MotionEvent event) {
-                    if (event.getY() == 0) {
-                        Log.d(TAG, "STATUS OR NAV TOUCH!! " + event.getAction());
-                        main.collapseStatusNow();
-                        //main.getForegroundActivity();
-
-                        //hide status bar
-                        //check if target app still in front
-                        //IF NOT alert teacher and bring target app back to the front
-
-                        return true; //consume event
-                    }
-
-                    return false; //pass event on
-                }
-            });
-        }
-
-        ///////////////////
     }
 
     public void prepareToInstall(String packageName, String appName) {
@@ -144,18 +105,25 @@ public class RemoteDispatcherService extends AccessibilityService {
     }
 
     //returns true if it has finished searching, NOT necessarily that it found the button
+    boolean debugVRClick = true;
+    int vrClickAttempts = 0;
+    AccessibilityNodeInfo originalNodeInfo;
+
     public boolean findAndClickVRMode(AccessibilityNodeInfo nodeInfo, int depth) {
-        Log.d(TAG, "In FindAndClickVRMode: " + main.launchingVR);
+        originalNodeInfo = nodeInfo;
+        if (debugVRClick)
+            Log.w(TAG, "\t\tIn FindAndClickVRMode: " + main.getWebManager().launchingVR + ", " + nodeInfo);
         if (nodeInfo == null) {
-            main.launchingVR = false; //done!
+            main.getWebManager().launchingVR = false; //done!
             return true; //finished searching
         }
 
-        //Log.i(TAG, "VR SEARCH: "+nodeInfo.getViewIdResourceName()+", "+nodeInfo.getContentDescription());
+        if (debugVRClick)
+            Log.w(TAG, "\t\tVR SEARCH: " + nodeInfo.getViewIdResourceName() + ", " + nodeInfo.getContentDescription());
         if (nodeInfo.getContentDescription() != null && nodeInfo.getContentDescription().toString().equals("Enter virtual reality mode")) {
-            //Log.i(TAG, "Found and clicked!");
+            if (debugVRClick) Log.w(TAG, "\t\tFound and clicked!");
             nodeInfo.performAction(AccessibilityNodeInfo.ACTION_CLICK);
-            main.launchingVR = false; //done!
+            main.getWebManager().launchingVR = false; //done!
             return true; //finished searching
         }
 
@@ -164,6 +132,13 @@ public class RemoteDispatcherService extends AccessibilityService {
             if (success) {
                 return true; //finished searching
             }
+        }
+        vrClickAttempts++;
+        if (vrClickAttempts <= 2) {
+            Log.w(TAG, "---- TRYING AGAIN (" + vrClickAttempts + ") ----");
+            findAndClickVRMode(originalNodeInfo, 0); //keep trying!
+        } else {
+            vrClickAttempts = 0; //reset and quit
         }
         return false;
     }
@@ -177,7 +152,7 @@ public class RemoteDispatcherService extends AccessibilityService {
         //check if we're trying to launch a VR YouTube video and respond appropriately
         //Log.i(TAG, "Launching VR? "+main.launchingVR+", "+event.getEventType()+", "+event.getSource());
 
-        if (main.launchingVR && (AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED == event.getEventType())) {
+        if (main.getWebManager().launchingVR && (AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED == event.getEventType())) {
             AccessibilityNodeInfo nodeInfo = event.getSource();
             if (nodeInfo == null) {
                 return;
@@ -263,7 +238,7 @@ public class RemoteDispatcherService extends AccessibilityService {
                     }
                     if (!success) {
                         Log.i(TAG, ">> Third try opening it... " + openNodes.size() + ", " + openButton);
-                        main.getAppLauncher().launchLocalApp(main, lastPackageName, lastAppName);
+                        main.getAppManager().launchLocalApp(lastPackageName, lastAppName, true);
                     }
                     INSTANCE.lastAppName = null; //reset, we're done
                     return; //all done, can exit
@@ -291,27 +266,31 @@ public class RemoteDispatcherService extends AccessibilityService {
         mainHandler.post(new Runnable() {
             @Override
             public void run() {
-                Intent intent = new Intent(main, MainActivity.class);
-                intent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
-                main.startActivity(intent);
-
+//                Intent intent = new Intent(main, LeadMeMain.class);
+//                intent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+//                main.startActivity(intent);
+//
+//                Log.d(TAG, "Bringing main to front. " + main.hasWindowFocus());
                 if (!main.hasWindowFocus()) {
-                    main.returnToAppAction();
+                    main.recallToLeadMe();
+                    //main.returnToAppAction();
+                    //main.returnToAppFromSettings();
                 }
             }
         });
     }
 
-    private void disableInteraction(final boolean interactionBlocked) {
-        Log.d(TAG, "Is interaction blocked? " + interactionBlocked + ", " + main.nearbyManager.isConnectedAsFollower() + ", " + main.isGuide);
-        main.setStudentLock(interactionBlocked);
+    private void disableInteraction(final int status) {
+        final boolean interactionBlocked = (status == ConnectedPeer.STATUS_BLACKOUT || status == ConnectedPeer.STATUS_LOCK);
+        Log.d(TAG, "Is interaction blocked? " + interactionBlocked + ", " + main.getNearbyManager().isConnectedAsFollower() + ", " + main.isGuide);
+        main.setStudentLock(status);
         Runnable myRunnable = new Runnable() {
             @Override
             public void run() {
                 //we never want to block someone if they're disconnected from the guide
                 //and we never want to block the guide
                 main.hideSystemUI();
-                if (main.nearbyManager.isConnectedAsFollower() && interactionBlocked) {
+                if (main.getNearbyManager().isConnectedAsFollower() && interactionBlocked) {
                     Log.d(TAG, "BLOCKING!");
                     main.overlayParams.flags -= WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE;
                     main.overlayParams.width = main.size.x;
@@ -328,15 +307,15 @@ public class RemoteDispatcherService extends AccessibilityService {
         mainHandler.post(myRunnable);
     }
 
-    private void writeMessage(byte[] bytes) {
-        if (main.nearbyManager.isConnectedAsGuide()) {
-            main.nearbyManager.write(bytes);
+    private void writeMessageToSelected(byte[] bytes, Set<String> selectedPeerIDs) {
+        if (main.getNearbyManager().isConnectedAsGuide()) {
+            main.getNearbyManager().sendToSelected(Payload.fromBytes(bytes), selectedPeerIDs);
         } else {
             Log.i(TAG, "Sorry, you can't send messages!");
         }
     }
 
-    public byte[] requestRemoteAppOpen(String tag, String packageName, String appName) {
+    public byte[] requestRemoteAppOpen(String tag, String packageName, String appName, Set<String> selectedPeerIDs) {
         Parcel p = Parcel.obtain();
         byte[] bytes = null;
         p.writeString(tag);
@@ -345,12 +324,12 @@ public class RemoteDispatcherService extends AccessibilityService {
         bytes = p.marshall();
         p.recycle();
 
-        writeMessage(bytes);
+        writeMessageToSelected(bytes, selectedPeerIDs);
 
         return bytes;
     }
 
-    public synchronized void sendAction(String actionTag, String action) {
+    public synchronized void sendActionToSelected(String actionTag, String action, Set<String> selectedPeerIDs) {
         Parcel p = Parcel.obtain();
         byte[] bytes = null;
         p.writeString(actionTag);
@@ -359,18 +338,18 @@ public class RemoteDispatcherService extends AccessibilityService {
         p.recycle();
 
         //auto-install tags and success tag are exempt so students can alert teacher to their status
-        if (main.nearbyManager.isConnectedAsGuide() ||
-                action.startsWith(MainActivity.RETURN_TAG) ||
-                action.startsWith(MainActivity.AUTO_INSTALL_FAILED) || action.startsWith(MainActivity.AUTO_INSTALL_ATTEMPT) ||
-                action.startsWith(MainActivity.LAUNCH_SUCCESS)) {
-            main.nearbyManager.write(bytes);
+        if (main.getNearbyManager().isConnectedAsGuide() ||
+                action.startsWith(LeadMeMain.RETURN_TAG) ||
+                action.startsWith(LeadMeMain.AUTO_INSTALL_FAILED) || action.startsWith(LeadMeMain.AUTO_INSTALL_ATTEMPT) ||
+                action.startsWith(LeadMeMain.LAUNCH_SUCCESS)) {
+            main.getNearbyManager().sendToSelected(Payload.fromBytes(bytes), selectedPeerIDs);
         } else {
             Log.i(TAG, "Sorry, you can't send actions!");
         }
     }
 
 
-    public synchronized void sendBool(String actionTag, String action, boolean value) {
+    public synchronized void sendBoolToSelected(String actionTag, String action, boolean value, Set<String> selectedPeerIDs) {
         Parcel p = Parcel.obtain();
         byte[] bytes = null;
         p.writeString(actionTag);
@@ -379,8 +358,8 @@ public class RemoteDispatcherService extends AccessibilityService {
         bytes = p.marshall();
         p.recycle();
 
-        if (main.nearbyManager.isConnectedAsGuide()) {
-            main.nearbyManager.write(bytes);
+        if (main.getNearbyManager().isConnectedAsGuide()) {
+            main.getNearbyManager().sendToSelected(Payload.fromBytes(bytes), selectedPeerIDs);
         } else {
             Log.i(TAG, "Sorry, you can't send booleans!");
         }
@@ -400,12 +379,12 @@ public class RemoteDispatcherService extends AccessibilityService {
         Log.d(TAG, "Received boolean: " + actionTag + ", " + action + "=" + value);
 
         switch (action) {
-            case MainActivity.STUDENT_LOCK:
-                main.setStudentLock(boolVal);
-                disableInteraction(boolVal);
-                break;
+//            case LeadMeMain.STUDENT_LOCK:
+//                main.setStudentLock(ConnectedPeer.STATUS_LOCK);
+//                disableInteraction(ConnectedPeer.STATUS_LOCK);
+//                break;
 
-            case MainActivity.AUTO_INSTALL:
+            case LeadMeMain.AUTO_INSTALL:
                 main.autoInstallApps = boolVal;
                 break;
 
@@ -428,108 +407,106 @@ public class RemoteDispatcherService extends AccessibilityService {
 
         Log.d(TAG, "Received action: " + actionTag + ", " + action);
 
-        if (actionTag != null && actionTag.equals(MainActivity.ACTION_TAG)) {
+        if (actionTag != null && actionTag.equals(LeadMeMain.ACTION_TAG)) {
 
             switch (action) {
-                case MainActivity.RETURN_TAG:
+                case LeadMeMain.RETURN_TAG:
                     Log.d(TAG, "Trying to return to " + main.getApplicationContext().getPackageName());
-                    main.getRemoteDispatchService().sendAction(MainActivity.ACTION_TAG, MainActivity.LAUNCH_SUCCESS + "Lead Me" + ":" + main.nearbyManager.getID() + ":" + main.getApplicationContext().getPackageName());
-                    main.returnToAppAction();
+                    main.getRemoteDispatchService()
+                            .sendActionToSelected(LeadMeMain.ACTION_TAG,
+                                    LeadMeMain.LAUNCH_SUCCESS + "Lead Me" + ":" + main.getNearbyManager().getID() + ":" + main.getApplicationContext().getPackageName(),
+                                    main.getNearbyManager().getAllPeerIDs());
+                    main.recallToLeadMe();
                     break;
 
-                case MainActivity.EXIT_TAG:
+                case LeadMeMain.EXIT_TAG:
                     Toast exitToast = Toast.makeText(main.getApplicationContext(), "Session ended by guide", Toast.LENGTH_SHORT);
                     exitToast.show();
                     main.exitByGuide();
                     break;
 
                 default:
-                    if (action.startsWith(MainActivity.YOUR_ID_IS)) {
+                    if (action.startsWith(LeadMeMain.YOUR_ID_IS)) {
                         String[] split = action.split(":");
                         if (split.length == 3) {
                             //Now I know my ID! Store it.
-                            if (split[2].equals(main.nearbyManager.getName())) {
+                            if (split[2].equals(main.getNearbyManager().getName())) {
                                 Log.d(TAG, "The Guide tells me my ID is " + split[1]);
-                                main.nearbyManager.setID(split[1]);
+                                main.getNearbyManager().setID(split[1]);
                             }
                         }
                         break;
-                    } else if (action.startsWith(MainActivity.RETURN_CHOSEN_TAG)) {
-                        String[] split = action.split(":");
-                        if (split.length == 2 && split[1].contains(main.nearbyManager.getID())) {
-                            //I've been selected to return to app
-                            main.getRemoteDispatchService().sendAction(MainActivity.ACTION_TAG, MainActivity.LAUNCH_SUCCESS + "Lead Me" + ":" + main.nearbyManager.getID() + ":" + main.getApplicationContext().getPackageName());
-                            main.returnToAppAction();
-                        }
+                    } else if (action.startsWith(LeadMeMain.RETURN_TAG)) {
+                        Log.d(TAG, "Leader told me to return!");
+                        main.getRemoteDispatchService().sendActionToSelected(LeadMeMain.ACTION_TAG,
+                                LeadMeMain.LAUNCH_SUCCESS + "Lead Me" + ":" + main.getNearbyManager().getID() + ":" + main.getApplicationContext().getPackageName(),
+                                main.getNearbyManager().getAllPeerIDs());
+                        main.recallToLeadMe();
                         break;
 
-                    } else if (action.startsWith(MainActivity.LOCK_CHOSEN_TAG)) {
-                        String[] split = action.split(":");
-                        if (split.length == 2 && split[1].contains(main.nearbyManager.getID())) {
-                            //I've been selected to toggle student lock
-                            main.blackout(false);
-                            disableInteraction(true);
-                            main.getRemoteDispatchService().sendAction(MainActivity.ACTION_TAG, MainActivity.LAUNCH_SUCCESS + "LOCKON" + ":" + main.nearbyManager.getID() + ":" + main.getApplicationContext().getPackageName());
-                        }
+                    } else if (action.startsWith(LeadMeMain.LOCK_TAG)) {
+                        //I've been selected to toggle student lock
+                        main.blackout(false);
+                        disableInteraction(ConnectedPeer.STATUS_LOCK);
+                        main.getRemoteDispatchService().sendActionToSelected(LeadMeMain.ACTION_TAG,
+                                LeadMeMain.LAUNCH_SUCCESS + "LOCKON" + ":" + main.getNearbyManager().getID() + ":" + main.getApplicationContext().getPackageName(),
+                                main.getNearbyManager().getAllPeerIDs());
                         break;
 
-                    } else if (action.startsWith(MainActivity.UNLOCK_CHOSEN_TAG)) {
-                        String[] split = action.split(":");
-                        if (split.length == 2 && split[1].contains(main.nearbyManager.getID())) {
-                            //I've been selected to toggle student lock
-                            main.blackout(false);
-                            disableInteraction(false);
-                            main.getRemoteDispatchService().sendAction(MainActivity.ACTION_TAG, MainActivity.LAUNCH_SUCCESS + "LOCKOFF" + ":" + main.nearbyManager.getID() + ":" + main.getApplicationContext().getPackageName());
-                        }
+                    } else if (action.startsWith(LeadMeMain.UNLOCK_TAG)) {
+                        //I've been selected to toggle student lock
+                        main.blackout(false);
+                        disableInteraction(ConnectedPeer.STATUS_UNLOCK);
+                        main.getRemoteDispatchService().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.LAUNCH_SUCCESS + "LOCKOFF" + ":" + main.getNearbyManager().getID() + ":" + main.getApplicationContext().getPackageName(),
+                                main.getNearbyManager().getAllPeerIDs());
                         break;
 
-                    } else if (action.startsWith(MainActivity.BLACKOUT_CHOSEN_TAG)) {
-                        String[] split = action.split(":");
-                        if (split.length == 2 && split[1].contains(main.nearbyManager.getID())) {
-                            //I've been selected to toggle student lock
-                            main.blackout(true);
-                            disableInteraction(true);
-                            main.getRemoteDispatchService().sendAction(MainActivity.ACTION_TAG, MainActivity.LAUNCH_SUCCESS + "BLACKOUT" + ":" + main.nearbyManager.getID() + ":" + main.getApplicationContext().getPackageName());
-                        }
+                    } else if (action.startsWith(LeadMeMain.BLACKOUT_TAG)) {
+                        //I've been selected to toggle student lock
+                        main.blackout(true);
+                        disableInteraction(ConnectedPeer.STATUS_BLACKOUT);
+                        main.getRemoteDispatchService().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.LAUNCH_SUCCESS + "BLACKOUT" + ":" + main.getNearbyManager().getID() + ":" + main.getApplicationContext().getPackageName(),
+                                main.getNearbyManager().getAllPeerIDs());
                         break;
 
-                    } else if (action.startsWith(MainActivity.AUTO_INSTALL_FAILED)) {
+                    } else if (action.startsWith(LeadMeMain.AUTO_INSTALL_FAILED)) {
                         Log.i(TAG, "FAILED");
                         String[] split = action.split(":");
-                        main.getConnectedStudentsFragment().updateStatus(split[2], ConnectedStudentsFragment.LUMI_FAIL, split[1]);
+                        //main.getConnectedLearnersAdapter().updateStatus(split[2], ConnectedPeer.STATUS_ERROR, split[1]);
+                        main.getConnectedLearnersAdapter().updateStatus(split[2], ConnectedPeer.STATUS_OFF_TASK_ALERT);
                         break;
 
-                    } else if (action.startsWith(MainActivity.AUTO_INSTALL_ATTEMPT)) {
+                    } else if (action.startsWith(LeadMeMain.AUTO_INSTALL_ATTEMPT)) {
                         String[] split = action.split(":");
-                        main.getConnectedStudentsFragment().updateStatus(split[2], ConnectedStudentsFragment.LUMI_OTHER, split[1]);
+                        main.getConnectedLearnersAdapter().updateStatus(split[2], ConnectedPeer.STATUS_INSTALLING);
                         break;
 
-                    } else if (action.startsWith(MainActivity.LAUNCH_SUCCESS)) {
+                    } else if (action.startsWith(LeadMeMain.LAUNCH_SUCCESS)) {
                         Log.i(TAG, "SUCCEEDED - " + action);
                         String[] split = action.split(":");
                         if (split[1].equals("LOCKON")) {
-                            main.getConnectedStudentsFragment().updateLockStatus(split[2], LumiPeer.LOCKED);
+                            main.getConnectedLearnersAdapter().updateStatus(split[2], ConnectedPeer.STATUS_LOCK);
 
                         } else if (split[1].equals("LOCKOFF")) {
-                            main.getConnectedStudentsFragment().updateLockStatus(split[2], LumiPeer.UNLOCKED);
+                            main.getConnectedLearnersAdapter().updateStatus(split[2], ConnectedPeer.STATUS_UNLOCK);
 
                         } else if (split[1].equals("BLACKOUT")) {
-                            main.getConnectedStudentsFragment().updateLockStatus(split[2], LumiPeer.BLACKOUT);
+                            main.getConnectedLearnersAdapter().updateStatus(split[2], ConnectedPeer.STATUS_BLACKOUT);
 
                         } else {
-                            main.getConnectedStudentsFragment().updateStatus(split[2], ConnectedStudentsFragment.LUMI_SUCCESS, split[1]);
-                            main.getConnectedStudentsFragment().updateIcon(split[2], main.getAppLauncher().getAppIcon(split[3]));
+                            main.getConnectedLearnersAdapter().updateStatus(split[2], ConnectedPeer.STATUS_SUCCESS);
+                            main.getConnectedLearnersAdapter().updateIcon(split[2], main.getAppManager().getAppIcon(split[3]));
                         }
                         break;
 
-                    } else if (action.startsWith(MainActivity.LAUNCH_URL)) {
+                    } else if (action.startsWith(LeadMeMain.LAUNCH_URL)) {
                         String[] split = action.split(":", 2);
-                        main.launchWebsite(split[1]);
+                        main.getWebManager().launchWebsite(split[1], true);
                         break;
 
-                    } else if (action.startsWith(MainActivity.LAUNCH_YT)) {
+                    } else if (action.startsWith(LeadMeMain.LAUNCH_YT)) {
                         String[] split = action.split(":", 2);
-                        main.launchYouTube(split[1]);
+                        main.getWebManager().launchYouTube(split[1], true);
                         break;
 
                     } else {
@@ -552,7 +529,7 @@ public class RemoteDispatcherService extends AccessibilityService {
             mainHandler.post(new Runnable() {
                 @Override
                 public void run() {
-                    main.getAppLauncher().launchLocalApp(main, tmp[0], tmp[1]);
+                    main.getAppManager().launchLocalApp(tmp[0], tmp[1], true);
                 }
             });
         }
@@ -568,9 +545,10 @@ public class RemoteDispatcherService extends AccessibilityService {
         final String packageName = p.readString();
         final String appName = p.readString();
 
-        Log.d(TAG, "Received in OpenApp: " + tag + ", " + packageName + ", " + appName);
-        if (tag != null && tag.equals(MainActivity.APP_TAG)) {
-            if (!main.getAppLauncher().lastApp.equals(packageName)) {
+        Log.d(TAG, "Received in OpenApp: " + tag + ", " + packageName + ", " + appName + " vs " + main.getAppManager().lastApp);
+        if (tag != null && tag.equals(LeadMeMain.APP_TAG)) {
+            if (!main.hasWindowFocus()) {//!main.getAppLaunchAdapter().lastApp.equals(packageName)) {
+                Log.d(TAG, "NEED FOCUS!");
                 //only needed if it's not what we've already got open
                 //TODO make this more robust, check if it's actually running
                 launchAppOnFocus = new String[2];
@@ -578,11 +556,12 @@ public class RemoteDispatcherService extends AccessibilityService {
                 launchAppOnFocus[1] = appName;
                 bringMainToFront();
             } else {
+                Log.d(TAG, "HAVE FOCUS!");
                 launchAppOnFocus = null; //reset
                 mainHandler.post(new Runnable() {
                     @Override
                     public void run() {
-                        main.getAppLauncher().launchLocalApp(main, packageName, appName);
+                        main.getAppManager().launchLocalApp(packageName, appName, true);
                     }
                 });
             }
@@ -592,4 +571,5 @@ public class RemoteDispatcherService extends AccessibilityService {
             return false;
         }
     }
+
 }

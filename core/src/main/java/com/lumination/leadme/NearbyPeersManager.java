@@ -2,20 +2,14 @@ package com.lumination.leadme;
 
 import android.Manifest;
 import android.app.AlertDialog;
-import android.content.DialogInterface;
-import android.hardware.Sensor;
-import android.hardware.SensorEvent;
-import android.hardware.SensorEventListener;
-import android.hardware.SensorManager;
 import android.os.Handler;
 import android.util.Log;
 import android.view.View;
-import android.view.WindowManager;
-import android.widget.CheckBox;
-import android.widget.TextView;
+import android.widget.Button;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.collection.ArraySet;
 
 import com.google.android.gms.common.api.Status;
 import com.google.android.gms.nearby.Nearby;
@@ -36,12 +30,10 @@ import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Random;
 import java.util.Set;
 
 /**
@@ -55,21 +47,18 @@ import java.util.Set;
  *
  * <p>{@link State#CONNECTED}: We've connected to another device. We'll continue to advertise (if we were already advertising) so that more people can connect to us.
  */
-public class NearbyPeersManager implements SensorEventListener {
+public class NearbyPeersManager {
 
     private static final String TAG = "NearbyManager";
 
     private AlertDialog disconnectPrompt;
-    private CheckBox checkBox;
-    private View checkBoxView;
-    private TextView textBox;
-    private View textBoxView;
+    private View everyoneDisconnectedView;
     private final String teachercode = "1990"; //hard coded for now
 
     private static int AUTO_DISCONNECT = -1; //-1 = unknown, 1 = yes, 0 = no
 
     //This service id lets us find other nearby devices that are interested in the same thing.
-    private static final String SERVICE_INSTANCE = "com.lumination.leadme.LumiNearby_110";
+    private static final String SERVICE_INSTANCE = "com.lumination.leadme.LumiLeadMe";
 
     // The connection strategy we'll use for Nearby Connections.
     // P2P_STAR = which is a combination of Bluetooth Classic and WiFi Hotspots.
@@ -105,15 +94,6 @@ public class NearbyPeersManager implements SensorEventListener {
     private boolean mIsDiscovering = false;
     private boolean mIsAdvertising = false;
 
-
-    // The SensorManager gives us access to sensors on the device.
-    private SensorManager mSensorManager;
-    // The accelerometer sensor allows us to detect device movement for shake-to-advertise.
-    private Sensor mAccelerometer;
-
-    // Acceleration required to detect a shake. In multiples of Earth's gravity.
-    private static final float SHAKE_THRESHOLD_GRAVITY = 2;
-
     // Advertise for 30 seconds before going back to discovering. If a client connects, we'll continue
     // to advertise indefinitely so others can still connect.
     private static final long ADVERTISING_DURATION = 30000;
@@ -123,13 +103,14 @@ public class NearbyPeersManager implements SensorEventListener {
 
     //A Handler that allows us to post back on to the UI thread. We use this to resume discovery after an uneventful bout of advertising.
     private final Handler mUiHandler;
-    private final MainActivity main;
+    private final LeadMeMain main;
 
     private String myName;
     private String myId;
 
     /**
      * Starts discovery. Used in a postDelayed manor with {@link #mUiHandler}.
+     * Allows the guide to accept learner connections even once leading has begun
      */
     private final Runnable mDiscoverRunnable = new Runnable() {
         @Override
@@ -141,51 +122,67 @@ public class NearbyPeersManager implements SensorEventListener {
         }
     };
 
-    public NearbyPeersManager(MainActivity main) {
-        Log.d(TAG, "Created NearbyManager!");
-
+    public NearbyPeersManager(LeadMeMain main) {
         this.main = main;
         mUiHandler = main.getHandler();
         mConnectionsClient = Nearby.getConnectionsClient(main);
-
-        mSensorManager = (SensorManager) main.getSystemService(MainActivity.SENSOR_SERVICE);
-        mAccelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+        disconnectFromAllEndpoints(); //clear any old connections
     }
+
+
+    //TODO
+    protected void discoverLeaders() {
+        if (main.isReadyToConnect && getState() != State.CONNECTED) {
+            setState(State.DISCOVERING);
+        }
+    }
+
+    private ConnectedPeer chosenLeader = null;
+
+    protected void setSelectedLeader(ConnectedPeer peer) {
+        chosenLeader = peer;
+    }
+
+    protected void cancelConnection() {
+        stopDiscovering();
+        stopAdvertising();
+        disconnectFromAllEndpoints();
+    }
+
 
     public void onStart() {
         //if it's already connected, leave it alone!
         if (main.isReadyToConnect && getState() != State.CONNECTED) {
-
-            Log.i(TAG, "In onStart - " + main.isGuide);
             setState(State.DISCOVERING);
-            mSensorManager.registerListener(this, mAccelerometer, SensorManager.SENSOR_DELAY_UI);
         }
-        Log.d(TAG, "onStart() State is: " + getState());
     }
 
     public void onStop() {
         //if it's already connected, leave it alone!
         if (getState() != State.CONNECTED) {
             setState(State.UNKNOWN);
-            mSensorManager.unregisterListener(this);
+            main.stopShakeDetection();
             mUiHandler.removeCallbacksAndMessages(null);
         }
-        Log.d(TAG, "onStop() State is: " + getState());
     }
 
     public void onBackPressed() {
-        //TODO I'm not sure about these states?
         if (main.isReadyToConnect && (getState() == State.CONNECTED || getState() == State.ADVERTISING)) {
-            Log.i(TAG, "In back pressed - " + main.isGuide);
             setState(State.DISCOVERING);
             return;
         }
     }
 
+    protected void connectToSelectedLeader() {
+        connectToEndpoint(chosenLeader.getMyEndpoint());
+    }
+
     protected void onEndpointDiscovered(Endpoint endpoint) {
         // We found an advertiser!
         if (!isConnecting()) {
-            connectToEndpoint(endpoint);
+            Log.d(TAG, "Adding to leader adapter!");
+            main.getLeaderSelectAdapter().addLeader(new ConnectedPeer(endpoint));
+            main.showLeaderWaitMsg(false);
         }
     }
 
@@ -197,6 +194,7 @@ public class NearbyPeersManager implements SensorEventListener {
     protected void onEndpointConnected(final Endpoint endpoint) {
         Toast.makeText(main, "Connected to " + endpoint.getName(), Toast.LENGTH_SHORT).show();
         setState(State.CONNECTED, endpoint);
+        main.closeWaitingDialog();
 
         mUiHandler.post(new Runnable() {
             @Override
@@ -204,12 +202,14 @@ public class NearbyPeersManager implements SensorEventListener {
                 //NOTE: this must be done on main thread
                 Log.d(TAG, "Am I the guide? " + main.isGuide);
                 if (main.isGuide) {
-                    LumiPeer thisPeer = new LumiPeer(endpoint);
-                    main.getConnectedStudentsFragment().addStudent(thisPeer);
+                    ConnectedPeer thisPeer = new ConnectedPeer(endpoint);
+                    main.getConnectedLearnersAdapter().addStudent(thisPeer);
                     //send the ID back to the student
-                    main.getRemoteDispatchService().sendAction(MainActivity.ACTION_TAG, MainActivity.YOUR_ID_IS + thisPeer.getID() + ":" + thisPeer.getDisplayName());
+                    main.getRemoteDispatchService().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.YOUR_ID_IS + thisPeer.getID() + ":" + thisPeer.getDisplayName(),
+                            getAllPeerIDs());
                 } else {
                     main.findViewById(R.id.client_main).setVisibility(View.VISIBLE);
+                    main.setLeaderName(endpoint.getName());
                 }
             }
         });
@@ -217,25 +217,28 @@ public class NearbyPeersManager implements SensorEventListener {
 
     protected void onEndpointDisconnected(final Endpoint endpoint) {
         Toast.makeText(main, "Disconnected from " + endpoint.getName(), Toast.LENGTH_SHORT).show();
+
+        if (main.overlayView != null) {
+            main.overlayView.setVisibility(View.INVISIBLE); //hide the overlay so we don't get stuck
+        }
+
         performDisconnection(endpoint);
 
         // If we lost all our endpoints, then we should reset the state of our app and go back
         // to our initial state (discovering).
         if (main.isReadyToConnect && getConnectedEndpoints().isEmpty()) {
-            main.returnToAppAction();
+            main.recallToLeadMe();
             Log.i(TAG, "In onEndPointDisconnected - " + main.isGuide);
-            if (main.overlayView != null) {
-                main.overlayView.setVisibility(View.INVISIBLE); //hide the overlay so we don't get stuck
-            }
+
             //setState(State.DISCOVERING);
             if (!main.isGuide) {
                 Runnable myRunnable = new Runnable() {
                     @Override
                     public void run() {
                         //student should auto-connect back to last guide
-                        Log.d(TAG, "Auto-connecting back to last guide");
+                        //Log.d(TAG, "Auto-connecting back to last guide");
                         main.setUIDisconnected();
-                        main.onReadyBtnAction();
+                        //main.initiateConnectionAttempt();
                     }
                 };
                 main.getHandler().post(myRunnable); //needs to run on main thread
@@ -244,10 +247,8 @@ public class NearbyPeersManager implements SensorEventListener {
     }
 
     protected void onConnectionFailed(Endpoint endpoint) {
-        // Let's try someone else.
-        if (getState() == State.DISCOVERING && !getDiscoveredEndpoints().isEmpty()) {
-            connectToEndpoint(pickRandomElem(getDiscoveredEndpoints()));
-        }
+        main.showWarningDialog("Connection failed");
+        main.closeWaitingDialog();
     }
 
     /**
@@ -327,7 +328,7 @@ public class NearbyPeersManager implements SensorEventListener {
                 performConnection(endpoint);
                 break;
             case UNKNOWN:
-                stopAllEndpoints();
+                disconnectFromAllEndpoints();
                 break;
             default:
                 // no-op
@@ -344,61 +345,51 @@ public class NearbyPeersManager implements SensorEventListener {
 
                 if (main.isGuide) {
                     //remove student and refresh view
-                    main.getConnectedStudentsFragment().removeStudent(endpoint.getId());
-                    main.getConnectedStudentsFragment().refresh();
+                    //main.getConnectedLearnersAdapter().removeStudent(endpoint.getId());
 
-                    if (!main.getConnectedStudentsFragment().hasConnectedStudents()) {
+                    main.getConnectedLearnersAdapter().alertStudentDisconnect(endpoint.getId());
+                    main.getConnectedLearnersAdapter().refresh();
 
-                        if (AUTO_DISCONNECT == 1) {
-                            main.setUIDisconnected();
 
-                        } else if (AUTO_DISCONNECT == -1) {
-                            //prompt
+                    if (!main.getConnectedLearnersAdapter().hasConnectedStudents()) {
 
-                            if (checkBoxView == null) {
-                                checkBoxView = View.inflate(main, R.layout.alert_checkbox, null);
-                                checkBox = (CheckBox) checkBoxView.findViewById(R.id.alertCheckBox);
-                            }
+                        if (everyoneDisconnectedView == null) {
+                            everyoneDisconnectedView = View.inflate(main, R.layout.e__all_disconnected_popup, null);
+                            Button ok_btn = everyoneDisconnectedView.findViewById(R.id.ok_btn);
+                            Button back_btn = everyoneDisconnectedView.findViewById(R.id.back_btn);
 
-                            if (main.hasWindowFocus() && main.isReadyToConnect) {
-                                if (disconnectPrompt == null) {
-                                    disconnectPrompt = new AlertDialog.Builder(main)
-                                            .setTitle("Disconnect")
-                                            .setMessage("All followers have disconnected.\nDo you want to stop guiding now?")
-                                            .setView(checkBoxView)
-
-                                            // Specifying a listener allows you to take an action before dismissing the dialog.
-                                            // The dialog is automatically dismissed when a dialog button is clicked.
-                                            .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
-                                                public void onClick(DialogInterface dialog, int which) {
-                                                    if (checkBox.isChecked()) {
-                                                        AUTO_DISCONNECT = 1;
-                                                    }
-                                                    main.setUIDisconnected();
-                                                }
-                                            })
-
-                                            // A null listener allows the button to dismiss the dialog and take no further action.
-                                            .setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
-                                                public void onClick(DialogInterface dialog, int which) {
-                                                    if (checkBox.isChecked()) {
-                                                        AUTO_DISCONNECT = 0;
-                                                    }
-                                                }
-                                            })
-                                            .setIcon(android.R.drawable.ic_dialog_alert)
-                                            .show();
-                                } else {
-                                    disconnectPrompt.show();
+                            ok_btn.setOnClickListener(new View.OnClickListener() {
+                                @Override
+                                public void onClick(View v) {
+                                    main.setUIDisconnected();
                                 }
-                            } else {
-                                main.returnToAppAction();
-                                //TODO and prompt to disconnect
-                            }
+                            });
+
+                            back_btn.setOnClickListener(new View.OnClickListener() {
+                                @Override
+                                public void onClick(View v) {
+                                    disconnectPrompt.hide();
+                                }
+                            });
                         }
+
+                        if (main.hasWindowFocus() && main.isReadyToConnect) {
+                            if (disconnectPrompt == null) {
+                                disconnectPrompt = new AlertDialog.Builder(main)
+                                        .setView(everyoneDisconnectedView)
+                                        .show();
+                            } else {
+                                disconnectPrompt.show();
+                            }
+
+                        } else {
+                            main.recallToLeadMe();
+                        }
+
                     }
 
                 } else {
+                    main.getLeaderSelectAdapter().removeLeader(endpoint.getId());
                     main.setUIDisconnected();
                 }
             }
@@ -409,30 +400,13 @@ public class NearbyPeersManager implements SensorEventListener {
         // visual updates for GUIDE vs FOLLOWER
         main.nameView.setEnabled(false);
 
-        main.progress.setVisibility(View.INVISIBLE);
-        main.statusContainer.setVisibility(View.GONE);
-
         if (main.isGuide) {
-            final ConnectedStudentsFragment connectedStudentsFragment = main.getConnectedStudentsFragment();
-            if (connectedStudentsFragment != null) {
-                main.findViewById(R.id.follower_layout).setVisibility(View.VISIBLE);
-            } else {
-                Log.w(TAG, "Connected students is NULL!!");
-            }
-
-            View controlBtns = main.findViewById(R.id.controlBtns);
-            controlBtns.setVisibility(View.VISIBLE);
-
-            /* show app list for guide */
-            View appList = main.findViewById(R.id.frag_appList);
-            appList.setVisibility(View.VISIBLE);
-            main.readyBtn.setText(R.string.guide_connected_label);
-
+            main.showConnectedStudents(true);
 
         } else {
-            /* show client view */
-            TextView clientTitle = main.findViewById(R.id.client_text_state);
-            clientTitle.setText(main.getResources().getString(R.string.client_connected_message_state) + " " + endpoint.name + "!");
+            /* set up and show learner view */
+            //guide name, learner name
+            main.displayLearnerMain(endpoint.name);
 
             main.getHandler().post(new Runnable() {
                 @Override
@@ -441,105 +415,20 @@ public class NearbyPeersManager implements SensorEventListener {
                     clientMain.setVisibility(View.VISIBLE);
                     main.readyBtn.setEnabled(false); //students can't disconnect themselves - guide must do this
                     main.readyBtn.setText(R.string.learner_connected_label);
-                    main.progress.setVisibility(View.INVISIBLE);
+                    if (main.isGuide) {
+                        main.waitingForLearners.setVisibility(View.GONE);
+                    }
                 }
             });
         }
     }
 
-    /**
-     * The device has moved. We need to decide if it was intentional or not.
-     */
-    @Override
-    public void onSensorChanged(SensorEvent sensorEvent) {
-        float x = sensorEvent.values[0];
-        float y = sensorEvent.values[1];
-        float z = sensorEvent.values[2];
-
-        float gX = x / SensorManager.GRAVITY_EARTH;
-        float gY = y / SensorManager.GRAVITY_EARTH;
-        float gZ = z / SensorManager.GRAVITY_EARTH;
-
-        double gForce = Math.sqrt(gX * gX + gY * gY + gZ * gZ);
-
-        if (gForce > SHAKE_THRESHOLD_GRAVITY && getState() == State.DISCOVERING) {
-            enactShake();
-        }
-    }
-
-    boolean dialogOpen = false;
-    private AlertDialog codePrompt;
-
-    public void enactShake() {
-        Log.d(TAG, "Device shaken");
-
-        if (dialogOpen && !main.isGuide) {
-            codePrompt.show(); //bring the prompt back to the front
-
-        } else if (!dialogOpen) {
-            dialogOpen = true;
-
-            if (textBoxView == null) {
-                textBoxView = View.inflate(main, R.layout.alert_textbox, null);
-                textBox = (TextView) textBoxView.findViewById(R.id.alertTextBox);
-            }
-
-            Log.i(TAG, main.isGuide + ", " + (codePrompt == null));
-            //TODO change this to a saved code rather than hardcoded value
-            if (!main.isGuide && codePrompt == null) {
-                codePrompt = new AlertDialog.Builder(main)
-                        .setTitle("Teacher Lock")
-                        .setView(textBoxView)
-
-                        // Specifying a listener allows you to take an action before dismissing the dialog.
-                        // The dialog is automatically dismissed when a dialog button is clicked.
-                        .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog, int which) {
-                                dialogOpen = false;
-                                if (textBox != null && textBox.getText().toString().equals(teachercode)) {
-                                    setAsGuide();
-                                } else {
-                                    wrongCode();
-                                }
-                            }
-                        })
-
-                        // A null listener allows the button to dismiss the dialog and take no further action.
-                        .setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog, int which) {
-                                //no action
-                                dialogOpen = false;
-                            }
-                        })
-                        .setIcon(android.R.drawable.ic_dialog_alert)
-                        .show();
-
-                codePrompt.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
-
-            } else if (main.isGuide) {
-                Log.e(TAG, "ERROR! I'm already the guide, but maybe I shouldn't be.");
-                setAsGuide();
-            }
-        }
-    }
-
-    private void setAsGuide() {
+    public void setAsGuide() {
         main.isGuide = true; //update this
-        main.hostSwitch.setChecked(true);
         setState(State.ADVERTISING);
         postDelayed(mDiscoverRunnable, ADVERTISING_DURATION);
     }
 
-    private void wrongCode() {
-        AlertDialog wrongCodePrompt = new AlertDialog.Builder(main)
-                .setTitle("Wrong Code")
-                .setMessage("Sorry, wrong code!")
-                .show();
-    }
-
-    @Override
-    public void onAccuracyChanged(Sensor sensor, int accuracy) {
-    }
 
     protected void onReceive(Endpoint endpoint, Payload payload) {
         if (payload.getType() == Payload.Type.STREAM) {
@@ -563,30 +452,19 @@ public class NearbyPeersManager implements SensorEventListener {
         return main.isGuide && getState() == State.CONNECTED;
     }
 
-    public boolean write(byte[] bytes) {
-        try {
-            main.nearbyManager.send(Payload.fromBytes(bytes));
-            return true;
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            return false;
-        }
-    }
-
     /**
      * Queries the phone's contacts for their own profile, and returns their name. Used when
      * connecting to another device.
      */
     public String getName() {
         if (main.nameView != null) {
-            myName = main.nameView.getText().toString();
+            myName = main.nameView.getText().toString().trim();
         }
 
-        if (myName == null || myName.length() == 0) {
-            myName = "Buddy_" + (int) (Math.random() * 1000);
-            main.nameView.setText(myName);
-        }
+//        if (myName == null || myName.length() == 0) {
+//            myName = "Buddy_" + (int) (Math.random() * 1000);
+//            main.nameView.setText(myName);
+//        }
         return myName;
     }
 
@@ -628,11 +506,6 @@ public class NearbyPeersManager implements SensorEventListener {
      */
     protected void removeCallbacks(Runnable r) {
         mUiHandler.removeCallbacks(r);
-    }
-
-    @SuppressWarnings("unchecked")
-    private static <T> T pickRandomElem(Collection<T> collection) {
-        return (T) collection.toArray()[new Random().nextInt(collection.size())];
     }
 
 
@@ -800,6 +673,9 @@ public class NearbyPeersManager implements SensorEventListener {
      * out if we successfully entered this mode.
      */
     protected void startDiscovering() {
+        if (mIsDiscovering) {
+            return; //already discovering!
+        }
         mIsDiscovering = true;
         mDiscoveredEndpoints.clear();
         DiscoveryOptions.Builder discoveryOptions = new DiscoveryOptions.Builder();
@@ -810,8 +686,7 @@ public class NearbyPeersManager implements SensorEventListener {
                         new EndpointDiscoveryCallback() {
                             @Override
                             public void onEndpointFound(String endpointId, DiscoveredEndpointInfo info) {
-                                Log.d(TAG, String.format(
-                                        "onEndpointFound(endpointId=%s, serviceId=%s, endpointName=%s)",
+                                Log.d(TAG, String.format("onEndpointFound(endpointId=%s, serviceId=%s, endpointName=%s)",
                                         endpointId, info.getServiceId(), info.getEndpointName()));
 
                                 if (getServiceId().equals(info.getServiceId())) {
@@ -824,6 +699,7 @@ public class NearbyPeersManager implements SensorEventListener {
                             @Override
                             public void onEndpointLost(String endpointId) {
                                 Log.d(TAG, String.format("onEndpointLost(endpointId=%s)", endpointId));
+                                main.getLeaderSelectAdapter().removeLeader(endpointId);
                             }
                         },
                         discoveryOptions.build())
@@ -843,6 +719,7 @@ public class NearbyPeersManager implements SensorEventListener {
                                 onDiscoveryFailed();
                             }
                         });
+
     }
 
     /**
@@ -876,29 +753,33 @@ public class NearbyPeersManager implements SensorEventListener {
      * Disconnects from all currently connected endpoints.
      */
     protected void disconnectFromAllEndpoints() {
+        mIsAdvertising = false;
+        mIsDiscovering = false;
+        mIsConnecting = false;
         mConnectionsClient.stopAllEndpoints();
         for (Endpoint endpoint : mEstablishedConnections.values()) {
 //            mConnectionsClient.disconnectFromEndpoint(endpoint.getId());
 //            mEstablishedConnections.remove(endpoint.getId());
             performDisconnection(endpoint); //does UI updates
         }
+        for (Endpoint endpoint : mDiscoveredEndpoints.values()) {
+//            mConnectionsClient.disconnectFromEndpoint(endpoint.getId());
+//            mEstablishedConnections.remove(endpoint.getId());
+            performDisconnection(endpoint); //does UI updates
+        }
+        for (Endpoint endpoint : mPendingConnections.values()) {
+//            mConnectionsClient.disconnectFromEndpoint(endpoint.getId());
+//            mEstablishedConnections.remove(endpoint.getId());
+            performDisconnection(endpoint); //does UI updates
+        }
+        mDiscoveredEndpoints.clear();
+        mPendingConnections.clear();
+
         mEstablishedConnections.clear();
 
         Log.i(TAG, "In disconnectFromAllEndpoints - " + main.isGuide);
         setState(State.DISCOVERING);
-    }
 
-    /**
-     * Resets and clears all state in Nearby Connections.
-     */
-    protected void stopAllEndpoints() {
-        mConnectionsClient.stopAllEndpoints();
-        mIsAdvertising = false;
-        mIsDiscovering = false;
-        mIsConnecting = false;
-        mDiscoveredEndpoints.clear();
-        mPendingConnections.clear();
-        mEstablishedConnections.clear();
     }
 
     /**
@@ -967,20 +848,54 @@ public class NearbyPeersManager implements SensorEventListener {
      *
      * @param payload The data you want to send.
      */
-    protected void send(Payload payload) {
-        send(payload, mEstablishedConnections.keySet());
+    protected void sendToAll(Payload payload) {
+        sendToSelected(payload, mEstablishedConnections.keySet());
     }
 
-    private void send(Payload payload, Set<String> endpoints) {
-        mConnectionsClient
-                .sendPayload(new ArrayList<>(endpoints), payload)
-                .addOnFailureListener(
-                        new OnFailureListener() {
-                            @Override
-                            public void onFailure(@NonNull Exception e) {
-                                Log.w(TAG, "sendPayload() failed.", e);
-                            }
-                        });
+    public Set<String> getSelectedPeerIDs() {
+        Set<String> endpoints = new ArraySet<String>();
+        //if connected as guide, send message to specific peers
+        if (isConnectedAsGuide()) {
+            for (ConnectedPeer thisPeer : main.getConnectedLearnersAdapter().mData) {
+                if (thisPeer.isSelected()) {
+                    Log.d(TAG, "Adding " + thisPeer.getDisplayName());
+                    endpoints.add(thisPeer.getID());
+                }
+            }
+            return endpoints;
+
+            //if connected as follower, send message back to guide
+        } else {
+            return mEstablishedConnections.keySet();
+        }
+    }
+
+    public Set<String> getAllPeerIDs() {
+        return mEstablishedConnections.keySet();
+    }
+
+    public String getSelectedPeerIDsAsString() {
+        String res = "";
+        for (String s : getSelectedPeerIDs()) {
+            res += s + ",";
+        }
+        return res;
+    }
+
+    void sendToSelected(Payload payload, Set<String> endpoints) {
+        Log.d(TAG, "Sending to: " + endpoints.size() + " endpoints.");
+        Log.d(TAG, String.valueOf(endpoints));
+
+        if (endpoints.size() > 0) {
+            mConnectionsClient.sendPayload(new ArrayList<>(endpoints), payload)
+                    .addOnFailureListener(
+                            new OnFailureListener() {
+                                @Override
+                                public void onFailure(@NonNull Exception e) {
+                                    Log.w(TAG, "sendPayload() failed.", e);
+                                }
+                            });
+        }
     }
 
     /**

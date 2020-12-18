@@ -1,0 +1,315 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/c__leader_main"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:background="@color/leadme_light_grey"
+    android:orientation="vertical">
+
+
+    <androidx.cardview.widget.CardView
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:layout_marginBottom="10dp"
+        android:background="@color/leadme_white"
+        app:cardBackgroundColor="@color/leadme_white"
+        app:cardElevation="10dp">
+
+        <ImageView
+            android:id="@+id/leadme_icon"
+            android:layout_width="60dp"
+            android:layout_height="match_parent"
+            android:layout_marginStart="5dp"
+            android:layout_marginEnd="10dp"
+            android:contentDescription="@string/logo_txt"
+            android:foregroundGravity="center"
+            android:minWidth="3dp"
+            android:padding="10dp"
+            android:src="@drawable/leadme_icon" />
+
+        <TextView
+            android:id="@+id/leader_title"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:fontFamily="@font/poppins_semibold"
+            android:gravity="center_horizontal|center_vertical"
+            android:text="@string/leadme_learning"
+            android:textColor="@color/leadme_black"
+            android:textSize="18sp" />
+
+        <ImageView
+            android:id="@+id/menu_btn"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:layout_gravity="center_vertical|end"
+            android:layout_marginRight="15dp"
+            android:adjustViewBounds="true"
+            android:background="#00FFFFFF"
+            android:clickable="true"
+            android:contentDescription="@string/logo_txt"
+            android:foregroundGravity="top|left"
+            android:scaleType="fitCenter"
+            android:src="@drawable/menu_icon"
+            android:visibility="visible"
+            tools:visibility="visible" />
+
+    </androidx.cardview.widget.CardView>
+
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:divider="@drawable/divider_horizontal"
+        android:orientation="horizontal"
+        android:padding="10dp"
+        android:showDividers="middle">
+
+        <Button
+            android:id="@+id/app_core_btn"
+            style="@style/EmptyStyle"
+            android:layout_width="@dimen/pushbtn_size"
+            android:layout_height="@dimen/pushbtn_size"
+            android:layout_marginStart="5dp"
+            android:layout_marginTop="5dp"
+            android:layout_marginEnd="5dp"
+            android:layout_marginBottom="5dp"
+            android:layout_weight="1"
+            android:background="@drawable/circle_btn"
+            android:drawableTop="@drawable/core_app_icon"
+            android:fontFamily="@font/poppins_semibold"
+            android:paddingTop="10dp"
+            android:text="@string/app"
+            android:textAllCaps="false"
+            android:textColor="@color/leadme_black"
+            android:textSize="11sp" />
+
+        <Space
+            android:layout_width="5dp"
+            android:layout_height="fill_parent"
+            android:layout_weight="0" />
+
+        <Button
+            android:id="@+id/url_core_btn"
+            style="@style/EmptyStyle"
+            android:layout_width="@dimen/pushbtn_size"
+            android:layout_height="@dimen/pushbtn_size"
+            android:layout_marginStart="5dp"
+            android:layout_marginTop="5dp"
+            android:layout_marginEnd="5dp"
+            android:layout_marginBottom="5dp"
+            android:layout_weight="1"
+            android:background="@drawable/circle_btn"
+            android:drawableTop="@drawable/core_url_icon"
+            android:fontFamily="@font/poppins_semibold"
+            android:paddingTop="10dp"
+            android:text="@string/url"
+            android:textAllCaps="false"
+            android:textColor="@color/leadme_black"
+            android:textSize="11sp" />
+
+        <Space
+            android:layout_width="5dp"
+            android:layout_height="fill_parent"
+            android:layout_weight="0" />
+
+        <Button
+            android:id="@+id/yt_core_btn"
+            style="@style/EmptyStyle"
+            android:layout_width="@dimen/pushbtn_size"
+            android:layout_height="@dimen/pushbtn_size"
+            android:layout_marginStart="5dp"
+            android:layout_marginTop="5dp"
+            android:layout_marginEnd="5dp"
+            android:layout_marginBottom="5dp"
+            android:layout_weight="1"
+            android:background="@drawable/circle_btn"
+            android:drawableTop="@drawable/core_yt_icon"
+            android:fontFamily="@font/poppins_semibold"
+            android:paddingTop="10dp"
+            android:text="@string/yt_vr"
+            android:textAllCaps="false"
+            android:textColor="@color/leadme_black"
+            android:textSize="11sp" />
+
+        <Space
+            android:layout_width="5dp"
+            android:layout_height="fill_parent"
+            android:layout_weight="0" />
+
+        <Button
+            android:id="@+id/toggle_all_btn"
+            style="@style/EmptyStyle"
+            android:layout_width="@dimen/pushbtn_size"
+            android:layout_height="@dimen/pushbtn_size"
+            android:layout_marginTop="5dp"
+            android:layout_weight="1"
+            android:background="@drawable/circle_btn"
+            android:drawableTop="@drawable/core_select"
+            android:fontFamily="@font/poppins_semibold"
+            android:paddingTop="8dp"
+            android:text="Select"
+            android:textAllCaps="false"
+            android:textColor="@color/leadme_black"
+            android:textSize="11sp" />
+
+    </LinearLayout>
+
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="fill_parent"
+        android:layout_weight="0.8"
+        android:background="@color/leadme_light_grey"
+        android:orientation="vertical">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="15dp"
+            android:background="@drawable/bg_white_roundeduppercorners">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="bottom|clip_horizontal"
+                android:layout_weight="1"
+                android:fontFamily="@font/poppins_semibold"
+                android:gravity="center_vertical"
+                android:padding="20dp"
+                android:text="@string/label_students"
+                android:textColor="@color/leadme_black" />
+
+            <Space
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_weight="1" />
+
+            <SearchView
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:clickable="false"
+                android:textAlignment="textEnd"
+                android:visibility="gone" />
+
+        </LinearLayout>
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="0.8"
+            android:background="@color/leadme_white">
+
+            <TextView
+                android:id="@+id/no_students_connected"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginTop="60dp"
+                android:fontFamily="@font/poppins_regular"
+                android:text="Waiting for learners..."
+                android:textColor="@color/leadme_medium_grey"
+                android:textSize="14sp" />
+
+            <GridView
+                android:id="@+id/studentListView"
+                android:layout_width="match_parent"
+                android:layout_height="fill_parent"
+                android:layout_gravity="center_horizontal"
+                android:layout_weight="0.8"
+                android:background="@color/leadme_white"
+                android:clipToPadding="false"
+                android:foregroundGravity="center_horizontal"
+                android:gravity="center_horizontal"
+                android:numColumns="3"
+                android:verticalSpacing="15dp"
+                android:visibility="gone"
+                tools:listitem="@layout/row_follower">
+
+            </GridView>
+        </FrameLayout>
+
+        <LinearLayout
+            android:id="@+id/lock_action_bar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="0"
+            android:background="@color/leadme_white"
+            android:orientation="horizontal"
+            android:paddingStart="15dp"
+            android:paddingTop="5dp"
+            android:paddingEnd="15dp"
+            android:paddingBottom="10dp">
+
+            <Button
+                android:id="@+id/unlock_selected_btn"
+                style="@android:style/Widget.Material.Light.Button.Inset"
+                android:layout_width="130dp"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
+                android:layout_marginStart="5dp"
+                android:layout_marginTop="5dp"
+                android:layout_marginEnd="5dp"
+                android:layout_marginBottom="5dp"
+                android:layout_weight="1"
+                android:background="@drawable/bg_control_buttons"
+                android:drawableLeft="@drawable/controls_unlock"
+                android:fontFamily="@font/poppins_semibold"
+                android:paddingLeft="15dp"
+                android:paddingRight="10dp"
+                android:text="Unlock"
+                android:textAllCaps="false"
+                android:textColor="@color/light"
+                android:textSize="14sp" />
+
+            <Button
+                android:id="@+id/lock_selected_btn"
+                style="@android:style/Widget.Material.Light.Button.Inset"
+                android:layout_width="130dp"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
+                android:layout_marginStart="5dp"
+                android:layout_marginTop="5dp"
+                android:layout_marginEnd="5dp"
+                android:layout_marginBottom="5dp"
+                android:layout_weight="1"
+                android:background="@drawable/bg_control_buttons"
+                android:drawableLeft="@drawable/controls_lock"
+                android:fontFamily="@font/poppins_semibold"
+                android:paddingLeft="15dp"
+                android:paddingRight="10dp"
+                android:text="Lock"
+                android:textAllCaps="false"
+                android:textColor="@color/light"
+                android:textSize="14sp" />
+
+            <Button
+                android:id="@+id/block_selected_btn"
+                style="@android:style/Widget.Material.Light.Button.Inset"
+                android:layout_width="130dp"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
+                android:layout_marginStart="5dp"
+                android:layout_marginTop="5dp"
+                android:layout_marginEnd="5dp"
+                android:layout_marginBottom="5dp"
+                android:layout_weight="1"
+                android:background="@drawable/bg_control_buttons"
+                android:drawableLeft="@drawable/controls_block"
+                android:fontFamily="@font/poppins_semibold"
+                android:paddingLeft="15dp"
+                android:paddingRight="10dp"
+                android:text="Block"
+                android:textAllCaps="false"
+                android:textColor="@color/light"
+                android:textSize="14sp" />
+        </LinearLayout>
+
+
+    </LinearLayout>
+
+
+</LinearLayout>

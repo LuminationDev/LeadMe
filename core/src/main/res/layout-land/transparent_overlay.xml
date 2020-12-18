@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/transparentOverlay"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
     android:background="#3258E2FA"
@@ -11,7 +10,7 @@
 
 
     <LinearLayout
-        android:id="@+id/blockingView"
+        android:id="@+id/blocking_view"
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
         android:layout_centerInParent="true"
@@ -22,7 +21,6 @@
         android:visibility="gone">
 
         <ImageView
-            android:id="@+id/leadmeLogo"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal"
@@ -31,7 +29,6 @@
             android:src="@android:drawable/ic_dialog_alert" />
 
         <TextView
-            android:id="@+id/blockingMessage"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:fontFamily="@font/poppins_semibold"

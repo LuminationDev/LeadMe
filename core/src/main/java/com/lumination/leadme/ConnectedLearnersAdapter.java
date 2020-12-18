@@ -1,0 +1,321 @@
+package com.lumination.leadme;
+
+import android.app.AlertDialog;
+import android.graphics.drawable.Drawable;
+import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.BaseAdapter;
+import android.widget.Button;
+import android.widget.ImageView;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import java.util.ArrayList;
+import java.util.List;
+
+public class ConnectedLearnersAdapter extends BaseAdapter {
+
+    private final String TAG = "ConnectedStudentsAdapter";
+
+    //default is that students with a warning/error/install status will be displayed first
+    private boolean reorderByStatus = true;
+
+    public ArrayList<ConnectedPeer> mData = new ArrayList<>();
+    private LayoutInflater mInflater;
+    private LeadMeMain main;
+    private View studentDisconnectedView;
+
+    ConnectedLearnersAdapter(LeadMeMain main, List<ConnectedPeer> data) {
+        this.main = main;
+        this.mInflater = LayoutInflater.from(main);
+        mData.addAll(data);
+    }
+
+    public void refresh() {
+        notifyDataSetChanged();
+        super.notifyDataSetChanged();
+    }
+
+    public void alertStudentDisconnect(String id) {
+        ConnectedPeer peer = getMatchingPeer(id);
+        if (peer != null) {
+            peer.setStatus(ConnectedPeer.STATUS_ERROR_DISCONNECT);
+            moveToFrontOfList(peer);
+            refresh();
+        }
+    }
+
+
+    public boolean removeStudent(String id) {
+        ConnectedPeer found = getMatchingPeer(id);
+        if (found != null) {
+            //remove old one so we keep the newest version
+            mData.remove(found);
+            refresh();
+            return true;
+        }
+        refresh();
+        return false;
+    }
+
+    public void addStudent(ConnectedPeer peer) {
+        //does someone with this name already exist?
+        ConnectedPeer found = getMatchingPeer(peer.getID());
+
+        if (found != null) {
+            //remove old one so we keep the newest version
+            mData.remove(found);
+        }
+
+        //add the newest version
+        mData.add(peer);
+        refresh();
+
+        Log.d(TAG, "Adding " + peer.getDisplayName() + " to my student list. Now: " + mData.size());
+    }
+
+    public boolean hasConnectedStudents() {
+        return mData.size() > 0;
+    }
+
+    private ConnectedPeer getMatchingPeer(String peerID) {
+        if (mData == null || mData.size() == 0) {
+            return null;
+        }
+
+        for (ConnectedPeer peer : mData) {
+            if (peer != null && peer.getID().equals(peerID)) {
+                return peer;
+            }
+        }
+        return null;
+    }
+
+    public void updateIcon(String name, Drawable icon) {
+        //Log.d(TAG, "Updating icon for " + name);
+        ConnectedPeer thisPeer = getMatchingPeer(name);
+        if (thisPeer != null) {
+            thisPeer.setIcon(icon);
+            refresh();
+        }
+    }
+
+    public void updateStatus(String name, int status) {
+        //Log.d(TAG, "Updating status for " + name);
+        ConnectedPeer thisPeer = getMatchingPeer(name);
+        if (thisPeer != null) {
+            thisPeer.setStatus(status);
+            if (status == ConnectedPeer.STATUS_OFF_TASK_ALERT || status == ConnectedPeer.STATUS_ERROR_DISCONNECT || status == ConnectedPeer.STATUS_INSTALLING) {
+                moveToFrontOfList(thisPeer);
+            }
+            refresh();
+        }
+
+        //certain states should alert the guide - e.g. failure to load or attempt to install
+        if (status == ConnectedPeer.STATUS_INSTALLING || status == ConnectedPeer.STATUS_ERROR_DISCONNECT || status == ConnectedPeer.STATUS_OFF_TASK_ALERT) {
+            String msg = thisPeer.getDisplayName() + " is ";
+            switch (status) {
+                case ConnectedPeer.STATUS_INSTALLING:
+                    msg += " installing requested app.";
+                    break;
+                case ConnectedPeer.STATUS_ERROR_DISCONNECT:
+                    msg += " disconnected.";
+                    break;
+                case ConnectedPeer.STATUS_OFF_TASK_ALERT:
+                    msg += " in the wrong app.";
+                    break;
+            }
+
+            Toast warningToast = Toast.makeText(main.getApplicationContext(), "WARNING: " + msg, Toast.LENGTH_LONG);
+            warningToast.show();
+        }
+    }
+
+    public void selectAllPeers(boolean select) {
+        for (ConnectedPeer peer : mData) {
+            peer.setSelected(select);
+        }
+        refresh();
+    }
+
+    @Override
+    public int getCount() {
+        if (mData != null) {
+            return mData.size();
+        } else {
+            return 0;
+        }
+    }
+
+    @Override
+    public Object getItem(int position) {
+        return mData.get(position);
+    }
+
+    @Override
+    public long getItemId(int position) {
+        return position;
+    }
+
+
+    AlertDialog disconnectPrompt;
+
+    @Override
+    public View getView(int position, View convertView, ViewGroup parent) {
+
+        if (convertView == null) {
+            convertView = mInflater.inflate(R.layout.row_follower, parent, false);
+        }
+
+        TextView studentName = convertView.findViewById(R.id.student_name);
+        ImageView selectedIndicator = convertView.findViewById(R.id.selected_indicator);
+        ImageView studentIcon = convertView.findViewById(R.id.student_icon);
+        ImageView warningIcon = convertView.findViewById(R.id.status_icon);
+
+        final ConnectedPeer peer = mData.get(position);
+        if (peer != null) {
+            studentName.setText(peer.getDisplayName());
+
+            if (peer.isSelected()) {
+                selectedIndicator.setVisibility(View.VISIBLE);
+            } else {
+                selectedIndicator.setVisibility(View.INVISIBLE);
+            }
+
+            Drawable icon = peer.getIcon();
+            if (icon == null) {
+                icon = main.leadmeIcon;
+            } else if (icon.equals(main.getAppManager().app_placeholder)) {
+                //something went wrong!
+                peer.setStatus(ConnectedPeer.STATUS_OFF_TASK_ALERT);
+                moveToFrontOfList(peer);
+            }
+
+            //draw the student icon and status icon
+            studentIcon.setImageDrawable(icon);
+            drawAlertIcon(peer, warningIcon);
+
+            convertView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    if (peer.getStatus() == ConnectedPeer.STATUS_ERROR_DISCONNECT) {
+                        //
+                        if (studentDisconnectedView == null) {
+                            studentDisconnectedView = View.inflate(main, R.layout.e__disconnected_student_popup, null);
+                            Button ok_btn = studentDisconnectedView.findViewById(R.id.ok_btn);
+                            Button back_btn = studentDisconnectedView.findViewById(R.id.back_btn);
+
+                            ok_btn.setOnClickListener(new View.OnClickListener() {
+                                @Override
+                                public void onClick(View v) {
+                                    main.getConnectedLearnersAdapter().removeStudent(peer.getID());
+                                    main.getConnectedLearnersAdapter().refresh();
+                                    disconnectPrompt.hide();
+                                }
+                            });
+
+                            back_btn.setOnClickListener(new View.OnClickListener() {
+                                @Override
+                                public void onClick(View v) {
+                                    disconnectPrompt.hide();
+                                }
+                            });
+                        }
+
+                        if (disconnectPrompt == null) {
+                            disconnectPrompt = new AlertDialog.Builder(main)
+                                    .setView(studentDisconnectedView)
+                                    .show();
+                        } else {
+                            disconnectPrompt.show();
+                        }
+
+                    } else {
+                        //select the tapped peer
+                        selectPeer(peer.getID(), !peer.isSelected());
+                    }
+                }
+            });
+        }
+        return convertView;
+    }
+
+    protected void moveToFrontOfList(ConnectedPeer peer) {
+        if (reorderByStatus) {
+            int index = mData.indexOf(peer);
+            mData.remove(index);
+            mData.add(0, peer);
+        }
+    }
+
+    public void drawAlertIcon(ConnectedPeer peer, ImageView statusIcon) {
+        //Log.w(TAG, "Updating alert icon for " + peer.getDisplayName() + ", to " + peer.getStatus());
+        if (statusIcon == null) {
+            //Log.e(TAG, "Status icon ImageView is null");
+            return;
+        }
+
+        switch (peer.getStatus()) {
+            case ConnectedPeer.STATUS_LOCK:
+                statusIcon.setImageDrawable(main.getResources().getDrawable(R.drawable.alert_locked_learner, null));
+                break;
+
+            case ConnectedPeer.STATUS_BLACKOUT:
+                statusIcon.setImageDrawable(main.getResources().getDrawable(R.drawable.alert_blackout_learner, null));
+                break;
+
+            case ConnectedPeer.STATUS_ERROR_DISCONNECT:
+                statusIcon.setImageDrawable(main.getResources().getDrawable(R.drawable.alert_major_error, null));
+                break;
+
+            case ConnectedPeer.STATUS_OFF_TASK_ALERT:
+                statusIcon.setImageDrawable(main.getResources().getDrawable(R.drawable.alert_offtask_learner, null));
+                break;
+
+            case ConnectedPeer.STATUS_INSTALLING:
+                statusIcon.setImageDrawable(main.getResources().getDrawable(R.drawable.alert_installing, null));
+                break;
+
+            case ConnectedPeer.STATUS_SUCCESS:
+                statusIcon.setImageDrawable(null);
+                setLockStatus(peer, statusIcon);
+                break;
+
+            case ConnectedPeer.STATUS_UNLOCK:
+                //if previous icon was NOT error or install, remove the icon
+                //i.e. if it was related to lock status
+                if (!(peer.getPreviousStatus() == ConnectedPeer.STATUS_ERROR_DISCONNECT || peer.getPreviousStatus() == ConnectedPeer.STATUS_INSTALLING)) {
+                    statusIcon.setImageDrawable(null);
+                }
+                break;
+        }
+
+    }
+
+    private void setLockStatus(ConnectedPeer peer, ImageView statusIcon) {
+        //sometimes multiple status are possible.
+        if (peer.isBlackedOut()) {
+            statusIcon.setImageDrawable(main.getResources().getDrawable(R.drawable.alert_blackout_learner, null));
+        } else if (peer.isLocked()) {
+            statusIcon.setImageDrawable(main.getResources().getDrawable(R.drawable.alert_locked_learner, null));
+        }
+    }
+
+    public void selectPeer(String id, boolean selected) {
+        ConnectedPeer peer = getMatchingPeer(id);
+        peer.setSelected(selected);
+        refresh();
+    }
+
+    public boolean someoneIsSelected() {
+        for (ConnectedPeer peer : mData) {
+            if (peer.isSelected()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+}

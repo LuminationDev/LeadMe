@@ -1,18 +1,32 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="layout_border_color">#FF111111</color>
-    <color name="iconColor">#FF000000</color>
-    <color name="luminationBG">#FFFFFFFF</color>
-    <color name="luminationText">#FF3A3A3A</color>
-    <color name="luminationLightAccentTrans">#2242BFEA</color>
-    <color name="luminationLightAccent">#FF42bfea</color>
-    <color name="luminationMediumAccent">#FF0094d3</color>
-    <color name="luminationDarkAccent">#FF3c7abe</color>
-    <color name="luminationGreyLight">#D5D4D4</color>
-    <color name="luminationGrey">#AEAEAE</color>
-    <color name="luminationGreyDark">#8A8A8A</color>
-    <color name="luminationUnselectedStudent">#8FDCF6</color>
-    <color name="luminationWarningYellow">#FFEB3B</color>
-    <color name="luminationSelectedGreen">#8882D585</color>
-    <color name="luminationTransparent">#00FFFFFF</color>
+
+    <!-- system generated -->
+    <color name="leadme_icon_background">#FFFFFF</color>
+
+    <!-- Marissa added -->
+    <color name="transparent">#00FFFFFF</color>
+    <color name="gradient_grey">#12000000</color>
+    <color name="error_alert">#E40000</color>
+    <color name="selected_blue">#800094D3</color>
+    <color name="selected_blue_border">#0094D3</color>
+    <color name="leader_bg">#FFF7EB</color>
+    <color name="learner_bg">#E9EEFF</color>
+    <color name="learner_bg_old">#F3F0FD</color>
+    <color name="leadme_bg_highlight">#F9FAFB</color>
+    <!--color name="locked_grey">#28000000</color-->
+
+    <!-- official palette -->
+    <color name="primary">#8A62F1</color>
+    <color name="medium">#5677EB</color>
+    <color name="light">#1599F3</color>
+    <color name="accent">#FDA627</color>
+
+    <color name="leadme_black">#000000</color>
+    <color name="leadme_darkest_grey">#3A3A3A</color>
+    <color name="leadme_dark_grey">#919BB4</color>
+    <color name="leadme_medium_grey">#AFB7CB</color>
+    <color name="leadme_light_grey">#EEF3FF</color>
+    <color name="leadme_white">#FFFFFF</color>
+
 </resources>

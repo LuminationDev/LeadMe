@@ -5,6 +5,7 @@
         android:id="@+id/auto_install"
         android:checkable="true"
         android:title="@string/auto_install_title" />
+
     <item
         android:id="@+id/settings"
         android:title="@string/reset_sett_app" />

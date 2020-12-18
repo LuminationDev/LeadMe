@@ -1,0 +1,307 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="wrap_content"
+    android:layout_centerInParent="true"
+    android:layout_centerHorizontal="true"
+    android:layout_centerVertical="true"
+    android:background="@drawable/rounded_popup_white"
+    android:gravity="center"
+    android:orientation="vertical"
+    android:padding="20dp"
+    android:showDividers="middle|beginning|end">
+
+
+    <LinearLayout
+        android:id="@+id/name_code_entry_view"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:showDividers="middle|beginning|end"
+        android:visibility="visible">
+
+
+        <LinearLayout
+            android:id="@+id/name_entry_view"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/name_entry_label"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginTop="10dp"
+                android:fontFamily="@font/poppins_semibold"
+                android:text="@string/please_enter_your_name"
+                android:textSize="18sp" />
+
+            <EditText
+                android:id="@+id/name_input_field"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginTop="15dp"
+                android:layout_marginBottom="15dp"
+                android:accessibilityTraversalAfter="@id/codeInput1"
+                android:accessibilityTraversalBefore="@id/back_btn"
+                android:autofillHints=""
+                android:background="@drawable/rounded_btn_highlight"
+                android:digits="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ _"
+                android:focusableInTouchMode="true"
+                android:fontFamily="@font/poppins_regular"
+                android:gravity="center"
+                android:hint="@string/type_your_name_hint"
+                android:imeOptions="actionNext"
+                android:inputType="textPersonName|textCapWords"
+                android:maxLines="1"
+                android:paddingTop="5dp"
+                android:paddingBottom="5dp"
+                android:singleLine="true"
+                android:textAlignment="center"
+                android:textColorHint="@color/leadme_medium_grey"
+                android:textSize="16sp"
+                android:visibility="visible"></EditText>
+        </LinearLayout>
+
+        <Space
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+
+        <LinearLayout
+            android:id="@+id/code_entry_view"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="20dp"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/teacher_code_label"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginTop="30dp"
+                android:fontFamily="@font/poppins_semibold"
+                android:text="@string/teacher_code"
+                android:textSize="18sp" />
+
+            <LinearLayout
+                android:id="@+id/code_field_view"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:divider="@drawable/divider_horizontal"
+                android:orientation="horizontal"
+                android:showDividers="middle">
+
+                <EditText
+                    android:id="@+id/codeInput1"
+                    android:layout_width="@dimen/code_textbox_size"
+                    android:layout_height="30dp"
+                    android:accessibilityTraversalAfter="@id/codeInput2"
+                    android:accessibilityTraversalBefore="@id/name_input_field"
+                    android:autofillHints=""
+                    android:background="@drawable/rounded_btn_highlight"
+                    android:digits="0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ _"
+                    android:focusableInTouchMode="true"
+                    android:fontFamily="@font/poppins_regular"
+                    android:gravity="bottom|center_horizontal"
+                    android:hint="@string/code_hint"
+                    android:imeOptions="flagNavigateNext"
+                    android:inputType="number"
+                    android:maxLength="1"
+                    android:paddingTop="5dp"
+                    android:textAlignment="center"
+                    android:textColor="@color/leadme_black"
+                    android:textColorHint="@color/leadme_medium_grey"
+                    android:textSize="16sp"
+                    android:visibility="visible"></EditText>
+
+                <EditText
+                    android:id="@+id/codeInput2"
+                    android:layout_width="@dimen/code_textbox_size"
+                    android:layout_height="30dp"
+                    android:accessibilityTraversalAfter="@id/codeInput3"
+                    android:accessibilityTraversalBefore="@id/codeInput1"
+                    android:autofillHints=""
+                    android:background="@drawable/rounded_btn_highlight"
+                    android:digits="0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ _"
+                    android:focusableInTouchMode="true"
+                    android:fontFamily="@font/poppins_regular"
+                    android:gravity="bottom|center_horizontal"
+                    android:hint="@string/code_hint"
+                    android:imeOptions="actionDone"
+                    android:inputType="number"
+                    android:maxLength="1"
+                    android:paddingTop="5dp"
+                    android:textAlignment="center"
+                    android:textColor="@color/leadme_black"
+                    android:textColorHint="@color/leadme_medium_grey"
+                    android:textSize="16sp"
+                    android:visibility="visible"></EditText>
+
+                <EditText
+                    android:id="@+id/codeInput3"
+                    android:layout_width="@dimen/code_textbox_size"
+                    android:layout_height="30dp"
+                    android:accessibilityTraversalAfter="@id/codeInput4"
+                    android:accessibilityTraversalBefore="@id/codeInput2"
+                    android:autofillHints=""
+                    android:background="@drawable/rounded_btn_highlight"
+                    android:digits="0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ _"
+                    android:focusableInTouchMode="true"
+                    android:fontFamily="@font/poppins_regular"
+                    android:gravity="bottom|center_horizontal"
+                    android:hint="@string/code_hint"
+                    android:imeOptions="actionDone"
+                    android:inputType="number"
+                    android:maxLength="1"
+                    android:paddingTop="5dp"
+                    android:textAlignment="center"
+                    android:textColor="@color/leadme_black"
+                    android:textColorHint="@color/leadme_medium_grey"
+                    android:textSize="16sp"
+                    android:visibility="visible"></EditText>
+
+                <EditText
+                    android:id="@+id/codeInput4"
+                    android:layout_width="@dimen/code_textbox_size"
+                    android:layout_height="30dp"
+                    android:accessibilityTraversalAfter="@id/connect_btn"
+                    android:accessibilityTraversalBefore="@id/codeInput3"
+                    android:autofillHints=""
+                    android:background="@drawable/rounded_btn_highlight"
+                    android:digits="0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ _"
+                    android:focusableInTouchMode="true"
+                    android:fontFamily="@font/poppins_regular"
+                    android:gravity="bottom|center_horizontal"
+                    android:hint="@string/code_hint"
+                    android:imeOptions="actionDone"
+                    android:inputType="number"
+                    android:maxLength="1"
+                    android:paddingTop="5dp"
+                    android:textAlignment="center"
+                    android:textColor="@color/leadme_black"
+                    android:textColorHint="@color/leadme_medium_grey"
+                    android:textSize="16sp"
+                    android:visibility="visible"></EditText>
+
+
+            </LinearLayout>
+        </LinearLayout>
+
+        <Space
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+
+        <LinearLayout
+            android:id="@+id/button_view"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="30dp"
+            android:orientation="vertical">
+
+            <Button
+                android:id="@+id/connect_btn"
+                style="?android:attr/borderlessButtonStyle"
+                android:layout_width="@dimen/standard_btn_width"
+                android:layout_height="@dimen/standard_btn_height"
+                android:layout_gravity="center_horizontal"
+                android:accessibilityTraversalAfter="@id/back_btn"
+                android:accessibilityTraversalBefore="@id/codeInput4"
+                android:background="@drawable/bg_active"
+                android:clickable="true"
+                android:fontFamily="@font/poppins_semibold"
+                android:text="Connect"
+                android:textAllCaps="false"
+                android:textColor="@color/leadme_white"
+                android:textSize="16sp" />
+
+            <Space
+                android:layout_width="match_parent"
+                android:layout_height="20dp" />
+
+            <Button
+                android:id="@+id/back_btn"
+                style="?android:attr/borderlessButtonStyle"
+                android:layout_width="@dimen/standard_btn_width"
+                android:layout_height="@dimen/standard_btn_height"
+                android:layout_gravity="center_horizontal"
+                android:background="@drawable/bg_passive"
+                android:clickable="true"
+                android:fontFamily="@font/poppins_semibold"
+                android:text="@string/back"
+                android:textAllCaps="false"
+                android:textColor="@color/leadme_black"
+                android:textSize="16sp" />
+
+        </LinearLayout>
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/wrong_code_view"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:visibility="gone">
+
+        <Space
+            android:layout_width="match_parent"
+            android:layout_height="30dp" />
+
+        <TextView
+            android:id="@+id/error_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_marginTop="10dp"
+            android:fontFamily="@font/poppins_semibold"
+            android:gravity="center|center_horizontal"
+            android:text="Oops! Please fix these issues\nand try again:"
+            android:textSize="18sp" />
+
+        <TextView
+            android:id="@+id/no_name_message"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="20dp"
+            android:layout_marginTop="20dp"
+            android:fontFamily="@font/poppins_regular"
+            android:text="@string/missing_name"
+            android:textSize="18sp" />
+
+        <TextView
+            android:id="@+id/wrong_code_message"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="20dp"
+            android:layout_marginTop="10dp"
+            android:layout_marginBottom="10dp"
+            android:fontFamily="@font/poppins_regular"
+            android:text="@string/wrong_code"
+            android:textSize="18sp" />
+
+        <Space
+            android:layout_width="match_parent"
+            android:layout_height="30dp" />
+
+        <Button
+            android:id="@+id/close_login_alert_btn"
+            style="@style/Widget.AppCompat.Button.Borderless"
+            android:layout_width="@dimen/standard_btn_width"
+            android:layout_height="@dimen/standard_btn_height"
+            android:layout_gravity="center_horizontal"
+            android:accessibilityTraversalAfter="@id/back_btn"
+            android:accessibilityTraversalBefore="@id/codeInput4"
+            android:background="@drawable/bg_active"
+            android:clickable="true"
+            android:fontFamily="@font/poppins_semibold"
+            android:text="@string/ok"
+            android:textColor="@color/leadme_white"
+            android:textSize="16sp" />
+
+    </LinearLayout>
+
+</LinearLayout>

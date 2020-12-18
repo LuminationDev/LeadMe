@@ -20,9 +20,13 @@ android {
 
 dependencies {
     implementation 'androidx.gridlayout:gridlayout:1.0.0'
-    implementation 'com.google.android.material:material:1.1.0'
-    implementation 'com.google.android.gms:play-services-location:17.0.0'
-    implementation 'com.google.android.gms:play-services-nearby:16.0.0'
+    implementation 'com.google.android.material:material:1.2.1'
+    implementation 'com.google.android.gms:play-services-location:17.1.0'
+    implementation 'com.google.android.gms:play-services-nearby:17.0.0'
+    implementation 'androidx.constraintlayout:constraintlayout:2.0.4'
+
+    //for link preview library
+    implementation 'com.koushikdutta.urlimageviewhelper:urlimageviewhelper:1.0.4'
 }
 
 configurations.all {

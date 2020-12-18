@@ -15,6 +15,9 @@ import android.text.TextUtils;
 import android.util.Log;
 import android.widget.Toast;
 
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.PendingResult;
@@ -28,6 +31,7 @@ import com.google.android.gms.location.LocationSettingsStatusCodes;
 
 public class PermissionManager {
 
+    private String app_title = "Lumination LeadMe";
     private String TAG = "LumiPermissions";
 
     private final int LOCATION_ON_REQUEST = 4;
@@ -38,12 +42,13 @@ public class PermissionManager {
     //required for GPS pop up
     private GoogleApiClient googleApiClient;
 
-    private MainActivity main;
+    private LeadMeMain main;
     public boolean permissionRequestInProgress = false;
 
-    public PermissionManager(MainActivity main) {
+    public PermissionManager(LeadMeMain main) {
         super();
         this.main = main;
+        app_title = main.getResources().getString(R.string.app_title_with_brand);
     }
 
     public boolean requestLocationAndNetworkOn() {
@@ -57,13 +62,13 @@ public class PermissionManager {
             gps_enabled = lm.isProviderEnabled(LocationManager.GPS_PROVIDER);
 
         } catch (Exception ex) {
-            Log.e(TAG, "Error requesting GPS: "+ex.getMessage());
+            Log.e(TAG, "Error requesting GPS: " + ex.getMessage());
         }
 
         try {
             network_enabled = lm.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
         } catch (Exception ex) {
-            Log.e(TAG, "Error requesting location: "+ex.getMessage());
+            Log.e(TAG, "Error requesting location: " + ex.getMessage());
         }
 
         if (main.checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED ||
@@ -72,6 +77,7 @@ public class PermissionManager {
 
             permissionRequestInProgress = true;
             main.requestPermissions(new String[]{
+                    Manifest.permission.ACCESS_FINE_LOCATION,
                     Manifest.permission.ACCESS_COARSE_LOCATION,
                     Manifest.permission.BLUETOOTH,
                     Manifest.permission.BLUETOOTH_ADMIN}, LOCATION_ON_REQUEST);
@@ -112,13 +118,22 @@ public class PermissionManager {
             return false;
         }
 
+        int permissionCheck = ContextCompat.checkSelfPermission(main,
+                Manifest.permission.ACCESS_FINE_LOCATION);
+        if (permissionCheck != PackageManager.PERMISSION_GRANTED) {
+            // ask permissions here using below code
+            ActivityCompat.requestPermissions(main,
+                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
+                    main.FINE_LOC_ON);
+        }
+
         if (gps_enabled && network_enabled) {
             Log.d(TAG, "ALL READY TO CONNECT!");
             allPermissionsGranted = true;
             return true;
         }
 
-        Log.d(TAG, "Missing something: "+gps_enabled+", "+network_enabled);
+        Log.d(TAG, "Missing something: " + gps_enabled + ", " + network_enabled);
         return false;
     }
 
@@ -175,11 +190,12 @@ public class PermissionManager {
     }
 
     private boolean allPermissionsGranted = false;
+
     public boolean workThroughPermissions() {
         if (permissionRequestInProgress) {
             return false;
         }
-        if(allPermissionsGranted){
+        if (allPermissionsGranted) {
             return true;
         }
         Log.i(TAG, "Working through permissions!");
@@ -204,7 +220,7 @@ public class PermissionManager {
     }
 
     public void requestOverlaySettingsOn() {
-        Toast toast = Toast.makeText(main, "Please turn on Floating Window permission for Lumination Remote.", Toast.LENGTH_SHORT);
+        Toast toast = Toast.makeText(main, "Please turn on Floating Window permission for " + app_title, Toast.LENGTH_SHORT);
         toast.show();
 
         // [1] THIS WORKS ALONE BUT ISN'T CONVENIENT FOR USERS BECAUSE THEY HAVE TO FIND THE RIGHT PERMISSION
@@ -220,12 +236,32 @@ public class PermissionManager {
 
 
     public void requestAccessibilitySettingsOn() {
-        Toast toast = Toast.makeText(main, "Please turn on Accessibility for Lumination Remote.", Toast.LENGTH_SHORT);
+        Toast toast = Toast.makeText(main, "Please turn on Accessibility for " + app_title, Toast.LENGTH_SHORT);
         toast.show();
 
         Intent intent = new Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_NO_HISTORY | Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS);
-        main.startActivity(intent);
+        main.startActivityForResult(intent, main.ACCESSIBILITY_ON);
+
+        pingForAccess();
+    }
+
+    private void pingForAccess() {
+        main.getHandler().post(new Runnable() {
+            @Override
+            public void run() {
+                while (!isAccessibilityServiceEnabled(main, RemoteDispatcherService.class)) {
+                    try {
+                        Thread.sleep(500);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+
+                Log.d(TAG, "Access granted!");
+                main.recallToLeadMe();
+            }
+        });
     }
 
     public boolean isAccessibilityServiceEnabled(Context context, Class<?> accessibilityService) {
