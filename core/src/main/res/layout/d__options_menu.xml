@@ -139,6 +139,17 @@
         android:textSize="16sp" />
 
     <TextView
+        android:id="@+id/updates_btn"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="20dp"
+        android:layout_marginTop="50dp"
+        android:fontFamily="@font/poppins_semibold"
+        android:text="Check For Updates"
+        android:textColor="@color/light"
+        android:textSize="16sp" />
+
+    <TextView
         android:id="@+id/logout_btn"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
