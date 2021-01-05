@@ -25,6 +25,9 @@ dependencies {
     implementation 'com.google.android.gms:play-services-nearby:17.0.0'
     implementation 'androidx.constraintlayout:constraintlayout:2.0.4'
 
+    //for permissions manager
+    implementation 'gun0912.ted:tedpermission:2.2.3'
+
     //for link preview library
     implementation 'com.koushikdutta.urlimageviewhelper:urlimageviewhelper:1.0.4'
 }

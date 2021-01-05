@@ -51,11 +51,15 @@ public class LeaderSelectAdapter extends BaseAdapter {
 
     public synchronized void removeLeader(String leaderID) {
         Log.d(TAG, "Removing leader " + leaderID + " from " + leader_list);
+        ArrayList<ConnectedPeer> peersToRemove = new ArrayList<>();
         for (ConnectedPeer peer : leader_list) {
             Log.d(TAG, "Comparing: " + peer.getID() + " vs " + leaderID);
             if (peer.getID().equals(leaderID)) {
-                removeLeader(peer);
+                peersToRemove.add(peer);
             }
+        }
+        for (ConnectedPeer removalPeer : peersToRemove) {
+            removeLeader(removalPeer);
         }
         notifyDataSetChanged();
     }
