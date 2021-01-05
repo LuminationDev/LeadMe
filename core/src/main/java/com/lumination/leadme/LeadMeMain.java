@@ -1859,10 +1859,10 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                 .setContentOnUpdateAvailable("Check out the latest version available of my app!")
                 .setButtonUpdate("Update now?")
 	            .setButtonDismiss("Maybe later")
-	            .setButtonDoNotShowAgain("Don't Ask Me Again")//seems to work across updates and is rather permanent.
+	            .setButtonDoNotShowAgain("Don't Ask Me Again")//need to test if only stops showing for that update
                 .setCancelable(true);
 
-        //show already updated message if the button in options is used
+        //show already updated message only if the button in options is used
         if(button){
             appUpdater.showAppUpdated(true);
         }
