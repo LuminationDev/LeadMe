@@ -37,10 +37,12 @@ public class RemoteDispatcherService extends AccessibilityService {
     public static RemoteDispatcherService getInstance(LeadMeMain m) {
         main = m;
         INSTANCE.attachMain(m);
+
         return INSTANCE;
     }
 
     private boolean init = false;
+
     @Override
     public void onCreate() {
         super.onCreate();
@@ -91,10 +93,14 @@ public class RemoteDispatcherService extends AccessibilityService {
 
     @Override
     protected void onServiceConnected() {
-        Log.d(TAG, "Service CONNECTED!");
+        Log.d(TAG, "Service CONNECTED! Recall? " + main.permissionManager.needsRecall);
         INSTANCE = this;
 
-        main.setupLayoutTouchListener();
+
+        if (main != null) {
+            main.recallToLeadMe();
+            main.setupLayoutTouchListener();
+        }
 
     }
 
@@ -111,15 +117,19 @@ public class RemoteDispatcherService extends AccessibilityService {
 
     public boolean findAndClickVRMode(AccessibilityNodeInfo nodeInfo, int depth) {
         originalNodeInfo = nodeInfo;
-        if (debugVRClick)
+        if (debugVRClick) {
             Log.w(TAG, "\t\tIn FindAndClickVRMode: " + main.getWebManager().launchingVR + ", " + nodeInfo);
+        }
+
         if (nodeInfo == null) {
             main.getWebManager().launchingVR = false; //done!
             return true; //finished searching
         }
 
-        if (debugVRClick)
+        if (debugVRClick) {
             Log.w(TAG, "\t\tVR SEARCH: " + nodeInfo.getViewIdResourceName() + ", " + nodeInfo.getContentDescription());
+        }
+
         if (nodeInfo.getContentDescription() != null && nodeInfo.getContentDescription().toString().equals("Enter virtual reality mode")) {
             if (debugVRClick) Log.w(TAG, "\t\tFound and clicked!");
             nodeInfo.performAction(AccessibilityNodeInfo.ACTION_CLICK);
@@ -266,15 +276,8 @@ public class RemoteDispatcherService extends AccessibilityService {
         mainHandler.post(new Runnable() {
             @Override
             public void run() {
-//                Intent intent = new Intent(main, LeadMeMain.class);
-//                intent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
-//                main.startActivity(intent);
-//
-//                Log.d(TAG, "Bringing main to front. " + main.hasWindowFocus());
                 if (!main.hasWindowFocus()) {
                     main.recallToLeadMe();
-                    //main.returnToAppAction();
-                    //main.returnToAppFromSettings();
                 }
             }
         });
@@ -467,6 +470,12 @@ public class RemoteDispatcherService extends AccessibilityService {
                         disableInteraction(ConnectedPeer.STATUS_BLACKOUT);
                         main.getRemoteDispatchService().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.LAUNCH_SUCCESS + "BLACKOUT" + ":" + main.getNearbyManager().getID() + ":" + main.getApplicationContext().getPackageName(),
                                 main.getNearbyManager().getAllPeerIDs());
+                        break;
+                    } else if (action.startsWith(LeadMeMain.STUDENT_OFF_TASK_ALERT)) {
+                        Log.i(TAG, "STUDENT OFF TASK");
+                        String[] split = action.split(":");
+                        //main.getConnectedLearnersAdapter().updateStatus(split[2], ConnectedPeer.STATUS_ERROR, split[1]);
+                        main.getConnectedLearnersAdapter().updateStatus(split[2], ConnectedPeer.STATUS_OFF_TASK_ALERT);
                         break;
 
                     } else if (action.startsWith(LeadMeMain.AUTO_INSTALL_FAILED)) {

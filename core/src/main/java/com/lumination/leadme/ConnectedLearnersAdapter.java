@@ -47,6 +47,11 @@ public class ConnectedLearnersAdapter extends BaseAdapter {
         }
     }
 
+    public void removeAllStudents() {
+        mData = new ArrayList<>();
+        refresh();
+    }
+
 
     public boolean removeStudent(String id) {
         ConnectedPeer found = getMatchingPeer(id);
