@@ -30,7 +30,8 @@
         android:clearTaskOnLaunch="true"
         android:icon="@mipmap/leadme_icon_round"
         android:label="@string/app_title"
-        android:theme="@android:style/Theme.Holo.Light.NoActionBar.Fullscreen">
+        android:theme="@android:style/Theme.Holo.Light.NoActionBar.Fullscreen"
+        android:usesCleartextTraffic="true">
 
         <activity
             android:name="com.lumination.leadme.LeadMeMain"

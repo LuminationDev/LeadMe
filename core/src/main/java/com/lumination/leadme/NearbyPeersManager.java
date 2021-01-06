@@ -115,7 +115,7 @@ public class NearbyPeersManager {
     private final Runnable mDiscoverRunnable = new Runnable() {
         @Override
         public void run() {
-            if (main.isReadyToConnect && getState() != State.CONNECTED) {
+            if (main.isReadyToConnect && getState() == State.UNKNOWN) {
                 Log.i(TAG, "In runnable - " + main.isGuide + " in " + getState());
                 setState(State.DISCOVERING);
             }
@@ -126,13 +126,15 @@ public class NearbyPeersManager {
         this.main = main;
         mUiHandler = main.getHandler();
         mConnectionsClient = Nearby.getConnectionsClient(main);
+        Log.d(TAG, "NEW NEARBY PEERS MANAGER");
         disconnectFromAllEndpoints(); //clear any old connections
     }
 
 
     //TODO
     protected void discoverLeaders() {
-        if (main.isReadyToConnect && getState() != State.CONNECTED) {
+        Log.d(TAG, "DISCOVER LEADERS: " + main.isReadyToConnect + ", " + mState + " --> " + mIsDiscovering + ", " + mIsAdvertising + ", " + mEstablishedConnections + ", " + mDiscoveredEndpoints);
+        if (main.isReadyToConnect) {
             setState(State.DISCOVERING);
         }
     }
@@ -146,6 +148,8 @@ public class NearbyPeersManager {
     protected void cancelConnection() {
         stopDiscovering();
         stopAdvertising();
+
+        Log.d(TAG, "CANCEL CONNECTION");
         disconnectFromAllEndpoints();
     }
 
@@ -194,7 +198,7 @@ public class NearbyPeersManager {
     protected void onEndpointConnected(final Endpoint endpoint) {
         Toast.makeText(main, "Connected to " + endpoint.getName(), Toast.LENGTH_SHORT).show();
         setState(State.CONNECTED, endpoint);
-        main.closeWaitingDialog();
+        main.closeWaitingDialog(true);
 
         mUiHandler.post(new Runnable() {
             @Override
@@ -235,10 +239,7 @@ public class NearbyPeersManager {
                 Runnable myRunnable = new Runnable() {
                     @Override
                     public void run() {
-                        //student should auto-connect back to last guide
-                        //Log.d(TAG, "Auto-connecting back to last guide");
                         main.setUIDisconnected();
-                        //main.initiateConnectionAttempt();
                     }
                 };
                 main.getHandler().post(myRunnable); //needs to run on main thread
@@ -246,9 +247,14 @@ public class NearbyPeersManager {
         }
     }
 
+    protected void writeCurrentStatus() {
+        Log.d(TAG, mState + " --> " + mIsDiscovering + ", " + mIsAdvertising + ", " + mEstablishedConnections + ", " + mDiscoveredEndpoints);
+    }
+
     protected void onConnectionFailed(Endpoint endpoint) {
+        disconnectedFromEndpoint(endpoint);
+        main.closeWaitingDialog(false);
         main.showWarningDialog("Connection failed");
-        main.closeWaitingDialog();
     }
 
     /**
@@ -300,6 +306,8 @@ public class NearbyPeersManager {
      */
     private void onStateChanged(State oldState, State newState, Endpoint endpoint) {
         // Update Nearby Connections to the new state.
+
+        Log.d(TAG, "STATE CHANGE -- " + newState);
         switch (newState) {
             case DISCOVERING:
                 if (isAdvertising()) {
@@ -594,7 +602,7 @@ public class NearbyPeersManager {
                         new OnSuccessListener<Void>() {
                             @Override
                             public void onSuccess(Void unusedResult) {
-                                Log.v(TAG, "Now advertising endpoint " + localEndpointName);
+                                Log.v(TAG, "Now advertising endpoint " + localEndpointName + ", " + getState());
                                 onAdvertisingStarted();
                             }
                         })
@@ -679,6 +687,7 @@ public class NearbyPeersManager {
         mIsDiscovering = true;
         mDiscoveredEndpoints.clear();
         DiscoveryOptions.Builder discoveryOptions = new DiscoveryOptions.Builder();
+
         discoveryOptions.setStrategy(getStrategy());
         mConnectionsClient
                 .startDiscovery(
@@ -747,6 +756,8 @@ public class NearbyPeersManager {
      * Called when discovery fails to start.
      */
     protected void onDiscoveryFailed() {
+        setState(State.UNKNOWN);
+        stopDiscovering();
     }
 
     /**
@@ -774,12 +785,11 @@ public class NearbyPeersManager {
         }
         mDiscoveredEndpoints.clear();
         mPendingConnections.clear();
-
         mEstablishedConnections.clear();
+        main.getConnectedLearnersAdapter().removeAllStudents();
 
-        Log.i(TAG, "In disconnectFromAllEndpoints - " + main.isGuide);
-        setState(State.DISCOVERING);
-
+        //Log.i(TAG, "In disconnectFromAllEndpoints - " + main.isGuide);
+        //setState(State.DISCOVERING);
     }
 
     /**
@@ -788,7 +798,7 @@ public class NearbyPeersManager {
      * if we successfully reached the device.
      */
     protected void connectToEndpoint(final Endpoint endpoint) {
-        Log.v(TAG, "Sending a connection request to endpoint " + endpoint);
+        Log.v(TAG, "Sending a connection request to endpoint " + endpoint + " (" + main.isGuide + ")");
         // Mark ourselves as connecting so we don't connect multiple times
         mIsConnecting = true;
 
@@ -823,9 +833,6 @@ public class NearbyPeersManager {
         Log.d(TAG, String.format("disconnectedFromEndpoint(endpoint=%s)", endpoint));
         mEstablishedConnections.remove(endpoint.getId());
         onEndpointDisconnected(endpoint);
-        if (!main.isGuide) {
-            main.isReadyToConnect = false; //need button press
-        }
     }
 
 

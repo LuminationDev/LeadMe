@@ -26,6 +26,9 @@ dependencies {
     implementation 'androidx.constraintlayout:constraintlayout:2.0.4'
     implementation 'com.github.javiersantos:AppUpdater:2.7'
 
+    //for permissions manager
+    implementation 'gun0912.ted:tedpermission:2.2.3'
+
     //for link preview library
     implementation 'com.koushikdutta.urlimageviewhelper:urlimageviewhelper:1.0.4'
 }

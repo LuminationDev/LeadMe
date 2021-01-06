@@ -70,14 +70,14 @@
             android:textSize="16sp" />
 
         <TextView
-            android:id="@+id/connected_as_learner"
+            android:id="@+id/connected_as_role"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="5dp"
             android:layout_marginBottom="40dp"
             android:layout_weight="1"
             android:fontFamily="@font/poppins_semibold"
-            android:text="@string/leader"
+            android:text="UNKNOWN"
             android:textColor="@color/accent"
             android:textSize="16sp" />
 

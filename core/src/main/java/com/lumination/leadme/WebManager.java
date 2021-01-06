@@ -452,6 +452,9 @@ public class WebManager {
             error = false; //reset error flag
             return;
         }
+
+        main.closeKeyboard();
+
         pushURL = url;
 
         //set up preview to appear correctly
