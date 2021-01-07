@@ -1632,6 +1632,10 @@ drawable btn_radio_off_mtrl
 drawable btn_radio_off_to_on_mtrl_animation
 drawable btn_radio_on_mtrl
 drawable btn_radio_on_to_off_mtrl_animation
+drawable btn_selector_active_left
+drawable btn_selector_active_right
+drawable btn_selector_passive_left
+drawable btn_selector_passive_right
 drawable circle_btn
 drawable clear_favourites
 drawable common_full_open_on_phone
@@ -1670,6 +1674,7 @@ drawable design_snackbar_background
 drawable divider_horizontal
 drawable dusk_background
 drawable follow_leader
+drawable google_logo_transparent
 drawable googleg_disabled_color_18
 drawable googleg_standard_color_18
 drawable hollow_dot
@@ -1686,6 +1691,7 @@ drawable icon_fav_remove
 drawable icon_fav_star_check
 drawable icon_fav_star_uncheck
 drawable icon_paste_from_clipboard
+drawable icon_search
 drawable icon_unknown_app
 drawable leadme_icon
 drawable leadme_reverse
@@ -1738,6 +1744,7 @@ drawable tooltip_frame_light
 drawable video_bg_highlight
 drawable web_no_preview
 drawable wifi_connected_icon
+drawable youtube_logo
 font poppins
 font poppins_regular
 font poppins_semibold
@@ -1881,7 +1888,7 @@ id columnWidth
 id confirm_btn
 id confirm_button
 id connect_btn
-id connected_as_learner
+id connected_as_role
 id connected_as_text
 id connected_icon
 id connected_icon_options
@@ -1973,6 +1980,7 @@ id forever
 id ghost_view
 id ghost_view_holder
 id gone
+id google_btn
 id graph
 id graph_wrap
 id group_divider
@@ -2143,12 +2151,14 @@ id scrollView
 id scrollable
 id search_badge
 id search_bar
+id search_btn
 id search_button
 id search_close_btn
 id search_edit_frame
 id search_go_btn
 id search_mag_icon
 id search_plate
+id search_preview_view
 id search_src_text
 id search_voice_btn
 id select_dialog_listview
@@ -2260,6 +2270,10 @@ id url_favourites
 id url_favourites_title
 id url_input_field
 id url_no_favs
+id url_preview_image
+id url_preview_recycler
+id url_preview_text
+id url_search_bar
 id url_task_view
 id useLogo
 id vertical
@@ -2280,6 +2294,7 @@ id wrap_content
 id wrong_code_message
 id wrong_code_view
 id yt_add_btn
+id yt_btn
 id yt_core_btn
 id yt_del_btn
 id yt_favourites
@@ -2382,6 +2397,7 @@ layout e__edit_favourites
 layout e__fav_clear_confirmation_popup
 layout e__preview_app_push
 layout e__preview_url_push
+layout e__preview_url_search
 layout e__recall_confirm_popup
 layout e__waiting_to_connect
 layout e__warning_popup
@@ -2443,6 +2459,7 @@ layout text_view_with_line_height_from_style
 layout text_view_with_theme_line_height
 layout text_view_without_line_height
 layout transparent_overlay
+layout url_recycler_adaptor
 menu main_menu
 mipmap leadme_icon
 mipmap leadme_icon_foreground
@@ -2482,6 +2499,7 @@ string all_apps
 string all_your_favourites_are_full
 string already_in_fav
 string app
+string app_name
 string app_push_success
 string app_title
 string app_title_with_brand
@@ -2629,6 +2647,7 @@ string preference_file_key
 string push_success_title
 string push_this_to_everyone
 string push_this_to_selected
+string rationale_ask_again
 string recall_comment_all
 string recall_comment_selected
 string recall_learner_title
@@ -2642,7 +2661,11 @@ string status_bar_notification_info_overflow
 string student_name
 string student_view_blocked
 string teacher_code
+string tedpermission_close
+string tedpermission_confirm
+string tedpermission_setting
 string textview
+string title_settings_dialog
 string toggle_below_to
 string type_your_name_hint
 string url
@@ -2879,6 +2902,8 @@ style Base_Widget_MaterialComponents_TextView
 style CardView
 style CardView_Dark
 style CardView_Light
+style EasyPermissions
+style EasyPermissions_Transparent
 style EmptyStyle
 style EmptyTheme
 style MaterialAlertDialog_MaterialComponents
@@ -3114,6 +3139,7 @@ style Theme_MaterialComponents_Light_NoActionBar
 style Theme_MaterialComponents_Light_NoActionBar_Bridge
 style Theme_MaterialComponents_NoActionBar
 style Theme_MaterialComponents_NoActionBar_Bridge
+style Theme_Transparent_Permission
 style ThemeOverlay_AppCompat
 style ThemeOverlay_AppCompat_ActionBar
 style ThemeOverlay_AppCompat_Dark

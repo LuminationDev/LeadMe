@@ -11,14 +11,21 @@ import android.content.pm.ResolveInfo;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.util.Log;
+import android.util.TypedValue;
 import android.view.View;
 import android.webkit.URLUtil;
 import android.widget.Button;
 import android.widget.CheckBox;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.SearchView;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.koushikdutta.urlimageviewhelper.UrlImageViewCallback;
 import com.koushikdutta.urlimageviewhelper.UrlImageViewHelper;
@@ -33,17 +40,18 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class WebManager {
+public class WebManager extends AppCompatActivity implements RecyclerAdaptor.ItemClickListener {
 
     //tag for debugging
     static final String TAG = "WebManager";
     protected TextCrawler textCrawler = new TextCrawler();
 
-    AlertDialog websiteLaunchDialog, previewDialog, urlYtFavDialog;
-    private View websiteLaunchDialogView, previewDialogView;
+    AlertDialog websiteLaunchDialog, previewDialog, urlYtFavDialog, searchDialog;
+    private View websiteLaunchDialogView, previewDialogView, previewSearchView;
     View webYouTubeFavView;
     public boolean launchingVR = false;
 
+    boolean searchYoutube = true;
     ImageView previewImage;
     TextView previewTitle;
     TextView previewMessage;
@@ -51,6 +59,7 @@ public class WebManager {
     Button previewPushBtn;
     boolean isYouTube = false;
     String pushURL = "";
+    RecyclerAdaptor adaptor;
 
     private FavouritesManager urlFavouritesManager;
     private FavouritesManager youTubeFavouritesManager;
@@ -63,6 +72,7 @@ public class WebManager {
         this.main = main;
         websiteLaunchDialogView = View.inflate(main, R.layout.d__enter_url, null);
         previewDialogView = View.inflate(main, R.layout.e__preview_url_push, null);
+        previewSearchView = View.inflate(main,R.layout.e__preview_url_search, null);
 
         //set up favourites view
         webYouTubeFavView = View.inflate(main, R.layout.d__url_yt_favourites, null);
@@ -436,7 +446,58 @@ public class WebManager {
             return "";
         }
     }
+    private void buildAndShowSearchDialog(){
+        hideWebsiteLaunchDialog();
+        //instantiates the search dialog popup if it does not already exist
+        if (searchDialog == null) {
+            searchDialog = new AlertDialog.Builder(main)
+                    .setView(previewSearchView)
+                    .show();
+            searchDialog.findViewById(R.id.push_btn).setVisibility(View.GONE);
+        } else {
+            searchDialog.show();
+        }
 
+        final ImageButton Google = searchDialog.findViewById(R.id.google_btn);
+        final ImageButton Youtube = searchDialog.findViewById(R.id.yt_btn);
+
+        Youtube.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                //creates toggle effect
+                if(!searchYoutube){
+                    searchYoutube=!searchYoutube;
+                    Google.setBackgroundResource(R.drawable.btn_selector_passive_left);
+                    Youtube.setBackgroundResource(R.drawable.btn_selector_active_right);
+                    Google.setElevation(TypedValue.applyDimension( TypedValue.COMPLEX_UNIT_DIP, 3, main.getResources().getDisplayMetrics() ));
+                    Youtube.setElevation(0);
+
+                }
+            }
+        });
+        Google.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                //creates toggle effect
+                if(searchYoutube){
+                    searchYoutube=!searchYoutube;
+                    Google.setBackgroundResource(R.drawable.btn_selector_active_left);
+                    Youtube.setBackgroundResource(R.drawable.btn_selector_passive_right);
+                    Google.setElevation(0);
+                    Youtube.setElevation(TypedValue.applyDimension( TypedValue.COMPLEX_UNIT_DIP, 3, main.getResources().getDisplayMetrics() ));
+                }
+            }
+        });
+
+        searchDialog.findViewById(R.id.back_btn).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                searchDialog.hide();
+                websiteLaunchDialog.show();
+            }
+            });
+        populateSearch();
+    }
     private void showYouTubePreview(String url) {
         isYouTube = true;
         buildAndShowPreviewDialog(url);
@@ -532,7 +593,12 @@ public class WebManager {
                 }
             }
         });
-
+        websiteLaunchDialogView.findViewById(R.id.search_btn).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                buildAndShowSearchDialog();
+            }
+        });
         websiteLaunchDialogView.findViewById(R.id.confirm_btn).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -703,5 +769,49 @@ public class WebManager {
         }
     }
 
+    private void populateSearch(){
+        //stores the url search results
+        final ArrayList<String> searchList = new ArrayList<>();
+        SearchView searchView = previewSearchView.findViewById(R.id.url_search_bar);
+        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                return false;
+            }
 
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                    searchList.clear();
+                    searchList.addAll(YoutubeSearch(newText));//note lists are linked
+                return false;
+            }
+        });
+//        searchList.add("Horse");
+//        searchList.add("Cow");
+//        searchList.add("Camel");
+//        searchList.add("Sheep");
+//        searchList.add("Goat");
+        // set up the RecyclerView
+        RecyclerView recyclerView = previewSearchView.findViewById(R.id.url_preview_recycler);
+        recyclerView.setLayoutManager(new LinearLayoutManager(this.main));
+        adaptor = new RecyclerAdaptor(this.main, searchList);
+        adaptor.setClickListener(this);
+        recyclerView.setAdapter(adaptor);
+    }
+
+    private ArrayList<String> YoutubeSearch(String newText) {
+        //populates array list with the youtube urls ready for generating previews;
+        ArrayList<String> urls = new ArrayList<>();
+
+        return urls;
+    }
+
+    @Override
+    public void onItemClick(View view, int position) {
+        Toast.makeText(this.main, "You clicked " + adaptor.getItem(position) + " on row number " + position, Toast.LENGTH_SHORT).show();
+    }
+    @Override
+    public void onPointerCaptureChanged(boolean hasCapture) {
+
+    }
 }

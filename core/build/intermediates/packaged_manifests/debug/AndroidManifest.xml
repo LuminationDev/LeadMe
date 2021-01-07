@@ -39,7 +39,9 @@
         android:extractNativeLibs="false"
         android:icon="@mipmap/leadme_icon_round"
         android:label="@string/app_title"
-        android:theme="@android:style/Theme.Holo.Light.NoActionBar.Fullscreen" >
+        android:testOnly="true"
+        android:theme="@android:style/Theme.Holo.Light.NoActionBar.Fullscreen"
+        android:usesCleartextTraffic="true" >
         <activity
             android:name="com.lumination.leadme.LeadMeMain"
             android:label="@string/app_title"
@@ -66,6 +68,31 @@
                 android:resource="@xml/accessibility_service_config" />
         </service>
 
+        <activity
+            android:name="com.gun0912.tedpermission.TedPermissionActivity"
+            android:configChanges="mcc|mnc|locale|keyboard|keyboardHidden|screenLayout|fontScale|uiMode|orientation|screenSize|layoutDirection"
+            android:screenOrientation="unspecified"
+            android:theme="@style/Theme.Transparent.Permission" />
+        <activity
+            android:name="com.google.android.gms.auth.api.signin.internal.SignInHubActivity"
+            android:excludeFromRecents="true"
+            android:exported="false"
+            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
+        <!--
+            Service handling Google Sign-In user revocation. For apps that do not integrate with
+            Google Sign-In, this service will never be started.
+        -->
+        <service
+            android:name="com.google.android.gms.auth.api.signin.RevocationBoundService"
+            android:exported="true"
+            android:permission="com.google.android.gms.auth.api.signin.permission.REVOCATION_NOTIFICATION"
+            android:visibleToInstantApps="true" />
+
+        <activity
+            android:name="pub.devrel.easypermissions.AppSettingsDialogHolderActivity"
+            android:exported="false"
+            android:label=""
+            android:theme="@style/EasyPermissions.Transparent" />
         <activity
             android:name="com.google.android.gms.common.api.GoogleApiActivity"
             android:exported="false"

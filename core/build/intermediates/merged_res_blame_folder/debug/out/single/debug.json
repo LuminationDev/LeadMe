@@ -1,11 +1,19 @@
 [
     {
+        "merged": "C:\\Users\\jlund\\Documents\\GitHub\\LeadMe\\core\\build\\intermediates\\res\\merged\\debug\\layout_e__preview_url_search.xml.flat",
+        "source": "C:\\Users\\jlund\\Documents\\GitHub\\LeadMe\\core\\src\\main\\res\\layout\\e__preview_url_search.xml"
+    },
+    {
         "merged": "C:\\Users\\jlund\\Documents\\GitHub\\LeadMe\\core\\build\\intermediates\\res\\merged\\debug\\layout_d__enter_url.xml.flat",
         "source": "C:\\Users\\jlund\\Documents\\GitHub\\LeadMe\\core\\src\\main\\res\\layout\\d__enter_url.xml"
     },
     {
         "merged": "C:\\Users\\jlund\\Documents\\GitHub\\LeadMe\\core\\build\\intermediates\\res\\merged\\debug\\mipmap-xhdpi_leadme_icon_round.png.flat",
         "source": "C:\\Users\\jlund\\Documents\\GitHub\\LeadMe\\core\\src\\main\\res\\mipmap-xhdpi\\leadme_icon_round.png"
+    },
+    {
+        "merged": "C:\\Users\\jlund\\Documents\\GitHub\\LeadMe\\core\\build\\intermediates\\res\\merged\\debug\\drawable_btn_selector_active_left.xml.flat",
+        "source": "C:\\Users\\jlund\\Documents\\GitHub\\LeadMe\\core\\src\\main\\res\\drawable\\btn_selector_active_left.xml"
     },
     {
         "merged": "C:\\Users\\jlund\\Documents\\GitHub\\LeadMe\\core\\build\\intermediates\\res\\merged\\debug\\layout_b__start_leader.xml.flat",
@@ -58,6 +66,10 @@
     {
         "merged": "C:\\Users\\jlund\\Documents\\GitHub\\LeadMe\\core\\build\\intermediates\\res\\merged\\debug\\drawable_dusk_background.xml.flat",
         "source": "C:\\Users\\jlund\\Documents\\GitHub\\LeadMe\\core\\src\\main\\res\\drawable\\dusk_background.xml"
+    },
+    {
+        "merged": "C:\\Users\\jlund\\Documents\\GitHub\\LeadMe\\core\\build\\intermediates\\res\\merged\\debug\\drawable_youtube_logo.png.flat",
+        "source": "C:\\Users\\jlund\\Documents\\GitHub\\LeadMe\\core\\src\\main\\res\\drawable\\youtube_logo.png"
     },
     {
         "merged": "C:\\Users\\jlund\\Documents\\GitHub\\LeadMe\\core\\build\\intermediates\\res\\merged\\debug\\drawable_icon_paste_from_clipboard.xml.flat",
@@ -138,6 +150,10 @@
     {
         "merged": "C:\\Users\\jlund\\Documents\\GitHub\\LeadMe\\core\\build\\intermediates\\res\\merged\\debug\\layout-land_transparent_overlay.xml.flat",
         "source": "C:\\Users\\jlund\\Documents\\GitHub\\LeadMe\\core\\src\\main\\res\\layout-land\\transparent_overlay.xml"
+    },
+    {
+        "merged": "C:\\Users\\jlund\\Documents\\GitHub\\LeadMe\\core\\build\\intermediates\\res\\merged\\debug\\drawable_btn_selector_active_right.xml.flat",
+        "source": "C:\\Users\\jlund\\Documents\\GitHub\\LeadMe\\core\\src\\main\\res\\drawable\\btn_selector_active_right.xml"
     },
     {
         "merged": "C:\\Users\\jlund\\Documents\\GitHub\\LeadMe\\core\\build\\intermediates\\res\\merged\\debug\\mipmap-mdpi_leadme_icon_round.png.flat",
@@ -364,8 +380,16 @@
         "source": "C:\\Users\\jlund\\Documents\\GitHub\\LeadMe\\core\\src\\main\\res\\drawable\\follow_leader.xml"
     },
     {
+        "merged": "C:\\Users\\jlund\\Documents\\GitHub\\LeadMe\\core\\build\\intermediates\\res\\merged\\debug\\layout_url_recycler_adaptor.xml.flat",
+        "source": "C:\\Users\\jlund\\Documents\\GitHub\\LeadMe\\core\\src\\main\\res\\layout\\url_recycler_adaptor.xml"
+    },
+    {
         "merged": "C:\\Users\\jlund\\Documents\\GitHub\\LeadMe\\core\\build\\intermediates\\res\\merged\\debug\\drawable_bg_highlight_roundeduppercorners.xml.flat",
         "source": "C:\\Users\\jlund\\Documents\\GitHub\\LeadMe\\core\\src\\main\\res\\drawable\\bg_highlight_roundeduppercorners.xml"
+    },
+    {
+        "merged": "C:\\Users\\jlund\\Documents\\GitHub\\LeadMe\\core\\build\\intermediates\\res\\merged\\debug\\drawable_google_logo_transparent.png.flat",
+        "source": "C:\\Users\\jlund\\Documents\\GitHub\\LeadMe\\core\\src\\main\\res\\drawable\\google_logo_transparent.png"
     },
     {
         "merged": "C:\\Users\\jlund\\Documents\\GitHub\\LeadMe\\core\\build\\intermediates\\res\\merged\\debug\\drawable_icon_fav_star_check.xml.flat",
@@ -396,8 +420,16 @@
         "source": "C:\\Users\\jlund\\Documents\\GitHub\\LeadMe\\core\\src\\main\\res\\layout\\c__leader_main.xml"
     },
     {
+        "merged": "C:\\Users\\jlund\\Documents\\GitHub\\LeadMe\\core\\build\\intermediates\\res\\merged\\debug\\drawable_btn_selector_passive_right.xml.flat",
+        "source": "C:\\Users\\jlund\\Documents\\GitHub\\LeadMe\\core\\src\\main\\res\\drawable\\btn_selector_passive_right.xml"
+    },
+    {
         "merged": "C:\\Users\\jlund\\Documents\\GitHub\\LeadMe\\core\\build\\intermediates\\res\\merged\\debug\\drawable_icon_fav_star_uncheck.xml.flat",
         "source": "C:\\Users\\jlund\\Documents\\GitHub\\LeadMe\\core\\src\\main\\res\\drawable\\icon_fav_star_uncheck.xml"
+    },
+    {
+        "merged": "C:\\Users\\jlund\\Documents\\GitHub\\LeadMe\\core\\build\\intermediates\\res\\merged\\debug\\drawable_icon_search.xml.flat",
+        "source": "C:\\Users\\jlund\\Documents\\GitHub\\LeadMe\\core\\src\\main\\res\\drawable\\icon_search.xml"
     },
     {
         "merged": "C:\\Users\\jlund\\Documents\\GitHub\\LeadMe\\core\\build\\intermediates\\res\\merged\\debug\\drawable_icon_unknown_app.xml.flat",
@@ -422,6 +454,10 @@
     {
         "merged": "C:\\Users\\jlund\\Documents\\GitHub\\LeadMe\\core\\build\\intermediates\\res\\merged\\debug\\drawable_alert_blackout_learner.xml.flat",
         "source": "C:\\Users\\jlund\\Documents\\GitHub\\LeadMe\\core\\src\\main\\res\\drawable\\alert_blackout_learner.xml"
+    },
+    {
+        "merged": "C:\\Users\\jlund\\Documents\\GitHub\\LeadMe\\core\\build\\intermediates\\res\\merged\\debug\\drawable_btn_selector_passive_left.xml.flat",
+        "source": "C:\\Users\\jlund\\Documents\\GitHub\\LeadMe\\core\\src\\main\\res\\drawable\\btn_selector_passive_left.xml"
     },
     {
         "merged": "C:\\Users\\jlund\\Documents\\GitHub\\LeadMe\\core\\build\\intermediates\\res\\merged\\debug\\drawable_shadow_gradient.xml.flat",

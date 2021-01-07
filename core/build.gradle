@@ -31,6 +31,16 @@ dependencies {
 
     //for link preview library
     implementation 'com.koushikdutta.urlimageviewhelper:urlimageviewhelper:1.0.4'
+
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation 'com.google.android.gms:play-services-auth:19.0.0'
+    implementation 'pub.devrel:easypermissions:0.3.0'
+    implementation('com.google.api-client:google-api-client-android:1.22.0') {
+        exclude group: 'org.apache.httpcomponents'
+    }
+    implementation('com.google.apis:google-api-services-youtube:v3-rev183-1.22.0') {
+        exclude group: 'org.apache.httpcomponents'
+    }
 }
 
 configurations.all {

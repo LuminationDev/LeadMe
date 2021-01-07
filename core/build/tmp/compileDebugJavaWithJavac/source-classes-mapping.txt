@@ -78,6 +78,14 @@ com/lumination/leadme/linkpreview/DefaultUrlExtractionStrategy.java
  com.lumination.leadme.linkpreview.DefaultUrlExtractionStrategy
 org/jsoup/nodes/FormElement.java
  org.jsoup.nodes.FormElement
+com/lumination/leadme/_old_PermissionManager.java
+ com.lumination.leadme._old_PermissionManager
+ com.lumination.leadme._old_PermissionManager$1
+ com.lumination.leadme._old_PermissionManager$2
+ com.lumination.leadme._old_PermissionManager$3
+ com.lumination.leadme._old_PermissionManager$4
+ com.lumination.leadme._old_PermissionManager$5
+ com.lumination.leadme._old_PermissionManager$6
 org/jsoup/SerializationException.java
  org.jsoup.SerializationException
 org/jsoup/parser/Parser.java
@@ -261,6 +269,10 @@ org/jsoup/nodes/NodeUtils.java
  org.jsoup.nodes.NodeUtils
 org/jsoup/Jsoup.java
  org.jsoup.Jsoup
+com/lumination/leadme/RecyclerAdaptor.java
+ com.lumination.leadme.RecyclerAdaptor
+ com.lumination.leadme.RecyclerAdaptor$ItemClickListener
+ com.lumination.leadme.RecyclerAdaptor$ViewHolder
 org/jsoup/nodes/Document.java
  org.jsoup.nodes.Document
  org.jsoup.nodes.Document$OutputSettings
@@ -391,8 +403,13 @@ com/lumination/leadme/WebManager.java
  com.lumination.leadme.WebManager$14
  com.lumination.leadme.WebManager$15
  com.lumination.leadme.WebManager$16
+ com.lumination.leadme.WebManager$17
+ com.lumination.leadme.WebManager$18
+ com.lumination.leadme.WebManager$19
  com.lumination.leadme.WebManager$2
  com.lumination.leadme.WebManager$2$1
+ com.lumination.leadme.WebManager$20
+ com.lumination.leadme.WebManager$21
  com.lumination.leadme.WebManager$3
  com.lumination.leadme.WebManager$4
  com.lumination.leadme.WebManager$5
