@@ -8,7 +8,6 @@ import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
-import android.graphics.Bitmap;
 import android.net.Uri;
 import android.util.Log;
 import android.view.View;
@@ -20,7 +19,6 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.koushikdutta.urlimageviewhelper.UrlImageViewCallback;
 import com.koushikdutta.urlimageviewhelper.UrlImageViewHelper;
 import com.lumination.leadme.linkpreview.LinkPreviewCallback;
 import com.lumination.leadme.linkpreview.SourceContent;
@@ -40,7 +38,8 @@ public class WebManager {
     protected TextCrawler textCrawler = new TextCrawler();
 
     AlertDialog websiteLaunchDialog, previewDialog, urlYtFavDialog;
-    private View websiteLaunchDialogView, previewDialogView;
+    private final View websiteLaunchDialogView;
+    private final View previewDialogView;
     View webYouTubeFavView;
     public boolean launchingVR = false;
 
@@ -55,7 +54,7 @@ public class WebManager {
     private FavouritesManager urlFavouritesManager;
     private FavouritesManager youTubeFavouritesManager;
 
-    private LeadMeMain main;
+    private final LeadMeMain main;
 
     CheckBox favCheckbox;
 
@@ -73,13 +72,10 @@ public class WebManager {
         ((TwoWayGridView) webYouTubeFavView.findViewById(R.id.yt_favourites)).setAdapter(getYouTubeFavouritesManager());
         ((TwoWayGridView) webYouTubeFavView.findViewById(R.id.url_favourites)).setAdapter(getUrlFavouritesManager());
 
-        webYouTubeFavView.findViewById(R.id.clear_fav_btn).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                showClearWebFavDialog(CLEAR_ALL);
-                getYouTubeFavouritesManager().clearFavourites();
-                getUrlFavouritesManager().clearFavourites();
-            }
+        webYouTubeFavView.findViewById(R.id.clear_fav_btn).setOnClickListener(v -> {
+            showClearWebFavDialog(CLEAR_ALL);
+            getYouTubeFavouritesManager().clearFavourites();
+            getUrlFavouritesManager().clearFavourites();
         });
 
         setupViews();
@@ -109,9 +105,8 @@ public class WebManager {
             previewTitle.setText(title);
             previewTitle.setVisibility(View.VISIBLE);
 
-            Log.d(TAG, sourceContent.toString() + ", " + sourceContent.getTitle() + ", " + sourceContent.getUrl() + ", " + sourceContent.getDescription() + ", " + sourceContent.getFinalUrl());
-            Log.d(TAG, sourceContent.getMetaTags().toString());
-            //Log.d(TAG, sourceContent.getHtmlCode());
+            //Log.d(TAG, sourceContent.toString() + ", " + sourceContent.getTitle() + ", " + sourceContent.getUrl() + ", " + sourceContent.getDescription() + ", " + sourceContent.getFinalUrl());
+
             String icon;
             if (!sourceContent.getImages().isEmpty()) {
                 icon = sourceContent.getImages().get(0);
@@ -120,16 +115,13 @@ public class WebManager {
             }
 
             try {
-                UrlImageViewHelper.setUrlDrawable(previewImage, icon, new UrlImageViewCallback() {
-                    @Override
-                    public void onLoaded(ImageView imageView, Bitmap loadedBitmap, String url, boolean loadedFromCache) {
-                        if (loadedBitmap != null) {
-                            previewImage.setVisibility(View.VISIBLE); //show image
-                        } else {
-                            previewMessage.setVisibility(View.VISIBLE); //show error
-                        }
-                        previewProgress.setVisibility(View.GONE);
+                UrlImageViewHelper.setUrlDrawable(previewImage, icon, (imageView, loadedBitmap, url, loadedFromCache) -> {
+                    if (loadedBitmap != null) {
+                        previewImage.setVisibility(View.VISIBLE); //show image
+                    } else {
+                        previewMessage.setVisibility(View.VISIBLE); //show error
                     }
+                    previewProgress.setVisibility(View.GONE);
                 });
 
 
@@ -167,35 +159,19 @@ public class WebManager {
     }
 
     private void setupViews() {
-        ((Button) webYouTubeFavView.findViewById(R.id.yt_add_btn)).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                showWebLaunchDialog(true);
-                urlYtFavDialog.hide();
-            }
+        webYouTubeFavView.findViewById(R.id.yt_add_btn).setOnClickListener(v -> {
+            showWebLaunchDialog(true);
+            urlYtFavDialog.hide();
         });
 
-        ((Button) webYouTubeFavView.findViewById(R.id.url_add_btn)).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                showWebLaunchDialog(true);
-                urlYtFavDialog.hide();
-            }
+        webYouTubeFavView.findViewById(R.id.url_add_btn).setOnClickListener(v -> {
+            showWebLaunchDialog(true);
+            urlYtFavDialog.hide();
         });
 
-        ((Button) webYouTubeFavView.findViewById(R.id.yt_del_btn)).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                showClearWebFavDialog(CLEAR_VID);
-            }
-        });
+        webYouTubeFavView.findViewById(R.id.yt_del_btn).setOnClickListener(v -> showClearWebFavDialog(CLEAR_VID));
 
-        ((Button) webYouTubeFavView.findViewById(R.id.url_del_btn)).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                showClearWebFavDialog(CLEAR_URL);
-            }
-        });
+        webYouTubeFavView.findViewById(R.id.url_del_btn).setOnClickListener(v -> showClearWebFavDialog(CLEAR_URL));
 
     }
 
@@ -203,43 +179,35 @@ public class WebManager {
     final private static int CLEAR_ALL = 0;
     final private static int CLEAR_VID = 1;
     final private static int CLEAR_URL = 2;
-    private int whatToClear = -1;
+    private int whatToClear = -1; //TODO actually use this!
     TextView warningTextView; //need to be able to change text
     AlertDialog warningDialog;
 
     private void setupWarningDialog() {
         View warningDialogView = View.inflate(main, R.layout.e__fav_clear_confirmation_popup, null);
-        warningTextView = (TextView) warningDialogView.findViewById(R.id.favclear_comment);
+        warningTextView = warningDialogView.findViewById(R.id.favclear_comment);
 
-        ((Button) warningDialogView.findViewById(R.id.ok_btn)).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                switch (whatToClear) {
-                    case CLEAR_ALL:
-                        getYouTubeFavouritesManager().clearFavourites();
-                        getUrlFavouritesManager().clearFavourites();
-                        break;
+        warningDialogView.findViewById(R.id.ok_btn).setOnClickListener(v -> {
+            switch (whatToClear) {
+                case CLEAR_ALL:
+                    getYouTubeFavouritesManager().clearFavourites();
+                    getUrlFavouritesManager().clearFavourites();
+                    break;
 
-                    case CLEAR_VID:
-                        getYouTubeFavouritesManager().clearFavourites();
-                        break;
+                case CLEAR_VID:
+                    getYouTubeFavouritesManager().clearFavourites();
+                    break;
 
-                    case CLEAR_URL:
-                        getUrlFavouritesManager().clearFavourites();
-                        break;
-                }
-                warningDialog.hide();
-                getUrlFavouritesManager().notifyDataSetChanged();
-                getYouTubeFavouritesManager().notifyDataSetChanged();
+                case CLEAR_URL:
+                    getUrlFavouritesManager().clearFavourites();
+                    break;
             }
+            warningDialog.hide();
+            getUrlFavouritesManager().notifyDataSetChanged();
+            getYouTubeFavouritesManager().notifyDataSetChanged();
         });
 
-        ((Button) warningDialogView.findViewById(R.id.back_btn)).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                warningDialog.hide();
-            }
-        });
+        warningDialogView.findViewById(R.id.back_btn).setOnClickListener(v -> warningDialog.hide());
 
         warningDialog = new AlertDialog.Builder(main)
                 .setView(warningDialogView)
@@ -249,7 +217,7 @@ public class WebManager {
 
     private void showClearWebFavDialog(int whatToClear) {
         String message = "";
-
+        this.whatToClear = whatToClear;
         switch (whatToClear) {
             case CLEAR_ALL:
                 message = main.getResources().getString(R.string.delete_videos_and_websites_confirm);
@@ -269,50 +237,44 @@ public class WebManager {
     }
 
     private void setupPreviewDialog() {
-        previewImage = (ImageView) previewDialogView.findViewById(R.id.preview_image);
-        previewTitle = (TextView) previewDialogView.findViewById(R.id.preview_title);
-        previewMessage = (TextView) previewDialogView.findViewById(R.id.preview_message);
-        previewProgress = (ProgressBar) previewDialogView.findViewById(R.id.preview_progress);
+        previewImage = previewDialogView.findViewById(R.id.preview_image);
+        previewTitle = previewDialogView.findViewById(R.id.preview_title);
+        previewMessage = previewDialogView.findViewById(R.id.preview_message);
+        previewProgress = previewDialogView.findViewById(R.id.preview_progress);
         previewPushBtn = previewDialogView.findViewById(R.id.push_btn);
 
         final CheckBox saveWebToFav = previewDialogView.findViewById(R.id.fav_checkbox);
 
-        previewPushBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                //save to favourites if needed
-                if (adding_to_fav || saveWebToFav.isChecked()) {
-                    if (isYouTube) {
-                        getYouTubeFavouritesManager().addCurrentPreviewToFavourites();
-                    } else {
-                        getUrlFavouritesManager().addCurrentPreviewToFavourites();
-                    }
+        previewPushBtn.setOnClickListener(v -> {
+            //save to favourites if needed
+            if (adding_to_fav || saveWebToFav.isChecked()) {
+                if (isYouTube) {
+                    getYouTubeFavouritesManager().addCurrentPreviewToFavourites();
+                } else {
+                    getUrlFavouritesManager().addCurrentPreviewToFavourites();
                 }
-
-                //if we're not only saving to favourites, push it to learners
-                if (!adding_to_fav) {
-                    //retrieve appropriate list of receivers
-                    pushYouTubeOrWeb(pushURL);
-                }
-
-                //clean up dialogs
-                hidePreviewDialog();
-                main.showConfirmPushDialog(false, adding_to_fav);
-
-                //reset
-                pushURL = "";
-                previewTitle.setText("");
-                previewImage.setImageDrawable(null);
-
             }
+
+            //if we're not only saving to favourites, push it to learners
+            if (!adding_to_fav) {
+                //retrieve appropriate list of receivers
+                pushYouTubeOrWeb(pushURL);
+            }
+
+            //clean up dialogs
+            hidePreviewDialog();
+            main.showConfirmPushDialog(false, adding_to_fav);
+
+            //reset
+            pushURL = "";
+            previewTitle.setText("");
+            previewImage.setImageDrawable(null);
+
         });
 
-        ((Button) previewDialogView.findViewById(R.id.back_btn)).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                hidePreviewDialog();
-                showWebLaunchDialog(adding_to_fav);
-            }
+        previewDialogView.findViewById(R.id.back_btn).setOnClickListener(v -> {
+            hidePreviewDialog();
+            showWebLaunchDialog(adding_to_fav);
         });
     }
 
@@ -343,13 +305,12 @@ public class WebManager {
         }
     }
 
-    public boolean launchWebsite(String url, boolean updateCurrentTask) {
+    public void launchWebsite(String url, boolean updateCurrentTask) {
         //check it's a minimally sensible url
         if (url == null || url.length() < 3 || !url.contains(".")) {
             Toast toast = Toast.makeText(main, "Invalid URL", Toast.LENGTH_SHORT);
             toast.show();
             main.getRemoteDispatchService().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.AUTO_INSTALL_FAILED + "Invalid URL:" + main.getNearbyManager().getID(), main.getNearbyManager().getSelectedPeerIDs());
-            return false;
         }
 
         if (!url.startsWith("http://") && !url.startsWith("https://")) {
@@ -373,7 +334,7 @@ public class WebManager {
                 scheduleActivityLaunch(intent, updateCurrentTask, ai.packageName, ai.name, "Website", url);
                 main.getRemoteDispatchService().sendActionToSelected(LeadMeMain.ACTION_TAG,
                         LeadMeMain.LAUNCH_SUCCESS + uri.getHost() + ":" + main.getNearbyManager().getID() + ":" + ai.packageName, main.getNearbyManager().getAllPeerIDs());
-                return true; //success!
+                //success!
             }
         }
 
@@ -384,14 +345,14 @@ public class WebManager {
             scheduleActivityLaunch(browserIntent, updateCurrentTask, browserIntent.getStringExtra("packageName"), browserIntent.getStringExtra("label"), "Website", url);
             main.getRemoteDispatchService().sendActionToSelected(LeadMeMain.ACTION_TAG,
                     LeadMeMain.LAUNCH_SUCCESS + uri.getHost() + ":" + main.getNearbyManager().getID() + ":" + browserIntent.getStringExtra("packageName"), main.getNearbyManager().getAllPeerIDs());
-            return true; //success!
+            //success!
 
         } else {
             Toast toast = Toast.makeText(main, "No browser available", Toast.LENGTH_SHORT);
             toast.show();
             main.getRemoteDispatchService().sendActionToSelected(LeadMeMain.ACTION_TAG,
                     LeadMeMain.AUTO_INSTALL_FAILED + "No browser:" + main.getNearbyManager().getID(), main.getNearbyManager().getSelectedPeerIDs());
-            return false; //no browser, failure
+            //no browser, failure
         }
     }
 
@@ -413,6 +374,7 @@ public class WebManager {
         return null;
     }
 
+    @SuppressWarnings("SpellCheckingInspection")
     private String getYouTubeID(String youTubeUrl) {
         if (!youTubeUrl.toLowerCase().contains("youtu.be") && !youTubeUrl.toLowerCase().contains("youtube.com") && !youTubeUrl.toLowerCase().contains("youtube-nocookie.com")) {
             Log.w(TAG, "Not a YouTube URL! " + youTubeUrl);
@@ -428,11 +390,11 @@ public class WebManager {
             res = matcher.group(1);
         }
 
-        if (res.length() > 0) {
-            Log.d(TAG, "YouTube ID = " + res);
+        if (res != null && res.length() > 0) {
+            //Log.d(TAG, "YouTube ID = " + res);
             return res;
         } else {
-            Log.d(TAG, "Couldn't extract YouTube ID");
+            Log.w(TAG, "Couldn't extract YouTube ID");
             return "";
         }
     }
@@ -500,7 +462,6 @@ public class WebManager {
                     .create();
         }
 
-        Log.d(TAG, "Adding to fav? " + add_fav_mode);
         adding_to_fav = add_fav_mode;
 
         websiteLaunchDialog.show();
@@ -510,57 +471,45 @@ public class WebManager {
     private void setupWebLaunchDialog() {
         ((TextView) websiteLaunchDialogView.findViewById(R.id.url_input_field)).setText("https://www.youtube.com/w/SEbqkn1TWTA"); //sample for testing
 
-        websiteLaunchDialogView.findViewById(R.id.paste_from_clipboard).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                main.closeKeyboard();
-                main.hideSystemUI();
-                ClipboardManager clipboard = (ClipboardManager) main.getSystemService(Context.CLIPBOARD_SERVICE);
-                CharSequence pasteData = "";
+        websiteLaunchDialogView.findViewById(R.id.paste_from_clipboard).setOnClickListener(v -> {
+            main.closeKeyboard();
+            main.hideSystemUI();
+            ClipboardManager clipboard = (ClipboardManager) main.getSystemService(Context.CLIPBOARD_SERVICE);
+            CharSequence pasteData;
 
-                //if it does contain data, test if we can handle it
-                if (clipboard.hasPrimaryClip()) {
-                    try {
-                        //retrieve the data
-                        pasteData = clipboard.getPrimaryClip().getItemAt(0).getText();
-                    } catch (Exception e) {
-                        return;
-                    }
-
-                    //puts the pasted data into the URL field
-                    ((TextView) websiteLaunchDialogView.findViewById(R.id.url_input_field)).setText(pasteData);
-                }
-            }
-        });
-
-        websiteLaunchDialogView.findViewById(R.id.confirm_btn).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                String url = ((TextView) websiteLaunchDialogView.findViewById(R.id.url_input_field)).getText().toString();
-                if (url.length() == 0) {
+            //if it does contain data, test if we can handle it
+            if (clipboard.hasPrimaryClip()) {
+                try {
+                    //retrieve the data
+                    pasteData = clipboard.getPrimaryClip().getItemAt(0).getText();
+                } catch (Exception e) {
                     return;
                 }
-                showPreview(url);
+
+                //puts the pasted data into the URL field
+                ((TextView) websiteLaunchDialogView.findViewById(R.id.url_input_field)).setText(pasteData);
             }
         });
 
-        websiteLaunchDialogView.findViewById(R.id.back_btn).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                main.closeKeyboard();
-                main.hideSystemUI();
-                websiteLaunchDialog.hide();
+        websiteLaunchDialogView.findViewById(R.id.confirm_btn).setOnClickListener(v -> {
+            String url = ((TextView) websiteLaunchDialogView.findViewById(R.id.url_input_field)).getText().toString();
+            if (url.length() == 0) {
+                return;
             }
+            showPreview(url);
         });
 
-        websiteLaunchDialogView.findViewById(R.id.open_favourites).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                main.closeKeyboard();
-                main.hideSystemUI();
-                websiteLaunchDialog.hide();
-                launchUrlYtFavourites();
-            }
+        websiteLaunchDialogView.findViewById(R.id.back_btn).setOnClickListener(v -> {
+            main.closeKeyboard();
+            main.hideSystemUI();
+            websiteLaunchDialog.hide();
+        });
+
+        websiteLaunchDialogView.findViewById(R.id.open_favourites).setOnClickListener(v -> {
+            main.closeKeyboard();
+            main.hideSystemUI();
+            websiteLaunchDialog.hide();
+            launchUrlYtFavourites();
         });
 
     }
@@ -588,9 +537,8 @@ public class WebManager {
         textCrawler.makePreview(linkPreviewCallback, url);
 
         String youTubeId = getYouTubeID(url);
-        Log.d(TAG, "What is it? " + youTubeId + " (" + youTubeId.length() + "), " + url);
 
-        if (youTubeId.length() > 0) {//url.contains("youtu.be") || ((url.contains("youtube.")||url.contains("youtube-nocookie")) && (url.contains("?")||url.contains("embed")))) {
+        if (youTubeId.length() > 0) {
             hideWebsiteLaunchDialog();
             showYouTubePreview(cleanYouTubeURL(url));
         } else {
@@ -599,6 +547,7 @@ public class WebManager {
         }
     }
 
+    @SuppressWarnings("SpellCheckingInspection")
     private String assistWithUrl(String origUrl) {
         if (!origUrl.contains("edu.cospaces.io") && origUrl.contains("cospaces.io")) {
             return origUrl.replace("cospaces.io", "edu.cospaces.io");
@@ -619,19 +568,13 @@ public class WebManager {
                     .setView(webYouTubeFavView)
                     .create();
 
-            webYouTubeFavView.findViewById(R.id.back_btn).setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    urlYtFavDialog.hide();
-                }
-            });
+            webYouTubeFavView.findViewById(R.id.back_btn).setOnClickListener(v -> urlYtFavDialog.hide());
         }
 
         urlYtFavDialog.show();
     }
 
     private void hideWebsiteLaunchDialog() {
-        Log.d(TAG, "Hiding dialog box");
         main.closeKeyboard();
         main.hideSystemUI();
         if (websiteLaunchDialog != null) {
@@ -645,12 +588,12 @@ public class WebManager {
         return "https://www.youtube.com/watch?v=" + id + "&t=1";
     }
 
-    public boolean launchYouTube(String url, boolean updateTask) {
+    public void launchYouTube(String url, boolean updateTask) {
         launchingVR = true; //activate button pressing
         final String youTubePackageName = "com.google.android.youtube"; //TODO don't hardcode the package name
         //String cleanURL = cleanYouTubeURL(url);
-        Uri uri = Uri.parse("vnd.youtube://" + getYouTubeID(url));
-        Log.w(TAG, "YouTUBE: " + uri);
+        //Uri uri = Uri.parse("vnd.youtube://" + getYouTubeID(url));
+        //Log.w(TAG, "YouTUBE: " + uri);
 
         main.UnMuteAudio(); //turn sound back on, in case muted earlier
         Intent appIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("vnd.youtube://" + getYouTubeID(url) + "?t=1"));
@@ -665,9 +608,8 @@ public class WebManager {
             //if installing, try that first.
             if (main.autoInstallApps) {
                 main.getAppManager().autoInstall(youTubePackageName, "YouTube");
-                return false;
             } else {
-                return launchWebsite(url, true); //fall back
+                launchWebsite(url, true); //fall back
             }
         }
 
@@ -679,10 +621,9 @@ public class WebManager {
             main.getRemoteDispatchService().sendActionToSelected(LeadMeMain.ACTION_TAG,
                     LeadMeMain.LAUNCH_SUCCESS + "YT id=" + getYouTubeID(url) + ":" + main.getNearbyManager().getID() + ":" + youTubePackageName, main.getNearbyManager().getAllPeerIDs());
 
-            return true; //assume the best if we get to here
 
         } catch (Exception ex) {
-            return launchWebsite(url, true); //fall back
+            launchWebsite(url, true); //fall back
         }
     }
 

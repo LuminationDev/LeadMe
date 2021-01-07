@@ -16,7 +16,7 @@ public class ConnectedPeer {
     private String id;
     private boolean selected = false;
     private Drawable icon = null;
-    private Drawable statusIcon = null;
+    private final Drawable statusIcon = null;
 
     private int status = ConnectedPeer.STATUS_SUCCESS;
     private int previousStatus = -1;
@@ -88,7 +88,6 @@ public class ConnectedPeer {
             case STATUS_SUCCESS:
                 return "success";
         }
-        ;
 
         return "unknown";
     }

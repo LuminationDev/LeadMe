@@ -20,11 +20,11 @@ public class ConnectedLearnersAdapter extends BaseAdapter {
     private final String TAG = "ConnectedStudentsAdapter";
 
     //default is that students with a warning/error/install status will be displayed first
-    private boolean reorderByStatus = true;
+    private final boolean reorderByStatus = true;
 
     public ArrayList<ConnectedPeer> mData = new ArrayList<>();
-    private LayoutInflater mInflater;
-    private LeadMeMain main;
+    private final LayoutInflater mInflater;
+    private final LeadMeMain main;
     private View studentDisconnectedView;
 
     ConnectedLearnersAdapter(LeadMeMain main, List<ConnectedPeer> data) {
@@ -55,6 +55,7 @@ public class ConnectedLearnersAdapter extends BaseAdapter {
 
     public boolean removeStudent(String id) {
         ConnectedPeer found = getMatchingPeer(id);
+        Log.d(TAG, "Removing student! " + found);
         if (found != null) {
             //remove old one so we keep the newest version
             mData.remove(found);
@@ -166,13 +167,14 @@ public class ConnectedLearnersAdapter extends BaseAdapter {
 
 
     AlertDialog disconnectPrompt;
+    private String lastClickedID = "";
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
 
-        if (convertView == null) {
+        //if (convertView == null) {
             convertView = mInflater.inflate(R.layout.row_follower, parent, false);
-        }
+        //}
 
         TextView studentName = convertView.findViewById(R.id.student_name);
         ImageView selectedIndicator = convertView.findViewById(R.id.selected_indicator);
@@ -202,45 +204,37 @@ public class ConnectedLearnersAdapter extends BaseAdapter {
             studentIcon.setImageDrawable(icon);
             drawAlertIcon(peer, warningIcon);
 
-            convertView.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    if (peer.getStatus() == ConnectedPeer.STATUS_ERROR_DISCONNECT) {
-                        //
-                        if (studentDisconnectedView == null) {
-                            studentDisconnectedView = View.inflate(main, R.layout.e__disconnected_student_popup, null);
-                            Button ok_btn = studentDisconnectedView.findViewById(R.id.ok_btn);
-                            Button back_btn = studentDisconnectedView.findViewById(R.id.back_btn);
+            convertView.setOnClickListener(v -> {
+                Log.d(TAG, "Clicked on " + peer.getID() + ", " + peer.getMyEndpoint() + ", " + peer.getDisplayName());
+                lastClickedID = peer.getID();
+                if (peer.getStatus() == ConnectedPeer.STATUS_ERROR_DISCONNECT) {
+                    //
+                    if (studentDisconnectedView == null) {
+                        studentDisconnectedView = View.inflate(main, R.layout.e__disconnected_student_popup, null);
+                        Button ok_btn = studentDisconnectedView.findViewById(R.id.ok_btn);
+                        Button back_btn = studentDisconnectedView.findViewById(R.id.back_btn);
 
-                            ok_btn.setOnClickListener(new View.OnClickListener() {
-                                @Override
-                                public void onClick(View v) {
-                                    main.getConnectedLearnersAdapter().removeStudent(peer.getID());
-                                    main.getConnectedLearnersAdapter().refresh();
-                                    disconnectPrompt.hide();
-                                }
-                            });
+                        ok_btn.setOnClickListener(v12 -> {
+                            Log.d(TAG, "Removing student: " + lastClickedID);
+                            main.getConnectedLearnersAdapter().removeStudent(lastClickedID);
+                            main.getConnectedLearnersAdapter().refresh();
+                            disconnectPrompt.hide();
+                        });
 
-                            back_btn.setOnClickListener(new View.OnClickListener() {
-                                @Override
-                                public void onClick(View v) {
-                                    disconnectPrompt.hide();
-                                }
-                            });
-                        }
-
-                        if (disconnectPrompt == null) {
-                            disconnectPrompt = new AlertDialog.Builder(main)
-                                    .setView(studentDisconnectedView)
-                                    .show();
-                        } else {
-                            disconnectPrompt.show();
-                        }
-
-                    } else {
-                        //select the tapped peer
-                        selectPeer(peer.getID(), !peer.isSelected());
+                        back_btn.setOnClickListener(v1 -> disconnectPrompt.hide());
                     }
+
+                    if (disconnectPrompt == null) {
+                        disconnectPrompt = new AlertDialog.Builder(main)
+                                .setView(studentDisconnectedView)
+                                .show();
+                    } else {
+                        disconnectPrompt.show();
+                    }
+
+                } else {
+                    //select the tapped peer
+                    selectPeer(peer.getID(), !peer.isSelected());
                 }
             });
         }
@@ -249,8 +243,7 @@ public class ConnectedLearnersAdapter extends BaseAdapter {
 
     protected void moveToFrontOfList(ConnectedPeer peer) {
         if (reorderByStatus) {
-            int index = mData.indexOf(peer);
-            mData.remove(index);
+            mData.remove(peer);
             mData.add(0, peer);
         }
     }

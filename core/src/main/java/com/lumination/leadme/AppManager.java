@@ -19,10 +19,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class AppManager extends BaseAdapter {
-    private LeadMeMain main;
-    private PackageManager pm;
+    private final LeadMeMain main;
+    private final PackageManager pm;
     private List<ApplicationInfo> appList;
-    private LayoutInflater inflater;
+    private final LayoutInflater inflater;
     private String defaultBrowserUrl = "";
 
     private final String TAG = "AppLauncher";
@@ -87,6 +87,11 @@ public class AppManager extends BaseAdapter {
 
     public String lastApp = "";
 
+    public void relaunchLast() {
+        relaunchLast(main.currentTaskPackageName, main.currentTaskName, main.currentTaskType, main.currentTaskURL);
+    }
+
+
     /**
      * used by LEARNER to relaunch the last app requested by the LEADER
      **/
@@ -124,7 +129,7 @@ public class AppManager extends BaseAdapter {
                 autoInstall(packageName, appName);
             } else {
                 main.getRemoteDispatchService().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.AUTO_INSTALL_FAILED + appName + ":" + main.getNearbyManager().getID(), main.getNearbyManager().getSelectedPeerIDs());
-                Toast toast = Toast.makeText(main, "Sorry, the app \'" + appName + "\' doesn't exist on this device!", Toast.LENGTH_SHORT);
+                Toast toast = Toast.makeText(main, "Sorry, the app '" + appName + "' doesn't exist on this device!", Toast.LENGTH_SHORT);
                 toast.show();
                 return;
             }
@@ -147,7 +152,7 @@ public class AppManager extends BaseAdapter {
         main.startActivity(intent);
 
         main.getRemoteDispatchService().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.AUTO_INSTALL_ATTEMPT + appName + ":" + main.getNearbyManager().getID(), main.getNearbyManager().getSelectedPeerIDs());
-        Toast toast = Toast.makeText(main, "Attempting to install \'" + appName + "\', please wait...", Toast.LENGTH_SHORT);
+        Toast toast = Toast.makeText(main, "Attempting to install '" + appName + "', please wait...", Toast.LENGTH_SHORT);
         toast.show();
         return;
 

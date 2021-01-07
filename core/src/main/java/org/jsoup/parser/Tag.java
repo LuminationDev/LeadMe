@@ -15,7 +15,7 @@ public class Tag implements Cloneable {
     private static final Map<String, Tag> tags = new HashMap<>(); // map of known tags
 
     private String tagName;
-    private String normalName; // always the lower case version of this tag, regardless of case preservation mode
+    private final String normalName; // always the lower case version of this tag, regardless of case preservation mode
     private boolean isBlock = true; // block
     private boolean formatAsBlock = true; // should be formatted as a block
     private boolean empty = false; // can hold nothing; e.g. img

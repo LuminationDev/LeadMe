@@ -1,6 +1,7 @@
 package com.lumination.leadme;
 
 import android.app.AlertDialog;
+import android.content.Context;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
@@ -41,25 +42,27 @@ public class FavouritesManager extends BaseAdapter {
     private String favPackageName = "";
     private boolean favAdding = true;
 
-    private SharedPreferences sharedPreferences;
-    private SharedPreferences.Editor editor;
+    private final SharedPreferences sharedPreferences;
+    private final SharedPreferences.Editor editor;
 
-    private ArrayList<String> actualItems = new ArrayList<>();
-    private ArrayList<String> contentList = new ArrayList<>();
-    private ArrayList<String> titleList = new ArrayList<>();
-    private ArrayList<Drawable> iconList = new ArrayList<>();
+    private final ArrayList<String> actualItems = new ArrayList<>();
+    private final ArrayList<String> contentList = new ArrayList<>();
+    private final ArrayList<String> titleList = new ArrayList<>();
+    private final ArrayList<Drawable> iconList = new ArrayList<>();
 
-    private HashMap<String, Drawable> previewStorage = new HashMap<>();
-    private Drawable activeBg, emptyBg, placeholder;
-    private LayoutInflater inflater;
+    private final HashMap<String, Drawable> previewStorage = new HashMap<>();
+    private final Drawable activeBg;
+    private final Drawable emptyBg;
+    private final Drawable placeholder;
+    private final LayoutInflater inflater;
 
-    private int favType;
+    private final int favType;
     private int maxLimit = 10;
 
     private String favPrefix;
 
-    private LeadMeMain main;
-    private WebManager webManager;
+    private final LeadMeMain main;
+    private final WebManager webManager;
     private View webYouTubeFavView;
 
     public FavouritesManager(LeadMeMain main, final WebManager webManager, final int favType, int maxLimit) {
@@ -77,7 +80,7 @@ public class FavouritesManager extends BaseAdapter {
         emptyBg = main.getResources().getDrawable(R.drawable.add_favourite, null);
         placeholder = main.getResources().getDrawable(R.drawable.web_no_preview, null);
 
-        sharedPreferences = main.getSharedPreferences(main.getResources().getString(R.string.preference_file_key), main.MODE_PRIVATE);
+        sharedPreferences = main.getSharedPreferences(main.getResources().getString(R.string.preference_file_key), Context.MODE_PRIVATE);
         editor = sharedPreferences.edit();
 
 //        editor.clear();

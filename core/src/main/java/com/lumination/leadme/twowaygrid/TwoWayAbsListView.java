@@ -490,18 +490,18 @@ public abstract class TwoWayAbsListView extends TwoWayAdapterView<ListAdapter> i
          * The view is not scrolling. Note navigating the list using the trackball counts as
          * being in the idle state since these transitions are not animated.
          */
-        public static int SCROLL_STATE_IDLE = 0;
+        int SCROLL_STATE_IDLE = 0;
 
         /**
          * The user is scrolling using touch, and their finger is still on the screen
          */
-        public static int SCROLL_STATE_TOUCH_SCROLL = 1;
+        int SCROLL_STATE_TOUCH_SCROLL = 1;
 
         /**
          * The user had previously been scrolling using touch and had performed a fling. The
          * animation is now coasting to a stop
          */
-        public static int SCROLL_STATE_FLING = 2;
+        int SCROLL_STATE_FLING = 2;
 
         /**
          * Callback method to be invoked while the list view or grid view is being scrolled. If the
@@ -513,7 +513,7 @@ public abstract class TwoWayAbsListView extends TwoWayAdapterView<ListAdapter> i
          * @param scrollState The current scroll state. One of {@link #SCROLL_STATE_IDLE},
          *                    {@link #SCROLL_STATE_TOUCH_SCROLL} or {@link #SCROLL_STATE_IDLE}.
          */
-        public void onScrollStateChanged(TwoWayAbsListView view, int scrollState);
+        void onScrollStateChanged(TwoWayAbsListView view, int scrollState);
 
         /**
          * Callback method to be invoked when the list or grid has been scrolled. This will be
@@ -525,8 +525,8 @@ public abstract class TwoWayAbsListView extends TwoWayAdapterView<ListAdapter> i
          * @param visibleItemCount the number of visible cells
          * @param totalItemCount   the number of items in the list adaptor
          */
-        public void onScroll(TwoWayAbsListView view, int firstVisibleItem, int visibleItemCount,
-                             int totalItemCount);
+        void onScroll(TwoWayAbsListView view, int firstVisibleItem, int visibleItemCount,
+                      int totalItemCount);
     }
 
     public TwoWayAbsListView(Context context) {
@@ -3086,7 +3086,7 @@ public abstract class TwoWayAbsListView extends TwoWayAdapterView<ListAdapter> i
      * inside the RecycleBin's scrap heap. This listener is used to free resources
      * associated to Views placed in the RecycleBin.
      */
-    public static interface RecyclerListener {
+    public interface RecyclerListener {
         /**
          * Indicates that the specified View was moved into the recycler's scrap heap.
          * The view is not displayed on screen any more and any expensive resource

@@ -61,7 +61,7 @@ public class TextCrawler {
      */
     class GetCode extends AsyncTask<String, Void, Void> {
 
-        private SourceContent sourceContent = new SourceContent();
+        private final SourceContent sourceContent = new SourceContent();
         private final ImagePickingStrategy imagePickingStrategy;
         private final UrlExtractionStrategy urlExtractionStrategy;
 

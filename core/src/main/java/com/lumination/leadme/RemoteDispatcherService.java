@@ -1,6 +1,7 @@
 package com.lumination.leadme;
 
 import android.accessibilityservice.AccessibilityService;
+import android.content.Intent;
 import android.content.res.Configuration;
 import android.os.Handler;
 import android.os.Looper;
@@ -21,7 +22,7 @@ import java.util.Set;
 
 public class RemoteDispatcherService extends AccessibilityService {
     //handler for executing on the main thread
-    private Handler mainHandler = new Handler(Looper.getMainLooper());
+    private final Handler mainHandler = new Handler(Looper.getMainLooper());
 
     private static LeadMeMain main;
     private String lastAppName, lastPackageName;
@@ -37,17 +38,14 @@ public class RemoteDispatcherService extends AccessibilityService {
     public static RemoteDispatcherService getInstance(LeadMeMain m) {
         main = m;
         INSTANCE.attachMain(m);
-
         return INSTANCE;
     }
 
-    private boolean init = false;
 
     @Override
     public void onCreate() {
         super.onCreate();
         Log.d(TAG, "Service CREATED! " + main);
-        init = true;
 
         OrientationEventListener mOrientationListener = new OrientationEventListener(this) {
             @Override
@@ -57,13 +55,10 @@ public class RemoteDispatcherService extends AccessibilityService {
 //                } else if (orientation == 90 || orientation == 270) {
 //                    Log.d(TAG, "landscape");
 //                }
-                mainHandler.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        if (main != null && main.overlayView != null) {
-                            main.overlayView.invalidate();
-                            //main.overlayView.requestLayout();
-                        }
+                mainHandler.post(() -> {
+                    if (main != null && main.overlayView != null) {
+                        main.overlayView.invalidate();
+                        //main.overlayView.requestLayout();
                     }
                 });
             }
@@ -78,12 +73,7 @@ public class RemoteDispatcherService extends AccessibilityService {
     public void onConfigurationChanged(@NonNull Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
         Log.d(TAG, "CHANGE!");
-        mainHandler.post(new Runnable() {
-            @Override
-            public void run() {
-                main.refreshOverlay();
-            }
-        });
+        mainHandler.post(() -> main.refreshOverlay());
     }
 
     @Override
@@ -93,13 +83,13 @@ public class RemoteDispatcherService extends AccessibilityService {
 
     @Override
     protected void onServiceConnected() {
-        Log.d(TAG, "Service CONNECTED! Recall? " + main.permissionManager.needsRecall);
-        INSTANCE = this;
+        Log.d(TAG, "Service CONNECTED!");
 
+        INSTANCE = this;
 
         if (main != null) {
             main.recallToLeadMe();
-            main.setupLayoutTouchListener();
+            //main.setupLayoutTouchListener(this, main.overlayView);
         }
 
     }
@@ -153,6 +143,8 @@ public class RemoteDispatcherService extends AccessibilityService {
         return false;
     }
 
+    private boolean waitingForStateChange = false;
+
     @Override
     public void onAccessibilityEvent(final AccessibilityEvent event) {
         if (main == null) {
@@ -171,12 +163,51 @@ public class RemoteDispatcherService extends AccessibilityService {
         }
 
         //after this point is for client-specific behaviours only
-        if (main.isGuide) {
+        if (main.isGuide || !main.getNearbyManager().isConnectedAsFollower()) {
             return;
         }
 
+        //Log.d(TAG, ">>> " + event.toString());
+
+        if (!main.appPaused && INSTANCE.launchAppOnFocus == null && event.getEventType() == AccessibilityEvent.TYPE_VIEW_FOCUSED && event.getPackageName().toString().equals("com.android.systemui")) {
+            //likely pulled down notifications while in main app
+            Log.e(TAG, "User VIEWED status bar in LeadMe! " + event.toString());
+            //main.recallToLeadMe();
+            main.collapseStatus();
+
+        } else if ((waitingForStateChange && event.getEventType() == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) ||
+                (event.getPackageName().toString().equals("com.android.systemui") && event.getEventType() == AccessibilityEvent.TYPE_VIEW_CLICKED &&
+                        (event.getContentDescription()) != null && (event.getContentDescription().equals("Overview") || event.getContentDescription().equals("Home")))) {
+            //either pulled down or clicked notification, setting or nav while in launched 3rd party app
+            Log.e(TAG, "User clicked HOME or OVERVIEW! " + event.toString());
+            waitingForStateChange = false;
+            if (!main.hasWindowFocus()) {//!main.getAppLaunchAdapter().lastApp.equals(packageName)) {
+                INSTANCE.launchAppOnFocus = new String[2];
+                INSTANCE.launchAppOnFocus[0] = main.currentTaskPackageName;
+                INSTANCE.launchAppOnFocus[1] = main.currentTaskName;
+                Log.d(TAG, "NEED FOCUS! " + INSTANCE.launchAppOnFocus);
+                bringMainToFront();
+
+            } else {
+                Log.d(TAG, "HAVE FOCUS!");
+                INSTANCE.launchAppOnFocus = null; //reset
+                main.getAppManager().relaunchLast();
+            }
+        } else if (event.getPackageName().toString().equals("com.android.systemui") && event.getEventType() == AccessibilityEvent.TYPE_VIEW_CLICKED && event.getContentDescription().equals("Back")) {
+            Log.e(TAG, "User clicked BACK! " + event.toString());
+            //don't need to do anything unless window state changes
+            waitingForStateChange = true;
+
+        } else if (event.getPackageName().toString().equals("com.android.systemui") && event.getEventType() == AccessibilityEvent.TYPE_VIEW_FOCUSED) {
+            Log.e(TAG, "User VIEWED status bar in 3RD PARTY APP! " + event.toString());
+            main.collapseStatus();
+        }
+
+
         //check if we're trying to install something and respond appropriately
-        if ((AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED == event.getEventType() || (AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED == event.getEventType())) && (INSTANCE.lastAppName != null) && (INSTANCE.lastAppName.length() > 0)) {
+        if ((AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED == event.getEventType()
+                || (AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED == event.getEventType()))
+                && (INSTANCE.lastAppName != null) && (INSTANCE.lastAppName.length() > 0)) {
             AccessibilityNodeInfo nodeInfo = event.getSource();
             if (nodeInfo == null) {
                 return;
@@ -272,13 +303,17 @@ public class RemoteDispatcherService extends AccessibilityService {
         }
     }
 
+    private void hideStatusBar() {
+        mainHandler.post(() -> {
+            Intent closeDialog = new Intent(Intent.ACTION_CLOSE_SYSTEM_DIALOGS);
+            sendBroadcast(closeDialog);
+        });
+    }
+
     public void bringMainToFront() {
-        mainHandler.post(new Runnable() {
-            @Override
-            public void run() {
-                if (!main.hasWindowFocus()) {
-                    main.recallToLeadMe();
-                }
+        mainHandler.post(() -> {
+            if (!main.hasWindowFocus()) {
+                main.recallToLeadMe();
             }
         });
     }
@@ -287,25 +322,22 @@ public class RemoteDispatcherService extends AccessibilityService {
         final boolean interactionBlocked = (status == ConnectedPeer.STATUS_BLACKOUT || status == ConnectedPeer.STATUS_LOCK);
         Log.d(TAG, "Is interaction blocked? " + interactionBlocked + ", " + main.getNearbyManager().isConnectedAsFollower() + ", " + main.isGuide);
         main.setStudentLock(status);
-        Runnable myRunnable = new Runnable() {
-            @Override
-            public void run() {
-                //we never want to block someone if they're disconnected from the guide
-                //and we never want to block the guide
-                main.hideSystemUI();
-                if (main.getNearbyManager().isConnectedAsFollower() && interactionBlocked) {
-                    Log.d(TAG, "BLOCKING!");
-                    main.overlayParams.flags -= WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE;
-                    main.overlayParams.width = main.size.x;
-                    main.overlayParams.height = main.size.y;
-                } else {
-                    Log.d(TAG, "NOT BLOCKING!");
-                    main.overlayParams.flags += WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE;
-                    main.overlayParams.width = 0;
-                    main.overlayParams.height = 0;
-                }
-                main.windowManager.updateViewLayout(main.overlayView, main.overlayParams);
+        Runnable myRunnable = () -> {
+            //we never want to block someone if they're disconnected from the guide
+            //and we never want to block the guide
+            main.hideSystemUI();
+            if (main.getNearbyManager().isConnectedAsFollower() && interactionBlocked) {
+                Log.d(TAG, "BLOCKING!");
+                main.overlayParams.flags -= WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE;
+                main.overlayParams.width = main.size.x;
+                main.overlayParams.height = main.size.y;
+            } else {
+                Log.d(TAG, "NOT BLOCKING!");
+                main.overlayParams.flags += WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE;
+                main.overlayParams.width = 0;
+                main.overlayParams.height = 0;
             }
+            main.windowManager.updateViewLayout(main.overlayView, main.overlayParams);
         };
         mainHandler.post(myRunnable);
     }
@@ -318,9 +350,9 @@ public class RemoteDispatcherService extends AccessibilityService {
         }
     }
 
-    public byte[] requestRemoteAppOpen(String tag, String packageName, String appName, Set<String> selectedPeerIDs) {
+    public void requestRemoteAppOpen(String tag, String packageName, String appName, Set<String> selectedPeerIDs) {
         Parcel p = Parcel.obtain();
-        byte[] bytes = null;
+        byte[] bytes;
         p.writeString(tag);
         p.writeString(packageName);
         p.writeString(appName);
@@ -328,13 +360,11 @@ public class RemoteDispatcherService extends AccessibilityService {
         p.recycle();
 
         writeMessageToSelected(bytes, selectedPeerIDs);
-
-        return bytes;
     }
 
     public synchronized void sendActionToSelected(String actionTag, String action, Set<String> selectedPeerIDs) {
         Parcel p = Parcel.obtain();
-        byte[] bytes = null;
+        byte[] bytes;
         p.writeString(actionTag);
         p.writeString(action);
         bytes = p.marshall();
@@ -354,7 +384,7 @@ public class RemoteDispatcherService extends AccessibilityService {
 
     public synchronized void sendBoolToSelected(String actionTag, String action, boolean value, Set<String> selectedPeerIDs) {
         Parcel p = Parcel.obtain();
-        byte[] bytes = null;
+        byte[] bytes;
         p.writeString(actionTag);
         p.writeString(action);
         p.writeString(value + "");
@@ -531,16 +561,12 @@ public class RemoteDispatcherService extends AccessibilityService {
     }
 
     public void launchDelayedApp() {
-        if (launchAppOnFocus != null) {
-            final String[] tmp = launchAppOnFocus;
-            launchAppOnFocus = null; //reset
+        Log.d(TAG, "Have something to launch? " + INSTANCE.launchAppOnFocus);
+        if (INSTANCE.launchAppOnFocus != null) {
+            final String[] tmp = INSTANCE.launchAppOnFocus;
+            INSTANCE.launchAppOnFocus = null; //reset
 
-            mainHandler.post(new Runnable() {
-                @Override
-                public void run() {
-                    main.getAppManager().launchLocalApp(tmp[0], tmp[1], true);
-                }
-            });
+            mainHandler.post(() -> main.getAppManager().launchLocalApp(tmp[0], tmp[1], true));
         }
     }
 
@@ -553,6 +579,7 @@ public class RemoteDispatcherService extends AccessibilityService {
         String tag = p.readString();
         final String packageName = p.readString();
         final String appName = p.readString();
+        p.recycle();
 
         Log.d(TAG, "Received in OpenApp: " + tag + ", " + packageName + ", " + appName + " vs " + main.getAppManager().lastApp);
         if (tag != null && tag.equals(LeadMeMain.APP_TAG)) {
@@ -560,19 +587,14 @@ public class RemoteDispatcherService extends AccessibilityService {
                 Log.d(TAG, "NEED FOCUS!");
                 //only needed if it's not what we've already got open
                 //TODO make this more robust, check if it's actually running
-                launchAppOnFocus = new String[2];
-                launchAppOnFocus[0] = packageName;
-                launchAppOnFocus[1] = appName;
+                INSTANCE.launchAppOnFocus = new String[2];
+                INSTANCE.launchAppOnFocus[0] = packageName;
+                INSTANCE.launchAppOnFocus[1] = appName;
                 bringMainToFront();
             } else {
                 Log.d(TAG, "HAVE FOCUS!");
-                launchAppOnFocus = null; //reset
-                mainHandler.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        main.getAppManager().launchLocalApp(packageName, appName, true);
-                    }
-                });
+                INSTANCE.launchAppOnFocus = null; //reset
+                mainHandler.post(() -> main.getAppManager().launchLocalApp(packageName, appName, true));
             }
             return true;
         } else {

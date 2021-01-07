@@ -469,7 +469,7 @@ public class HtmlTreeBuilder extends TreeBuilder {
     }
 
     // todo: tidy up in specific scope methods
-    private String[] specificScopeTarget = {null};
+    private final String[] specificScopeTarget = {null};
 
     private boolean inSpecificScope(String targetName, String[] baseTypes, String[] extraTypes) {
         specificScopeTarget[0] = targetName;

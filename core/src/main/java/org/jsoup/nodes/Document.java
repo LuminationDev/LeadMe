@@ -9,6 +9,7 @@ import org.jsoup.select.Elements;
 
 import java.nio.charset.Charset;
 import java.nio.charset.CharsetEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -21,7 +22,7 @@ public class Document extends Element {
     private OutputSettings outputSettings = new OutputSettings();
     private Parser parser; // the parser used to parse this document
     private QuirksMode quirksMode = QuirksMode.noQuirks;
-    private String location;
+    private final String location;
     private boolean updateMetaCharset = false;
 
     /**
@@ -398,7 +399,7 @@ public class Document extends Element {
 
         private Entities.EscapeMode escapeMode = Entities.EscapeMode.base;
         private Charset charset;
-        private ThreadLocal<CharsetEncoder> encoderThreadLocal = new ThreadLocal<>(); // initialized by start of OuterHtmlVisitor
+        private final ThreadLocal<CharsetEncoder> encoderThreadLocal = new ThreadLocal<>(); // initialized by start of OuterHtmlVisitor
         Entities.CoreCharset coreCharset; // fast encoders for ascii and utf8
 
         private boolean prettyPrint = true;
@@ -407,7 +408,7 @@ public class Document extends Element {
         private Syntax syntax = Syntax.html;
 
         public OutputSettings() {
-            charset(Charset.forName("UTF8"));
+            charset(StandardCharsets.UTF_8);
         }
 
         /**

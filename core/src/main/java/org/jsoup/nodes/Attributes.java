@@ -514,7 +514,7 @@ public class Attributes implements Iterable<Attribute>, Cloneable {
         }
 
         private class DatasetIterator implements Iterator<Map.Entry<String, String>> {
-            private Iterator<Attribute> attrIter = attributes.iterator();
+            private final Iterator<Attribute> attrIter = attributes.iterator();
             private Attribute attr;
 
             public boolean hasNext() {

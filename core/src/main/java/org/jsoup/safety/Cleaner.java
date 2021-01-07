@@ -33,7 +33,7 @@ import java.util.List;
  * </p>
  */
 public class Cleaner {
-    private Whitelist whitelist;
+    private final Whitelist whitelist;
 
     /**
      * Create a new cleaner, that sanitizes documents using the supplied whitelist.

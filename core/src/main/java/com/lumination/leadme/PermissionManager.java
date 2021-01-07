@@ -17,13 +17,15 @@ import java.util.List;
 public class PermissionManager {
 
     private String app_title = "Lumination LeadMe";
-    private String TAG = "LumiPermissions";
+    private final String TAG = "LumiPermissions";
 
-    private LeadMeMain main;
+    private final LeadMeMain main;
     private boolean overlayPermissionGranted = false, nearbyPermissionsGranted = false;
     protected boolean waitingForPermission = false;
-    private PermissionListener overlayPermissionListener, nearbyPermissionListener, miscPermissionListener;
-    private ArrayList<String> rejectedPermissions = new ArrayList<>();
+    private final PermissionListener overlayPermissionListener;
+    private final PermissionListener nearbyPermissionListener;
+    private final PermissionListener miscPermissionListener;
+    private final ArrayList<String> rejectedPermissions = new ArrayList<>();
 
     public PermissionManager(final LeadMeMain main) {
         super();

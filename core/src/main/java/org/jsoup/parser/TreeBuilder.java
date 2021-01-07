@@ -23,8 +23,8 @@ abstract class TreeBuilder {
     protected Token currentToken; // currentToken is used only for error tracking.
     protected ParseSettings settings;
 
-    private Token.StartTag start = new Token.StartTag(); // start tag to process
-    private Token.EndTag end = new Token.EndTag();
+    private final Token.StartTag start = new Token.StartTag(); // start tag to process
+    private final Token.EndTag end = new Token.EndTag();
 
     abstract ParseSettings defaultSettings();
 
