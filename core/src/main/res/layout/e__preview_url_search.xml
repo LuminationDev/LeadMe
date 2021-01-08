@@ -17,7 +17,7 @@
     <LinearLayout
         android:id="@+id/search_preview_view"
         android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="match_parent"
         android:gravity="center"
         android:orientation="vertical"
         android:showDividers="middle|beginning|end"
@@ -27,8 +27,7 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="64dp"
-            android:orientation="horizontal"
-            >
+            android:orientation="horizontal">
 
             <Space
                 android:layout_width="wrap_content"
@@ -37,25 +36,26 @@
 
             <ImageButton
                 android:id="@+id/google_btn"
-                android:elevation="3dp"
                 android:layout_width="150dp"
                 android:layout_height="wrap_content"
+                android:layout_marginBottom="4dp"
                 android:background="@drawable/btn_selector_passive_left"
+
                 android:padding="15dp"
                 android:scaleType="fitCenter"
-                android:src="@drawable/google_logo_transparent"
-                android:layout_marginBottom="4dp"/>
+                android:src="@drawable/google_logo_transparent" />
+            <!--                android:elevation="3dp"-->
 
 
             <ImageButton
                 android:id="@+id/yt_btn"
                 android:layout_width="131dp"
-                android:src="@drawable/youtube_logo"
-                android:scaleType="fitCenter"
                 android:layout_height="wrap_content"
+                android:layout_marginBottom="4dp"
                 android:layout_weight="0"
                 android:background="@drawable/btn_selector_active_right"
-                android:layout_marginBottom="4dp"/>
+                android:scaleType="fitCenter"
+                android:src="@drawable/youtube_logo" />
 
             <Space
                 android:layout_width="13dp"
@@ -78,7 +78,13 @@
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/url_preview_recycler"
             android:layout_width="match_parent"
-            android:layout_height="200dp" />
+            android:layout_height="200dp"
+            android:visibility="gone" />
+
+        <WebView
+            android:id="@+id/webview_preview"
+            android:layout_width="match_parent"
+            android:layout_height="227dp" />
 
     </LinearLayout>
 

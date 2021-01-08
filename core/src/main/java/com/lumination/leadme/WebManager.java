@@ -14,6 +14,9 @@ import android.util.Log;
 import android.util.TypedValue;
 import android.view.View;
 import android.webkit.URLUtil;
+import android.webkit.WebChromeClient;
+import android.webkit.WebView;
+import android.webkit.WebViewClient;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.ImageButton;
@@ -64,6 +67,7 @@ public class WebManager extends AppCompatActivity implements RecyclerAdaptor.Ite
     public boolean launchingVR = false;
 
     boolean searchYoutube = true;
+    boolean first =true;
     ImageView previewImage;
     TextView previewTitle;
     TextView previewMessage;
@@ -107,7 +111,7 @@ public class WebManager extends AppCompatActivity implements RecyclerAdaptor.Ite
 
         setupViews();
         setupPreviewDialog();
-        setupWebLaunchDialog();
+        setupWebLaunchDialog("");
     }
 
 
@@ -473,6 +477,10 @@ public class WebManager extends AppCompatActivity implements RecyclerAdaptor.Ite
 
         final ImageButton Google = searchDialog.findViewById(R.id.google_btn);
         final ImageButton Youtube = searchDialog.findViewById(R.id.yt_btn);
+        final WebView web = previewSearchView.findViewById(R.id.webview_preview);
+        web.getSettings().setJavaScriptEnabled(true); // enable javascript
+        web.canGoBack();
+        final SearchView searchView = previewSearchView.findViewById(R.id.url_search_bar);
 
         Youtube.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -484,6 +492,7 @@ public class WebManager extends AppCompatActivity implements RecyclerAdaptor.Ite
                     Youtube.setBackgroundResource(R.drawable.btn_selector_active_right);
                     Google.setElevation(TypedValue.applyDimension( TypedValue.COMPLEX_UNIT_DIP, 3, main.getResources().getDisplayMetrics() ));
                     Youtube.setElevation(0);
+                    web.loadUrl("https://www.google.com/search?q=" +searchView.getQuery() + "&tbm=vid&as_sitesearch=youtube.com");
 
                 }
             }
@@ -498,6 +507,8 @@ public class WebManager extends AppCompatActivity implements RecyclerAdaptor.Ite
                     Youtube.setBackgroundResource(R.drawable.btn_selector_passive_right);
                     Google.setElevation(0);
                     Youtube.setElevation(TypedValue.applyDimension( TypedValue.COMPLEX_UNIT_DIP, 3, main.getResources().getDisplayMetrics() ));
+                    web.loadUrl("https://www.google.com/search?q=" +searchView.getQuery());
+
                 }
             }
         });
@@ -581,7 +592,7 @@ public class WebManager extends AppCompatActivity implements RecyclerAdaptor.Ite
         main.openKeyboard();
     }
 
-    private void setupWebLaunchDialog() {
+    private void setupWebLaunchDialog(final String URL) {
         ((TextView) websiteLaunchDialogView.findViewById(R.id.url_input_field)).setText("https://www.youtube.com/w/SEbqkn1TWTA"); //sample for testing
 
         websiteLaunchDialogView.findViewById(R.id.paste_from_clipboard).setOnClickListener(new View.OnClickListener() {
@@ -615,7 +626,12 @@ public class WebManager extends AppCompatActivity implements RecyclerAdaptor.Ite
         websiteLaunchDialogView.findViewById(R.id.confirm_btn).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String url = ((TextView) websiteLaunchDialogView.findViewById(R.id.url_input_field)).getText().toString();
+                String url = new String();
+                if (URL.length() == 0) {
+                    url = ((TextView) websiteLaunchDialogView.findViewById(R.id.url_input_field)).getText().toString();
+                }else{
+                    url=URL;
+                }
                 if (url.length() == 0) {
                     return;
                 }
@@ -785,6 +801,9 @@ public class WebManager extends AppCompatActivity implements RecyclerAdaptor.Ite
     private void populateSearch(){
         //stores the url search results
         final ArrayList<String> searchList = new ArrayList<>();
+        final WebView v = previewSearchView.findViewById(R.id.webview_preview);
+        v.getSettings().setJavaScriptEnabled(true); // enable javascript
+        v.canGoBack();
         SearchView searchView = previewSearchView.findViewById(R.id.url_search_bar);
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
@@ -794,14 +813,34 @@ public class WebManager extends AppCompatActivity implements RecyclerAdaptor.Ite
 
             @Override
             public boolean onQueryTextChange(String newText) {
-
-                try {
-                    YoutubeSearch(newText);
-                } catch (GeneralSecurityException e) {
-                    e.printStackTrace();
-                } catch (IOException e) {
-                    e.printStackTrace();
+                if(searchYoutube) {
+                    v.loadUrl("https://www.google.com/search?q=" + newText + "&tbm=vid&as_sitesearch=youtube.com");
+                    //v.loadUrl("https://www.youtube.com/results?search_query="+newText);
+                }else{
+                    v.loadUrl("https://www.google.com/search?q=" + newText);
                 }
+
+
+
+                v.setWebChromeClient(new WebChromeClient(){
+                    @Override
+                    public void onReceivedTitle(WebView view, String title) {
+                        setupWebLaunchDialog(view.getUrl());
+                       // getWindow().setTitle(title); //Set Activity tile to page title.
+                    }
+                });
+                v.setWebViewClient(new WebViewClient() {
+                    public void onPageFinished(WebView view, String url) {
+                        v.scrollTo(0,400);
+                    }
+                    @Override
+                    public boolean shouldOverrideUrlLoading(WebView view, String url) {
+                        //view.loadUrl(url);
+                        setupWebLaunchDialog(url);
+                        return false;
+                    }
+                });
+
                 return false;
             }
         });
