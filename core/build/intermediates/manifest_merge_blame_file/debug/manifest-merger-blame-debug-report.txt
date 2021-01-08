@@ -48,143 +48,142 @@
 26    <uses-permission android:name="android.permission.INTERNET" />
 26-->C:\Users\jlund\Documents\GitHub\LeadMe\core\src\main\AndroidManifest.xml:22:5-66
 26-->C:\Users\jlund\Documents\GitHub\LeadMe\core\src\main\AndroidManifest.xml:22:22-64
-27
-28    <!-- Google Play filtering -->
-29    <uses-feature
-29-->C:\Users\jlund\Documents\GitHub\LeadMe\core\src\main\AndroidManifest.xml:25:5-27:35
-30        android:name="android.hardware.wifi.direct"
-30-->C:\Users\jlund\Documents\GitHub\LeadMe\core\src\main\AndroidManifest.xml:26:9-52
-31        android:required="true" />
-31-->C:\Users\jlund\Documents\GitHub\LeadMe\core\src\main\AndroidManifest.xml:27:9-32
-32
-33    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-33-->[com.github.javiersantos:AppUpdater:2.7] C:\Users\jlund\.gradle\caches\transforms-2\files-2.1\b526890367eb49812f16cec41dde58d7\jetified-AppUpdater-2.7\AndroidManifest.xml:12:5-79
-33-->[com.github.javiersantos:AppUpdater:2.7] C:\Users\jlund\.gradle\caches\transforms-2\files-2.1\b526890367eb49812f16cec41dde58d7\jetified-AppUpdater-2.7\AndroidManifest.xml:12:22-76
-34
-35    <application
-35-->C:\Users\jlund\Documents\GitHub\LeadMe\core\src\main\AndroidManifest.xml:29:5-61:19
-36        android:appComponentFactory="androidx.core.app.CoreComponentFactory"
-36-->[androidx.core:core:1.3.1] C:\Users\jlund\.gradle\caches\transforms-2\files-2.1\c560b8721f05ca12656603dd382025ab\core-1.3.1\AndroidManifest.xml:24:18-86
-37        android:clearTaskOnLaunch="true"
-37-->C:\Users\jlund\Documents\GitHub\LeadMe\core\src\main\AndroidManifest.xml:30:9-41
-38        android:debuggable="true"
-39        android:extractNativeLibs="false"
-40        android:icon="@mipmap/leadme_icon_round"
-40-->C:\Users\jlund\Documents\GitHub\LeadMe\core\src\main\AndroidManifest.xml:31:9-49
-41        android:label="@string/app_title"
-41-->C:\Users\jlund\Documents\GitHub\LeadMe\core\src\main\AndroidManifest.xml:32:9-42
-42        android:testOnly="true"
-43        android:theme="@android:style/Theme.Holo.Light.NoActionBar.Fullscreen"
-43-->C:\Users\jlund\Documents\GitHub\LeadMe\core\src\main\AndroidManifest.xml:33:9-79
-44        android:usesCleartextTraffic="true" >
-44-->C:\Users\jlund\Documents\GitHub\LeadMe\core\src\main\AndroidManifest.xml:34:9-44
-45        <activity
-45-->C:\Users\jlund\Documents\GitHub\LeadMe\core\src\main\AndroidManifest.xml:36:9-45:20
-46            android:name="com.lumination.leadme.LeadMeMain"
-46-->C:\Users\jlund\Documents\GitHub\LeadMe\core\src\main\AndroidManifest.xml:37:13-60
-47            android:label="@string/app_title"
-47-->C:\Users\jlund\Documents\GitHub\LeadMe\core\src\main\AndroidManifest.xml:39:13-46
-48            android:launchMode="singleTask"
-48-->C:\Users\jlund\Documents\GitHub\LeadMe\core\src\main\AndroidManifest.xml:40:13-44
-49            android:screenOrientation="portrait" > <!-- was singleTask -->
-49-->C:\Users\jlund\Documents\GitHub\LeadMe\core\src\main\AndroidManifest.xml:38:13-49
-50            <intent-filter>
-50-->C:\Users\jlund\Documents\GitHub\LeadMe\core\src\main\AndroidManifest.xml:41:13-44:29
-51                <action android:name="android.intent.action.MAIN" />
-51-->C:\Users\jlund\Documents\GitHub\LeadMe\core\src\main\AndroidManifest.xml:42:17-69
-51-->C:\Users\jlund\Documents\GitHub\LeadMe\core\src\main\AndroidManifest.xml:42:25-66
-52
-53                <category android:name="android.intent.category.LAUNCHER" />
-53-->C:\Users\jlund\Documents\GitHub\LeadMe\core\src\main\AndroidManifest.xml:43:17-77
-53-->C:\Users\jlund\Documents\GitHub\LeadMe\core\src\main\AndroidManifest.xml:43:27-74
-54            </intent-filter>
-55        </activity>
-56
-57        <service
-57-->C:\Users\jlund\Documents\GitHub\LeadMe\core\src\main\AndroidManifest.xml:47:9-59:19
-58            android:name="com.lumination.leadme.RemoteDispatcherService"
-58-->C:\Users\jlund\Documents\GitHub\LeadMe\core\src\main\AndroidManifest.xml:48:13-73
-59            android:configChanges="orientation"
-59-->C:\Users\jlund\Documents\GitHub\LeadMe\core\src\main\AndroidManifest.xml:50:13-48
-60            android:label="@string/app_title_with_brand"
-60-->C:\Users\jlund\Documents\GitHub\LeadMe\core\src\main\AndroidManifest.xml:49:13-57
-61            android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE" >
-61-->C:\Users\jlund\Documents\GitHub\LeadMe\core\src\main\AndroidManifest.xml:51:13-79
-62            <intent-filter>
-62-->C:\Users\jlund\Documents\GitHub\LeadMe\core\src\main\AndroidManifest.xml:52:13-54:29
-63                <action android:name="android.accessibilityservice.AccessibilityService" />
-63-->C:\Users\jlund\Documents\GitHub\LeadMe\core\src\main\AndroidManifest.xml:53:17-92
-63-->C:\Users\jlund\Documents\GitHub\LeadMe\core\src\main\AndroidManifest.xml:53:25-89
-64            </intent-filter>
-65
-66            <meta-data
-66-->C:\Users\jlund\Documents\GitHub\LeadMe\core\src\main\AndroidManifest.xml:56:13-58:72
-67                android:name="android.accessibilityservice"
-67-->C:\Users\jlund\Documents\GitHub\LeadMe\core\src\main\AndroidManifest.xml:57:17-60
-68                android:resource="@xml/accessibility_service_config" />
-68-->C:\Users\jlund\Documents\GitHub\LeadMe\core\src\main\AndroidManifest.xml:58:17-69
-69        </service>
-70
-71        <activity
-71-->[gun0912.ted:tedpermission:2.2.3] C:\Users\jlund\.gradle\caches\transforms-2\files-2.1\9afe43ecb0eb6569de4c748d08b0bf82\jetified-tedpermission-2.2.3\AndroidManifest.xml:10:9-14:67
-72            android:name="com.gun0912.tedpermission.TedPermissionActivity"
-72-->[gun0912.ted:tedpermission:2.2.3] C:\Users\jlund\.gradle\caches\transforms-2\files-2.1\9afe43ecb0eb6569de4c748d08b0bf82\jetified-tedpermission-2.2.3\AndroidManifest.xml:11:13-75
-73            android:configChanges="mcc|mnc|locale|keyboard|keyboardHidden|screenLayout|fontScale|uiMode|orientation|screenSize|layoutDirection"
-73-->[gun0912.ted:tedpermission:2.2.3] C:\Users\jlund\.gradle\caches\transforms-2\files-2.1\9afe43ecb0eb6569de4c748d08b0bf82\jetified-tedpermission-2.2.3\AndroidManifest.xml:12:13-144
-74            android:screenOrientation="unspecified"
-74-->[gun0912.ted:tedpermission:2.2.3] C:\Users\jlund\.gradle\caches\transforms-2\files-2.1\9afe43ecb0eb6569de4c748d08b0bf82\jetified-tedpermission-2.2.3\AndroidManifest.xml:13:13-52
-75            android:theme="@style/Theme.Transparent.Permission" />
-75-->[gun0912.ted:tedpermission:2.2.3] C:\Users\jlund\.gradle\caches\transforms-2\files-2.1\9afe43ecb0eb6569de4c748d08b0bf82\jetified-tedpermission-2.2.3\AndroidManifest.xml:14:13-64
-76        <activity
-76-->[com.google.android.gms:play-services-auth:19.0.0] C:\Users\jlund\.gradle\caches\transforms-2\files-2.1\a28c3c65b82bbf0d085fee47aaecdc0e\jetified-play-services-auth-19.0.0\AndroidManifest.xml:23:9-27:75
-77            android:name="com.google.android.gms.auth.api.signin.internal.SignInHubActivity"
-77-->[com.google.android.gms:play-services-auth:19.0.0] C:\Users\jlund\.gradle\caches\transforms-2\files-2.1\a28c3c65b82bbf0d085fee47aaecdc0e\jetified-play-services-auth-19.0.0\AndroidManifest.xml:24:13-93
-78            android:excludeFromRecents="true"
-78-->[com.google.android.gms:play-services-auth:19.0.0] C:\Users\jlund\.gradle\caches\transforms-2\files-2.1\a28c3c65b82bbf0d085fee47aaecdc0e\jetified-play-services-auth-19.0.0\AndroidManifest.xml:25:13-46
-79            android:exported="false"
-79-->[com.google.android.gms:play-services-auth:19.0.0] C:\Users\jlund\.gradle\caches\transforms-2\files-2.1\a28c3c65b82bbf0d085fee47aaecdc0e\jetified-play-services-auth-19.0.0\AndroidManifest.xml:26:13-37
-80            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
-80-->[com.google.android.gms:play-services-auth:19.0.0] C:\Users\jlund\.gradle\caches\transforms-2\files-2.1\a28c3c65b82bbf0d085fee47aaecdc0e\jetified-play-services-auth-19.0.0\AndroidManifest.xml:27:13-72
-81        <!--
-82            Service handling Google Sign-In user revocation. For apps that do not integrate with
-83            Google Sign-In, this service will never be started.
-84        -->
-85        <service
-85-->[com.google.android.gms:play-services-auth:19.0.0] C:\Users\jlund\.gradle\caches\transforms-2\files-2.1\a28c3c65b82bbf0d085fee47aaecdc0e\jetified-play-services-auth-19.0.0\AndroidManifest.xml:33:9-37:51
-86            android:name="com.google.android.gms.auth.api.signin.RevocationBoundService"
-86-->[com.google.android.gms:play-services-auth:19.0.0] C:\Users\jlund\.gradle\caches\transforms-2\files-2.1\a28c3c65b82bbf0d085fee47aaecdc0e\jetified-play-services-auth-19.0.0\AndroidManifest.xml:34:13-89
-87            android:exported="true"
-87-->[com.google.android.gms:play-services-auth:19.0.0] C:\Users\jlund\.gradle\caches\transforms-2\files-2.1\a28c3c65b82bbf0d085fee47aaecdc0e\jetified-play-services-auth-19.0.0\AndroidManifest.xml:35:13-36
-88            android:permission="com.google.android.gms.auth.api.signin.permission.REVOCATION_NOTIFICATION"
-88-->[com.google.android.gms:play-services-auth:19.0.0] C:\Users\jlund\.gradle\caches\transforms-2\files-2.1\a28c3c65b82bbf0d085fee47aaecdc0e\jetified-play-services-auth-19.0.0\AndroidManifest.xml:36:13-107
-89            android:visibleToInstantApps="true" />
-89-->[com.google.android.gms:play-services-auth:19.0.0] C:\Users\jlund\.gradle\caches\transforms-2\files-2.1\a28c3c65b82bbf0d085fee47aaecdc0e\jetified-play-services-auth-19.0.0\AndroidManifest.xml:37:13-48
-90
-91        <activity
-91-->[pub.devrel:easypermissions:0.3.0] C:\Users\jlund\.gradle\caches\transforms-2\files-2.1\e735c6bb5713a1cd895a1c9133f2a5a2\jetified-easypermissions-0.3.0\AndroidManifest.xml:12:9-16:66
-92            android:name="pub.devrel.easypermissions.AppSettingsDialogHolderActivity"
-92-->[pub.devrel:easypermissions:0.3.0] C:\Users\jlund\.gradle\caches\transforms-2\files-2.1\e735c6bb5713a1cd895a1c9133f2a5a2\jetified-easypermissions-0.3.0\AndroidManifest.xml:13:13-86
-93            android:exported="false"
-93-->[pub.devrel:easypermissions:0.3.0] C:\Users\jlund\.gradle\caches\transforms-2\files-2.1\e735c6bb5713a1cd895a1c9133f2a5a2\jetified-easypermissions-0.3.0\AndroidManifest.xml:14:13-37
-94            android:label=""
-94-->[pub.devrel:easypermissions:0.3.0] C:\Users\jlund\.gradle\caches\transforms-2\files-2.1\e735c6bb5713a1cd895a1c9133f2a5a2\jetified-easypermissions-0.3.0\AndroidManifest.xml:15:13-29
-95            android:theme="@style/EasyPermissions.Transparent" />
-95-->[pub.devrel:easypermissions:0.3.0] C:\Users\jlund\.gradle\caches\transforms-2\files-2.1\e735c6bb5713a1cd895a1c9133f2a5a2\jetified-easypermissions-0.3.0\AndroidManifest.xml:16:13-63
-96        <activity
-96-->[com.google.android.gms:play-services-base:17.3.0] C:\Users\jlund\.gradle\caches\transforms-2\files-2.1\0a776bc61390d87885643b31a80a578e\jetified-play-services-base-17.3.0\AndroidManifest.xml:23:9-26:75
-97            android:name="com.google.android.gms.common.api.GoogleApiActivity"
-97-->[com.google.android.gms:play-services-base:17.3.0] C:\Users\jlund\.gradle\caches\transforms-2\files-2.1\0a776bc61390d87885643b31a80a578e\jetified-play-services-base-17.3.0\AndroidManifest.xml:24:13-79
-98            android:exported="false"
-98-->[com.google.android.gms:play-services-base:17.3.0] C:\Users\jlund\.gradle\caches\transforms-2\files-2.1\0a776bc61390d87885643b31a80a578e\jetified-play-services-base-17.3.0\AndroidManifest.xml:25:13-37
-99            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
-99-->[com.google.android.gms:play-services-base:17.3.0] C:\Users\jlund\.gradle\caches\transforms-2\files-2.1\0a776bc61390d87885643b31a80a578e\jetified-play-services-base-17.3.0\AndroidManifest.xml:26:13-72
-100
-101        <meta-data
-101-->[com.google.android.gms:play-services-basement:17.3.0] C:\Users\jlund\.gradle\caches\transforms-2\files-2.1\4da416a319957518ac6f573eb1464f67\jetified-play-services-basement-17.3.0\AndroidManifest.xml:23:9-25:69
-102            android:name="com.google.android.gms.version"
-102-->[com.google.android.gms:play-services-basement:17.3.0] C:\Users\jlund\.gradle\caches\transforms-2\files-2.1\4da416a319957518ac6f573eb1464f67\jetified-play-services-basement-17.3.0\AndroidManifest.xml:24:13-58
-103            android:value="@integer/google_play_services_version" />
-103-->[com.google.android.gms:play-services-basement:17.3.0] C:\Users\jlund\.gradle\caches\transforms-2\files-2.1\4da416a319957518ac6f573eb1464f67\jetified-play-services-basement-17.3.0\AndroidManifest.xml:25:13-66
-104    </application>
-105
-106</manifest>
+27    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+27-->C:\Users\jlund\Documents\GitHub\LeadMe\core\src\main\AndroidManifest.xml:23:5-78
+27-->C:\Users\jlund\Documents\GitHub\LeadMe\core\src\main\AndroidManifest.xml:23:22-76
+28
+29    <!-- Google Play filtering -->
+30    <uses-feature
+30-->C:\Users\jlund\Documents\GitHub\LeadMe\core\src\main\AndroidManifest.xml:26:5-28:35
+31        android:name="android.hardware.wifi.direct"
+31-->C:\Users\jlund\Documents\GitHub\LeadMe\core\src\main\AndroidManifest.xml:27:9-52
+32        android:required="true" />
+32-->C:\Users\jlund\Documents\GitHub\LeadMe\core\src\main\AndroidManifest.xml:28:9-32
+33
+34    <application
+34-->C:\Users\jlund\Documents\GitHub\LeadMe\core\src\main\AndroidManifest.xml:30:5-62:19
+35        android:appComponentFactory="androidx.core.app.CoreComponentFactory"
+35-->[androidx.core:core:1.3.1] C:\Users\jlund\.gradle\caches\transforms-2\files-2.1\c560b8721f05ca12656603dd382025ab\core-1.3.1\AndroidManifest.xml:24:18-86
+36        android:clearTaskOnLaunch="true"
+36-->C:\Users\jlund\Documents\GitHub\LeadMe\core\src\main\AndroidManifest.xml:31:9-41
+37        android:debuggable="true"
+38        android:extractNativeLibs="false"
+39        android:icon="@mipmap/leadme_icon_round"
+39-->C:\Users\jlund\Documents\GitHub\LeadMe\core\src\main\AndroidManifest.xml:32:9-49
+40        android:label="@string/app_title"
+40-->C:\Users\jlund\Documents\GitHub\LeadMe\core\src\main\AndroidManifest.xml:33:9-42
+41        android:testOnly="true"
+42        android:theme="@android:style/Theme.Holo.Light.NoActionBar.Fullscreen"
+42-->C:\Users\jlund\Documents\GitHub\LeadMe\core\src\main\AndroidManifest.xml:34:9-79
+43        android:usesCleartextTraffic="true" >
+43-->C:\Users\jlund\Documents\GitHub\LeadMe\core\src\main\AndroidManifest.xml:35:9-44
+44        <activity
+44-->C:\Users\jlund\Documents\GitHub\LeadMe\core\src\main\AndroidManifest.xml:37:9-46:20
+45            android:name="com.lumination.leadme.LeadMeMain"
+45-->C:\Users\jlund\Documents\GitHub\LeadMe\core\src\main\AndroidManifest.xml:38:13-60
+46            android:label="@string/app_title"
+46-->C:\Users\jlund\Documents\GitHub\LeadMe\core\src\main\AndroidManifest.xml:40:13-46
+47            android:launchMode="singleTask"
+47-->C:\Users\jlund\Documents\GitHub\LeadMe\core\src\main\AndroidManifest.xml:41:13-44
+48            android:screenOrientation="portrait" > <!-- was singleTask -->
+48-->C:\Users\jlund\Documents\GitHub\LeadMe\core\src\main\AndroidManifest.xml:39:13-49
+49            <intent-filter>
+49-->C:\Users\jlund\Documents\GitHub\LeadMe\core\src\main\AndroidManifest.xml:42:13-45:29
+50                <action android:name="android.intent.action.MAIN" />
+50-->C:\Users\jlund\Documents\GitHub\LeadMe\core\src\main\AndroidManifest.xml:43:17-69
+50-->C:\Users\jlund\Documents\GitHub\LeadMe\core\src\main\AndroidManifest.xml:43:25-66
+51
+52                <category android:name="android.intent.category.LAUNCHER" />
+52-->C:\Users\jlund\Documents\GitHub\LeadMe\core\src\main\AndroidManifest.xml:44:17-77
+52-->C:\Users\jlund\Documents\GitHub\LeadMe\core\src\main\AndroidManifest.xml:44:27-74
+53            </intent-filter>
+54        </activity>
+55
+56        <service
+56-->C:\Users\jlund\Documents\GitHub\LeadMe\core\src\main\AndroidManifest.xml:48:9-60:19
+57            android:name="com.lumination.leadme.RemoteDispatcherService"
+57-->C:\Users\jlund\Documents\GitHub\LeadMe\core\src\main\AndroidManifest.xml:49:13-73
+58            android:configChanges="orientation"
+58-->C:\Users\jlund\Documents\GitHub\LeadMe\core\src\main\AndroidManifest.xml:51:13-48
+59            android:label="@string/app_title_with_brand"
+59-->C:\Users\jlund\Documents\GitHub\LeadMe\core\src\main\AndroidManifest.xml:50:13-57
+60            android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE" >
+60-->C:\Users\jlund\Documents\GitHub\LeadMe\core\src\main\AndroidManifest.xml:52:13-79
+61            <intent-filter>
+61-->C:\Users\jlund\Documents\GitHub\LeadMe\core\src\main\AndroidManifest.xml:53:13-55:29
+62                <action android:name="android.accessibilityservice.AccessibilityService" />
+62-->C:\Users\jlund\Documents\GitHub\LeadMe\core\src\main\AndroidManifest.xml:54:17-92
+62-->C:\Users\jlund\Documents\GitHub\LeadMe\core\src\main\AndroidManifest.xml:54:25-89
+63            </intent-filter>
+64
+65            <meta-data
+65-->C:\Users\jlund\Documents\GitHub\LeadMe\core\src\main\AndroidManifest.xml:57:13-59:72
+66                android:name="android.accessibilityservice"
+66-->C:\Users\jlund\Documents\GitHub\LeadMe\core\src\main\AndroidManifest.xml:58:17-60
+67                android:resource="@xml/accessibility_service_config" />
+67-->C:\Users\jlund\Documents\GitHub\LeadMe\core\src\main\AndroidManifest.xml:59:17-69
+68        </service>
+69
+70        <activity
+70-->[gun0912.ted:tedpermission:2.2.3] C:\Users\jlund\.gradle\caches\transforms-2\files-2.1\9afe43ecb0eb6569de4c748d08b0bf82\jetified-tedpermission-2.2.3\AndroidManifest.xml:10:9-14:67
+71            android:name="com.gun0912.tedpermission.TedPermissionActivity"
+71-->[gun0912.ted:tedpermission:2.2.3] C:\Users\jlund\.gradle\caches\transforms-2\files-2.1\9afe43ecb0eb6569de4c748d08b0bf82\jetified-tedpermission-2.2.3\AndroidManifest.xml:11:13-75
+72            android:configChanges="mcc|mnc|locale|keyboard|keyboardHidden|screenLayout|fontScale|uiMode|orientation|screenSize|layoutDirection"
+72-->[gun0912.ted:tedpermission:2.2.3] C:\Users\jlund\.gradle\caches\transforms-2\files-2.1\9afe43ecb0eb6569de4c748d08b0bf82\jetified-tedpermission-2.2.3\AndroidManifest.xml:12:13-144
+73            android:screenOrientation="unspecified"
+73-->[gun0912.ted:tedpermission:2.2.3] C:\Users\jlund\.gradle\caches\transforms-2\files-2.1\9afe43ecb0eb6569de4c748d08b0bf82\jetified-tedpermission-2.2.3\AndroidManifest.xml:13:13-52
+74            android:theme="@style/Theme.Transparent.Permission" />
+74-->[gun0912.ted:tedpermission:2.2.3] C:\Users\jlund\.gradle\caches\transforms-2\files-2.1\9afe43ecb0eb6569de4c748d08b0bf82\jetified-tedpermission-2.2.3\AndroidManifest.xml:14:13-64
+75        <activity
+75-->[com.google.android.gms:play-services-auth:19.0.0] C:\Users\jlund\.gradle\caches\transforms-2\files-2.1\a28c3c65b82bbf0d085fee47aaecdc0e\jetified-play-services-auth-19.0.0\AndroidManifest.xml:23:9-27:75
+76            android:name="com.google.android.gms.auth.api.signin.internal.SignInHubActivity"
+76-->[com.google.android.gms:play-services-auth:19.0.0] C:\Users\jlund\.gradle\caches\transforms-2\files-2.1\a28c3c65b82bbf0d085fee47aaecdc0e\jetified-play-services-auth-19.0.0\AndroidManifest.xml:24:13-93
+77            android:excludeFromRecents="true"
+77-->[com.google.android.gms:play-services-auth:19.0.0] C:\Users\jlund\.gradle\caches\transforms-2\files-2.1\a28c3c65b82bbf0d085fee47aaecdc0e\jetified-play-services-auth-19.0.0\AndroidManifest.xml:25:13-46
+78            android:exported="false"
+78-->[com.google.android.gms:play-services-auth:19.0.0] C:\Users\jlund\.gradle\caches\transforms-2\files-2.1\a28c3c65b82bbf0d085fee47aaecdc0e\jetified-play-services-auth-19.0.0\AndroidManifest.xml:26:13-37
+79            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
+79-->[com.google.android.gms:play-services-auth:19.0.0] C:\Users\jlund\.gradle\caches\transforms-2\files-2.1\a28c3c65b82bbf0d085fee47aaecdc0e\jetified-play-services-auth-19.0.0\AndroidManifest.xml:27:13-72
+80        <!--
+81            Service handling Google Sign-In user revocation. For apps that do not integrate with
+82            Google Sign-In, this service will never be started.
+83        -->
+84        <service
+84-->[com.google.android.gms:play-services-auth:19.0.0] C:\Users\jlund\.gradle\caches\transforms-2\files-2.1\a28c3c65b82bbf0d085fee47aaecdc0e\jetified-play-services-auth-19.0.0\AndroidManifest.xml:33:9-37:51
+85            android:name="com.google.android.gms.auth.api.signin.RevocationBoundService"
+85-->[com.google.android.gms:play-services-auth:19.0.0] C:\Users\jlund\.gradle\caches\transforms-2\files-2.1\a28c3c65b82bbf0d085fee47aaecdc0e\jetified-play-services-auth-19.0.0\AndroidManifest.xml:34:13-89
+86            android:exported="true"
+86-->[com.google.android.gms:play-services-auth:19.0.0] C:\Users\jlund\.gradle\caches\transforms-2\files-2.1\a28c3c65b82bbf0d085fee47aaecdc0e\jetified-play-services-auth-19.0.0\AndroidManifest.xml:35:13-36
+87            android:permission="com.google.android.gms.auth.api.signin.permission.REVOCATION_NOTIFICATION"
+87-->[com.google.android.gms:play-services-auth:19.0.0] C:\Users\jlund\.gradle\caches\transforms-2\files-2.1\a28c3c65b82bbf0d085fee47aaecdc0e\jetified-play-services-auth-19.0.0\AndroidManifest.xml:36:13-107
+88            android:visibleToInstantApps="true" />
+88-->[com.google.android.gms:play-services-auth:19.0.0] C:\Users\jlund\.gradle\caches\transforms-2\files-2.1\a28c3c65b82bbf0d085fee47aaecdc0e\jetified-play-services-auth-19.0.0\AndroidManifest.xml:37:13-48
+89
+90        <activity
+90-->[pub.devrel:easypermissions:0.3.0] C:\Users\jlund\.gradle\caches\transforms-2\files-2.1\e735c6bb5713a1cd895a1c9133f2a5a2\jetified-easypermissions-0.3.0\AndroidManifest.xml:12:9-16:66
+91            android:name="pub.devrel.easypermissions.AppSettingsDialogHolderActivity"
+91-->[pub.devrel:easypermissions:0.3.0] C:\Users\jlund\.gradle\caches\transforms-2\files-2.1\e735c6bb5713a1cd895a1c9133f2a5a2\jetified-easypermissions-0.3.0\AndroidManifest.xml:13:13-86
+92            android:exported="false"
+92-->[pub.devrel:easypermissions:0.3.0] C:\Users\jlund\.gradle\caches\transforms-2\files-2.1\e735c6bb5713a1cd895a1c9133f2a5a2\jetified-easypermissions-0.3.0\AndroidManifest.xml:14:13-37
+93            android:label=""
+93-->[pub.devrel:easypermissions:0.3.0] C:\Users\jlund\.gradle\caches\transforms-2\files-2.1\e735c6bb5713a1cd895a1c9133f2a5a2\jetified-easypermissions-0.3.0\AndroidManifest.xml:15:13-29
+94            android:theme="@style/EasyPermissions.Transparent" />
+94-->[pub.devrel:easypermissions:0.3.0] C:\Users\jlund\.gradle\caches\transforms-2\files-2.1\e735c6bb5713a1cd895a1c9133f2a5a2\jetified-easypermissions-0.3.0\AndroidManifest.xml:16:13-63
+95        <activity
+95-->[com.google.android.gms:play-services-base:17.3.0] C:\Users\jlund\.gradle\caches\transforms-2\files-2.1\0a776bc61390d87885643b31a80a578e\jetified-play-services-base-17.3.0\AndroidManifest.xml:23:9-26:75
+96            android:name="com.google.android.gms.common.api.GoogleApiActivity"
+96-->[com.google.android.gms:play-services-base:17.3.0] C:\Users\jlund\.gradle\caches\transforms-2\files-2.1\0a776bc61390d87885643b31a80a578e\jetified-play-services-base-17.3.0\AndroidManifest.xml:24:13-79
+97            android:exported="false"
+97-->[com.google.android.gms:play-services-base:17.3.0] C:\Users\jlund\.gradle\caches\transforms-2\files-2.1\0a776bc61390d87885643b31a80a578e\jetified-play-services-base-17.3.0\AndroidManifest.xml:25:13-37
+98            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
+98-->[com.google.android.gms:play-services-base:17.3.0] C:\Users\jlund\.gradle\caches\transforms-2\files-2.1\0a776bc61390d87885643b31a80a578e\jetified-play-services-base-17.3.0\AndroidManifest.xml:26:13-72
+99
+100        <meta-data
+100-->[com.google.android.gms:play-services-basement:17.3.0] C:\Users\jlund\.gradle\caches\transforms-2\files-2.1\4da416a319957518ac6f573eb1464f67\jetified-play-services-basement-17.3.0\AndroidManifest.xml:23:9-25:69
+101            android:name="com.google.android.gms.version"
+101-->[com.google.android.gms:play-services-basement:17.3.0] C:\Users\jlund\.gradle\caches\transforms-2\files-2.1\4da416a319957518ac6f573eb1464f67\jetified-play-services-basement-17.3.0\AndroidManifest.xml:24:13-58
+102            android:value="@integer/google_play_services_version" />
+102-->[com.google.android.gms:play-services-basement:17.3.0] C:\Users\jlund\.gradle\caches\transforms-2\files-2.1\4da416a319957518ac6f573eb1464f67\jetified-play-services-basement-17.3.0\AndroidManifest.xml:25:13-66
+103    </application>
+104
+105</manifest>

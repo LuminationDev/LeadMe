@@ -273,6 +273,7 @@ com/lumination/leadme/RecyclerAdaptor.java
  com.lumination.leadme.RecyclerAdaptor
  com.lumination.leadme.RecyclerAdaptor$ItemClickListener
  com.lumination.leadme.RecyclerAdaptor$ViewHolder
+ com.lumination.leadme.videoData
 org/jsoup/nodes/Document.java
  org.jsoup.nodes.Document
  org.jsoup.nodes.Document$OutputSettings
@@ -410,6 +411,9 @@ com/lumination/leadme/WebManager.java
  com.lumination.leadme.WebManager$2$1
  com.lumination.leadme.WebManager$20
  com.lumination.leadme.WebManager$21
+ com.lumination.leadme.WebManager$22
+ com.lumination.leadme.WebManager$22$1
+ com.lumination.leadme.WebManager$23
  com.lumination.leadme.WebManager$3
  com.lumination.leadme.WebManager$4
  com.lumination.leadme.WebManager$5

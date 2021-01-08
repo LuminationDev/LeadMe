@@ -27,6 +27,14 @@ import androidx.appcompat.widget.SearchView;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.api.client.googleapis.json.GoogleJsonResponseException;
+import com.google.api.client.http.HttpRequest;
+import com.google.api.client.http.HttpRequestInitializer;
+import com.google.api.client.http.javanet.NetHttpTransport;
+import com.google.api.client.json.jackson2.JacksonFactory;
+import com.google.api.services.youtube.YouTube;
+import com.google.api.services.youtube.model.SearchListResponse;
+import com.google.api.services.youtube.model.SearchResult;
 import com.koushikdutta.urlimageviewhelper.UrlImageViewCallback;
 import com.koushikdutta.urlimageviewhelper.UrlImageViewHelper;
 import com.lumination.leadme.linkpreview.LinkPreviewCallback;
@@ -34,11 +42,15 @@ import com.lumination.leadme.linkpreview.SourceContent;
 import com.lumination.leadme.linkpreview.TextCrawler;
 import com.lumination.leadme.twowaygrid.TwoWayGridView;
 
+import java.io.IOException;
+import java.security.GeneralSecurityException;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
 
 public class WebManager extends AppCompatActivity implements RecyclerAdaptor.ItemClickListener {
 
@@ -60,6 +72,7 @@ public class WebManager extends AppCompatActivity implements RecyclerAdaptor.Ite
     boolean isYouTube = false;
     String pushURL = "";
     RecyclerAdaptor adaptor;
+    List<SearchResult> results;
 
     private FavouritesManager urlFavouritesManager;
     private FavouritesManager youTubeFavouritesManager;
@@ -781,29 +794,53 @@ public class WebManager extends AppCompatActivity implements RecyclerAdaptor.Ite
 
             @Override
             public boolean onQueryTextChange(String newText) {
-                    searchList.clear();
-                    searchList.addAll(YoutubeSearch(newText));//note lists are linked
+
+                try {
+                    YoutubeSearch(newText);
+                } catch (GeneralSecurityException e) {
+                    e.printStackTrace();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
                 return false;
             }
         });
-//        searchList.add("Horse");
-//        searchList.add("Cow");
-//        searchList.add("Camel");
-//        searchList.add("Sheep");
-//        searchList.add("Goat");
-        // set up the RecyclerView
-        RecyclerView recyclerView = previewSearchView.findViewById(R.id.url_preview_recycler);
-        recyclerView.setLayoutManager(new LinearLayoutManager(this.main));
-        adaptor = new RecyclerAdaptor(this.main, searchList);
-        adaptor.setClickListener(this);
-        recyclerView.setAdapter(adaptor);
+
     }
 
-    private ArrayList<String> YoutubeSearch(String newText) {
+    private void YoutubeSearch(final String newText) throws GeneralSecurityException, IOException {
         //populates array list with the youtube urls ready for generating previews;
-        ArrayList<String> urls = new ArrayList<>();
 
-        return urls;
+        final Context context=this;
+        final Context mainC= this.main;
+        Thread t = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                results = getYoutubeAPIResults(newText);
+//                Log.d(TAG, "run: "+ results.toString());
+                runOnUiThread(new Runnable() {
+
+                    @Override
+                    public void run() {
+                        if(results!=null) {
+                            Iterator<SearchResult> ytSearchIterator = results.iterator();
+                            RecyclerView recyclerView = previewSearchView.findViewById(R.id.url_preview_recycler);
+                            recyclerView.setLayoutManager(new LinearLayoutManager(mainC));
+                            adaptor = new RecyclerAdaptor(mainC, ytSearchIterator);
+                            adaptor.setClickListener((RecyclerAdaptor.ItemClickListener) context);
+                            recyclerView.setAdapter(adaptor);
+                        }
+
+                    }
+                });
+
+
+
+
+            }
+        });
+        t.start();
+
     }
 
     @Override
@@ -814,4 +851,77 @@ public class WebManager extends AppCompatActivity implements RecyclerAdaptor.Ite
     public void onPointerCaptureChanged(boolean hasCapture) {
 
     }
+
+        /**
+         * Define a global variable that identifies the name of a file that
+         * contains the developer's API key.
+         */
+        private static final String PROPERTIES_FILENAME = "youtube.properties";
+
+        private static final long NUMBER_OF_VIDEOS_RETURNED = 25;
+
+        /**
+         * Define a global instance of a Youtube object, which will be used
+         * to make YouTube Data API requests.
+         */
+        private static YouTube youtube;
+
+        /**
+         * Initialize a YouTube object to search for videos on YouTube. Then
+         * display the name and thumbnail image of each video in the result set.
+         *
+         */
+        public static List<SearchResult> getYoutubeAPIResults(String searchQuery) {
+            // Read the developer key from the properties file.
+            List<SearchResult> searchResultList = null;
+            YouTube.Search.List search;
+            try {
+                // This object is used to make YouTube Data API requests. The last
+                // argument is required, but since we don't need anything
+                // initialized when the HttpRequest is initialized, we override
+                // the interface and provide a no-op function.
+                youtube = new YouTube.Builder(new NetHttpTransport(), new JacksonFactory(), new HttpRequestInitializer() {
+                    public void initialize(HttpRequest request) {
+                    }
+                }).setApplicationName("LeadMe").build();
+
+
+                // Define the API request for retrieving search results.
+                search = youtube.search().list("id,snippet");
+
+                // Set your developer key from the {{ Google Cloud Console }} for
+                // non-authenticated requests. See:
+                // {{ https://cloud.google.com/console }}
+                // String apiKey = properties.getProperty("youtube.apikey");
+                String apiKey = "AIzaSyB5dbyScP1Ful_bs___SoHWpKVS6phQXpE";
+                search.setKey(apiKey);
+                search.setQ(searchQuery);
+
+                // Restrict the search results to only include videos. See:
+                // https://developers.google.com/youtube/v3/docs/search/list#type
+                search.setType("video");
+
+                // To increase efficiency, only retrieve the fields that the
+                // application uses.
+                search.setFields("items(id/kind,id/videoId,snippet/title,snippet/thumbnails/default/url)");
+                search.setMaxResults(NUMBER_OF_VIDEOS_RETURNED);
+
+                // Call the API and print results.
+                SearchListResponse searchResponse = search.execute();
+                searchResultList = searchResponse.getItems();
+                if (searchResultList != null) {
+                    Log.d(TAG, "YoutubeApiSetup: Hey, this thing actually worked for once");
+
+                }
+            } catch (GoogleJsonResponseException e) {
+                System.err.println("There was a service error: " + e.getDetails().getCode() + " : "
+                        + e.getDetails().getMessage());
+            } catch (IOException e) {
+                System.err.println("There was an IO error: " + e.getCause() + " : " + e.getMessage());
+            } catch (Throwable t) {
+                t.printStackTrace();
+            }
+            return searchResultList;
+        }
+
 }
