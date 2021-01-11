@@ -325,6 +325,7 @@ public class WebManager extends AppCompatActivity {
                 if(search){
                     hidePreviewDialog();
                     buildAndShowSearchDialog();
+
                 }else {
                     hidePreviewDialog();
                     showWebLaunchDialog(adding_to_fav);
@@ -472,7 +473,12 @@ public class WebManager extends AppCompatActivity {
         web.getSettings().setJavaScriptEnabled(true); // enable javascript
         web.canGoBack();
         final SearchView searchView = previewSearchView.findViewById(R.id.url_search_bar);
-
+        if(searchView.getQuery().length()>0){
+            if(!isYouTube){
+                //fixes the webpage loading in background
+                web.loadUrl("https://www.google.com/search?q=" +searchView.getQuery());
+            }
+        }
         Youtube.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -571,7 +577,7 @@ public class WebManager extends AppCompatActivity {
     boolean adding_to_fav = false;
 
     void showWebLaunchDialog(boolean add_fav_mode) {
-        search=false;
+
         if (websiteLaunchDialog == null) {
             websiteLaunchDialog = new AlertDialog.Builder(main)
                     .setView(websiteLaunchDialogView)
@@ -586,6 +592,7 @@ public class WebManager extends AppCompatActivity {
     }
 
     private void setupWebLaunchDialog() {
+        search=false;
         ((TextView) websiteLaunchDialogView.findViewById(R.id.url_input_field)).setText("https://www.youtube.com/w/SEbqkn1TWTA"); //sample for testing
 
         websiteLaunchDialogView.findViewById(R.id.paste_from_clipboard).setOnClickListener(new View.OnClickListener() {
@@ -613,6 +620,9 @@ public class WebManager extends AppCompatActivity {
         websiteLaunchDialogView.findViewById(R.id.search_btn).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                searchYoutube=true;
+                SearchView searchView = previewSearchView.findViewById(R.id.url_search_bar);
+                searchView.setQuery("",false);
                 buildAndShowSearchDialog();
             }
         });
@@ -788,39 +798,39 @@ public class WebManager extends AppCompatActivity {
 
     private void populateSearch(){
         //stores the url search results
-        final WebView v = previewSearchView.findViewById(R.id.webview_preview);
-        v.getSettings().setJavaScriptEnabled(true); // enable javascript
-        v.canGoBack();
-        v.setVisibility(View.GONE);
+        final WebView webPreview = previewSearchView.findViewById(R.id.webview_preview);
+        webPreview.getSettings().setJavaScriptEnabled(true); // enable javascript
+        webPreview.getSettings().setDomStorageEnabled(true);
+        webPreview.canGoBack();
+
         final SearchView searchView = previewSearchView.findViewById(R.id.url_search_bar);
+        if(!(searchView.getQuery().length() >0)) {
+            webPreview.setVisibility(View.GONE);
+        }
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
-            public boolean onQueryTextSubmit(String query) {
-                return false;
-            }
-
-            @Override
-            public boolean onQueryTextChange(String newText) {
+            //moved listener to end of search to avoid triggering recaptcha for rapid querys
+            public boolean onQueryTextSubmit(String newText) {
                 if(newText.length()>0) {
-                    v.setVisibility(View.VISIBLE);
+                    webPreview.setVisibility(View.VISIBLE);
                 }else{
-                    v.setVisibility(View.GONE);
+                    webPreview.setVisibility(View.GONE);
                 }
 
                 //filters the search results
                 if(searchYoutube) {
-                    v.loadUrl("https://www.google.com/search?q=" + newText + "&tbm=vid&as_sitesearch=youtube.com");
+                    webPreview.loadUrl("https://www.google.com/search?q=" + newText + "&tbm=vid&as_sitesearch=youtube.com");
                     /*
                     swap the above line with the one below to index youtube's site directly
                     v.loadUrl("https://www.youtube.com/results?search_query="+newText);
                      */
                 }else{
-                    v.loadUrl("https://www.google.com/search?q=" + newText);
+                    webPreview.loadUrl("https://www.google.com/search?q=" + newText);
                 }
 
 
 
-                v.setWebViewClient(new WebViewClient() {
+                webPreview.setWebViewClient(new WebViewClient() {
                     /*
                     Exists for the sole purpose of handling google's top stories news sites
                     handles all resources as they load including fonts etc
@@ -829,7 +839,7 @@ public class WebManager extends AppCompatActivity {
                                                 String url){
                         Log.d(TAG, "onLoadResource: "+url);
                         if(url.startsWith("https://www.google.com/gen_204") && url.contains("&url=")){ //avoid the preloaded link powered by amp
-                           //find the real url hidden in the url
+                            //find the real url hidden in the url
                             String[] parts = url.split("&");
                             for(int i=0; i<parts.length; i++){
                                 if(parts[i].startsWith("url=")){
@@ -837,16 +847,6 @@ public class WebManager extends AppCompatActivity {
                                 }
                             }
                             Log.d(TAG, "onLoadResource valid: "+url);
-
-                            //wipe the search clean ready for next use
-                            if(searchYoutube) {
-                                v.loadUrl("https://www.google.com/search?q=&tbm=vid&as_sitesearch=youtube.com");
-                                //v.loadUrl("https://www.youtube.com/results?search_query="+newText);
-                            }else{
-                                v.loadUrl("https://www.google.com/search?q=");
-                            }
-                            searchView.setQuery("",false);
-
                             searchDialog.hide();
                             showPreview(url);
                         }
@@ -856,7 +856,7 @@ public class WebManager extends AppCompatActivity {
                     public void onPageFinished(WebView view, String url) {
                         //scrolls the page down to cut off the google rubbish at top
                         if(url.startsWith("https://www.google.com")) {
-                            v.scrollTo(0, 400);
+                            webPreview.scrollTo(0, 400);
                         }
 
                         Log.d(TAG, "onPageFinished: "+url);
@@ -870,13 +870,6 @@ public class WebManager extends AppCompatActivity {
                         Log.d(TAG, "shouldOverrideUrlLoading: "+request.getUrl().toString());
                         String URL = request.getUrl().toString();
                         if(!URL.startsWith("https://www.google.com")){
-                            if(searchYoutube) {
-                                v.loadUrl("https://www.google.com/search?q=&tbm=vid&as_sitesearch=youtube.com");
-                                //v.loadUrl("https://www.youtube.com/results?search_query="+newText);
-                            }else{
-                                v.loadUrl("https://www.google.com/search?q=");
-                            }
-                            searchView.setQuery("",false);
                             searchDialog.hide();
                             showPreview(URL);
                             return true;
@@ -886,6 +879,15 @@ public class WebManager extends AppCompatActivity {
                     }
                 });
 
+                return false;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                //removes the webview when text is cleared
+                if(!(newText.length() >0)) {
+                    webPreview.setVisibility(View.GONE);
+                }
                 return false;
             }
         });

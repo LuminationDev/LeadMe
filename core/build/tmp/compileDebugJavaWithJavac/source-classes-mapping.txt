@@ -269,11 +269,6 @@ org/jsoup/nodes/NodeUtils.java
  org.jsoup.nodes.NodeUtils
 org/jsoup/Jsoup.java
  org.jsoup.Jsoup
-com/lumination/leadme/RecyclerAdaptor.java
- com.lumination.leadme.RecyclerAdaptor
- com.lumination.leadme.RecyclerAdaptor$ItemClickListener
- com.lumination.leadme.RecyclerAdaptor$ViewHolder
- com.lumination.leadme.videoData
 org/jsoup/nodes/Document.java
  org.jsoup.nodes.Document
  org.jsoup.nodes.Document$OutputSettings

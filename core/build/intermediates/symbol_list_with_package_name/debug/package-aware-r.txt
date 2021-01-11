@@ -2271,9 +2271,6 @@ id url_favourites
 id url_favourites_title
 id url_input_field
 id url_no_favs
-id url_preview_image
-id url_preview_recycler
-id url_preview_text
 id url_search_bar
 id url_task_view
 id useLogo
@@ -2461,7 +2458,6 @@ layout text_view_with_line_height_from_style
 layout text_view_with_theme_line_height
 layout text_view_without_line_height
 layout transparent_overlay
-layout url_recycler_adaptor
 menu main_menu
 mipmap leadme_icon
 mipmap leadme_icon_foreground

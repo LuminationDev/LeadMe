@@ -75,12 +75,6 @@
             app:searchHintIcon="@drawable/icon_search"
             app:searchIcon="@drawable/icon_search" />
 
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/url_preview_recycler"
-            android:layout_width="match_parent"
-            android:layout_height="200dp"
-            android:visibility="gone" />
-
         <WebView
             android:id="@+id/webview_preview"
             android:layout_width="match_parent"

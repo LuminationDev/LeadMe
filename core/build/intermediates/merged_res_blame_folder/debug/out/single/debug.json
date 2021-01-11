@@ -4,12 +4,12 @@
         "source": "C:\\Users\\jlund\\Documents\\GitHub\\LeadMe\\core\\src\\main\\res\\drawable-xxhdpi\\youtube_logo.png"
     },
     {
-        "merged": "C:\\Users\\jlund\\Documents\\GitHub\\LeadMe\\core\\build\\intermediates\\res\\merged\\debug\\layout_d__enter_url.xml.flat",
-        "source": "C:\\Users\\jlund\\Documents\\GitHub\\LeadMe\\core\\src\\main\\res\\layout\\d__enter_url.xml"
-    },
-    {
         "merged": "C:\\Users\\jlund\\Documents\\GitHub\\LeadMe\\core\\build\\intermediates\\res\\merged\\debug\\layout_e__preview_url_search.xml.flat",
         "source": "C:\\Users\\jlund\\Documents\\GitHub\\LeadMe\\core\\src\\main\\res\\layout\\e__preview_url_search.xml"
+    },
+    {
+        "merged": "C:\\Users\\jlund\\Documents\\GitHub\\LeadMe\\core\\build\\intermediates\\res\\merged\\debug\\layout_d__enter_url.xml.flat",
+        "source": "C:\\Users\\jlund\\Documents\\GitHub\\LeadMe\\core\\src\\main\\res\\layout\\d__enter_url.xml"
     },
     {
         "merged": "C:\\Users\\jlund\\Documents\\GitHub\\LeadMe\\core\\build\\intermediates\\res\\merged\\debug\\mipmap-xhdpi_leadme_icon_round.png.flat",
@@ -382,10 +382,6 @@
     {
         "merged": "C:\\Users\\jlund\\Documents\\GitHub\\LeadMe\\core\\build\\intermediates\\res\\merged\\debug\\drawable_follow_leader.xml.flat",
         "source": "C:\\Users\\jlund\\Documents\\GitHub\\LeadMe\\core\\src\\main\\res\\drawable\\follow_leader.xml"
-    },
-    {
-        "merged": "C:\\Users\\jlund\\Documents\\GitHub\\LeadMe\\core\\build\\intermediates\\res\\merged\\debug\\layout_url_recycler_adaptor.xml.flat",
-        "source": "C:\\Users\\jlund\\Documents\\GitHub\\LeadMe\\core\\src\\main\\res\\layout\\url_recycler_adaptor.xml"
     },
     {
         "merged": "C:\\Users\\jlund\\Documents\\GitHub\\LeadMe\\core\\build\\intermediates\\res\\merged\\debug\\drawable_bg_highlight_roundeduppercorners.xml.flat",
