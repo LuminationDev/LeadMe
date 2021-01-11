@@ -14,7 +14,7 @@ import android.util.Log;
 import android.util.TypedValue;
 import android.view.View;
 import android.webkit.URLUtil;
-import android.webkit.WebChromeClient;
+import android.webkit.WebResourceRequest;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.Button;
@@ -27,17 +27,7 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SearchView;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
 
-import com.google.api.client.googleapis.json.GoogleJsonResponseException;
-import com.google.api.client.http.HttpRequest;
-import com.google.api.client.http.HttpRequestInitializer;
-import com.google.api.client.http.javanet.NetHttpTransport;
-import com.google.api.client.json.jackson2.JacksonFactory;
-import com.google.api.services.youtube.YouTube;
-import com.google.api.services.youtube.model.SearchListResponse;
-import com.google.api.services.youtube.model.SearchResult;
 import com.koushikdutta.urlimageviewhelper.UrlImageViewCallback;
 import com.koushikdutta.urlimageviewhelper.UrlImageViewHelper;
 import com.lumination.leadme.linkpreview.LinkPreviewCallback;
@@ -45,17 +35,14 @@ import com.lumination.leadme.linkpreview.SourceContent;
 import com.lumination.leadme.linkpreview.TextCrawler;
 import com.lumination.leadme.twowaygrid.TwoWayGridView;
 
-import java.io.IOException;
-import java.security.GeneralSecurityException;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 
-public class WebManager extends AppCompatActivity implements RecyclerAdaptor.ItemClickListener {
+public class WebManager extends AppCompatActivity {
 
     //tag for debugging
     static final String TAG = "WebManager";
@@ -67,7 +54,7 @@ public class WebManager extends AppCompatActivity implements RecyclerAdaptor.Ite
     public boolean launchingVR = false;
 
     boolean searchYoutube = true;
-    boolean first =true;
+    boolean search =false;
     ImageView previewImage;
     TextView previewTitle;
     TextView previewMessage;
@@ -75,8 +62,6 @@ public class WebManager extends AppCompatActivity implements RecyclerAdaptor.Ite
     Button previewPushBtn;
     boolean isYouTube = false;
     String pushURL = "";
-    RecyclerAdaptor adaptor;
-    List<SearchResult> results;
 
     private FavouritesManager urlFavouritesManager;
     private FavouritesManager youTubeFavouritesManager;
@@ -111,7 +96,7 @@ public class WebManager extends AppCompatActivity implements RecyclerAdaptor.Ite
 
         setupViews();
         setupPreviewDialog();
-        setupWebLaunchDialog("");
+        setupWebLaunchDialog();
     }
 
 
@@ -337,8 +322,13 @@ public class WebManager extends AppCompatActivity implements RecyclerAdaptor.Ite
         ((Button) previewDialogView.findViewById(R.id.back_btn)).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                hidePreviewDialog();
-                showWebLaunchDialog(adding_to_fav);
+                if(search){
+                    hidePreviewDialog();
+                    buildAndShowSearchDialog();
+                }else {
+                    hidePreviewDialog();
+                    showWebLaunchDialog(adding_to_fav);
+                }
             }
         });
     }
@@ -464,6 +454,7 @@ public class WebManager extends AppCompatActivity implements RecyclerAdaptor.Ite
         }
     }
     private void buildAndShowSearchDialog(){
+        search=true;
         hideWebsiteLaunchDialog();
         //instantiates the search dialog popup if it does not already exist
         if (searchDialog == null) {
@@ -518,6 +509,7 @@ public class WebManager extends AppCompatActivity implements RecyclerAdaptor.Ite
             public void onClick(View v) {
                 searchDialog.hide();
                 websiteLaunchDialog.show();
+                search=false;
             }
             });
         populateSearch();
@@ -579,6 +571,7 @@ public class WebManager extends AppCompatActivity implements RecyclerAdaptor.Ite
     boolean adding_to_fav = false;
 
     void showWebLaunchDialog(boolean add_fav_mode) {
+        search=false;
         if (websiteLaunchDialog == null) {
             websiteLaunchDialog = new AlertDialog.Builder(main)
                     .setView(websiteLaunchDialogView)
@@ -592,7 +585,7 @@ public class WebManager extends AppCompatActivity implements RecyclerAdaptor.Ite
         main.openKeyboard();
     }
 
-    private void setupWebLaunchDialog(final String URL) {
+    private void setupWebLaunchDialog() {
         ((TextView) websiteLaunchDialogView.findViewById(R.id.url_input_field)).setText("https://www.youtube.com/w/SEbqkn1TWTA"); //sample for testing
 
         websiteLaunchDialogView.findViewById(R.id.paste_from_clipboard).setOnClickListener(new View.OnClickListener() {
@@ -626,12 +619,7 @@ public class WebManager extends AppCompatActivity implements RecyclerAdaptor.Ite
         websiteLaunchDialogView.findViewById(R.id.confirm_btn).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String url = new String();
-                if (URL.length() == 0) {
-                    url = ((TextView) websiteLaunchDialogView.findViewById(R.id.url_input_field)).getText().toString();
-                }else{
-                    url=URL;
-                }
+                String url = ((TextView) websiteLaunchDialogView.findViewById(R.id.url_input_field)).getText().toString();
                 if (url.length() == 0) {
                     return;
                 }
@@ -800,11 +788,11 @@ public class WebManager extends AppCompatActivity implements RecyclerAdaptor.Ite
 
     private void populateSearch(){
         //stores the url search results
-        final ArrayList<String> searchList = new ArrayList<>();
         final WebView v = previewSearchView.findViewById(R.id.webview_preview);
         v.getSettings().setJavaScriptEnabled(true); // enable javascript
         v.canGoBack();
-        SearchView searchView = previewSearchView.findViewById(R.id.url_search_bar);
+        v.setVisibility(View.GONE);
+        final SearchView searchView = previewSearchView.findViewById(R.id.url_search_bar);
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
@@ -813,30 +801,87 @@ public class WebManager extends AppCompatActivity implements RecyclerAdaptor.Ite
 
             @Override
             public boolean onQueryTextChange(String newText) {
+                if(newText.length()>0) {
+                    v.setVisibility(View.VISIBLE);
+                }else{
+                    v.setVisibility(View.GONE);
+                }
+
+                //filters the search results
                 if(searchYoutube) {
                     v.loadUrl("https://www.google.com/search?q=" + newText + "&tbm=vid&as_sitesearch=youtube.com");
-                    //v.loadUrl("https://www.youtube.com/results?search_query="+newText);
+                    /*
+                    swap the above line with the one below to index youtube's site directly
+                    v.loadUrl("https://www.youtube.com/results?search_query="+newText);
+                     */
                 }else{
                     v.loadUrl("https://www.google.com/search?q=" + newText);
                 }
 
 
 
-                v.setWebChromeClient(new WebChromeClient(){
-                    @Override
-                    public void onReceivedTitle(WebView view, String title) {
-                        setupWebLaunchDialog(view.getUrl());
-                       // getWindow().setTitle(title); //Set Activity tile to page title.
-                    }
-                });
                 v.setWebViewClient(new WebViewClient() {
+                    /*
+                    Exists for the sole purpose of handling google's top stories news sites
+                    handles all resources as they load including fonts etc
+                     */
+                    public void onLoadResource (WebView view,
+                                                String url){
+                        Log.d(TAG, "onLoadResource: "+url);
+                        if(url.startsWith("https://www.google.com/gen_204") && url.contains("&url=")){ //avoid the preloaded link powered by amp
+                           //find the real url hidden in the url
+                            String[] parts = url.split("&");
+                            for(int i=0; i<parts.length; i++){
+                                if(parts[i].startsWith("url=")){
+                                    url=parts[i].substring(4);
+                                }
+                            }
+                            Log.d(TAG, "onLoadResource valid: "+url);
+
+                            //wipe the search clean ready for next use
+                            if(searchYoutube) {
+                                v.loadUrl("https://www.google.com/search?q=&tbm=vid&as_sitesearch=youtube.com");
+                                //v.loadUrl("https://www.youtube.com/results?search_query="+newText);
+                            }else{
+                                v.loadUrl("https://www.google.com/search?q=");
+                            }
+                            searchView.setQuery("",false);
+
+                            searchDialog.hide();
+                            showPreview(url);
+                        }
+                    }
+
+                    //
                     public void onPageFinished(WebView view, String url) {
-                        v.scrollTo(0,400);
+                        //scrolls the page down to cut off the google rubbish at top
+                        if(url.startsWith("https://www.google.com")) {
+                            v.scrollTo(0, 400);
+                        }
+
+                        Log.d(TAG, "onPageFinished: "+url);
                     }
                     @Override
-                    public boolean shouldOverrideUrlLoading(WebView view, String url) {
+                    /*
+                    Catches the page click event and redirects it to open up our popup instead of loading the link in the browser
+                     */
+                    public boolean shouldOverrideUrlLoading(WebView view,  WebResourceRequest request) {
                         //view.loadUrl(url);
-                        setupWebLaunchDialog(url);
+                        Log.d(TAG, "shouldOverrideUrlLoading: "+request.getUrl().toString());
+                        String URL = request.getUrl().toString();
+                        if(!URL.startsWith("https://www.google.com")){
+                            if(searchYoutube) {
+                                v.loadUrl("https://www.google.com/search?q=&tbm=vid&as_sitesearch=youtube.com");
+                                //v.loadUrl("https://www.youtube.com/results?search_query="+newText);
+                            }else{
+                                v.loadUrl("https://www.google.com/search?q=");
+                            }
+                            searchView.setQuery("",false);
+                            searchDialog.hide();
+                            showPreview(URL);
+                            return true;
+                        }
+
                         return false;
                     }
                 });
@@ -847,120 +892,5 @@ public class WebManager extends AppCompatActivity implements RecyclerAdaptor.Ite
 
     }
 
-    private void YoutubeSearch(final String newText) throws GeneralSecurityException, IOException {
-        //populates array list with the youtube urls ready for generating previews;
-
-        final Context context=this;
-        final Context mainC= this.main;
-        Thread t = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                results = getYoutubeAPIResults(newText);
-//                Log.d(TAG, "run: "+ results.toString());
-                runOnUiThread(new Runnable() {
-
-                    @Override
-                    public void run() {
-                        if(results!=null) {
-                            Iterator<SearchResult> ytSearchIterator = results.iterator();
-                            RecyclerView recyclerView = previewSearchView.findViewById(R.id.url_preview_recycler);
-                            recyclerView.setLayoutManager(new LinearLayoutManager(mainC));
-                            adaptor = new RecyclerAdaptor(mainC, ytSearchIterator);
-                            adaptor.setClickListener((RecyclerAdaptor.ItemClickListener) context);
-                            recyclerView.setAdapter(adaptor);
-                        }
-
-                    }
-                });
-
-
-
-
-            }
-        });
-        t.start();
-
-    }
-
-    @Override
-    public void onItemClick(View view, int position) {
-        Toast.makeText(this.main, "You clicked " + adaptor.getItem(position) + " on row number " + position, Toast.LENGTH_SHORT).show();
-    }
-    @Override
-    public void onPointerCaptureChanged(boolean hasCapture) {
-
-    }
-
-        /**
-         * Define a global variable that identifies the name of a file that
-         * contains the developer's API key.
-         */
-        private static final String PROPERTIES_FILENAME = "youtube.properties";
-
-        private static final long NUMBER_OF_VIDEOS_RETURNED = 25;
-
-        /**
-         * Define a global instance of a Youtube object, which will be used
-         * to make YouTube Data API requests.
-         */
-        private static YouTube youtube;
-
-        /**
-         * Initialize a YouTube object to search for videos on YouTube. Then
-         * display the name and thumbnail image of each video in the result set.
-         *
-         */
-        public static List<SearchResult> getYoutubeAPIResults(String searchQuery) {
-            // Read the developer key from the properties file.
-            List<SearchResult> searchResultList = null;
-            YouTube.Search.List search;
-            try {
-                // This object is used to make YouTube Data API requests. The last
-                // argument is required, but since we don't need anything
-                // initialized when the HttpRequest is initialized, we override
-                // the interface and provide a no-op function.
-                youtube = new YouTube.Builder(new NetHttpTransport(), new JacksonFactory(), new HttpRequestInitializer() {
-                    public void initialize(HttpRequest request) {
-                    }
-                }).setApplicationName("LeadMe").build();
-
-
-                // Define the API request for retrieving search results.
-                search = youtube.search().list("id,snippet");
-
-                // Set your developer key from the {{ Google Cloud Console }} for
-                // non-authenticated requests. See:
-                // {{ https://cloud.google.com/console }}
-                // String apiKey = properties.getProperty("youtube.apikey");
-                String apiKey = "AIzaSyB5dbyScP1Ful_bs___SoHWpKVS6phQXpE";
-                search.setKey(apiKey);
-                search.setQ(searchQuery);
-
-                // Restrict the search results to only include videos. See:
-                // https://developers.google.com/youtube/v3/docs/search/list#type
-                search.setType("video");
-
-                // To increase efficiency, only retrieve the fields that the
-                // application uses.
-                search.setFields("items(id/kind,id/videoId,snippet/title,snippet/thumbnails/default/url)");
-                search.setMaxResults(NUMBER_OF_VIDEOS_RETURNED);
-
-                // Call the API and print results.
-                SearchListResponse searchResponse = search.execute();
-                searchResultList = searchResponse.getItems();
-                if (searchResultList != null) {
-                    Log.d(TAG, "YoutubeApiSetup: Hey, this thing actually worked for once");
-
-                }
-            } catch (GoogleJsonResponseException e) {
-                System.err.println("There was a service error: " + e.getDetails().getCode() + " : "
-                        + e.getDetails().getMessage());
-            } catch (IOException e) {
-                System.err.println("There was an IO error: " + e.getCause() + " : " + e.getMessage());
-            } catch (Throwable t) {
-                t.printStackTrace();
-            }
-            return searchResultList;
-        }
 
 }
