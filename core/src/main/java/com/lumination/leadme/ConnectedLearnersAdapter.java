@@ -23,8 +23,8 @@ public class ConnectedLearnersAdapter extends BaseAdapter {
     private final boolean reorderByStatus = true;
 
     public ArrayList<ConnectedPeer> mData = new ArrayList<>();
-    private final LayoutInflater mInflater;
-    private final LeadMeMain main;
+    private LayoutInflater mInflater;
+    private LeadMeMain main;
     private View studentDisconnectedView;
 
     ConnectedLearnersAdapter(LeadMeMain main, List<ConnectedPeer> data) {
@@ -41,7 +41,7 @@ public class ConnectedLearnersAdapter extends BaseAdapter {
     public void alertStudentDisconnect(String id) {
         ConnectedPeer peer = getMatchingPeer(id);
         if (peer != null) {
-            peer.setStatus(ConnectedPeer.STATUS_ERROR_DISCONNECT);
+            peer.setStatus(ConnectedPeer.STATUS_ERROR);
             moveToFrontOfList(peer);
             refresh();
         }
@@ -108,29 +108,39 @@ public class ConnectedLearnersAdapter extends BaseAdapter {
         }
     }
 
+    private String warningMessage = "";
+
+    public void updateStatus(String name, int status, String msg) {
+        warningMessage = msg;
+        updateStatus(name, status);
+    }
+
     public void updateStatus(String name, int status) {
-        //Log.d(TAG, "Updating status for " + name);
         ConnectedPeer thisPeer = getMatchingPeer(name);
-        if (thisPeer != null) {
-            thisPeer.setStatus(status);
-            if (status == ConnectedPeer.STATUS_OFF_TASK_ALERT || status == ConnectedPeer.STATUS_ERROR_DISCONNECT || status == ConnectedPeer.STATUS_INSTALLING) {
-                moveToFrontOfList(thisPeer);
-            }
-            refresh();
+        if (thisPeer == null) {
+            Log.e(TAG, "Couldn't find matching peer! " + name + ", " + status);
+            return;
         }
 
+        Log.d(TAG, "Updating status for " + name + " to " + status + " (" + thisPeer + ")");
+        thisPeer.setStatus(status);
+        if (status == ConnectedPeer.STATUS_WARNING || status == ConnectedPeer.STATUS_ERROR || status == ConnectedPeer.STATUS_INSTALLING) {
+            moveToFrontOfList(thisPeer);
+        }
+        refresh();
+
         //certain states should alert the guide - e.g. failure to load or attempt to install
-        if (status == ConnectedPeer.STATUS_INSTALLING || status == ConnectedPeer.STATUS_ERROR_DISCONNECT || status == ConnectedPeer.STATUS_OFF_TASK_ALERT) {
-            String msg = thisPeer.getDisplayName() + " is ";
+        if (status == ConnectedPeer.STATUS_INSTALLING || status == ConnectedPeer.STATUS_ERROR || status == ConnectedPeer.STATUS_WARNING) {
+            String msg = thisPeer.getDisplayName();
             switch (status) {
                 case ConnectedPeer.STATUS_INSTALLING:
-                    msg += " installing requested app.";
+                    msg += " is installing requested app.";
                     break;
-                case ConnectedPeer.STATUS_ERROR_DISCONNECT:
-                    msg += " disconnected.";
+                case ConnectedPeer.STATUS_ERROR:
+                    msg += " is disconnected.";
                     break;
-                case ConnectedPeer.STATUS_OFF_TASK_ALERT:
-                    msg += " in the wrong app.";
+                case ConnectedPeer.STATUS_WARNING:
+                    msg += " " + warningMessage;
                     break;
             }
 
@@ -173,7 +183,7 @@ public class ConnectedLearnersAdapter extends BaseAdapter {
     public View getView(int position, View convertView, ViewGroup parent) {
 
         //if (convertView == null) {
-            convertView = mInflater.inflate(R.layout.row_follower, parent, false);
+        convertView = mInflater.inflate(R.layout.row_follower, parent, false);
         //}
 
         TextView studentName = convertView.findViewById(R.id.student_name);
@@ -196,7 +206,7 @@ public class ConnectedLearnersAdapter extends BaseAdapter {
                 icon = main.leadmeIcon;
             } else if (icon.equals(main.getAppManager().app_placeholder)) {
                 //something went wrong!
-                peer.setStatus(ConnectedPeer.STATUS_OFF_TASK_ALERT);
+                peer.setStatus(ConnectedPeer.STATUS_WARNING);
                 moveToFrontOfList(peer);
             }
 
@@ -207,7 +217,7 @@ public class ConnectedLearnersAdapter extends BaseAdapter {
             convertView.setOnClickListener(v -> {
                 Log.d(TAG, "Clicked on " + peer.getID() + ", " + peer.getMyEndpoint() + ", " + peer.getDisplayName());
                 lastClickedID = peer.getID();
-                if (peer.getStatus() == ConnectedPeer.STATUS_ERROR_DISCONNECT) {
+                if (peer.getStatus() == ConnectedPeer.STATUS_ERROR) {
                     //
                     if (studentDisconnectedView == null) {
                         studentDisconnectedView = View.inflate(main, R.layout.e__disconnected_student_popup, null);
@@ -249,26 +259,18 @@ public class ConnectedLearnersAdapter extends BaseAdapter {
     }
 
     public void drawAlertIcon(ConnectedPeer peer, ImageView statusIcon) {
-        //Log.w(TAG, "Updating alert icon for " + peer.getDisplayName() + ", to " + peer.getStatus());
+        Log.w(TAG, "Updating alert icon for " + peer.getDisplayName() + ", to " + ConnectedPeer.statusToString(peer.getStatus()));
         if (statusIcon == null) {
             //Log.e(TAG, "Status icon ImageView is null");
             return;
         }
 
         switch (peer.getStatus()) {
-            case ConnectedPeer.STATUS_LOCK:
-                statusIcon.setImageDrawable(main.getResources().getDrawable(R.drawable.alert_locked_learner, null));
-                break;
-
-            case ConnectedPeer.STATUS_BLACKOUT:
-                statusIcon.setImageDrawable(main.getResources().getDrawable(R.drawable.alert_blackout_learner, null));
-                break;
-
-            case ConnectedPeer.STATUS_ERROR_DISCONNECT:
+            case ConnectedPeer.STATUS_ERROR:
                 statusIcon.setImageDrawable(main.getResources().getDrawable(R.drawable.alert_major_error, null));
                 break;
 
-            case ConnectedPeer.STATUS_OFF_TASK_ALERT:
+            case ConnectedPeer.STATUS_WARNING:
                 statusIcon.setImageDrawable(main.getResources().getDrawable(R.drawable.alert_offtask_learner, null));
                 break;
 
@@ -276,20 +278,10 @@ public class ConnectedLearnersAdapter extends BaseAdapter {
                 statusIcon.setImageDrawable(main.getResources().getDrawable(R.drawable.alert_installing, null));
                 break;
 
-            case ConnectedPeer.STATUS_SUCCESS:
-                statusIcon.setImageDrawable(null);
+            default:
                 setLockStatus(peer, statusIcon);
                 break;
-
-            case ConnectedPeer.STATUS_UNLOCK:
-                //if previous icon was NOT error or install, remove the icon
-                //i.e. if it was related to lock status
-                if (!(peer.getPreviousStatus() == ConnectedPeer.STATUS_ERROR_DISCONNECT || peer.getPreviousStatus() == ConnectedPeer.STATUS_INSTALLING)) {
-                    statusIcon.setImageDrawable(null);
-                }
-                break;
         }
-
     }
 
     private void setLockStatus(ConnectedPeer peer, ImageView statusIcon) {
@@ -298,6 +290,8 @@ public class ConnectedLearnersAdapter extends BaseAdapter {
             statusIcon.setImageDrawable(main.getResources().getDrawable(R.drawable.alert_blackout_learner, null));
         } else if (peer.isLocked()) {
             statusIcon.setImageDrawable(main.getResources().getDrawable(R.drawable.alert_locked_learner, null));
+        } else {
+            statusIcon.setImageDrawable(null);
         }
     }
 

@@ -19,11 +19,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class AppManager extends BaseAdapter {
-    private final LeadMeMain main;
-    private final PackageManager pm;
+    private LeadMeMain main;
+    private PackageManager pm;
     private List<ApplicationInfo> appList;
     private final LayoutInflater inflater;
     private String defaultBrowserUrl = "";
+    protected Drawable app_placeholder;
 
     private final String TAG = "AppLauncher";
 
@@ -35,8 +36,6 @@ public class AppManager extends BaseAdapter {
         pm = main.getPackageManager();
         appList = listApps();
     }
-
-    protected Drawable app_placeholder;
 
     public Drawable getAppIcon(String packageName) {
         try {
@@ -114,21 +113,26 @@ public class AppManager extends BaseAdapter {
      * used by LEARNER to launch an app as requested by LEADER
      **/
     public void launchLocalApp(String packageName, String appName, boolean updateCurrentTask) {
+        //check overlay status and alert leader if there's an issue
+        main.verifyOverlay();
+
         //launch it locally
+        String actualAppPackage = packageName;
         Intent intent = main.getPackageManager().getLaunchIntentForPackage(packageName);
         if (intent == null) {
 
             if (packageName.toLowerCase().contains("browser")) {
                 //find default browser instead
                 intent = main.getWebManager().getBrowserIntent(defaultBrowserUrl);
-                Log.d(TAG, "Attempting to launch default browser instead: " + intent);
+                actualAppPackage = intent.getPackage();
+                Log.d(TAG, "Attempting to launch default browser instead: " + packageName + " // " + actualAppPackage + " // " + defaultBrowserUrl);
 
                 //prepare to install, which includes temporarily turning off
                 //overlay to allow capture of accessibility events
             } else if (main.autoInstallApps) {
                 autoInstall(packageName, appName);
             } else {
-                main.getRemoteDispatchService().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.AUTO_INSTALL_FAILED + appName + ":" + main.getNearbyManager().getID(), main.getNearbyManager().getSelectedPeerIDs());
+                main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.AUTO_INSTALL_FAILED + appName + ":" + main.getNearbyManager().getID(), main.getNearbyManager().getSelectedPeerIDs());
                 Toast toast = Toast.makeText(main, "Sorry, the app '" + appName + "' doesn't exist on this device!", Toast.LENGTH_SHORT);
                 toast.show();
                 return;
@@ -138,20 +142,21 @@ public class AppManager extends BaseAdapter {
         main.startActivity(intent);
         lastApp = packageName;
         if (updateCurrentTask) {
-            main.updateFollowerCurrentTask(packageName, appName, "Application", "");
+            main.updateFollowerCurrentTask(actualAppPackage, appName, "Application", "");
         }
-        main.getRemoteDispatchService().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.LAUNCH_SUCCESS + appName + ":" + main.getNearbyManager().getID() + ":" + packageName, main.getNearbyManager().getAllPeerIDs());
+        main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.LAUNCH_SUCCESS + appName + ":" + main.getNearbyManager().getID() + ":" + actualAppPackage, main.getNearbyManager().getAllPeerIDs());
     }
 
     protected void autoInstall(String packageName, String appName) {
-        main.getRemoteDispatchService().prepareToInstall(packageName, appName);
+        main.getLumiAccessibilityConnector().prepareToInstall(packageName, appName);
 
         //launch Play Store page
         Intent intent = new Intent(Intent.ACTION_VIEW);
         intent.setData(Uri.parse("market://details?id=" + packageName));//,  "application/vnd.android.package-archive");
         main.startActivity(intent);
+        main.getAppManager().lastApp = intent.getPackage();
 
-        main.getRemoteDispatchService().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.AUTO_INSTALL_ATTEMPT + appName + ":" + main.getNearbyManager().getID(), main.getNearbyManager().getSelectedPeerIDs());
+        main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.AUTO_INSTALL_ATTEMPT + appName + ":" + main.getNearbyManager().getID(), main.getNearbyManager().getSelectedPeerIDs());
         Toast toast = Toast.makeText(main, "Attempting to install '" + appName + "', please wait...", Toast.LENGTH_SHORT);
         toast.show();
         return;
@@ -170,10 +175,10 @@ public class AppManager extends BaseAdapter {
 
         if (!main.getConnectedLearnersAdapter().someoneIsSelected()) {
             //if no-one is selected, request to launch it on all peers
-            main.getRemoteDispatchService().requestRemoteAppOpen(LeadMeMain.APP_TAG, packageName, appName, main.getNearbyManager().getAllPeerIDs());
+            main.getDispatcher().requestRemoteAppOpen(LeadMeMain.APP_TAG, packageName, appName, main.getNearbyManager().getAllPeerIDs());
         } else {
             //if someone is selected, request to launch only on selected peers
-            main.getRemoteDispatchService().requestRemoteAppOpen(LeadMeMain.APP_TAG, packageName, appName, main.getNearbyManager().getSelectedPeerIDs());
+            main.getDispatcher().requestRemoteAppOpen(LeadMeMain.APP_TAG, packageName, appName, main.getNearbyManager().getSelectedPeerIDs());
         }
     }
 

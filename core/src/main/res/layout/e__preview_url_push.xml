@@ -29,6 +29,8 @@
             android:layout_height="0dp"
             android:layout_weight="1"
             android:adjustViewBounds="true"
+            android:maxWidth="350dp"
+            android:maxHeight="200dp"
             android:scaleType="centerCrop"
             android:visibility="gone" />
 

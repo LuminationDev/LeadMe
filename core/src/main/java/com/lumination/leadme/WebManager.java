@@ -8,6 +8,7 @@ import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.util.Log;
 import android.view.View;
@@ -34,31 +35,30 @@ import java.util.regex.Pattern;
 public class WebManager {
 
     //tag for debugging
-    static final String TAG = "WebManager";
-    protected TextCrawler textCrawler = new TextCrawler();
+    private static final String TAG = "WebManager";
+    private TextCrawler textCrawler = new TextCrawler();
 
-    AlertDialog websiteLaunchDialog, previewDialog, urlYtFavDialog;
+    private AlertDialog websiteLaunchDialog, previewDialog, urlYtFavDialog;
     private final View websiteLaunchDialogView;
     private final View previewDialogView;
-    View webYouTubeFavView;
+    private View webYouTubeFavView;
     public boolean launchingVR = false;
 
-    ImageView previewImage;
-    TextView previewTitle;
-    TextView previewMessage;
-    ProgressBar previewProgress;
-    Button previewPushBtn;
-    boolean isYouTube = false;
-    String pushURL = "";
+    private ImageView previewImage;
+    private TextView previewTitle;
+    private TextView previewMessage;
+    private ProgressBar previewProgress;
+    private Button previewPushBtn;
+    private boolean isYouTube = false;
+    private String pushURL = "";
 
     private FavouritesManager urlFavouritesManager;
     private FavouritesManager youTubeFavouritesManager;
 
-    private final LeadMeMain main;
+    private LeadMeMain main;
+    private CheckBox favCheckbox;
 
-    CheckBox favCheckbox;
-
-    public WebManager(final LeadMeMain main) {
+    public WebManager(LeadMeMain main) {
         this.main = main;
         websiteLaunchDialogView = View.inflate(main, R.layout.d__enter_url, null);
         previewDialogView = View.inflate(main, R.layout.e__preview_url_push, null);
@@ -67,7 +67,6 @@ public class WebManager {
         webYouTubeFavView = View.inflate(main, R.layout.d__url_yt_favourites, null);
         favCheckbox = previewDialogView.findViewById(R.id.fav_checkbox);
         setupWarningDialog();
-        Log.d(TAG, "Got: " + favCheckbox);
 
         ((TwoWayGridView) webYouTubeFavView.findViewById(R.id.yt_favourites)).setAdapter(getYouTubeFavouritesManager());
         ((TwoWayGridView) webYouTubeFavView.findViewById(R.id.url_favourites)).setAdapter(getUrlFavouritesManager());
@@ -82,7 +81,6 @@ public class WebManager {
         setupPreviewDialog();
         setupWebLaunchDialog();
     }
-
 
     private boolean error = false;
     // Create the callbacks to handle pre and post execution of the preview
@@ -116,14 +114,28 @@ public class WebManager {
 
             try {
                 UrlImageViewHelper.setUrlDrawable(previewImage, icon, (imageView, loadedBitmap, url, loadedFromCache) -> {
+
+                    if (isYouTube) {
+                        youTubeFavouritesManager.updateTitle(url, previewTitle.getText().toString());
+                    } else {
+                        urlFavouritesManager.updateTitle(url, previewTitle.getText().toString());
+                    }
+
                     if (loadedBitmap != null) {
                         previewImage.setVisibility(View.VISIBLE); //show image
+                        if (isYouTube) {
+                            youTubeFavouritesManager.updatePreview(url, previewImage.getDrawable());
+                        } else {
+                            urlFavouritesManager.updatePreview(url, previewImage.getDrawable());
+                        }
                     } else {
                         previewMessage.setVisibility(View.VISIBLE); //show error
                     }
                     previewProgress.setVisibility(View.GONE);
                 });
 
+                getUrlFavouritesManager().notifyDataSetChanged();
+                getYouTubeFavouritesManager().notifyDataSetChanged();
 
             } catch (Exception e) {
                 Log.e(TAG, "Error launching URL: " + e.getMessage());
@@ -170,7 +182,6 @@ public class WebManager {
         });
 
         webYouTubeFavView.findViewById(R.id.yt_del_btn).setOnClickListener(v -> showClearWebFavDialog(CLEAR_VID));
-
         webYouTubeFavView.findViewById(R.id.url_del_btn).setOnClickListener(v -> showClearWebFavDialog(CLEAR_URL));
 
     }
@@ -179,9 +190,9 @@ public class WebManager {
     final private static int CLEAR_ALL = 0;
     final private static int CLEAR_VID = 1;
     final private static int CLEAR_URL = 2;
-    private int whatToClear = -1; //TODO actually use this!
-    TextView warningTextView; //need to be able to change text
-    AlertDialog warningDialog;
+    private int whatToClear = -1;
+    private TextView warningTextView;
+    private AlertDialog warningDialog;
 
     private void setupWarningDialog() {
         View warningDialogView = View.inflate(main, R.layout.e__fav_clear_confirmation_popup, null);
@@ -278,6 +289,26 @@ public class WebManager {
         });
     }
 
+    protected View getWebYouTubeFavView() {
+        return webYouTubeFavView;
+    }
+
+    protected ImageView getPreviewImageView() {
+        return previewImage;
+    }
+
+    protected Drawable getPreviewImage() {
+        return previewImage.getDrawable();
+    }
+
+    protected String getPreviewTitle() {
+        return previewTitle.getText().toString().trim();
+    }
+
+    protected String getPushURL() {
+        return pushURL;
+    }
+
     public void pushYouTubeOrWeb(String url) {
         Set<String> selectedPeers;
         if (main.getConnectedLearnersAdapter().someoneIsSelected()) {
@@ -288,9 +319,9 @@ public class WebManager {
 
         //push the right instruction to the receivers
         if (isYouTube) {
-            main.getRemoteDispatchService().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.LAUNCH_YT + url, selectedPeers);
+            main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.LAUNCH_YT + url, selectedPeers);
         } else {
-            main.getRemoteDispatchService().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.LAUNCH_URL + url, selectedPeers);
+            main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.LAUNCH_URL + url, selectedPeers);
         }
     }
 
@@ -310,7 +341,7 @@ public class WebManager {
         if (url == null || url.length() < 3 || !url.contains(".")) {
             Toast toast = Toast.makeText(main, "Invalid URL", Toast.LENGTH_SHORT);
             toast.show();
-            main.getRemoteDispatchService().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.AUTO_INSTALL_FAILED + "Invalid URL:" + main.getNearbyManager().getID(), main.getNearbyManager().getSelectedPeerIDs());
+            main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.AUTO_INSTALL_FAILED + "Invalid URL:" + main.getNearbyManager().getID(), main.getNearbyManager().getSelectedPeerIDs());
         }
 
         if (!url.startsWith("http://") && !url.startsWith("https://")) {
@@ -332,7 +363,7 @@ public class WebManager {
                 Log.w(TAG, "Selecting browser:  " + ai + " for " + uri.getHost());
 
                 scheduleActivityLaunch(intent, updateCurrentTask, ai.packageName, ai.name, "Website", url);
-                main.getRemoteDispatchService().sendActionToSelected(LeadMeMain.ACTION_TAG,
+                main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG,
                         LeadMeMain.LAUNCH_SUCCESS + uri.getHost() + ":" + main.getNearbyManager().getID() + ":" + ai.packageName, main.getNearbyManager().getAllPeerIDs());
                 //success!
             }
@@ -342,15 +373,15 @@ public class WebManager {
         Intent browserIntent = getBrowserIntent(url);
 
         if (browserIntent != null) {
-            scheduleActivityLaunch(browserIntent, updateCurrentTask, browserIntent.getStringExtra("packageName"), browserIntent.getStringExtra("label"), "Website", url);
-            main.getRemoteDispatchService().sendActionToSelected(LeadMeMain.ACTION_TAG,
+            scheduleActivityLaunch(browserIntent, updateCurrentTask, browserIntent.getStringExtra("packageName"), "Default Browser", "Website", url);
+            main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG,
                     LeadMeMain.LAUNCH_SUCCESS + uri.getHost() + ":" + main.getNearbyManager().getID() + ":" + browserIntent.getStringExtra("packageName"), main.getNearbyManager().getAllPeerIDs());
             //success!
 
         } else {
             Toast toast = Toast.makeText(main, "No browser available", Toast.LENGTH_SHORT);
             toast.show();
-            main.getRemoteDispatchService().sendActionToSelected(LeadMeMain.ACTION_TAG,
+            main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG,
                     LeadMeMain.AUTO_INSTALL_FAILED + "No browser:" + main.getNearbyManager().getID(), main.getNearbyManager().getSelectedPeerIDs());
             //no browser, failure
         }
@@ -533,8 +564,32 @@ public class WebManager {
         previewImage.setVisibility(View.GONE);
         previewTitle.setVisibility(View.GONE);
 
-        //generate preview
-        textCrawler.makePreview(linkPreviewCallback, url);
+        Drawable preview = null;
+        String title = null;
+        if (isYouTube) {
+            title = youTubeFavouritesManager.getTitle(url);
+            preview = youTubeFavouritesManager.getPreview(url);
+        } else {
+            title = urlFavouritesManager.getTitle(url);
+            preview = urlFavouritesManager.getPreview(url);
+        }
+
+        if (preview == null || title == null) {
+            //generate correct information
+            textCrawler.makePreview(linkPreviewCallback, url);
+        }
+
+        if (title != null) {
+            previewTitle.setText(title);
+            previewTitle.setVisibility(View.VISIBLE);
+        }
+
+        if (preview != null) {
+            //use stored preview
+            previewImage.setImageDrawable(preview);
+            previewImage.setVisibility(View.VISIBLE); //show image
+            previewProgress.setVisibility(View.GONE);
+        }
 
         String youTubeId = getYouTubeID(url);
 
@@ -618,7 +673,7 @@ public class WebManager {
             scheduleActivityLaunch(appIntent, updateTask, youTubePackageName, "YouTube", "VR Video", cleanYouTubeURL(url));
 
             //alert other peers as needed
-            main.getRemoteDispatchService().sendActionToSelected(LeadMeMain.ACTION_TAG,
+            main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG,
                     LeadMeMain.LAUNCH_SUCCESS + "YT id=" + getYouTubeID(url) + ":" + main.getNearbyManager().getID() + ":" + youTubePackageName, main.getNearbyManager().getAllPeerIDs());
 
 
@@ -628,10 +683,14 @@ public class WebManager {
     }
 
     private void scheduleActivityLaunch(Intent appIntent) {
-        if (!main.hasWindowFocus()) {
+        if (!main.appHasFocus) {
+            Log.w(TAG, "Need focus, scheduling for later " + appIntent + ", " + main + ", " + main.getLifecycle().getCurrentState());
             main.appIntentOnFocus = appIntent;
-            main.getRemoteDispatchService().bringMainToFront();
+            main.getLumiAccessibilityConnector().bringMainToFront();
         } else {
+            main.verifyOverlay();
+            Log.w(TAG, "Has focus! Run it now. " + appIntent + ", " + main + ", " + main.getLifecycle().getCurrentState());
+            main.getAppManager().lastApp = appIntent.getPackage();
             main.startActivity(appIntent);
         }
     }
@@ -642,6 +701,25 @@ public class WebManager {
         if (updateTask) {
             main.updateFollowerCurrentTask(packageName, appName, taskType, url);
         }
+    }
+
+    public void cleanUp() {
+
+        if (textCrawler != null)
+            textCrawler.cancel();
+
+        if (websiteLaunchDialog != null)
+            websiteLaunchDialog.dismiss();
+        if (previewDialog != null)
+            previewDialog.dismiss();
+        if (urlYtFavDialog != null)
+            urlYtFavDialog.dismiss();
+        if (warningDialog != null)
+            warningDialog.dismiss();
+    }
+
+    protected TextCrawler getTextCrawler() {
+        return textCrawler;
     }
 
 

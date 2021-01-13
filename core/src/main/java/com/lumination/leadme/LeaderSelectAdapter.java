@@ -95,9 +95,6 @@ public class LeaderSelectAdapter extends BaseAdapter {
         }
         final TextView textView = convertView.findViewById(R.id.leader_name);
         textView.setText(leader_list.get(position).getDisplayName());
-        Log.d(TAG, "getView: " + textView.getText());
-//            ImageView icon = (ImageView) view.findViewById(R.id.leader_icon);
-//            icon.setImageDrawable(leader_list.get(position).getIcon());
 
         convertView.setOnClickListener(v -> {
             Log.d(TAG, "Clicked view: " + textView.getText());

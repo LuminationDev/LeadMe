@@ -1,22 +1,24 @@
 package com.lumination.leadme;
 
 import android.graphics.drawable.Drawable;
+import android.util.Log;
 
 public class ConnectedPeer {
 
+    private final String TAG = "ConnectedPeer";
+
     public static final int STATUS_SUCCESS = 0;
-    public static final int STATUS_ERROR_DISCONNECT = 1;
-    public static final int STATUS_OFF_TASK_ALERT = 6;
+    public static final int STATUS_ERROR = 1;
     public static final int STATUS_INSTALLING = 2;
     public static final int STATUS_BLACKOUT = 3;
     public static final int STATUS_LOCK = 4;
     public static final int STATUS_UNLOCK = 5;
+    public static final int STATUS_WARNING = 6;
 
     private String buddyName;
     private String id;
     private boolean selected = false;
     private Drawable icon = null;
-    private final Drawable statusIcon = null;
 
     private int status = ConnectedPeer.STATUS_SUCCESS;
     private int previousStatus = -1;
@@ -45,18 +47,28 @@ public class ConnectedPeer {
     }
 
     public void setStatus(int newStatus) {
-        previousStatus = status;
-        status = newStatus;
+        Log.d(TAG, "Setting status to " + newStatus + " in ConnectedPeer " + id);
+        /*if(newStatus == STATUS_SUCCESS){
+            //changes nothing!
 
-        if (status == STATUS_BLACKOUT) {
+        } else */
+        if (newStatus == STATUS_BLACKOUT) {
             blackedOut = true;
             locked = false;
-        } else if (status == STATUS_LOCK) {
+
+        } else if (newStatus == STATUS_LOCK) {
             locked = true;
             blackedOut = false;
-        } else if (status == STATUS_UNLOCK) {
+
+        } else if (newStatus == STATUS_UNLOCK) {
             locked = false;
             blackedOut = false;
+
+        } else {
+            //warning status
+            Log.d(TAG, "Actually updating status! " + newStatus);
+            previousStatus = status;
+            status = newStatus;
         }
     }
 
@@ -76,10 +88,10 @@ public class ConnectedPeer {
             case STATUS_BLACKOUT:
                 return "screen blocked";
 
-            case STATUS_ERROR_DISCONNECT:
+            case STATUS_ERROR:
                 return "disconnected";
 
-            case STATUS_OFF_TASK_ALERT:
+            case STATUS_WARNING:
                 return "off-task";
 
             case STATUS_INSTALLING:

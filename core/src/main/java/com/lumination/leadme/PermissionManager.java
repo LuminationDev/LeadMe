@@ -1,7 +1,9 @@
 package com.lumination.leadme;
 
 import android.Manifest;
+import android.app.ActivityManager;
 import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.provider.Settings;
@@ -19,15 +21,15 @@ public class PermissionManager {
     private String app_title = "Lumination LeadMe";
     private final String TAG = "LumiPermissions";
 
-    private final LeadMeMain main;
+    private LeadMeMain main;
     private boolean overlayPermissionGranted = false, nearbyPermissionsGranted = false;
     protected boolean waitingForPermission = false;
-    private final PermissionListener overlayPermissionListener;
-    private final PermissionListener nearbyPermissionListener;
-    private final PermissionListener miscPermissionListener;
-    private final ArrayList<String> rejectedPermissions = new ArrayList<>();
+    private PermissionListener overlayPermissionListener;
+    private PermissionListener nearbyPermissionListener;
+    private PermissionListener miscPermissionListener;
+    private ArrayList<String> rejectedPermissions = new ArrayList<>();
 
-    public PermissionManager(final LeadMeMain main) {
+    public PermissionManager(LeadMeMain main) {
         super();
         this.main = main;
         app_title = main.getResources().getString(R.string.app_title_with_brand);
@@ -91,12 +93,21 @@ public class PermissionManager {
         overlayPermissionGranted = overlayPermissionGranted || main.checkSelfPermission(Manifest.permission.SYSTEM_ALERT_WINDOW) == PackageManager.PERMISSION_GRANTED;
         Log.d(TAG, "IsOverlayPermissionGranted? " + overlayPermissionGranted);
 
-        if (main.getNearbyManager().isConnectedAsFollower()) {
+        if (!overlayPermissionGranted && main.getNearbyManager().isConnectedAsFollower()) {
             //alert the teacher that the student may not be lockable
-            Log.e(TAG, "WARNING! This student may be off task - overlay can't be shown.");
-            main.getRemoteDispatchService().sendActionToSelected(LeadMeMain.ACTION_TAG,
-                    LeadMeMain.STUDENT_OFF_TASK_ALERT + "Permission Error - Blocking Overlay Can't be Shown:"
-                            + main.getNearbyManager().getID(), main.getNearbyManager().getSelectedPeerIDs());
+            Log.e(TAG, "WARNING! This student may be off task - overlay can't be shown. " + main.getNearbyManager().getID());
+
+            if (main.getNearbyManager().getID() != null) {
+                main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG,
+                        LeadMeMain.STUDENT_OFF_TASK_ALERT +
+                                "Permission Error - Blocking Overlay Can't be Shown:"
+                                + main.getNearbyManager().getID(), main.getNearbyManager().getAllPeerIDs());
+            }
+        } else if (overlayPermissionGranted && main.getNearbyManager().isConnectedAsFollower()) {
+            main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG,
+                    LeadMeMain.STUDENT_OFF_TASK_ALERT +
+                            "OK:"
+                            + main.getNearbyManager().getID(), main.getNearbyManager().getAllPeerIDs());
         }
 
         return overlayPermissionGranted;
@@ -114,14 +125,17 @@ public class PermissionManager {
         waitingForPermission = true;
         String rationaleMsg = "Please go to [Settings] > [Other permissions] and turn 'Display pop-up window' on so LeadMe can function correctly.";
 
-        TedPermission.with(main)
-                .setPermissionListener(overlayPermissionListener)
+        if (!isOverlayPermissionGranted()) {
+            main.closeKeyboard();
+            TedPermission.with(main)
+                    .setPermissionListener(overlayPermissionListener)
 //                .setGotoSettingButton(true)
 //                .setGotoSettingButtonText("Settings")
 //                .setRationaleTitle("Required Permissions")
 //                .setRationaleMessage(rationaleMsg)
-                .setPermissions(Manifest.permission.SYSTEM_ALERT_WINDOW)
-                .check();
+                    .setPermissions(Manifest.permission.SYSTEM_ALERT_WINDOW)
+                    .check();
+        }
 
         if (!isAccessibilityGranted()) {
             requestAccessibilitySettingsOn();
@@ -140,6 +154,7 @@ public class PermissionManager {
                         Manifest.permission.ACCESS_WIFI_STATE, Manifest.permission.CHANGE_WIFI_STATE,
                         Manifest.permission.BLUETOOTH, Manifest.permission.BLUETOOTH_ADMIN,
                         //Manifest.permission.WRITE_EXTERNAL_STORAGE,
+                        Manifest.permission.NFC,
                         Manifest.permission.EXPAND_STATUS_BAR) //only learners/students need a system alert window
                 .check();
     }
@@ -204,8 +219,18 @@ public class PermissionManager {
 
     protected boolean needsRecall = false;
 
+    public boolean isMyServiceRunning(Class<?> serviceClass) {
+        ActivityManager manager = (ActivityManager) main.getSystemService(Context.ACTIVITY_SERVICE);
+        for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
+            if (serviceClass.getName().equals(service.service.getClassName())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public boolean isAccessibilityGranted() {
-        ComponentName expectedComponentName = new ComponentName(main, main.getRemoteDispatchService().getClass());
+        ComponentName expectedComponentName = new ComponentName(main, LumiAccessibilityService.class);
 
         String enabledServicesSetting = Settings.Secure.getString(main.getContentResolver(), Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES);
         if (enabledServicesSetting == null) {
@@ -213,7 +238,7 @@ public class PermissionManager {
         }
 
         String[] services = enabledServicesSetting.split(":");
-        main.getRemoteDispatchService(); //initialise this
+        // main.getLumiAccessibilityService(); //initialise this
 
 
         Log.d(TAG, "Searching for: " + expectedComponentName);
@@ -222,7 +247,7 @@ public class PermissionManager {
             ComponentName enabledService = ComponentName.unflattenFromString(componentNameString);
 
             if (enabledService != null && enabledService.equals(expectedComponentName)) {
-                Log.i(TAG, "***ACCESSIBILITY IS ENABLED***");
+                Log.i(TAG, "***ACCESSIBILITY IS ENABLED, IS IT RUNNING? (" + isMyServiceRunning(LumiAccessibilityService.class) + ") ***");
                 needsRecall = true;
                 waitingForPermission = false;
                 return true;
