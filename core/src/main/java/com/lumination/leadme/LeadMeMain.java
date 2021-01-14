@@ -89,7 +89,9 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     static final String AUTO_INSTALL_FAILED = "LumiAutoInstallFail:";
     static final String AUTO_INSTALL_ATTEMPT = "LumiAutoInstallAttempt:";
     static final String STUDENT_OFF_TASK_ALERT = "LumiOffTask:";
-
+    static final String STUDENT_NO_OVERLAY = "LumiOverlay:";
+    static final String STUDENT_NO_ACCESSIBILITY = "LumiAccess:";
+    static final String STUDENT_NO_INTERNET = "LumiInternet:";
     static final String LAUNCH_SUCCESS = "LumiSuccess:";
 
     public final int OVERLAY_ON = 0;
@@ -149,7 +151,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
     public Context context;
     private ActivityManager activityManager;
-    PermissionManager permissionManager;
+    private PermissionManager permissionManager;
     private NearbyPeersManager nearbyManager;
     private WebManager webManager;
     private AppManager appLaunchAdapter;
@@ -272,6 +274,10 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         return connectedLearnersAdapter;
     }
 
+    public PermissionManager getPermissionsManager() {
+        return permissionManager;
+    }
+
     public NearbyPeersManager getNearbyManager() {
         return nearbyManager;
     }
@@ -347,24 +353,12 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         }
     }
 
-//    boolean appPaused = false;
-//
-//    @Override
-//    public void onPause() {
-//        super.onPause();
-//        appPaused = true;
-//        if (overlayView != null && getNearbyManager().isConnectedAsFollower() && studentLockOn) {
-//            overlayView.setVisibility(View.VISIBLE);
-//        }
-//    }
-
     @Override
     public void onBackPressed() {
         super.onBackPressed();
         getNearbyManager().onBackPressed();
         Log.i(TAG, "On BACK!");
     }
-
 
     /**
      * The device has moved. We need to decide if it was intentional or not.
@@ -827,8 +821,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
         getLifecycle().addObserver(this);
         permissionManager = new PermissionManager(this);
-
-
         nearbyManager = new NearbyPeersManager(this);
         dispatcher = new DispatchManager(this);
         webManager = new WebManager(this);
@@ -919,6 +911,27 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         optionsScreen = View.inflate(context, R.layout.d__options_menu, null);
         appLauncherScreen = View.inflate(context, R.layout.d__app_list, null);
         learnerWaitingText = startLearner.findViewById(R.id.waiting_text);
+
+        //initialise window manager for shared use
+        windowManager = (WindowManager) getSystemService(WINDOW_SERVICE);
+
+        //SET UP OVERLAY
+        LinearLayout parentLayout = findViewById(R.id.c__leader_main);
+        overlayView = LayoutInflater.from(context).inflate(R.layout.transparent_overlay, parentLayout, false);
+        overlayView.findViewById(R.id.blocking_view).setVisibility(View.GONE); //default is this should be hidden
+
+        //prepare layout parameters so overlay fills whole screen
+        calcParams();
+
+        //add overlay to the window manager
+        windowManager.addView(overlayView, overlayParams);
+        windowManager.updateViewLayout(overlayView, overlayParams);
+        overlayView.setVisibility(View.INVISIBLE);
+
+        //TODO IMPLEMENT INSTALL AND UNINSTALL FUNCTIONS
+        //FOR NOW JUST HIDE THEM
+        optionsScreen.findViewById(R.id.settings_title).setVisibility(View.GONE);
+        optionsScreen.findViewById(R.id.auto_install_checkbox).setVisibility(View.GONE);
 
         //add adapters for lists and grids
         //getLumiAccessibilityService();
@@ -1375,6 +1388,8 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         Log.d(TAG, "Your name is " + name + ", are you a guide? " + isGuide);
 
         ((TextView) optionsScreen.findViewById(R.id.student_name)).setText(name);
+        optionsScreen.findViewById(R.id.connected_only_view).setVisibility(View.VISIBLE);
+
         if (isGuide) {
             //display main guide view
             leadmeAnimator.setDisplayedChild(ANIM_LEADER_INDEX);
@@ -1393,8 +1408,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             leadmeAnimator.setDisplayedChild(ANIM_LEARNER_INDEX);
 
             //update options
-            optionsScreen.findViewById(R.id.settings_title).setVisibility(View.GONE);
-            optionsScreen.findViewById(R.id.auto_install_checkbox).setVisibility(View.GONE);
             ((TextView) optionsScreen.findViewById(R.id.logout_btn)).setTextColor(getResources().getColor(R.color.leadme_medium_grey, null));
             TextView title = leadmeAnimator.getCurrentView().findViewById(R.id.learner_title);
             title.setText(name);
@@ -1464,43 +1477,12 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         if (!permissionManager.isOverlayPermissionGranted()) {
             permissionManager.checkOverlayPermissions();
         }
-
-        initialiseBlockingOverlay();
     }
 
 
     @Override
     public void onActionModeStarted(ActionMode mode) {
         super.onActionModeStarted(mode);
-    }
-
-
-    private void initialiseBlockingOverlay() {
-        if (!permissionManager.isOverlayPermissionGranted()) {
-            return; //we don't have permission yet
-        }
-        //overlay is already running
-        if (overlayView != null) {
-            refreshOverlay();
-            return;
-        }
-
-        //initialise window manager for shared use
-        windowManager = (WindowManager) getSystemService(WINDOW_SERVICE);
-
-        //retrieve a reference to the overlay view in the main layout
-        LinearLayout parentLayout = findViewById(R.id.c__leader_main);
-        overlayView = LayoutInflater.from(context).inflate(R.layout.transparent_overlay, parentLayout, false);
-        overlayView.findViewById(R.id.blocking_view).setVisibility(View.GONE); //default is this should be hidden
-
-        //prepare layout parameters so overlay fills whole screen
-        calcParams();
-
-        //add overlay to the window manager
-        windowManager.addView(overlayView, overlayParams);
-        windowManager.updateViewLayout(overlayView, overlayParams);
-
-        overlayView.setVisibility(View.INVISIBLE);
     }
 
     public void refreshOverlay() {
@@ -1562,20 +1544,9 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     }
 
     public boolean verifyOverlay() {
-        if (overlayView == null) {
-            initialiseBlockingOverlay();
-        }
-
         if (overlayView == null && getNearbyManager().isConnectedAsFollower() && getNearbyManager().getID() != null) {
-            //if it's still null, user must have denied permissions
-            //alert leader and return
-//            getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG,
-//                    LeadMeMain.STUDENT_OFF_TASK_ALERT +
-//                            "Permission Error - Blocking Overlay Can't be Shown:"
-//                            + getNearbyManager().getID(), getNearbyManager().getAllPeerIDs());
             Toast.makeText(this, "Overlay is not working. Please turn on correct permissions.", Toast.LENGTH_SHORT).show();
         }
-
         return overlayView != null;
     }
 
@@ -1779,8 +1750,8 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
 
     public void recallToLeadMe() {
-        if (appHasFocus || hasWindowFocus()) {
-            Log.d(TAG, "Already in LeadMe! " + permissionManager.waitingForPermission);
+        if (appHasFocus && hasWindowFocus()) {
+            Log.d(TAG, "Already in LeadMe! " + appHasFocus + ", " + hasWindowFocus());
             return;
         }
 
@@ -1892,6 +1863,11 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         }
 
         Log.d(TAG, "SET UI DISCONNECTED");
+
+        //update options screen
+        optionsScreen.findViewById(R.id.connected_only_view).setVisibility(View.GONE);
+        ((TextView) optionsScreen.findViewById(R.id.logout_btn)).setTextColor(getResources().getColor(R.color.light, null));
+
 
         //display login view
         prepLoginSwitcher();

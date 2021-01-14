@@ -444,7 +444,6 @@ public class NearbyPeersManager {
     }
 
     public String getID() {
-        Log.d(TAG, "My ID is " + myId);
         return myId;
     }
 
@@ -842,9 +841,7 @@ public class NearbyPeersManager {
     }
 
     void sendToSelected(Payload payload, Set<String> endpoints) {
-        Log.d(TAG, "Sending to: " + endpoints.size() + " endpoints.");
-        Log.d(TAG, String.valueOf(endpoints));
-
+        Log.d(TAG, "Sending >> " + payload.toString() + ", " + endpoints.size());
         if (endpoints.size() > 0) {
             mConnectionsClient.sendPayload(new ArrayList<>(endpoints), payload)
                     .addOnFailureListener(e -> Log.w(TAG, "sendPayload() failed.", e));

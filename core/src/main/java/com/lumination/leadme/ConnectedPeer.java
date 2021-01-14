@@ -15,6 +15,11 @@ public class ConnectedPeer {
     public static final int STATUS_UNLOCK = 5;
     public static final int STATUS_WARNING = 6;
 
+    public static final int PRIORITY_TOP = 2;
+    public static final int PRIORITY_HIGH = 1;
+    public static final int PRIORITY_STD = 0;
+    private int priority = 0;
+
     private String buddyName;
     private String id;
     private boolean selected = false;
@@ -24,6 +29,13 @@ public class ConnectedPeer {
     private int previousStatus = -1;
     private boolean locked = true;
     private boolean blackedOut = false;
+
+    //assume the best, update if the worst
+    private boolean onTask = true;
+    private boolean accessEnabled = true;
+    private boolean overlayEnabled = true;
+    private boolean internetEnabled = true;
+    private boolean lastAppLaunchSucceeded = true;
 
     private NearbyPeersManager.Endpoint myEndpoint;
 
@@ -44,6 +56,26 @@ public class ConnectedPeer {
 
     protected NearbyPeersManager.Endpoint getMyEndpoint() {
         return myEndpoint;
+    }
+
+    public void setWarning(String warning, boolean success) {
+        switch (warning) {
+            case LeadMeMain.AUTO_INSTALL:
+                lastAppLaunchSucceeded = success;
+                break;
+            case LeadMeMain.STUDENT_NO_OVERLAY:
+                overlayEnabled = success;
+                break;
+            case LeadMeMain.STUDENT_NO_ACCESSIBILITY:
+                accessEnabled = success;
+                break;
+            case LeadMeMain.STUDENT_NO_INTERNET:
+                internetEnabled = success;
+                break;
+            case LeadMeMain.STUDENT_OFF_TASK_ALERT:
+                onTask = success;
+                break;
+        }
     }
 
     public void setStatus(int newStatus) {
@@ -92,7 +124,7 @@ public class ConnectedPeer {
                 return "disconnected";
 
             case STATUS_WARNING:
-                return "off-task";
+                return "warning";
 
             case STATUS_INSTALLING:
                 return "installing";
@@ -104,7 +136,23 @@ public class ConnectedPeer {
         return "unknown";
     }
 
+    public boolean hasWarning() {
+        return !(onTask && accessEnabled && overlayEnabled && lastAppLaunchSucceeded && internetEnabled);
+    }
+
+    public void setPriority(int priority) {
+        this.priority = priority;
+    }
+
+    public int getPriority() {
+        return priority;
+    }
+
     public int getStatus() {
+        if (status == STATUS_WARNING && !hasWarning()) {
+            //all warnings have been removed, update status
+            status = STATUS_SUCCESS;
+        }
         return status;
     }
 

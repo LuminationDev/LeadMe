@@ -45,11 +45,10 @@ public class LumiAccessibilityConnector {
 
     private static String[] keyYouTubePhrases = {
             "Enter virtual reality mode",
-            "Continue",
-            "Dismiss",
-            "Skip Trial",
-            "No Thanks",
-            "NO THANKS"
+            "Continue", "CONTINUE",
+            "Dismiss", "DISMISS",
+            "Skip Trial", "SKIP TRIAL",
+            "No Thanks", "NO THANKS"
     };
 
     private void manageYouTubeAccess(AccessibilityNodeInfo rootInActiveWindow) {

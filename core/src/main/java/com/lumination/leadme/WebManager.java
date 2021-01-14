@@ -337,6 +337,13 @@ public class WebManager {
     }
 
     public void launchWebsite(String url, boolean updateCurrentTask) {
+        if (!main.getPermissionsManager().isInternetConnectionAvailable(url)) {
+            Log.w(TAG, "No internet connection in LaunchWebsite");
+            Toast.makeText(main, "Can't launch URL, no Internet connection.", Toast.LENGTH_SHORT).show();
+            main.getDispatcher().alertGuidePermissionGranted(LeadMeMain.STUDENT_NO_INTERNET, false);
+            return;
+        }
+
         //check it's a minimally sensible url
         if (url == null || url.length() < 3 || !url.contains(".")) {
             Toast toast = Toast.makeText(main, "Invalid URL", Toast.LENGTH_SHORT);
@@ -644,6 +651,14 @@ public class WebManager {
     }
 
     public void launchYouTube(String url, boolean updateTask) {
+
+        if (!main.getPermissionsManager().isInternetConnectionAvailable(url)) {
+            Log.w(TAG, "No internet connection in LaunchYouTube");
+            Toast.makeText(main, "Can't launch URL, no Internet connection.", Toast.LENGTH_SHORT).show();
+            main.getDispatcher().alertGuidePermissionGranted(LeadMeMain.STUDENT_NO_INTERNET, false);
+            return;
+        }
+
         launchingVR = true; //activate button pressing
         final String youTubePackageName = "com.google.android.youtube"; //TODO don't hardcode the package name
         //String cleanURL = cleanYouTubeURL(url);
@@ -655,17 +670,23 @@ public class WebManager {
         appIntent.setPackage(youTubePackageName);
         //startActivity(appIntent);
 
+        boolean youTubeExists = true;
         //test if the YouTube app exists
         ActivityInfo ai = appIntent.resolveActivityInfo(main.getPackageManager(), 0);
         if (ai == null) {
             //the YouTube app doesn't exist
             Log.d(TAG, "YOUTUBE APP DOESN'T EXIST?! " + youTubePackageName);
+            youTubeExists = false;
             //if installing, try that first.
             if (main.autoInstallApps) {
                 main.getAppManager().autoInstall(youTubePackageName, "YouTube");
-            } else {
-                launchWebsite(url, true); //fall back
             }
+        }
+
+        //YouTube app doesn't exist on this device
+        if (!youTubeExists) {
+            launchWebsite(url, true); //fall back
+            return;
         }
 
         try {

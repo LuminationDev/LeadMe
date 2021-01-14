@@ -108,13 +108,60 @@ public class ConnectedLearnersAdapter extends BaseAdapter {
         }
     }
 
+    //helper to manage updating a warning status
     private String warningMessage = "";
 
     public void updateStatus(String name, int status, String msg) {
-        warningMessage = msg;
-        updateStatus(name, status);
+        ConnectedPeer thisPeer = getMatchingPeer(name);
+        if (status == ConnectedPeer.STATUS_WARNING) {
+            if (thisPeer != null)
+                thisPeer.setWarning(msg, false);
+            switch (msg) {
+                case LeadMeMain.AUTO_INSTALL:
+                    warningMessage = "could not install requested app.";
+                    break;
+                case LeadMeMain.STUDENT_NO_OVERLAY:
+                    warningMessage = "could not display blocking overlay";
+                    break;
+                case LeadMeMain.STUDENT_NO_INTERNET:
+                    warningMessage = "is not connected to the Internet";
+                    break;
+                case LeadMeMain.STUDENT_NO_ACCESSIBILITY:
+                    warningMessage = "is not restricted to LeadMe";
+                    break;
+                case LeadMeMain.STUDENT_OFF_TASK_ALERT:
+                    warningMessage = "could be off task";
+                    break;
+            }
+
+        } else if (status == ConnectedPeer.STATUS_SUCCESS && thisPeer != null) {
+            thisPeer.setWarning(msg, true);
+            warningMessage = msg;
+
+//            switch (msg) {
+//                case LeadMeMain.AUTO_INSTALL:
+//                    warningMessage = "successfully installed requested app.";
+//                    break;
+//                case LeadMeMain.STUDENT_NO_OVERLAY:
+//                    warningMessage = "enabled blocking overlay";
+//                    break;
+//                case LeadMeMain.STUDENT_NO_INTERNET:
+//                    warningMessage = "successfully connected to the Internet";
+//                    break;
+//                case LeadMeMain.STUDENT_NO_ACCESSIBILITY:
+//                    warningMessage = "successfully enabled LeadMe accessibility";
+//                    break;
+//                case LeadMeMain.STUDENT_OFF_TASK_ALERT:
+//                    warningMessage = "now on task";
+//                    break;
+//            }
+        } else {
+            warningMessage = msg;
+            updateStatus(name, status);
+        }
     }
 
+    //standard status update
     public void updateStatus(String name, int status) {
         ConnectedPeer thisPeer = getMatchingPeer(name);
         if (thisPeer == null) {
@@ -122,7 +169,7 @@ public class ConnectedLearnersAdapter extends BaseAdapter {
             return;
         }
 
-        Log.d(TAG, "Updating status for " + name + " to " + status + " (" + thisPeer + ")");
+        Log.d(TAG, "Updating status for " + name + " to " + status + " (" + thisPeer + ") with " + warningMessage);
         thisPeer.setStatus(status);
         if (status == ConnectedPeer.STATUS_WARNING || status == ConnectedPeer.STATUS_ERROR || status == ConnectedPeer.STATUS_INSTALLING) {
             moveToFrontOfList(thisPeer);
@@ -139,7 +186,7 @@ public class ConnectedLearnersAdapter extends BaseAdapter {
                 case ConnectedPeer.STATUS_ERROR:
                     msg += " is disconnected.";
                     break;
-                case ConnectedPeer.STATUS_WARNING:
+                default: //case ConnectedPeer.STATUS_WARNING:
                     msg += " " + warningMessage;
                     break;
             }
@@ -147,6 +194,7 @@ public class ConnectedLearnersAdapter extends BaseAdapter {
             Toast warningToast = Toast.makeText(main.getApplicationContext(), "WARNING: " + msg, Toast.LENGTH_LONG);
             warningToast.show();
         }
+
     }
 
     public void selectAllPeers(boolean select) {
@@ -252,14 +300,16 @@ public class ConnectedLearnersAdapter extends BaseAdapter {
     }
 
     protected void moveToFrontOfList(ConnectedPeer peer) {
-        if (reorderByStatus) {
+        //only reorder if we haven't already
+        if (reorderByStatus && peer.getPriority() != ConnectedPeer.PRIORITY_TOP) {
+            peer.setPriority(ConnectedPeer.PRIORITY_TOP);
             mData.remove(peer);
             mData.add(0, peer);
         }
     }
 
     public void drawAlertIcon(ConnectedPeer peer, ImageView statusIcon) {
-        Log.w(TAG, "Updating alert icon for " + peer.getDisplayName() + ", to " + ConnectedPeer.statusToString(peer.getStatus()));
+        //Log.w(TAG, "Updating alert icon for " + peer.getDisplayName() + ", to " + ConnectedPeer.statusToString(peer.getStatus()));
         if (statusIcon == null) {
             //Log.e(TAG, "Status icon ImageView is null");
             return;
@@ -285,12 +335,15 @@ public class ConnectedLearnersAdapter extends BaseAdapter {
     }
 
     private void setLockStatus(ConnectedPeer peer, ImageView statusIcon) {
+        //Log.d(TAG, "Actually, is there a warning? "+peer.hasWarning()+", "+peer.isBlackedOut()+", "+peer.isLocked());
         //sometimes multiple status are possible.
-        if (peer.isBlackedOut()) {
+        if (!peer.hasWarning() && peer.isBlackedOut()) {
             statusIcon.setImageDrawable(main.getResources().getDrawable(R.drawable.alert_blackout_learner, null));
-        } else if (peer.isLocked()) {
+
+        } else if (!peer.hasWarning() && peer.isLocked()) {
             statusIcon.setImageDrawable(main.getResources().getDrawable(R.drawable.alert_locked_learner, null));
-        } else {
+
+        } else if (!peer.hasWarning()) {
             statusIcon.setImageDrawable(null);
         }
     }

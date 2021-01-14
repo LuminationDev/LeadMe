@@ -20,7 +20,7 @@ public class DispatchManager {
 
     private void disableInteraction(final int status) {
         final boolean interactionBlocked = (status == ConnectedPeer.STATUS_BLACKOUT || status == ConnectedPeer.STATUS_LOCK);
-        Log.d(TAG, "Is interaction blocked? " + interactionBlocked + ", " + main.getNearbyManager().isConnectedAsFollower() + ", " + main.isGuide);
+        Log.d(TAG, "Is interaction blocked? " + interactionBlocked + ", " + main.getNearbyManager().isConnectedAsFollower() + ", " + main.isGuide + ", " + main.getPermissionsManager().isOverlayPermissionGranted() + ", " + main.overlayView);
         main.setStudentLock(status);
         Runnable myRunnable = () -> {
             //we never want to block someone if they're disconnected from the guide
@@ -83,6 +83,9 @@ public class DispatchManager {
                 action.startsWith(LeadMeMain.RETURN_TAG) ||
                 action.startsWith(LeadMeMain.AUTO_INSTALL_FAILED) ||
                 action.startsWith(LeadMeMain.AUTO_INSTALL_ATTEMPT) ||
+                action.startsWith(LeadMeMain.STUDENT_NO_OVERLAY) ||
+                action.startsWith(LeadMeMain.STUDENT_NO_INTERNET) ||
+                action.startsWith(LeadMeMain.STUDENT_NO_ACCESSIBILITY) ||
                 action.startsWith(LeadMeMain.STUDENT_OFF_TASK_ALERT) ||
                 action.startsWith(LeadMeMain.LAUNCH_SUCCESS)) {
             main.getNearbyManager().sendToSelected(Payload.fromBytes(bytes), selectedPeerIDs);
@@ -215,23 +218,46 @@ public class DispatchManager {
                         sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.LAUNCH_SUCCESS + "BLACKOUT" + ":" + main.getNearbyManager().getID() + ":" + main.getApplicationContext().getPackageName(),
                                 main.getNearbyManager().getAllPeerIDs());
                         break;
-                    } else if (action.startsWith(LeadMeMain.STUDENT_OFF_TASK_ALERT)) {
-                        Log.i(TAG, "STUDENT OFF TASK");
+                    } else if (action.startsWith(LeadMeMain.STUDENT_NO_OVERLAY)) {
                         String[] split = action.split(":");
+                        Log.i(TAG, "STUDENT HAS OVERLAY? " + split[1].equals("OK"));
                         //main.getConnectedLearnersAdapter().updateStatus(split[2], ConnectedPeer.STATUS_ERROR, split[1]);
                         if (split[1].equalsIgnoreCase("OK")) {
                             //clear previous flag
-                            main.getConnectedLearnersAdapter().updateStatus(split[2], ConnectedPeer.STATUS_SUCCESS);
+                            main.getConnectedLearnersAdapter().updateStatus(split[2], ConnectedPeer.STATUS_SUCCESS, LeadMeMain.STUDENT_NO_OVERLAY);
                         } else {
-                            main.getConnectedLearnersAdapter().updateStatus(split[2], ConnectedPeer.STATUS_WARNING, split[1]);
+                            main.getConnectedLearnersAdapter().updateStatus(split[2], ConnectedPeer.STATUS_WARNING, LeadMeMain.STUDENT_NO_OVERLAY);
+                        }
+                        break;
+
+                    } else if (action.startsWith(LeadMeMain.STUDENT_NO_INTERNET)) {
+                        String[] split = action.split(":");
+                        Log.i(TAG, "STUDENT HAS INTERNET? " + split[1].equals("OK"));
+                        //main.getConnectedLearnersAdapter().updateStatus(split[2], ConnectedPeer.STATUS_ERROR, split[1]);
+                        if (split[1].equalsIgnoreCase("OK")) {
+                            //clear previous flag
+                            main.getConnectedLearnersAdapter().updateStatus(split[2], ConnectedPeer.STATUS_SUCCESS, LeadMeMain.STUDENT_NO_INTERNET);
+                        } else {
+                            main.getConnectedLearnersAdapter().updateStatus(split[2], ConnectedPeer.STATUS_WARNING, LeadMeMain.STUDENT_NO_INTERNET);
+                        }
+                        break;
+
+                    } else if (action.startsWith(LeadMeMain.STUDENT_NO_ACCESSIBILITY)) {
+                        String[] split = action.split(":");
+                        Log.i(TAG, "STUDENT HAS ACCESS? " + split[1].equals("OK"));
+                        //main.getConnectedLearnersAdapter().updateStatus(split[2], ConnectedPeer.STATUS_ERROR, split[1]);
+                        if (split[1].equalsIgnoreCase("OK")) {
+                            //clear previous flag
+                            main.getConnectedLearnersAdapter().updateStatus(split[2], ConnectedPeer.STATUS_SUCCESS, LeadMeMain.STUDENT_NO_ACCESSIBILITY);
+                        } else {
+                            main.getConnectedLearnersAdapter().updateStatus(split[2], ConnectedPeer.STATUS_WARNING, LeadMeMain.STUDENT_NO_ACCESSIBILITY);
                         }
                         break;
 
                     } else if (action.startsWith(LeadMeMain.AUTO_INSTALL_FAILED)) {
                         Log.i(TAG, "FAILED");
                         String[] split = action.split(":");
-                        //main.getConnectedLearnersAdapter().updateStatus(split[2], ConnectedPeer.STATUS_ERROR, split[1]);
-                        main.getConnectedLearnersAdapter().updateStatus(split[2], ConnectedPeer.STATUS_WARNING, "Could not launch " + split[1]);
+                        main.getConnectedLearnersAdapter().updateStatus(split[2], ConnectedPeer.STATUS_WARNING, LeadMeMain.AUTO_INSTALL_FAILED);
                         break;
 
                     } else if (action.startsWith(LeadMeMain.AUTO_INSTALL_ATTEMPT)) {
@@ -251,6 +277,10 @@ public class DispatchManager {
                         } else if (split[1].equals("BLACKOUT")) {
                             main.getConnectedLearnersAdapter().updateStatus(split[2], ConnectedPeer.STATUS_BLACKOUT);
 
+                        } else {
+                            Log.d(TAG, "Updating icon to " + split[3]);
+                            main.getConnectedLearnersAdapter().updateStatus(split[2], ConnectedPeer.STATUS_SUCCESS);
+                            main.getConnectedLearnersAdapter().updateIcon(split[2], main.getAppManager().getAppIcon(split[3]));
                         }
                         break;
 
@@ -320,6 +350,37 @@ public class DispatchManager {
             Log.d(TAG, "Nope, not an app request");
             return false;
         }
+    }
+
+
+    protected void alertGuidePermissionGranted(String whichPermission, boolean isGranted) {
+
+        if (isGranted) {
+            sendActionToSelected(LeadMeMain.ACTION_TAG, whichPermission + "OK:" + main.getNearbyManager().getID(), main.getNearbyManager().getAllPeerIDs());
+            return;
+        }
+
+        String warningMessage = "";
+        switch (whichPermission) {
+            case LeadMeMain.STUDENT_NO_ACCESSIBILITY:
+                warningMessage = "Permission error (accessibility)";
+                break;
+            case LeadMeMain.STUDENT_NO_OVERLAY:
+                warningMessage = "Permission error (overlay)";
+                break;
+            case LeadMeMain.STUDENT_NO_INTERNET:
+                warningMessage = "Permission error (no internet)";
+                break;
+            case LeadMeMain.STUDENT_OFF_TASK_ALERT:
+                warningMessage = "Off task";
+                break;
+            case LeadMeMain.AUTO_INSTALL_FAILED:
+                warningMessage = "Couldn't launch";
+        }
+
+        //send correct update to guide
+        sendActionToSelected(LeadMeMain.ACTION_TAG, whichPermission + warningMessage +
+                ":" + main.getNearbyManager().getID(), main.getNearbyManager().getAllPeerIDs());
     }
 
 }
