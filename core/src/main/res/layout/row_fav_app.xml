@@ -21,7 +21,7 @@
         android:padding="2dp" />
 
     <TextView
-        android:id="@+id/fav_text"
+        android:id="@+id/list_student_name"
         android:layout_width="match_parent"
         android:layout_height="40dp"
         android:layout_weight="1"

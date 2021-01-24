@@ -7,6 +7,7 @@ import android.content.res.Configuration;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.accessibility.AccessibilityEvent;
+import android.view.accessibility.AccessibilityNodeInfo;
 
 import androidx.annotation.NonNull;
 
@@ -22,10 +23,13 @@ public class LumiAccessibilityService extends AccessibilityService {
     protected final static String EVENT_OBJ = "EVENT_OBJ";
     protected final static String EVENT_ROOT = "EVENT_ROOT";
 
+    private String leadmePackageName = "";
+
     @Override
     public void onCreate() {
         super.onCreate();
         Log.d(TAG, "Accessibility Service CREATED!");
+        leadmePackageName = getPackageName();
     }
 
     @Override
@@ -101,18 +105,44 @@ public class LumiAccessibilityService extends AccessibilityService {
 
     @Override
     public void onAccessibilityEvent(final AccessibilityEvent event) {
-        //Log.w(TAG, "Sending ACCESSIBILITY broadcast");
+        Log.w(TAG, "Sending ACCESSIBILITY broadcast! " + getApplicationContext() + ", " + event);
+
+        if (getApplicationContext() == null) {
+            //app is not currently running, can't do anything right now
+            return;
+        }
+
+        AccessibilityNodeInfo rootInActiveWindow = null;
+
+        //we're currently in LeadMe, we don't need to broadcast
+        if (event.getPackageName() == null || event.getPackageName().equals(leadmePackageName)) {
+            //This happens in v10 due to new 'TYPE_WINDOWS_CHANGED' event with no package
+            Log.d(TAG, "ERROR! Can't do anything with this event.");
+            return;
+        }
+
+        //we never need this for System UI calls - save the effort for 3rd party apps
+        if (!event.getPackageName().equals("com.android.systemui")) {
+            rootInActiveWindow = getRootInActiveWindow();
+        }
+
         Intent intent = new Intent();
         intent.setAction(BROADCAST_ACTION);
-        intent.addFlags(Intent.FLAG_INCLUDE_STOPPED_PACKAGES);
-        //intent.setComponent(new ComponentName(getPackageName(), LumiAccessibilityReceiver.class.getName()));
-        intent.setComponent(new ComponentName("com.lumination.leadme", "com.lumination.leadme.LumiAccessibilityReceiver"));
+        //intent.addFlags(Intent.FLAG_INCLUDE_STOPPED_PACKAGES);
+        //intent.setComponent(new ComponentName("com.lumination.leadme", "com.lumination.leadme.LumiAccessibilityReceiver"));
+        intent.setComponent(new ComponentName(getPackageName(), LumiAccessibilityReceiver.class.getName()));
         Bundle data = new Bundle();
         data.putString(INFO_TAG, LumiAccessibilityService.EVENT_RECEIVED);
         data.putParcelable(EVENT_OBJ, event);
-        data.putParcelable(EVENT_ROOT, getRootInActiveWindow());
+        data.putParcelable(EVENT_ROOT, rootInActiveWindow);
         intent.putExtras(data);
-        sendBroadcast(intent);
+
+        try {
+            sendBroadcast(intent);
+        } catch (Exception e) {
+            Log.e(TAG, "Failed to broadcast from accessibility: " + event + ", " + getRootInActiveWindow());
+            e.printStackTrace();
+        }
     }
 
 }

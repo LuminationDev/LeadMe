@@ -3,7 +3,6 @@ package com.lumination.leadme;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
 import android.util.ArraySet;
 import android.util.Log;
@@ -15,7 +14,6 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.koushikdutta.urlimageviewhelper.UrlImageViewCallback;
 import com.koushikdutta.urlimageviewhelper.UrlImageViewHelper;
 import com.lumination.leadme.linkpreview.LinkPreviewCallback;
 import com.lumination.leadme.linkpreview.SourceContent;
@@ -169,6 +167,7 @@ public class FavouritesManager extends BaseAdapter {
         @Override
         public void onPos(final SourceContent sourceContent, boolean b) {
             Log.d(TAG, "PREVIEW RETURNED! " + sourceContent.getUrl() + " vs " + contentList);
+            gettingPreviews.remove(sourceContent.getUrl()); //no longer getting this one - remove it
 
             for (int i = 0; i < contentList.size(); i++) {
 
@@ -188,12 +187,9 @@ public class FavouritesManager extends BaseAdapter {
                         if (!sourceContent.getImages().isEmpty()) {
                             img = sourceContent.getImages().get(0);
                         }
-                        UrlImageViewHelper.setUrlDrawable(webManager.getPreviewImageView(), img, new UrlImageViewCallback() {
-                            @Override
-                            public void onLoaded(ImageView imageView, Bitmap loadedBitmap, String url, boolean loadedFromCache) {
-                                iconList.set(prevIndex, imageView.getDrawable());
-                                previewStorage.put(sourceContent.getFinalUrl(), imageView.getDrawable());
-                            }
+                        UrlImageViewHelper.setUrlDrawable(webManager.getPreviewImageView(), img, (imageView, loadedBitmap, url, loadedFromCache) -> {
+                            iconList.set(prevIndex, imageView.getDrawable());
+                            previewStorage.put(sourceContent.getFinalUrl(), imageView.getDrawable());
                         });
                     }
                 } catch (Exception e) {
@@ -332,24 +328,16 @@ public class FavouritesManager extends BaseAdapter {
         favOKBtn = favouritesView.findViewById(R.id.ok_btn);
         Button favBackBtn = favouritesView.findViewById(R.id.back_btn);
 
-        favOKBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (favAdding) {
-                    addToFavourites(favPackageName, favTitleView.getText().toString(), null);
-                } else {
-                    deleteFromFavourites(favPackageName);
-                }
-                favouritesDialog.hide();
+        favOKBtn.setOnClickListener(v -> {
+            if (favAdding) {
+                addToFavourites(favPackageName, favTitleView.getText().toString(), null);
+            } else {
+                deleteFromFavourites(favPackageName);
             }
+            favouritesDialog.hide();
         });
 
-        favBackBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                favouritesDialog.hide();
-            }
-        });
+        favBackBtn.setOnClickListener(v -> favouritesDialog.hide());
 
         favouritesDialog = new AlertDialog.Builder(main).setView(favouritesView).create();
     }
@@ -369,12 +357,18 @@ public class FavouritesManager extends BaseAdapter {
     private void showDeleteFavDialog(String packageName) {
         favAdding = false; //deleting
         favPackageName = packageName; //assign so we can use this in dialogs/buttons
-        final String title = main.getAppManager().getAppName(packageName);
-        final Drawable icon = main.getAppManager().getAppIcon(packageName);
+
+        if (favType == FAVTYPE_APP) {
+            favImgView.setImageDrawable(main.getAppManager().getAppIcon(packageName));
+            favTitleView.setText(main.getAppManager().getAppName(packageName));
+        } else {
+            int thisIndex = contentList.indexOf(packageName);
+            favImgView.setImageDrawable(getPreview(packageName));
+            favTitleView.setText(titleList.get(thisIndex));
+        }
+
         favMsgView.setText(main.getResources().getString(R.string.delete_this_app_from_favourites));
         favOKBtn.setVisibility(View.VISIBLE);
-        favImgView.setImageDrawable(icon);
-        favTitleView.setText(title);
         favouritesDialog.show();
     }
 
@@ -527,6 +521,7 @@ public class FavouritesManager extends BaseAdapter {
         }
     }
 
+    private ArrayList<String> gettingPreviews = new ArrayList<>();
     private void updateWebFavView(View convertView, final String url, final String title, Drawable icon) {
         final FavouritesManager.ViewHolder viewHolder = (FavouritesManager.ViewHolder) convertView.getTag();
 
@@ -536,9 +531,10 @@ public class FavouritesManager extends BaseAdapter {
                 Log.d(TAG, "Getting preview for " + url + " from storage");
                 icon = getPreview(url);
 
-            } else {
+            } else if (!gettingPreviews.contains(url)) {
                 viewHolder.favouriteIcon.setImageDrawable(placeholder);
                 Log.d(TAG, "Trying to retrieve preview for " + url);
+                gettingPreviews.add(url); //storing it here means we only try once per url
                 Thread previewThread = new Thread(() -> webManager.getTextCrawler().makePreview(linkPreviewCallback, url));
                 previewThread.start();
             }
@@ -553,6 +549,20 @@ public class FavouritesManager extends BaseAdapter {
                 webManager.showPreview(url);
             }
             webManager.hideFavDialog();
+        });
+
+        convertView.setLongClickable(true);
+        convertView.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                if (favType != FAVTYPE_APP) {
+                    if (url == null || url.trim().isEmpty()) {
+                        return false;
+                    }
+                    showDeleteFavDialog(url);
+                }
+                return true;
+            }
         });
     }
 
@@ -578,24 +588,18 @@ public class FavouritesManager extends BaseAdapter {
             viewHolder.favouriteIcon.setElevation(10);
 
             convertView.setClickable(true);
-            convertView.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    main.showAppPushDialog(appName, appIcon, favPackage);
-                    //main.getAppLaunchAdapter().launchApp(favPackage, appName, false);
-                }
+            convertView.setOnClickListener(v -> {
+                main.showAppPushDialog(appName, appIcon, favPackage);
+                //main.getAppLaunchAdapter().launchApp(favPackage, appName, false);
             });
 
             convertView.setLongClickable(true);
-            convertView.setOnLongClickListener(new View.OnLongClickListener() {
-                @Override
-                public boolean onLongClick(View v) {
-                    if (favPackage == null || favPackage.trim().isEmpty()) {
-                        return false;
-                    }
-                    showDeleteFavDialog(favPackage);
-                    return true;
+            convertView.setOnLongClickListener(v -> {
+                if (favPackage == null || favPackage.trim().isEmpty()) {
+                    return false;
                 }
+                showDeleteFavDialog(favPackage);
+                return true;
             });
         }
     }
@@ -606,7 +610,7 @@ public class FavouritesManager extends BaseAdapter {
         final ImageView favouriteIcon;
 
         ViewHolder(View itemView) {
-            favouriteName = itemView.findViewById(R.id.fav_text);
+            favouriteName = itemView.findViewById(R.id.list_student_name);
             favouriteIcon = itemView.findViewById(R.id.fav_icon);
         }
     }

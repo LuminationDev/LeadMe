@@ -13,10 +13,16 @@ import android.net.Uri;
 import android.util.Log;
 import android.view.View;
 import android.webkit.URLUtil;
+import android.webkit.WebResourceRequest;
+import android.webkit.WebView;
+import android.webkit.WebViewClient;
+import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
+import android.widget.SearchView;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -38,9 +44,10 @@ public class WebManager {
     private static final String TAG = "WebManager";
     private TextCrawler textCrawler = new TextCrawler();
 
-    private AlertDialog websiteLaunchDialog, previewDialog, urlYtFavDialog;
+    private AlertDialog websiteLaunchDialog, previewDialog, urlYtFavDialog, searchDialog;
     private final View websiteLaunchDialogView;
     private final View previewDialogView;
+    private final View searchDialogView;
     private View webYouTubeFavView;
     public boolean launchingVR = false;
 
@@ -58,15 +65,47 @@ public class WebManager {
     private LeadMeMain main;
     private CheckBox favCheckbox;
 
+    private Spinner lockSpinner, searchSpinner;
+    private String[] searchSpinnerItems, lockSpinnerItems;
+
     public WebManager(LeadMeMain main) {
         this.main = main;
         websiteLaunchDialogView = View.inflate(main, R.layout.d__enter_url, null);
         previewDialogView = View.inflate(main, R.layout.e__preview_url_push, null);
+        searchDialogView = View.inflate(main, R.layout.e__preview_url_search, null);
+        searchDialogView.setMinimumWidth(main.getWindow().getAttributes().width - 20);
+
+        //set up lock spinner
+        lockSpinner = (Spinner) previewDialogView.findViewById(R.id.push_spinner);
+        lockSpinnerItems = new String[2];
+        lockSpinnerItems[0] = "Lock students";
+        lockSpinnerItems[1] = "Unlock students";
+        Integer[] push_imgs = {R.drawable.controls_lock, R.drawable.controls_unlock};
+        SpinnerAdapter push_adapter = new SpinnerAdapter(main, R.layout.row_push_spinner, lockSpinnerItems, push_imgs);
+        lockSpinner.setAdapter(push_adapter);
+
+        //set up search spinner
+        //TODO add Vimeo search
+        searchSpinner = (Spinner) searchDialogView.findViewById(R.id.search_spinner);
+        searchSpinnerItems = new String[2];
+        searchSpinnerItems[0] = "Google search";
+        searchSpinnerItems[1] = "YouTube search";
+        Integer[] search_imgs = {R.drawable.search_google, R.drawable.search_yt};
+        SpinnerAdapter search_adapter = new SpinnerAdapter(main, R.layout.row_search_spinner, searchSpinnerItems, search_imgs);
+        searchSpinner.setAdapter(search_adapter);
 
         //set up favourites view
         webYouTubeFavView = View.inflate(main, R.layout.d__url_yt_favourites, null);
         favCheckbox = previewDialogView.findViewById(R.id.fav_checkbox);
         setupWarningDialog();
+
+        websiteLaunchDialogView.findViewById(R.id.url_search_btn).setOnClickListener(v -> {
+            hidePreviewDialog();
+            buildAndShowSearchDialog();
+        });
+
+        urlFavouritesManager = new FavouritesManager(main, this, FavouritesManager.FAVTYPE_URL, 10);
+        youTubeFavouritesManager = new FavouritesManager(main, this, FavouritesManager.FAVTYPE_YT, 10);
 
         ((TwoWayGridView) webYouTubeFavView.findViewById(R.id.yt_favourites)).setAdapter(getYouTubeFavouritesManager());
         ((TwoWayGridView) webYouTubeFavView.findViewById(R.id.url_favourites)).setAdapter(getUrlFavouritesManager());
@@ -80,6 +119,8 @@ public class WebManager {
         setupViews();
         setupPreviewDialog();
         setupWebLaunchDialog();
+
+
     }
 
     private boolean error = false;
@@ -157,16 +198,10 @@ public class WebManager {
 
 
     public FavouritesManager getUrlFavouritesManager() {
-        if (urlFavouritesManager == null) {
-            urlFavouritesManager = new FavouritesManager(main, this, FavouritesManager.FAVTYPE_URL, 10);
-        }
         return urlFavouritesManager;
     }
 
     public FavouritesManager getYouTubeFavouritesManager() {
-        if (youTubeFavouritesManager == null) {
-            youTubeFavouritesManager = new FavouritesManager(main, this, FavouritesManager.FAVTYPE_YT, 10);
-        }
         return youTubeFavouritesManager;
     }
 
@@ -273,6 +308,7 @@ public class WebManager {
             }
 
             //clean up dialogs
+            hideSearchDialog();
             hidePreviewDialog();
             main.showConfirmPushDialog(false, adding_to_fav);
 
@@ -317,6 +353,15 @@ public class WebManager {
             selectedPeers = main.getNearbyManager().getAllPeerIDs();
         }
 
+        //update lock status
+        if (lockSpinner.getSelectedItem().toString().startsWith("Lock")) {
+            //locked by default
+            main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.LOCK_TAG, selectedPeers);
+        } else {
+            //unlocked if selected
+            main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.UNLOCK_TAG, selectedPeers);
+        }
+
         //push the right instruction to the receivers
         if (isYouTube) {
             main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.LAUNCH_YT + url, selectedPeers);
@@ -326,12 +371,21 @@ public class WebManager {
     }
 
     private void hidePreviewDialog() {
-        Log.d(TAG, "Hiding dialog box");
         main.closeKeyboard();
         main.hideSystemUI();
 
         if (previewDialog != null) {
             previewDialog.hide();
+            error = false; //reset flag
+        }
+    }
+
+    private void hideSearchDialog() {
+        main.closeKeyboard();
+        main.hideSystemUI();
+
+        if (searchDialog != null) {
+            searchDialog.hide();
             error = false; //reset flag
         }
     }
@@ -373,6 +427,7 @@ public class WebManager {
                 main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG,
                         LeadMeMain.LAUNCH_SUCCESS + uri.getHost() + ":" + main.getNearbyManager().getID() + ":" + ai.packageName, main.getNearbyManager().getAllPeerIDs());
                 //success!
+                return;
             }
         }
 
@@ -384,6 +439,7 @@ public class WebManager {
             main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG,
                     LeadMeMain.LAUNCH_SUCCESS + uri.getHost() + ":" + main.getNearbyManager().getID() + ":" + browserIntent.getStringExtra("packageName"), main.getNearbyManager().getAllPeerIDs());
             //success!
+            return;
 
         } else {
             Toast toast = Toast.makeText(main, "No browser available", Toast.LENGTH_SHORT);
@@ -439,11 +495,15 @@ public class WebManager {
 
     private void showYouTubePreview(String url) {
         isYouTube = true;
+        //first position is 'locked' - default for YouTube
+        lockSpinner.setSelection(0);
         buildAndShowPreviewDialog(url);
     }
 
     private void showWebsitePreview(String url) {
         isYouTube = false;
+        //second position is 'unlocked' - default for website
+        lockSpinner.setSelection(1);
         buildAndShowPreviewDialog(url);
     }
 
@@ -459,11 +519,13 @@ public class WebManager {
 
         //set up preview to appear correctly
         if (adding_to_fav) {
+            lockSpinner.setVisibility(View.INVISIBLE);
             previewPushBtn.setText(main.getResources().getString(R.string.add_this_app_to_favourites));
             favCheckbox.setChecked(true);
             favCheckbox.setVisibility(View.GONE);
 
         } else {
+            lockSpinner.setVisibility(View.VISIBLE);
             if (main.getConnectedLearnersAdapter().someoneIsSelected()) {
                 previewPushBtn.setText(main.getResources().getString(R.string.push_this_to_selected));
             } else {
@@ -492,6 +554,11 @@ public class WebManager {
     }
 
     boolean adding_to_fav = false;
+
+    void showWebLaunchDialog(boolean isYT, boolean add_fav_mode) {
+        isYouTube = isYT;
+        showWebLaunchDialog(add_fav_mode);
+    }
 
     void showWebLaunchDialog(boolean add_fav_mode) {
         if (websiteLaunchDialog == null) {
@@ -647,7 +714,7 @@ public class WebManager {
     public String cleanYouTubeURL(String url) {
         String id = getYouTubeID(url);
         Log.i(TAG, "YouTube ID = " + id + " from " + url);
-        return "https://www.youtube.com/watch?v=" + id + "&t=1";
+        return "https://www.youtube.com/watch?v=" + id + "&start=0&rel=0"; //turn back to t=1 if problems with video
     }
 
     public void launchYouTube(String url, boolean updateTask) {
@@ -743,5 +810,185 @@ public class WebManager {
         return textCrawler;
     }
 
+
+    /////////////////////////////
+    private boolean searchYoutube = true;
+    private WebView web;
+
+    private void buildAndShowSearchDialog() {
+        hideWebsiteLaunchDialog();
+
+        //instantiates the search dialog popup if it does not already exist
+        if (searchDialog == null) {
+            searchDialog = new AlertDialog.Builder(main)
+                    .setView(searchDialogView)
+                    .show();
+
+            web = searchDialogView.findViewById(R.id.webview_preview);
+            web.getSettings().setJavaScriptEnabled(true); // enable javascript
+            web.canGoBack();
+            //web.setWebViewClient(new WebViewClient());
+
+            final SearchView searchView = searchDialogView.findViewById(R.id.url_search_bar);
+            searchView.setMaxWidth(Integer.MAX_VALUE); //ensures it fills whole space on init
+
+            if (searchView.getQuery().length() > 0) {
+                if (!isYouTube) {
+                    //fixes the webpage loading in background
+                    web.loadUrl("https://www.google.com/search?q=" + searchView.getQuery());
+                }
+            }
+
+            searchSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                @Override
+                public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                    Log.d(TAG, "Search mode: " + searchSpinnerItems[position]);
+
+                    if (searchSpinnerItems[position].startsWith("YouTube")) {
+                        ((TextView) searchDialogView.findViewById(R.id.web_search_title)).setText("Search YouTube");
+                        searchYoutube = true;
+                    } else if (searchSpinnerItems[position].startsWith("Google")) {
+                        ((TextView) searchDialogView.findViewById(R.id.web_search_title)).setText("Search the web");
+                        searchYoutube = false;
+                    }
+
+                    searchView.performClick();
+                    //populateSearch();
+
+                }
+
+
+                @Override
+                public void onNothingSelected(AdapterView<?> parent) {
+                    //no action
+                }
+            });
+
+            searchDialog.findViewById(R.id.back_btn).setOnClickListener(v -> {
+                searchDialog.hide();
+                websiteLaunchDialog.show();
+            });
+
+        } else {
+            searchDialog.show();
+        }
+
+        if (isYouTube) {
+            //default to YouTube search
+            searchSpinner.setSelection(1);
+        } else {
+            //default to web search
+            searchSpinner.setSelection(0);
+        }
+        populateSearch();
+    }
+
+    private void populateSearch() {
+        final SearchView searchView = searchDialogView.findViewById(R.id.url_search_bar);
+        if (!(searchView.getQuery().length() > 0)) {
+            web.setVisibility(View.GONE);
+        }
+        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            //moved listener to end of search to avoid triggering recaptcha for rapid querys
+            public boolean onQueryTextSubmit(String newText) {
+                if (newText.length() > 0) {
+                    web.setVisibility(View.VISIBLE);
+                } else {
+                    web.setVisibility(View.GONE);
+                }
+
+                //filters the search results
+                if (searchYoutube) {
+                    web.loadUrl("https://www.google.com/search?q=" + newText + "&tbm=vid&as_sitesearch=youtube.com");
+
+                    //swap the above line with the one below to index youtube's site directly
+                    //NOTE - if this is used, will need to change triggers for when to show preview
+                    // (currently loads preview for anything that doesn't begin with google.com)
+                    //web.loadUrl("https://www.youtube.com/results?search_query="+newText);
+
+                } else {
+                    web.loadUrl("https://www.google.com/search?q=" + newText);
+                }
+
+
+                web.setWebViewClient(new WebViewClient() {
+                    /*
+                    Exists for the sole purpose of handling google's top stories news sites
+                    handles all resources as they load including fonts etc
+                     */
+                    public void onLoadResource(WebView view, String url) {
+                        Log.d(TAG, "onLoadResource: " + url);
+                        if (url.startsWith("https://www.google.com/gen_204") && url.contains("&url=")) { //avoid the preloaded link powered by amp
+                            //find the real url hidden in the url
+                            String[] parts = url.split("&");
+                            for (int i = 0; i < parts.length; i++) {
+                                if (parts[i].startsWith("url=")) {
+                                    url = parts[i].substring(4);
+                                }
+                            }
+                            Log.d(TAG, "onLoadResource valid: " + url);
+                            //searchDialog.hide();
+                            showPreview(url);
+                        }
+                    }
+
+                    //
+                    public void onPageFinished(WebView view, String url) {
+                        //scrolls the page down to cut off the google rubbish at top
+                        if (url.startsWith("https://www.google.com")) {
+                            web.scrollTo(0, 400);
+                        }
+
+                        Log.d(TAG, "onPageFinished: " + url);
+                    }
+
+                    @Override
+                    /*
+                    Catches the page click event and redirects it to open up our popup instead of loading the link in the browser
+                     */
+                    public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
+                        //view.loadUrl(url);
+                        Log.d(TAG, "shouldOverrideUrlLoading: " + request.getUrl().toString());
+                        String URL = request.getUrl().toString();
+
+                        //remove intent tag, let each device handle it
+                        //however they see fit (otherwise end up with loop of crashes)
+                        if (URL.startsWith("intent:")) {
+                            URL = URL.substring(9);
+
+                            //hacky, but makes the "View in VR/AR" SceneViewer things work
+                            if (URL.contains("http://arvr.google.com/")) {
+                                URL = URL.replace("http://arvr.google.com/", "https://arvr.google.com/");
+                                if (URL.contains("&referrer=google.com")) {
+                                    URL = URL.split("&referrer=google.com")[0];
+                                }
+                            }
+                        }
+
+                        if (!URL.startsWith("https://www.google.com")) {
+                            //searchDialog.hide();
+                            showPreview(URL);
+                            return true;
+                        }
+
+                        return false;
+                    }
+                });
+
+                return false;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                //removes the webview when text is cleared
+                if (!(newText.length() > 0)) {
+                    web.setVisibility(View.GONE);
+                }
+                return false;
+            }
+        });
+
+    }
 
 }

@@ -12,11 +12,13 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.ImageView;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 public class AppManager extends BaseAdapter {
     private LeadMeMain main;
@@ -30,12 +32,20 @@ public class AppManager extends BaseAdapter {
 
     public AppManager(LeadMeMain main) {
         this.main = main;
-        app_placeholder = main.getDrawable(R.drawable.icon_unknown_app);
+        app_placeholder = main.getDrawable(R.drawable.icon_unknown_browser);
         defaultBrowserUrl = main.getResources().getString(R.string.default_browser_url);
         inflater = LayoutInflater.from(main);
         pm = main.getPackageManager();
         appList = listApps();
+
+        //set up lock spinner
+        lockSpinner = main.appPushDialogView.findViewById(R.id.push_spinner);
+        String[] items = {"Lock students", "Unlock students"};
+        Integer[] imgs = {R.drawable.controls_lock, R.drawable.controls_unlock};
+        SpinnerAdapter adapter = new SpinnerAdapter(main, R.layout.row_push_spinner, items, imgs);
+        lockSpinner.setAdapter(adapter);
     }
+
 
     public Drawable getAppIcon(String packageName) {
         try {
@@ -163,6 +173,8 @@ public class AppManager extends BaseAdapter {
 
     }
 
+    private Spinner lockSpinner;
+
     /**
      * used by LEADER to launch an app on LEARNER devices
      **/
@@ -171,15 +183,22 @@ public class AppManager extends BaseAdapter {
             //launch it locally
             launchLocalApp(packageName, appName, true);
         }
-
-
-        if (!main.getConnectedLearnersAdapter().someoneIsSelected()) {
-            //if no-one is selected, request to launch it on all peers
-            main.getDispatcher().requestRemoteAppOpen(LeadMeMain.APP_TAG, packageName, appName, main.getNearbyManager().getAllPeerIDs());
+        Set<String> chosen;
+        if (main.getConnectedLearnersAdapter().someoneIsSelected()) {
+            chosen = main.getNearbyManager().getSelectedPeerIDs();
         } else {
-            //if someone is selected, request to launch only on selected peers
-            main.getDispatcher().requestRemoteAppOpen(LeadMeMain.APP_TAG, packageName, appName, main.getNearbyManager().getSelectedPeerIDs());
+            chosen = main.getNearbyManager().getAllPeerIDs();
         }
+
+        //update lock status
+        String lockTag = LeadMeMain.LOCK_TAG;
+        if (lockSpinner.getSelectedItemPosition() == 1) {
+            //locked by default, unlocked if selected
+            lockTag = LeadMeMain.UNLOCK_TAG;
+        }
+
+        //send launch request
+        main.getDispatcher().requestRemoteAppOpen(LeadMeMain.APP_TAG, packageName, appName, lockTag, chosen);
     }
 
 
@@ -204,7 +223,6 @@ public class AppManager extends BaseAdapter {
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
-
         final String packageName = appList.get(position).packageName;
         final String appName = pm.getApplicationLabel(appList.get(position)).toString();
 
@@ -221,21 +239,15 @@ public class AppManager extends BaseAdapter {
             final Drawable appIcon = pm.getApplicationIcon(packageName);
             viewHolder.myIcon.setImageDrawable(appIcon);
 
-            convertView.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    Log.i(TAG, "Launching " + appName + " from " + packageName);
-                    main.showAppPushDialog(appName, appIcon, packageName);
-                }
+            convertView.setOnClickListener(v -> {
+                Log.i(TAG, "Launching " + appName + " from " + packageName);
+                main.showAppPushDialog(appName, appIcon, packageName);
             });
 
             convertView.setLongClickable(true);
-            convertView.setOnLongClickListener(new View.OnLongClickListener() {
-                @Override
-                public boolean onLongClick(View v) {
-                    main.getFavouritesManager().manageFavouritesEntry(packageName);
-                    return true; //true if event is consumed
-                }
+            convertView.setOnLongClickListener(v -> {
+                main.getFavouritesManager().manageFavouritesEntry(packageName);
+                return true; //true if event is consumed
             });
 
         } catch (PackageManager.NameNotFoundException e) {

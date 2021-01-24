@@ -30,12 +30,13 @@
 
         <TextView
             android:id="@+id/warning_title"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="30dp"
             android:layout_marginBottom="20dp"
             android:ellipsize="end"
             android:fontFamily="@font/poppins_semibold"
+            android:gravity="center_horizontal"
             android:text="@string/oops_something_went_wrong"
             android:textColor="@color/leadme_black"
             android:textSize="18sp" />

@@ -18,7 +18,7 @@ public class DispatchManager {
         this.main = main;
     }
 
-    private void disableInteraction(final int status) {
+    protected void disableInteraction(final int status) {
         final boolean interactionBlocked = (status == ConnectedPeer.STATUS_BLACKOUT || status == ConnectedPeer.STATUS_LOCK);
         Log.d(TAG, "Is interaction blocked? " + interactionBlocked + ", " + main.getNearbyManager().isConnectedAsFollower() + ", " + main.isGuide + ", " + main.getPermissionsManager().isOverlayPermissionGranted() + ", " + main.overlayView);
         main.setStudentLock(status);
@@ -31,17 +31,18 @@ public class DispatchManager {
             }
             if (main.getNearbyManager().isConnectedAsFollower() && interactionBlocked) {
                 Log.d(TAG, "BLOCKING!");
-                main.overlayParams.flags -= WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE;
+                main.overlayParams.flags = WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN | WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE;
                 main.overlayParams.width = main.size.x;
                 main.overlayParams.height = main.size.y;
             } else {
                 Log.d(TAG, "NOT BLOCKING!");
-                main.overlayParams.flags += WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE;
+                main.overlayParams.flags = WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE | WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN | WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE;
                 main.overlayParams.width = 0;
                 main.overlayParams.height = 0;
             }
             main.getWindowManager().updateViewLayout(main.overlayView, main.overlayParams);
         };
+
         main.runOnUiThread(myRunnable);
     }
 
@@ -53,12 +54,13 @@ public class DispatchManager {
         }
     }
 
-    public void requestRemoteAppOpen(String tag, String packageName, String appName, Set<String> selectedPeerIDs) {
+    public void requestRemoteAppOpen(String tag, String packageName, String appName, String lockTag, Set<String> selectedPeerIDs) {
         Parcel p = Parcel.obtain();
         byte[] bytes;
         p.writeString(tag);
         p.writeString(packageName);
         p.writeString(appName);
+        p.writeString(lockTag);
         bytes = p.marshall();
         p.recycle();
 
@@ -124,11 +126,6 @@ public class DispatchManager {
         Log.d(TAG, "Received boolean: " + actionTag + ", " + action + "=" + value);
 
         switch (action) {
-//            case LeadMeMain.STUDENT_LOCK:
-//                main.setStudentLock(ConnectedPeer.STATUS_LOCK);
-//                disableInteraction(ConnectedPeer.STATUS_LOCK);
-//                break;
-
             case LeadMeMain.AUTO_INSTALL:
                 main.autoInstallApps = boolVal;
                 break;
@@ -258,6 +255,9 @@ public class DispatchManager {
                         Log.i(TAG, "FAILED");
                         String[] split = action.split(":");
                         main.getConnectedLearnersAdapter().updateStatus(split[2], ConnectedPeer.STATUS_WARNING, LeadMeMain.AUTO_INSTALL_FAILED);
+
+                        //in this case, student will be back in LeadMe, so update icon too
+                        main.getConnectedLearnersAdapter().updateIcon(split[2], main.getAppManager().getAppIcon(main.leadMePackageName));
                         break;
 
                     } else if (action.startsWith(LeadMeMain.AUTO_INSTALL_ATTEMPT)) {
@@ -316,8 +316,7 @@ public class DispatchManager {
         if (launchAppOnFocus != null) {
             final String[] tmp = launchAppOnFocus;
             launchAppOnFocus = null; //reset
-
-            main.getHandler().post(() -> main.getAppManager().launchLocalApp(tmp[0], tmp[1], true));
+            main.getAppManager().launchLocalApp(tmp[0], tmp[1], true);
         }
     }
 
@@ -328,10 +327,28 @@ public class DispatchManager {
         String tag = p.readString();
         final String packageName = p.readString();
         final String appName = p.readString();
+        final String lockTag = p.readString();
         p.recycle();
 
-        Log.d(TAG, "Received in OpenApp: " + tag + ", " + packageName + ", " + appName + " vs " + main.getAppManager().lastApp);
+        Log.d(TAG, "Received in OpenApp!: " + tag + ", " + packageName + ", " + appName + ", " + lockTag + " vs " + main.getAppManager().lastApp);
         if (tag != null && tag.equals(LeadMeMain.APP_TAG)) {
+
+            if (lockTag.equals(LeadMeMain.LOCK_TAG)) {
+                //I've been selected to toggle student lock
+                main.blackout(false);
+                disableInteraction(ConnectedPeer.STATUS_LOCK);
+                sendActionToSelected(LeadMeMain.ACTION_TAG,
+                        LeadMeMain.LAUNCH_SUCCESS + "LOCKON" + ":" + main.getNearbyManager().getID() + ":" + main.leadMePackageName,
+                        main.getNearbyManager().getAllPeerIDs());
+
+            } else if (lockTag.equals(LeadMeMain.UNLOCK_TAG)) {
+                //I've been selected to toggle student lock
+                main.blackout(false);
+                disableInteraction(ConnectedPeer.STATUS_UNLOCK);
+                sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.LAUNCH_SUCCESS + "LOCKOFF" + ":" + main.getNearbyManager().getID() + ":" + main.leadMePackageName,
+                        main.getNearbyManager().getAllPeerIDs());
+            }
+
             if (!main.appHasFocus) {//!main.getAppLaunchAdapter().lastApp.equals(packageName)) {
                 Log.d(TAG, "NEED FOCUS!");
                 //only needed if it's not what we've already got open
@@ -354,33 +371,11 @@ public class DispatchManager {
 
 
     protected void alertGuidePermissionGranted(String whichPermission, boolean isGranted) {
-
         if (isGranted) {
             sendActionToSelected(LeadMeMain.ACTION_TAG, whichPermission + "OK:" + main.getNearbyManager().getID(), main.getNearbyManager().getAllPeerIDs());
-            return;
+        } else {
+            sendActionToSelected(LeadMeMain.ACTION_TAG, whichPermission + "FAIL:" + main.getNearbyManager().getID(), main.getNearbyManager().getAllPeerIDs());
         }
-
-        String warningMessage = "";
-        switch (whichPermission) {
-            case LeadMeMain.STUDENT_NO_ACCESSIBILITY:
-                warningMessage = "Permission error (accessibility)";
-                break;
-            case LeadMeMain.STUDENT_NO_OVERLAY:
-                warningMessage = "Permission error (overlay)";
-                break;
-            case LeadMeMain.STUDENT_NO_INTERNET:
-                warningMessage = "Permission error (no internet)";
-                break;
-            case LeadMeMain.STUDENT_OFF_TASK_ALERT:
-                warningMessage = "Off task";
-                break;
-            case LeadMeMain.AUTO_INSTALL_FAILED:
-                warningMessage = "Couldn't launch";
-        }
-
-        //send correct update to guide
-        sendActionToSelected(LeadMeMain.ACTION_TAG, whichPermission + warningMessage +
-                ":" + main.getNearbyManager().getID(), main.getNearbyManager().getAllPeerIDs());
     }
 
 }

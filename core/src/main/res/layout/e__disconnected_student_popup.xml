@@ -26,7 +26,7 @@
             android:id="@+id/error_icon"
             android:layout_width="@dimen/appicon_size"
             android:layout_height="@dimen/appicon_size"
-            android:src="@drawable/alert_major_error" />
+            android:src="@drawable/alert_error" />
 
         <TextView
             android:id="@+id/error_title"

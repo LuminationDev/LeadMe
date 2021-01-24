@@ -68,9 +68,10 @@ public class ConnectedLearnersAdapter extends BaseAdapter {
 
     public void addStudent(ConnectedPeer peer) {
         //does someone with this name already exist?
-        ConnectedPeer found = getMatchingPeer(peer.getID());
+        ConnectedPeer found = getMatchingPeerByUUID(peer.getUUID());
 
         if (found != null) {
+            Log.w(TAG, "Already have a record for this person! Replacing it with a new one.");
             //remove old one so we keep the newest version
             mData.remove(found);
         }
@@ -91,13 +92,31 @@ public class ConnectedLearnersAdapter extends BaseAdapter {
             return null;
         }
 
+        //search against Nearby Connections ID
         for (ConnectedPeer peer : mData) {
             if (peer != null && peer.getID().equals(peerID)) {
                 return peer;
             }
         }
+
         return null;
     }
+
+
+    private ConnectedPeer getMatchingPeerByUUID(String peerID) {
+        if (mData == null || mData.size() == 0) {
+            return null;
+        }
+
+        //search against UUID
+        for (ConnectedPeer peer : mData) {
+            if (peer != null && peer.getUUID().equals(peerID)) {
+                return peer;
+            }
+        }
+        return null;
+    }
+
 
     public void updateIcon(String name, Drawable icon) {
         //Log.d(TAG, "Updating icon for " + name);
@@ -113,9 +132,15 @@ public class ConnectedLearnersAdapter extends BaseAdapter {
 
     public void updateStatus(String name, int status, String msg) {
         ConnectedPeer thisPeer = getMatchingPeer(name);
+
+        Log.w(TAG, "Received: " + name + ", " + thisPeer + ", " + status + ", " + msg);
+
+        if (thisPeer == null) {
+            Log.d(TAG, "Received warning for UNKNOWN student " + name + ": " + msg);
+            return;
+        }
+
         if (status == ConnectedPeer.STATUS_WARNING) {
-            if (thisPeer != null)
-                thisPeer.setWarning(msg, false);
             switch (msg) {
                 case LeadMeMain.AUTO_INSTALL:
                     warningMessage = "could not install requested app.";
@@ -133,43 +158,25 @@ public class ConnectedLearnersAdapter extends BaseAdapter {
                     warningMessage = "could be off task";
                     break;
             }
+            thisPeer.setWarning(msg, false);
 
-        } else if (status == ConnectedPeer.STATUS_SUCCESS && thisPeer != null) {
+        } else if (status == ConnectedPeer.STATUS_SUCCESS) {
             thisPeer.setWarning(msg, true);
             warningMessage = msg;
-
-//            switch (msg) {
-//                case LeadMeMain.AUTO_INSTALL:
-//                    warningMessage = "successfully installed requested app.";
-//                    break;
-//                case LeadMeMain.STUDENT_NO_OVERLAY:
-//                    warningMessage = "enabled blocking overlay";
-//                    break;
-//                case LeadMeMain.STUDENT_NO_INTERNET:
-//                    warningMessage = "successfully connected to the Internet";
-//                    break;
-//                case LeadMeMain.STUDENT_NO_ACCESSIBILITY:
-//                    warningMessage = "successfully enabled LeadMe accessibility";
-//                    break;
-//                case LeadMeMain.STUDENT_OFF_TASK_ALERT:
-//                    warningMessage = "now on task";
-//                    break;
-//            }
-        } else {
-            warningMessage = msg;
-            updateStatus(name, status);
         }
+
+        notifyDataSetChanged();
     }
 
     //standard status update
     public void updateStatus(String name, int status) {
         ConnectedPeer thisPeer = getMatchingPeer(name);
         if (thisPeer == null) {
-            Log.e(TAG, "Couldn't find matching peer! " + name + ", " + status);
+            Log.e(TAG, "Couldn't find matching peer! " + name + ", " + status + ", " + mData);
             return;
         }
 
-        Log.d(TAG, "Updating status for " + name + " to " + status + " (" + thisPeer + ") with " + warningMessage);
+        Log.d(TAG, "Updating status for " + name + " to " + status + " (" + thisPeer + ")"); // with " + warningMessage);
         thisPeer.setStatus(status);
         if (status == ConnectedPeer.STATUS_WARNING || status == ConnectedPeer.STATUS_ERROR || status == ConnectedPeer.STATUS_INSTALLING) {
             moveToFrontOfList(thisPeer);
@@ -317,7 +324,7 @@ public class ConnectedLearnersAdapter extends BaseAdapter {
 
         switch (peer.getStatus()) {
             case ConnectedPeer.STATUS_ERROR:
-                statusIcon.setImageDrawable(main.getResources().getDrawable(R.drawable.alert_major_error, null));
+                statusIcon.setImageDrawable(main.getResources().getDrawable(R.drawable.alert_error, null));
                 break;
 
             case ConnectedPeer.STATUS_WARNING:
@@ -325,7 +332,7 @@ public class ConnectedLearnersAdapter extends BaseAdapter {
                 break;
 
             case ConnectedPeer.STATUS_INSTALLING:
-                statusIcon.setImageDrawable(main.getResources().getDrawable(R.drawable.alert_installing, null));
+                statusIcon.setImageDrawable(main.getResources().getDrawable(R.drawable.alert_downloading, null));
                 break;
 
             default:
@@ -338,10 +345,10 @@ public class ConnectedLearnersAdapter extends BaseAdapter {
         //Log.d(TAG, "Actually, is there a warning? "+peer.hasWarning()+", "+peer.isBlackedOut()+", "+peer.isLocked());
         //sometimes multiple status are possible.
         if (!peer.hasWarning() && peer.isBlackedOut()) {
-            statusIcon.setImageDrawable(main.getResources().getDrawable(R.drawable.alert_blackout_learner, null));
+            statusIcon.setImageDrawable(main.getResources().getDrawable(R.drawable.alert_blocked, null));
 
         } else if (!peer.hasWarning() && peer.isLocked()) {
-            statusIcon.setImageDrawable(main.getResources().getDrawable(R.drawable.alert_locked_learner, null));
+            statusIcon.setImageDrawable(main.getResources().getDrawable(R.drawable.alert_locked, null));
 
         } else if (!peer.hasWarning()) {
             statusIcon.setImageDrawable(null);

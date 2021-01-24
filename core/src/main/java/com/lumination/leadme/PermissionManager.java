@@ -94,12 +94,15 @@ public class PermissionManager {
     }
 
     public boolean isOverlayPermissionGranted() {
-        overlayPermissionGranted = (main.checkSelfPermission(Manifest.permission.SYSTEM_ALERT_WINDOW) == PackageManager.PERMISSION_GRANTED || Settings.canDrawOverlays(main)) && main.overlayView != null;
+        overlayPermissionGranted = (main.checkSelfPermission(Manifest.permission.SYSTEM_ALERT_WINDOW) == PackageManager.PERMISSION_GRANTED
+                || Settings.canDrawOverlays(main));
+        //&& main.overlayView != null;
         Log.d(TAG, "IsOverlayPermissionGranted? " + (main.checkSelfPermission(Manifest.permission.SYSTEM_ALERT_WINDOW) == PackageManager.PERMISSION_GRANTED) + ", " + Settings.canDrawOverlays(main) + ", " + main.overlayView);
+
 
         if (!overlayPermissionGranted && main.getNearbyManager().isConnectedAsFollower()) {
             //alert the teacher that the student may not be lockable
-            Log.e(TAG, "WARNING! This student may be off task - overlay can't be shown. " + main.getNearbyManager().getID());
+            Log.e(TAG, "WARNING! I may be off task - overlay can't be shown. " + main.getNearbyManager().getID());
             main.getDispatcher().alertGuidePermissionGranted(LeadMeMain.STUDENT_NO_OVERLAY, false);
 
         } else if (overlayPermissionGranted && main.getNearbyManager().isConnectedAsFollower()) {
@@ -119,8 +122,6 @@ public class PermissionManager {
     public void checkOverlayPermissions() {
         Log.d(TAG, "Checking Overlay Permissions. Currently " + overlayPermissionGranted + ", " + rejectedPermissions);
         waitingForPermission = true;
-        String rationaleMsg = "Please go to [Settings] > [Other permissions] and turn 'Display pop-up window' on so LeadMe can function correctly.";
-
         if (!isOverlayPermissionGranted()) {
             main.closeKeyboard();
             TedPermission.with(main)

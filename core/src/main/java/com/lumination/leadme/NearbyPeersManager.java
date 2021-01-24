@@ -174,7 +174,7 @@ public class NearbyPeersManager {
 
 
     protected void onEndpointConnected(final Endpoint endpoint) {
-        Toast.makeText(main, "Connected to " + endpoint.getName(), Toast.LENGTH_SHORT).show();
+        //Toast.makeText(main, "Connected to " + endpoint.getName(), Toast.LENGTH_SHORT).show();
         setState(State.CONNECTED, endpoint);
         main.closeWaitingDialog(true);
 
@@ -230,7 +230,7 @@ public class NearbyPeersManager {
     protected void onConnectionFailed(Endpoint endpoint) {
         disconnectedFromEndpoint(endpoint);
         main.closeWaitingDialog(false);
-        main.showWarningDialog("Connection failed.\nRestart your device and try again.");
+        main.showWarningDialog("Connection failed.\nPlease try again.");
     }
 
     /**
@@ -766,13 +766,13 @@ public class NearbyPeersManager {
      */
     private int currentReconnectAttempts = 0;
     protected void connectToEndpoint(final Endpoint endpoint) {
-        Log.v(TAG, "Sending a connection request to endpoint " + endpoint + " (" + main.isGuide + ")");
+        Log.v(TAG, "Sending a connection request to endpoint " + endpoint + " (" + main.isGuide + ", " + main.getUUID() + ")");
         // Mark ourselves as connecting so we don't connect multiple times
         mIsConnecting = true;
 
         // Ask to connect
         mConnectionsClient
-                .requestConnection(getName(), endpoint.getId(), mConnectionLifecycleCallback)
+                .requestConnection(getName() + ":" + main.getUUID(), endpoint.getId(), mConnectionLifecycleCallback)
                 .addOnFailureListener(
                         e -> {
                             Log.w(TAG, "requestConnection() failed - " + e.getMessage(), e);

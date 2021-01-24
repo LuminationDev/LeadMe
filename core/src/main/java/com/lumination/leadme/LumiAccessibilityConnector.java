@@ -91,12 +91,14 @@ public class LumiAccessibilityConnector {
             return false;
         }
 
-        Log.w(TAG, "Managing received AccessibilityEvent: " + event);
+        //Log.w(TAG, "Managing received AccessibilityEvent: " + main.appHasFocus+", "+main.getWebManager().launchingVR+" >>> "+event);
 
         if (!main.appHasFocus && main.getWebManager().launchingVR && event.getSource() != null && event.getSource().getPackageName().toString().contains("youtube")) {
             manageYouTubeAccess(rootInActiveWindow);
 
-        } else if (main.appHasFocus && dispatcher.launchAppOnFocus == null && event.getEventType() == AccessibilityEvent.TYPE_VIEW_FOCUSED && event.getPackageName().toString().equals("com.android.systemui")) {
+        } else if (main.appHasFocus && dispatcher.launchAppOnFocus == null
+                && (event.getEventType() == AccessibilityEvent.TYPE_VIEW_FOCUSED && event.getPackageName().toString().equals("com.android.systemui")
+                || event.getEventType() == AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED && event.getPackageName().toString().equals("com.android.systemui"))) {
             //likely pulled down notifications while in main app
             Log.i(TAG, "User VIEWED status bar in LeadMe! " + event.toString());
             //main.recallToLeadMe();
@@ -131,19 +133,19 @@ public class LumiAccessibilityConnector {
                 return true;
             }
             waitingForStateChange = false;
-            if (!main.appHasFocus && main.studentLockOn) {//!main.getAppLaunchAdapter().lastApp.equals(packageName)) {
+            if (!main.appHasFocus) {//!main.getAppLaunchAdapter().lastApp.equals(packageName)) {
                 dispatcher.launchAppOnFocus = new String[2];
                 dispatcher.launchAppOnFocus[0] = main.currentTaskPackageName;
                 dispatcher.launchAppOnFocus[1] = main.currentTaskName;
                 Log.d(TAG, "NEED FOCUS! " + dispatcher.launchAppOnFocus);
                 bringMainToFront();
 
-            } else if (main.studentLockOn) {
+            } else {
                 Log.d(TAG, "HAVE FOCUS!");
                 dispatcher.launchAppOnFocus = null; //reset
                 main.getAppManager().relaunchLast();
-
             }
+
         } else if (event.getPackageName().toString().equals("com.android.systemui")
                 && event.getEventType() == AccessibilityEvent.TYPE_VIEW_CLICKED
                 && event.getContentDescription() == null && event.getContentDescription().equals("Back")) {
