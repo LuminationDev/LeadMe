@@ -640,7 +640,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         Log.w(TAG, "LC Pause");
         appHasFocus = false;
 
-        if (overlayView != null) {
+        if (overlayView != null && nearbyManager != null && nearbyManager.isConnectedAsFollower()) {
             overlayView.setVisibility(View.VISIBLE);
         }
 
