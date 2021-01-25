@@ -151,7 +151,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     View waitingForLearners, appLauncherScreen, appPushDialogView;
     private View loginDialogView, confirmPushDialogView;
     private View mainLearner, mainLeader, optionsScreen;
-    private TextView warningDialogMessage, learnerWaitingText;
+    private TextView warningDialogTitle, warningDialogMessage, learnerWaitingText;
     private Button leader_toggle, learner_toggle;
 
     private GridView connectedStudentsView;
@@ -1305,6 +1305,21 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         leadmeAnimator.setDisplayedChild(ANIM_LEADER_INDEX);
     }
 
+    public void showWarningDialog(String title, String message) {
+        if (destroying) {
+            return;
+        }
+        if (warningDialog == null) {
+            setupWarningDialog();
+        }
+        warningDialogTitle.setText(title);
+        warningDialogMessage.setText(message);
+        warningDialogMessage.setVisibility(View.VISIBLE);
+        warningDialog.show();
+        hideSystemUI();
+        dialogShowing = true;
+    }
+
     public void showWarningDialog(String message) {
         if (destroying) {
             return;
@@ -1312,6 +1327,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         if (warningDialog == null) {
             setupWarningDialog();
         }
+        warningDialogTitle.setText(getResources().getString(R.string.oops_something_went_wrong));
         warningDialogMessage.setText(message);
         warningDialogMessage.setVisibility(View.VISIBLE);
         warningDialog.show();
@@ -1376,6 +1392,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
     private void setupWarningDialog() {
         View warningDialogView = View.inflate(context, R.layout.e__warning_popup, null);
+        warningDialogTitle = warningDialogView.findViewById(R.id.warning_title);
         warningDialogMessage = warningDialogView.findViewById(R.id.warning_comment);
         Button okBtn = warningDialogView.findViewById(R.id.ok_btn);
         okBtn.setOnClickListener(v -> {
@@ -1960,7 +1977,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     }
 
     public void collapseStatus() {
-
         if (!getNearbyManager().isConnectedAsGuide() && !getNearbyManager().isConnectedAsFollower()) {
             //don't enforce any of this until we're connected
             return;
@@ -1968,6 +1984,14 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         Log.d(TAG, "TIME TO COLLAPSE! " + getLifecycle().getCurrentState() + ", " + getNearbyManager().isConnectedAsFollower());
         Intent closeDialog = new Intent(Intent.ACTION_CLOSE_SYSTEM_DIALOGS);
         sendBroadcast(closeDialog);
+
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                sendBroadcast(closeDialog);
+            }
+        }, 3000);
+
     }
 
     @Override

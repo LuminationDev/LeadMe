@@ -26,6 +26,7 @@ public class ConnectedLearnersAdapter extends BaseAdapter {
     private LayoutInflater mInflater;
     private LeadMeMain main;
     private View studentDisconnectedView;
+    private View studentLogoutView;
 
     ConnectedLearnersAdapter(LeadMeMain main, List<ConnectedPeer> data) {
         this.main = main;
@@ -80,7 +81,7 @@ public class ConnectedLearnersAdapter extends BaseAdapter {
         mData.add(peer);
         refresh();
 
-        Log.d(TAG, "Adding " + peer.getDisplayName() + " to my student list. Now: " + mData.size());
+        Log.d(TAG, "Adding " + peer.getDisplayName() + " to my student list. Now: " + mData.size() + " || " + mData);
     }
 
     public boolean hasConnectedStudents() {
@@ -232,6 +233,7 @@ public class ConnectedLearnersAdapter extends BaseAdapter {
 
 
     AlertDialog disconnectPrompt;
+    AlertDialog logoutPrompt;
     private String lastClickedID = "";
 
     @Override
@@ -268,6 +270,35 @@ public class ConnectedLearnersAdapter extends BaseAdapter {
             //draw the student icon and status icon
             studentIcon.setImageDrawable(icon);
             drawAlertIcon(peer, warningIcon);
+
+            convertView.setLongClickable(true);
+            convertView.setOnLongClickListener(v -> {
+                lastClickedID = peer.getID();
+                if (studentLogoutView == null) {
+                    studentLogoutView = View.inflate(main, R.layout.e__logout_student_popup, null);
+                    Button ok_btn = studentLogoutView.findViewById(R.id.ok_btn);
+                    Button back_btn = studentLogoutView.findViewById(R.id.back_btn);
+
+                    ok_btn.setOnClickListener(v12 -> {
+                        Log.d(TAG, "Disconnecting from student: " + lastClickedID);
+                        main.getNearbyManager().disconnectStudent(lastClickedID);
+                        main.getConnectedLearnersAdapter().removeStudent(lastClickedID);
+                        main.getConnectedLearnersAdapter().refresh();
+                        logoutPrompt.hide();
+                    });
+
+                    back_btn.setOnClickListener(v1 -> logoutPrompt.hide());
+                }
+
+                if (logoutPrompt == null) {
+                    logoutPrompt = new AlertDialog.Builder(main)
+                            .setView(studentLogoutView)
+                            .show();
+                } else {
+                    logoutPrompt.show();
+                }
+                return true;
+            });
 
             convertView.setOnClickListener(v -> {
                 Log.d(TAG, "Clicked on " + peer.getID() + ", " + peer.getMyEndpoint() + ", " + peer.getDisplayName());

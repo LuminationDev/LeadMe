@@ -34,13 +34,6 @@ public class LumiAccessibilityConnector {
         Log.d(TAG, "PREPARING TO INSTALL " + lastAppName);
     }
 
-    //returns true if it has finished searching, NOT necessarily that it found the button
-    boolean debugVRClick = true;
-    boolean autoEnterVR = true;
-    boolean inFindAndClick = false;
-    int vrClickAttempts = 0;
-    AccessibilityNodeInfo originalNodeInfo;
-
     private static boolean waitingForStateChange = false;
 
     private static String[] keyYouTubePhrases = {
@@ -48,7 +41,8 @@ public class LumiAccessibilityConnector {
             "Continue", "CONTINUE",
             "Dismiss", "DISMISS",
             "Skip Trial", "SKIP TRIAL",
-            "No Thanks", "NO THANKS"
+            "No Thanks", "NO THANKS",
+
     };
 
     private void manageYouTubeAccess(AccessibilityNodeInfo rootInActiveWindow) {
@@ -81,6 +75,8 @@ public class LumiAccessibilityConnector {
     }
 
 
+    boolean showDebugMsg = false;
+
     public boolean manageAccessibilityEvent(AccessibilityEvent event, AccessibilityNodeInfo rootInActiveWindow) {
         if (main == null) {
             return false;
@@ -91,179 +87,203 @@ public class LumiAccessibilityConnector {
             return false;
         }
 
-        //Log.w(TAG, "Managing received AccessibilityEvent: " + main.appHasFocus+", "+main.getWebManager().launchingVR+" >>> "+event);
-
-        if (!main.appHasFocus && main.getWebManager().launchingVR && event.getSource() != null && event.getSource().getPackageName().toString().contains("youtube")) {
-            manageYouTubeAccess(rootInActiveWindow);
-
-        } else if (main.appHasFocus && dispatcher.launchAppOnFocus == null
-                && (event.getEventType() == AccessibilityEvent.TYPE_VIEW_FOCUSED && event.getPackageName().toString().equals("com.android.systemui")
-                || event.getEventType() == AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED && event.getPackageName().toString().equals("com.android.systemui"))) {
-            //likely pulled down notifications while in main app
-            Log.i(TAG, "User VIEWED status bar in LeadMe! " + event.toString());
-            //main.recallToLeadMe();
-            main.collapseStatus();
-
-        } else if (main.appHasFocus && event.getEventType() == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED && event.getPackageName().toString().equals("com.lumination.leadme")) {
-            Log.i(TAG, "User RETURNED TO LEADME! [" + main.appHasFocus + "] " + event.toString());
-            //don't need to do anything really, perhaps alert guide?
-            waitingForStateChange = false; //reset
-
-            //update learner UI and let leader know
-            //main.updateFollowerCurrentTask(main.leadMePackageName, main.leadMeAppName, "Application", "");
-            if (!main.getDispatcher().hasDelayedLaunchContent()) {
-                Log.i(TAG, "No delayed content!");
-                dispatcher.sendActionToSelected(LeadMeMain.ACTION_TAG,
-                        LeadMeMain.LAUNCH_SUCCESS + main.leadMeAppName + ":" + main.getNearbyManager().getID() + ":" + main.leadMePackageName, main.getNearbyManager().getAllPeerIDs());
+        try {
+            if (event.getEventType() == AccessibilityEvent.TYPE_VIEW_CLICKED) {
+                Log.e(TAG, "CLICKED! " + event.getPackageName() + ", " + event.getClassName() + ", " + event.getText() + ", " + event.getAction());
+                Log.e(TAG, "CLICKED! >>>  " + event.getSource());
             }
 
+            if (showDebugMsg)
+                Log.w(TAG, "Managing received AccessibilityEvent: " + main.appHasFocus + ", " + main.getWebManager().launchingVR + " >>> " + event);
 
-        } else if ((waitingForStateChange && event.getEventType() == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) ||
+            if (!main.appHasFocus && main.getWebManager().launchingVR && event.getSource() != null && event.getSource().getPackageName().toString().contains("youtube")) {
+                manageYouTubeAccess(rootInActiveWindow);
 
-                //works for Redmi Note 7
-                (event.getEventType() == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED && event.getPackageName().toString().equals("com.android.launcher3")) ||
+            } else if (main.appHasFocus && dispatcher.launchAppOnFocus == null
+                    && (event.getEventType() == AccessibilityEvent.TYPE_VIEW_FOCUSED && event.getPackageName().toString().equals("com.android.systemui")
+                    /* || event.getEventType() == AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED && event.getPackageName().toString().equals("com.android.systemui")*/)) {
+                //likely pulled down notifications while in main app
+                Log.i(TAG, "User VIEWED status bar in LeadMe! " + event.toString());
+                //main.recallToLeadMe();
+                main.collapseStatus();
 
-                //works for MI 8 SE
-                (event.getPackageName().toString().equals("com.android.systemui") && event.getEventType() == AccessibilityEvent.TYPE_VIEW_CLICKED &&
-                        (event.getContentDescription()) != null && (event.getContentDescription().equals("Overview") || event.getContentDescription().equals("Home")))) {
-            //either pulled down or clicked notification, setting or nav while in launched 3rd party app
-            Log.i(TAG, "User clicked HOME or OVERVIEW! " + event.toString());
-            if (!main.studentLockOn) {
-                Log.i(TAG, "It's OK, user is in free play mode");
-                return true;
-            }
-            waitingForStateChange = false;
-            if (!main.appHasFocus) {//!main.getAppLaunchAdapter().lastApp.equals(packageName)) {
-                dispatcher.launchAppOnFocus = new String[2];
-                dispatcher.launchAppOnFocus[0] = main.currentTaskPackageName;
-                dispatcher.launchAppOnFocus[1] = main.currentTaskName;
-                Log.d(TAG, "NEED FOCUS! " + dispatcher.launchAppOnFocus);
-                bringMainToFront();
+            } else if (main.appHasFocus && event.getEventType() == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED && event.getPackageName().toString().equals("com.lumination.leadme")) {
+                if (showDebugMsg)
+                    Log.i(TAG, "User RETURNED TO LEADME! [" + main.appHasFocus + "] " + event.toString());
+                //don't need to do anything really, perhaps alert guide?
+                waitingForStateChange = false; //reset
 
-            } else {
-                Log.d(TAG, "HAVE FOCUS!");
-                dispatcher.launchAppOnFocus = null; //reset
-                main.getAppManager().relaunchLast();
-            }
-
-        } else if (event.getPackageName().toString().equals("com.android.systemui")
-                && event.getEventType() == AccessibilityEvent.TYPE_VIEW_CLICKED
-                && event.getContentDescription() == null && event.getContentDescription().equals("Back")) {
-            Log.i(TAG, "User clicked BACK! " + event.toString());
-            //don't need to do anything unless window state changes
-            waitingForStateChange = true;
-
-
-        } else if (
-            //this works for MI 8 SE
-                (event.getPackageName().toString().equals("com.android.systemui") && event.getEventType() == AccessibilityEvent.TYPE_VIEW_FOCUSED) ||
-                        //this works for Redmi Note 7
-                        (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P && event.getEventType() == AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED && ((event.getContentChangeTypes() & AccessibilityEvent.CONTENT_CHANGE_TYPE_SUBTREE) == AccessibilityEvent.CONTENT_CHANGE_TYPE_SUBTREE))) {
-            Log.i(TAG, "User VIEWED status bar or other SYSTEM interface! " + event.toString());
-            main.collapseStatus();
-
-
-        } else if (main.getNearbyManager().isConnectedAsFollower()) {
-            //Log.d(TAG, "onAccessibilityEvent " + event + "\n");
-        }
-
-
-        //check if we're trying to install something and respond appropriately
-        if ((AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED == event.getEventType()
-                || (AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED == event.getEventType()))
-                && (lastAppName != null) && (lastAppName.length() > 0)) {
-            AccessibilityNodeInfo nodeInfo = event.getSource();
-            if (nodeInfo == null) {
-                return false;
-            }
-
-            List<AccessibilityNodeInfo> installNodes = nodeInfo.findAccessibilityNodeInfosByText("Install");
-            List<AccessibilityNodeInfo> acceptNodes = nodeInfo.findAccessibilityNodeInfosByText("ACCEPT"); //is this case sensitive?
-            List<AccessibilityNodeInfo> openNodes = nodeInfo.findAccessibilityNodeInfosByText("Open");
-
-            String needsAccessTxt = "needs access to";
-            List<AccessibilityNodeInfo> accessToTextNodes = nodeInfo.findAccessibilityNodeInfosByText(needsAccessTxt);
-            List<AccessibilityNodeInfo> textNodes = nodeInfo.findAccessibilityNodeInfosByText(lastAppName);
-
-            AccessibilityNodeInfo acceptButton = null, installerButton = null, openButton = null;
-            boolean foundTitle = false, foundNeedsAccess = false;
-
-            //TODO also check for 'Needs access to'
-            for (AccessibilityNodeInfo node : acceptNodes) {
-                if (node.getText() != null && node.getText().equals("ACCEPT")) {
-                    Log.i(TAG, "ACC::onAccessibilityEvent: Accept (" + lastAppName + ") " + node.getPackageName() + " for " + node.getText());
-                    acceptButton = node;
-                    break;
+                //update learner UI and let leader know
+                //main.updateFollowerCurrentTask(main.leadMePackageName, main.leadMeAppName, "Application", "");
+                if (!main.getDispatcher().hasDelayedLaunchContent()) {
+                    if (showDebugMsg)
+                        Log.i(TAG, "No delayed content!");
+                    dispatcher.sendActionToSelected(LeadMeMain.ACTION_TAG,
+                            LeadMeMain.LAUNCH_SUCCESS + main.leadMeAppName + ":" + main.getNearbyManager().getID() + ":" + main.leadMePackageName, main.getNearbyManager().getAllPeerIDs());
                 }
-            }
 
-            for (AccessibilityNodeInfo node : installNodes) {
-                if (node.getText() != null && node.getText().equals("Install")) {
-                    Log.i(TAG, "ACC::onAccessibilityEvent: Install (" + lastAppName + ") " + node.getPackageName() + " for " + node.getText());
-                    installerButton = node;
-                    break;
+
+            } else if ((waitingForStateChange && event.getEventType() == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) ||
+
+                    //works for Redmi Note 7
+                    (event.getEventType() == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED && event.getPackageName().toString().equals("com.android.launcher3")) ||
+
+                    //works for MI 8 SE
+                    (event.getPackageName().toString().equals("com.android.systemui") && event.getEventType() == AccessibilityEvent.TYPE_VIEW_CLICKED &&
+                            (event.getContentDescription()) != null && (event.getContentDescription().equals("Overview") || event.getContentDescription().equals("Home")))) {
+                //either pulled down or clicked notification, setting or nav while in launched 3rd party app
+                if (showDebugMsg) Log.i(TAG, "User clicked HOME or OVERVIEW! " + event.toString());
+                if (!main.studentLockOn) {
+                    if (showDebugMsg) Log.i(TAG, "It's OK, user is in free play mode");
+                    return true;
                 }
-            }
+                waitingForStateChange = false;
+                if (!main.appHasFocus) {//!main.getAppLaunchAdapter().lastApp.equals(packageName)) {
+                    dispatcher.launchAppOnFocus = new String[2];
+                    dispatcher.launchAppOnFocus[0] = main.currentTaskPackageName;
+                    dispatcher.launchAppOnFocus[1] = main.currentTaskName;
+                    if (showDebugMsg) Log.d(TAG, "NEED FOCUS! " + dispatcher.launchAppOnFocus);
+                    bringMainToFront();
 
-            for (AccessibilityNodeInfo node : openNodes) {
-                if (node.getText() != null && node.getText().equals("Open")) {
-                    Log.i(TAG, "ACC::onAccessibilityEvent: Open (" + lastAppName + ") " + node.getPackageName() + " for " + node.getText());
-                    openButton = node;
-                    break;
-                }
-            }
-
-            for (AccessibilityNodeInfo node : textNodes) {
-                if (node.getText() != null && node.getText().equals(lastAppName)) {
-                    //found one, that's enough
-                    foundTitle = true;
-                    Log.i(TAG, "ACC::onAccessibilityEvent: Title (" + lastAppName + ") " + node.getPackageName() + " for " + node.getText());
-                    break;
-                }
-            }
-
-            for (AccessibilityNodeInfo node : accessToTextNodes) {
-                if (node.getText() != null && node.getText().equals(needsAccessTxt)) {
-                    //found it once, that's enough
-                    foundNeedsAccess = true;
-                    Log.i(TAG, "ACC::onAccessibilityEvent: Needs Access (" + needsAccessTxt + ") " + node.getPackageName() + " for " + node.getText());
-                    break;
-                }
-            }
-
-            //if we can open it, it's already installed
-            if (openButton != null && foundTitle) {
-                Log.i(TAG, ">> Now let's launch it! " + openNodes.size() + ", " + openButton + ", " + openButton.isClickable());
-
-                if (openButton.isClickable()) {
-                    boolean success = openButton.performAction(AccessibilityNodeInfo.ACTION_CLICK);
-                    if (!success) {
-                        Log.i(TAG, ">> Second try opening it... " + openNodes.size() + ", " + openButton);
-                        success = openNodes.get(0).performAction(AccessibilityNodeInfo.ACTION_CLICK);
-                    }
-                    if (!success) {
-                        Log.i(TAG, ">> Third try opening it... " + openNodes.size() + ", " + openButton);
-                        main.getAppManager().launchLocalApp(lastPackageName, lastAppName, true);
-                    }
-                    lastAppName = null; //reset, we're done
-                    return true; //all done, can exit
                 } else {
-                    Log.d(TAG, "Not clickable yet...");
+                    if (showDebugMsg) Log.d(TAG, "HAVE FOCUS!");
+                    dispatcher.launchAppOnFocus = null; //reset
+                    main.getAppManager().relaunchLast();
+                }
+
+            } else if (event.getPackageName().toString().equals("com.android.systemui")
+                    && event.getEventType() == AccessibilityEvent.TYPE_VIEW_CLICKED
+                /*&& event.getContentDescription() != null && event.getContentDescription() == null && event.getContentDescription().equals("Back")*/) {
+                if (showDebugMsg) Log.i(TAG, "User clicked SYSTEM WINDOW! " + event.toString());
+                //don't need to do anything unless window state changes
+                waitingForStateChange = true;
+                main.collapseStatus();
+
+
+            } else if (
+                //this works for MI 8 SE
+                    (event.getPackageName().toString().equals("com.android.systemui") && event.getEventType() == AccessibilityEvent.TYPE_VIEW_FOCUSED) ||
+                            //this works for Redmi Note 7
+                            (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P && event.getEventType() == AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED && ((event.getContentChangeTypes() & AccessibilityEvent.CONTENT_CHANGE_TYPE_SUBTREE) == AccessibilityEvent.CONTENT_CHANGE_TYPE_SUBTREE))) {
+                if (showDebugMsg)
+                    Log.i(TAG, "User VIEWED status bar or other SYSTEM interface! " + event.toString());
+                main.collapseStatus();
+
+            }
+
+
+            //check if we're trying to install something and respond appropriately
+            if ((AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED == event.getEventType()
+                    || (AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED == event.getEventType()))
+                    && (lastAppName != null) && (lastAppName.length() > 0)) {
+                AccessibilityNodeInfo nodeInfo = event.getSource();
+                if (nodeInfo == null) {
                     return false;
                 }
+
+                List<AccessibilityNodeInfo> installNodes = nodeInfo.findAccessibilityNodeInfosByText("Install");
+                List<AccessibilityNodeInfo> acceptNodes = nodeInfo.findAccessibilityNodeInfosByText("ACCEPT"); //is this case sensitive?
+                List<AccessibilityNodeInfo> openNodes = nodeInfo.findAccessibilityNodeInfosByText("Open");
+
+                String needsAccessTxt = "needs access to";
+                List<AccessibilityNodeInfo> accessToTextNodes = nodeInfo.findAccessibilityNodeInfosByText(needsAccessTxt);
+                List<AccessibilityNodeInfo> textNodes = nodeInfo.findAccessibilityNodeInfosByText(lastAppName);
+
+                AccessibilityNodeInfo acceptButton = null, installerButton = null, openButton = null;
+                boolean foundTitle = false, foundNeedsAccess = false;
+
+                //TODO also check for 'Needs access to'
+                for (AccessibilityNodeInfo node : acceptNodes) {
+                    if (node.getText() != null && node.getText().equals("ACCEPT")) {
+                        if (showDebugMsg)
+                            Log.i(TAG, "ACC::onAccessibilityEvent: Accept (" + lastAppName + ") " + node.getPackageName() + " for " + node.getText());
+                        acceptButton = node;
+                        break;
+                    }
+                }
+
+                for (AccessibilityNodeInfo node : installNodes) {
+                    if (node.getText() != null && node.getText().equals("Install")) {
+                        if (showDebugMsg)
+                            Log.i(TAG, "ACC::onAccessibilityEvent: Install (" + lastAppName + ") " + node.getPackageName() + " for " + node.getText());
+                        installerButton = node;
+                        break;
+                    }
+                }
+
+                for (AccessibilityNodeInfo node : openNodes) {
+                    if (node.getText() != null && node.getText().equals("Open")) {
+                        if (showDebugMsg)
+                            Log.i(TAG, "ACC::onAccessibilityEvent: Open (" + lastAppName + ") " + node.getPackageName() + " for " + node.getText());
+                        openButton = node;
+                        break;
+                    }
+                }
+
+                for (AccessibilityNodeInfo node : textNodes) {
+                    if (node.getText() != null && node.getText().equals(lastAppName)) {
+                        //found one, that's enough
+                        foundTitle = true;
+                        if (showDebugMsg)
+                            Log.i(TAG, "ACC::onAccessibilityEvent: Title (" + lastAppName + ") " + node.getPackageName() + " for " + node.getText());
+                        break;
+                    }
+                }
+
+                for (AccessibilityNodeInfo node : accessToTextNodes) {
+                    if (node.getText() != null && node.getText().equals(needsAccessTxt)) {
+                        //found it once, that's enough
+                        foundNeedsAccess = true;
+                        if (showDebugMsg)
+                            Log.i(TAG, "ACC::onAccessibilityEvent: Needs Access (" + needsAccessTxt + ") " + node.getPackageName() + " for " + node.getText());
+                        break;
+                    }
+                }
+
+                //if we can open it, it's already installed
+                if (openButton != null && foundTitle) {
+                    if (showDebugMsg)
+                        Log.i(TAG, ">> Now let's launch it! " + openNodes.size() + ", " + openButton + ", " + openButton.isClickable());
+
+                    if (openButton.isClickable()) {
+                        boolean success = openButton.performAction(AccessibilityNodeInfo.ACTION_CLICK);
+                        if (!success) {
+                            if (showDebugMsg)
+                                Log.i(TAG, ">> Second try opening it... " + openNodes.size() + ", " + openButton);
+                            success = openNodes.get(0).performAction(AccessibilityNodeInfo.ACTION_CLICK);
+                        }
+                        if (!success) {
+                            if (showDebugMsg)
+                                Log.i(TAG, ">> Third try opening it... " + openNodes.size() + ", " + openButton);
+                            main.getAppManager().launchLocalApp(lastPackageName, lastAppName, true);
+                        }
+                        lastAppName = null; //reset, we're done
+                        return true; //all done, can exit
+                    } else {
+                        if (showDebugMsg) Log.d(TAG, "Not clickable yet...");
+                        return false;
+                    }
+                }
+
+                //otherwise we need to install it
+                if (installerButton != null && foundTitle) {
+                    if (showDebugMsg)
+                        Log.i(TAG, ">> Let's try to install that app! " + installNodes.size());
+                    installerButton.performAction(AccessibilityNodeInfo.ACTION_CLICK);
+                }
+
+                //we might need to accept permissions
+                if (acceptButton != null && foundNeedsAccess) {
+                    if (showDebugMsg)
+                        Log.i(TAG, ">> Let's accept it's permissions! " + acceptNodes.size());
+                    acceptButton.performAction(AccessibilityNodeInfo.ACTION_CLICK);
+                }
             }
 
-            //otherwise we need to install it
-            if (installerButton != null && foundTitle) {
-                Log.i(TAG, ">> Let's try to install that app! " + installNodes.size());
-                installerButton.performAction(AccessibilityNodeInfo.ACTION_CLICK);
-            }
-
-            //we might need to accept permissions
-            if (acceptButton != null && foundNeedsAccess) {
-                Log.i(TAG, ">> Let's accept it's permissions! " + acceptNodes.size());
-                acceptButton.performAction(AccessibilityNodeInfo.ACTION_CLICK);
-            }
+        } catch (Exception e) {
+            //giant try-catch because we'd prefer to fail managing a single accessibility
+            //action than crash the program outright
+            e.printStackTrace();
         }
 
         return false;
@@ -273,7 +293,6 @@ public class LumiAccessibilityConnector {
         //Log.i(TAG, "Triaging the intent! " + intent + ", " + intent.getStringExtra(LumiAccessibilityService.INFO_TAG) + ", have main? " + main + ", " + main.getLifecycle().getCurrentState());
 
         if (intent.hasExtra(LumiAccessibilityService.INFO_TAG)) {
-
             switch (intent.getStringExtra(LumiAccessibilityService.INFO_TAG)) {
                 case LumiAccessibilityService.INFO_CONFIG:
                     main.runOnUiThread(() -> main.refreshOverlay());
@@ -289,7 +308,6 @@ public class LumiAccessibilityConnector {
                     manageAccessibilityEvent(evt, root);
                     break;
             }
-
         }
     }
 }

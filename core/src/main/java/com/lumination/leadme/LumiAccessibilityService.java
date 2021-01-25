@@ -105,7 +105,7 @@ public class LumiAccessibilityService extends AccessibilityService {
 
     @Override
     public void onAccessibilityEvent(final AccessibilityEvent event) {
-        Log.w(TAG, "Sending ACCESSIBILITY broadcast! " + getApplicationContext() + ", " + event);
+        //Log.w(TAG, "Sending ACCESSIBILITY broadcast! " + getApplicationContext() + ", " + event);
 
         if (getApplicationContext() == null) {
             //app is not currently running, can't do anything right now
@@ -117,7 +117,7 @@ public class LumiAccessibilityService extends AccessibilityService {
         //we're currently in LeadMe, we don't need to broadcast
         if (event.getPackageName() == null || event.getPackageName().equals(leadmePackageName)) {
             //This happens in v10 due to new 'TYPE_WINDOWS_CHANGED' event with no package
-            Log.d(TAG, "ERROR! Can't do anything with this event.");
+            //Log.d(TAG, "ERROR! Can't do anything with this event.");
             return;
         }
 

@@ -4,11 +4,13 @@
     android:id="@+id/fav_layout"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
+    android:layout_centerInParent="true"
     android:layout_centerHorizontal="true"
+    android:layout_centerVertical="true"
     android:gravity="center"
     android:orientation="vertical"
     android:padding="5dp"
-    app:layout_anchorGravity="center_horizontal">
+    app:layout_anchorGravity="center">
 
     <ImageView
         android:id="@+id/fav_icon"
@@ -20,9 +22,9 @@
         android:scaleType="fitCenter" />
 
     <TextView
-        android:id="@+id/list_student_name"
+        android:id="@+id/fav_name"
         android:layout_width="@dimen/video_thumb_width"
-        android:layout_height="40dp"
+        android:layout_height="wrap_content"
         android:layout_weight="1"
         android:breakStrategy="simple"
         android:ellipsize="end"

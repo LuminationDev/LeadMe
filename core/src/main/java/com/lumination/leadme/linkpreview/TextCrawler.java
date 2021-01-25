@@ -14,6 +14,7 @@ import java.io.InterruptedIOException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.UnknownHostException;
 import java.util.HashMap;
 import java.util.List;
 
@@ -160,13 +161,12 @@ public class TextCrawler {
                         }
                     }
                 }
-                sourceContent.setSuccess(wasPreviewGenerationSuccessful);
             }
 
+            sourceContent.setSuccess(wasPreviewGenerationSuccessful);
             String[] finalLinkSet = sourceContent.getFinalUrl().split("&");
             sourceContent.setUrl(finalLinkSet[0]);
             sourceContent.setDescription(stripTags(sourceContent.getDescription()));
-
             return null;
         }
 
@@ -185,7 +185,6 @@ public class TextCrawler {
             try {
                 conn = Jsoup.connect(sourceContent.getFinalUrl()).userAgent("Mozilla");
                 doc = conn.get();
-
                 return doc;
 
             } catch (HttpStatusException e) {
@@ -197,6 +196,11 @@ public class TextCrawler {
             } catch (InterruptedIOException e) {
                 Log.e(TAG, "IO Error (probably a timeout): " + e.bytesTransferred + ", " + e.getMessage());
                 //Log.e(TAG, "Conn: "+conn);
+                //e.printStackTrace();
+                return null;
+
+            } catch (UnknownHostException e) {
+                Log.e(TAG, "Unknown Host Error (probably a bad URL): " + e.getMessage());
                 //e.printStackTrace();
                 return null;
 

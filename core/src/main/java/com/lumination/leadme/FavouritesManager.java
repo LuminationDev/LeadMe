@@ -17,6 +17,7 @@ import android.widget.TextView;
 import com.koushikdutta.urlimageviewhelper.UrlImageViewHelper;
 import com.lumination.leadme.linkpreview.LinkPreviewCallback;
 import com.lumination.leadme.linkpreview.SourceContent;
+import com.lumination.leadme.linkpreview.TextCrawler;
 
 import java.net.URL;
 import java.util.ArrayList;
@@ -146,7 +147,7 @@ public class FavouritesManager extends BaseAdapter {
 
         //if app favourites, fill with empty content so we get placeholder images
         if (favType == FAVTYPE_APP) {
-            for (int i = contentList.size() - 1; i < maxLimit; i++) {
+            for (int i = contentList.size(); i < maxLimit; i++) {
                 contentList.add("");
                 titleList.add("");
                 iconList.add(null);
@@ -166,8 +167,10 @@ public class FavouritesManager extends BaseAdapter {
 
         @Override
         public void onPos(final SourceContent sourceContent, boolean b) {
-            Log.d(TAG, "PREVIEW RETURNED! " + sourceContent.getUrl() + " vs " + contentList);
-            gettingPreviews.remove(sourceContent.getUrl()); //no longer getting this one - remove it
+            String urlStr = sourceContent.getUrl();
+            Log.d(TAG, "PREVIEW RETURNED! " + urlStr + ", " + sourceContent.isSuccess());
+            gettingPreviews.remove(urlStr); //whatever the outcome, we're done with this one
+            refreshAllPreviews();
 
             for (int i = 0; i < contentList.size(); i++) {
 
@@ -187,10 +190,17 @@ public class FavouritesManager extends BaseAdapter {
                         if (!sourceContent.getImages().isEmpty()) {
                             img = sourceContent.getImages().get(0);
                         }
-                        UrlImageViewHelper.setUrlDrawable(webManager.getPreviewImageView(), img, (imageView, loadedBitmap, url, loadedFromCache) -> {
-                            iconList.set(prevIndex, imageView.getDrawable());
-                            previewStorage.put(sourceContent.getFinalUrl(), imageView.getDrawable());
-                        });
+                        if (sourceContent.isSuccess()) {
+                            UrlImageViewHelper.setUrlDrawable(webManager.getPreviewImageView(), img, (imageView, loadedBitmap, url, loadedFromCache) -> {
+                                Drawable drawable = imageView.getDrawable();
+                                iconList.set(prevIndex, drawable);
+                                previewStorage.put(sourceContent.getFinalUrl(), drawable);
+                            });
+                        } else {
+                            Drawable drawable = main.getResources().getDrawable(R.drawable.placeholder_broken_img, null);
+                            iconList.set(prevIndex, drawable);
+                            previewStorage.put(sourceContent.getFinalUrl(), drawable);
+                        }
                     }
                 } catch (Exception e) {
                     Log.e(TAG, "Error processing preview: " + e.getMessage());
@@ -521,22 +531,59 @@ public class FavouritesManager extends BaseAdapter {
         }
     }
 
+    public void clearPreviews() {
+        gettingPreviews.clear();
+    }
+
+    private HashMap<String, TextCrawler> crawlers = new HashMap<>();
+    private TextCrawler tmpCrawler;
+
+    private void refreshPreview(String url) {
+        String tmpUrl = url.replace(webManager.getSuffix(), ""); //clean the URL
+        Log.d(TAG, "Trying to retrieve preview for " + tmpUrl + ", " + gettingPreviews);
+
+        if (!gettingPreviews.contains(tmpUrl)) {
+
+            tmpCrawler = crawlers.get(tmpUrl);
+            if (tmpCrawler != null) {
+                tmpCrawler.cancel(); //cancel the old
+            }
+            tmpCrawler = new TextCrawler(); //make a freshie
+
+
+            gettingPreviews.add(tmpUrl); //storing it here means we only try once per url
+            crawlers.put(tmpUrl, tmpCrawler);
+            Thread previewThread = new Thread(() -> tmpCrawler.makePreview(linkPreviewCallback, tmpUrl)
+            );
+            previewThread.start();
+        }
+    }
+
+    private void refreshAllPreviews() {
+        for (int i = 0; i < contentList.size(); i++) {
+            //if current icon is null or placeholder, then try again to load preview
+            if (iconList.get(i) == null || iconList.get(i) == placeholder) {
+                refreshPreview(contentList.get(i));
+            }
+        }
+    }
+
     private ArrayList<String> gettingPreviews = new ArrayList<>();
+    boolean gettingPreview = false;
+
     private void updateWebFavView(View convertView, final String url, final String title, Drawable icon) {
         final FavouritesManager.ViewHolder viewHolder = (FavouritesManager.ViewHolder) convertView.getTag();
 
         //check if the icon needs updating
         if ((icon == null || icon == placeholder) && !url.isEmpty()) {
-            if (getPreview(url) != null) {
+            Drawable storedIcon = getPreview(url);
+            if (storedIcon != null && storedIcon != placeholder) {
                 Log.d(TAG, "Getting preview for " + url + " from storage");
                 icon = getPreview(url);
 
-            } else if (!gettingPreviews.contains(url)) {
+            } else {
                 viewHolder.favouriteIcon.setImageDrawable(placeholder);
-                Log.d(TAG, "Trying to retrieve preview for " + url);
-                gettingPreviews.add(url); //storing it here means we only try once per url
-                Thread previewThread = new Thread(() -> webManager.getTextCrawler().makePreview(linkPreviewCallback, url));
-                previewThread.start();
+                refreshPreview(url);
             }
         }
 
@@ -610,7 +657,7 @@ public class FavouritesManager extends BaseAdapter {
         final ImageView favouriteIcon;
 
         ViewHolder(View itemView) {
-            favouriteName = itemView.findViewById(R.id.list_student_name);
+            favouriteName = itemView.findViewById(R.id.fav_name);
             favouriteIcon = itemView.findViewById(R.id.fav_icon);
         }
     }

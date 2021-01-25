@@ -151,6 +151,7 @@ public class WebManager {
                 icon = sourceContent.getImages().get(0);
             } else {
                 icon = "";
+                previewMessage.setVisibility(View.VISIBLE);
             }
 
             try {
@@ -172,11 +173,11 @@ public class WebManager {
                     } else {
                         previewMessage.setVisibility(View.VISIBLE); //show error
                     }
-                    previewProgress.setVisibility(View.GONE);
                 });
 
                 getUrlFavouritesManager().notifyDataSetChanged();
                 getYouTubeFavouritesManager().notifyDataSetChanged();
+
 
             } catch (Exception e) {
                 Log.e(TAG, "Error launching URL: " + e.getMessage());
@@ -185,6 +186,9 @@ public class WebManager {
                 error = true; //set error flag
                 hidePreviewDialog();
             }
+
+            previewProgress.setVisibility(View.GONE); //we're done loading
+
         }
 
     };
@@ -561,6 +565,7 @@ public class WebManager {
     }
 
     void showWebLaunchDialog(boolean add_fav_mode) {
+
         if (websiteLaunchDialog == null) {
             websiteLaunchDialog = new AlertDialog.Builder(main)
                     .setView(websiteLaunchDialogView)
@@ -622,6 +627,16 @@ public class WebManager {
     protected void showPreview(String url) {
         main.closeKeyboard();
         main.hideSystemUI();
+
+
+        //placeholder URL for testing connection
+        if (!main.getPermissionsManager().isInternetConnectionAvailable("https://google.com")) {
+            main.showWarningDialog("No Internet Connection",
+                    "Internet based functions unavailable at this time. " +
+                            "Please check your WiFi connection and try again.");
+            return;
+        }
+
 
         url = assistWithUrl(url);
 
@@ -692,6 +707,11 @@ public class WebManager {
     }
 
     private void launchUrlYtFavourites() {
+        getUrlFavouritesManager().clearPreviews();
+        getUrlFavouritesManager().notifyDataSetChanged();
+        getYouTubeFavouritesManager().clearPreviews();
+        getYouTubeFavouritesManager().notifyDataSetChanged();
+
         if (urlYtFavDialog == null) {
             urlYtFavDialog = new AlertDialog.Builder(main)
                     .setView(webYouTubeFavView)
@@ -714,7 +734,13 @@ public class WebManager {
     public String cleanYouTubeURL(String url) {
         String id = getYouTubeID(url);
         Log.i(TAG, "YouTube ID = " + id + " from " + url);
-        return "https://www.youtube.com/watch?v=" + id + "&start=0&rel=0"; //turn back to t=1 if problems with video
+        return "https://www.youtube.com/watch?v=" + id + suffix; //turn back to t=1 if problems with video
+    }
+
+    private String suffix = "&t=1&rel=0";
+
+    public String getSuffix() {
+        return suffix;
     }
 
     public void launchYouTube(String url, boolean updateTask) {
@@ -812,17 +838,32 @@ public class WebManager {
 
 
     /////////////////////////////
+    // JAKE'S SEARCH CODE
+    /////////////////////////////
+
     private boolean searchYoutube = true;
     private WebView web;
 
     private void buildAndShowSearchDialog() {
         hideWebsiteLaunchDialog();
 
+
+        //placeholder URL for testing connection
+        if (!main.getPermissionsManager().isInternetConnectionAvailable("https://google.com")) {
+            main.showWarningDialog("No Internet Connection",
+                    "Internet based functions unavailable at this time. " +
+                            "Please check your WiFi connection and try again.");
+            return;
+        }
+
+
         //instantiates the search dialog popup if it does not already exist
         if (searchDialog == null) {
             searchDialog = new AlertDialog.Builder(main)
                     .setView(searchDialogView)
                     .show();
+
+            searchDialogView.findViewById(R.id.url_search_bar).requestFocus();
 
             web = searchDialogView.findViewById(R.id.webview_preview);
             web.getSettings().setJavaScriptEnabled(true); // enable javascript
@@ -870,6 +911,7 @@ public class WebManager {
             });
 
         } else {
+            searchDialogView.findViewById(R.id.url_search_bar).requestFocus();
             searchDialog.show();
         }
 
@@ -929,6 +971,7 @@ public class WebManager {
                             }
                             Log.d(TAG, "onLoadResource valid: " + url);
                             //searchDialog.hide();
+                            hideSearchDialog();
                             showPreview(url);
                         }
                     }
@@ -968,6 +1011,7 @@ public class WebManager {
 
                         if (!URL.startsWith("https://www.google.com")) {
                             //searchDialog.hide();
+                            hideSearchDialog();
                             showPreview(URL);
                             return true;
                         }

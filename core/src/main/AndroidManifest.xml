@@ -41,6 +41,7 @@
             android:name="com.lumination.leadme.LeadMeMain"
             android:screenOrientation="portrait"
             android:label="@string/app_title"
+            android:windowSoftInputMode="adjustPan"
             android:launchMode="singleTask">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

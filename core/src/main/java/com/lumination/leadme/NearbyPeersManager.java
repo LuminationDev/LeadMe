@@ -50,7 +50,8 @@ public class NearbyPeersManager {
     private View everyoneDisconnectedView;
 
     //This service id lets us find other nearby devices that are interested in the same thing.
-    private static final String SERVICE_INSTANCE = "com.lumination.leadme.LumiLeadMe";
+    //May be advisable to increment the number with each pushed update
+    private static final String SERVICE_INSTANCE = "com.lumination.leadme.LumiLeadMe_000";
 
     // The connection strategy we'll use for Nearby Connections.
     // P2P_STAR = which is a combination of Bluetooth Classic and WiFi Hotspots.
@@ -201,6 +202,7 @@ public class NearbyPeersManager {
     protected void onEndpointDisconnected(final Endpoint endpoint) {
         Toast.makeText(main, "Disconnected from " + endpoint.getName(), Toast.LENGTH_SHORT).show();
 
+        //only true for
         if (main.overlayView != null) {
             main.overlayView.setVisibility(View.INVISIBLE); //hide the overlay so we don't get stuck
         }
@@ -448,10 +450,6 @@ public class NearbyPeersManager {
     }
 
     public void setID(String id) {
-        if (myId != null) {
-            Log.e(TAG, "My ID is already " + myId + ", can't set it to " + id + "!");
-            return;
-        }
         if (id != null && id.length() > 0) {
             myId = id;
             Log.i(TAG, "My ID is now " + myId);
@@ -541,6 +539,20 @@ public class NearbyPeersManager {
             disconnectedFromEndpoint(mEstablishedConnections.get(endpointId));
         }
     };
+
+    public void disconnectStudent(String endpointId) {
+        Endpoint tmp = mEstablishedConnections.get(endpointId);
+        if (tmp != null) {
+//                    mConnectionsClient
+//                .acceptConnection(endpoint.getId(), mPayloadCallback)
+//                    .addOnFailureListener(
+//                            e -> Log.w(TAG, "acceptConnection() failed.", e));
+
+            mConnectionsClient.disconnectFromEndpoint(endpointId);
+            mEstablishedConnections.remove(endpointId);
+            mDiscoveredEndpoints.remove(endpointId);
+        }
+    }
 
     public void disconnectFromEndpoint(String endpointId) {
         Endpoint tmp = mEstablishedConnections.get(endpointId);

@@ -254,7 +254,7 @@ public class PermissionManager {
 
                 Thread thread = new Thread(() -> {
                     try {
-                        successfulPing = InetAddress.getByName(host).isReachable(1000);
+                        successfulPing = InetAddress.getByName(host).isReachable(500);
                     } catch (Exception e) {
                         e.printStackTrace();
                     }

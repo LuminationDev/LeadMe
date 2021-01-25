@@ -186,12 +186,12 @@
         android:layout_marginTop="30dp"
         android:orientation="vertical">
 
-        <androidx.gridlayout.widget.GridLayout
+        <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="0dp"
             android:layout_gravity="center_horizontal"
             android:layout_weight="1"
-            app:columnCount="3">
+            android:orientation="horizontal">
 
             <androidx.cardview.widget.CardView
                 android:layout_width="45dp"
@@ -243,32 +243,28 @@
                 android:textSize="16sp"
                 app:layout_gravity="center_horizontal" />
 
-            <Space android:layout_width="45dp" />
-
             <Space
-                android:layout_width="fill_parent"
-                android:layout_height="fill_parent" />
+                android:layout_width="52dp"
+                android:layout_height="match_parent" />
 
-            <Button
-                android:id="@+id/back_btn"
-                style="?android:attr/borderlessButtonStyle"
-                android:layout_width="@dimen/standard_btn_width"
-                android:layout_height="@dimen/standard_btn_height"
-                android:layout_marginTop="10dp"
-                android:background="@drawable/bg_passive"
-                android:clickable="true"
-                android:focusable="true"
-                android:fontFamily="@font/poppins_semibold"
-                android:text="@string/back"
-                android:textAllCaps="false"
-                android:textColor="@color/leadme_darkest_grey"
-                android:textSize="16sp"
-                app:layout_gravity="center_horizontal" />
+        </LinearLayout>
 
-            <Space
-                android:layout_width="fill_parent"
-                android:layout_height="fill_parent" />
-        </androidx.gridlayout.widget.GridLayout>
+        <Button
+            android:id="@+id/back_btn"
+            style="?android:attr/borderlessButtonStyle"
+            android:layout_width="@dimen/standard_btn_width"
+            android:layout_height="@dimen/standard_btn_height"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="10dp"
+            android:background="@drawable/bg_passive"
+            android:clickable="true"
+            android:focusable="true"
+            android:fontFamily="@font/poppins_semibold"
+            android:text="@string/back"
+            android:textAllCaps="false"
+            android:textColor="@color/leadme_darkest_grey"
+            android:textSize="16sp"
+            app:layout_gravity="center_horizontal" />
 
     </LinearLayout>
 
