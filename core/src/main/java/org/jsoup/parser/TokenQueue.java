@@ -416,7 +416,7 @@ public class TokenQueue {
      * @return remained of queue.
      */
     public String remainder() {
-        final String remainder = queue.substring(pos, queue.length());
+        final String remainder = queue.substring(pos);
         pos = queue.length();
         return remainder;
     }

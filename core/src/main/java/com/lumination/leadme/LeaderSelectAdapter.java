@@ -11,9 +11,9 @@ import java.util.ArrayList;
 
 
 public class LeaderSelectAdapter extends BaseAdapter {
-    private LayoutInflater inflater;
-    private ArrayList<ConnectedPeer> leader_list = new ArrayList<>();
-    private LeadMeMain main;
+    private final LayoutInflater inflater;
+    private final ArrayList<ConnectedPeer> leader_list = new ArrayList<>();
+    private final LeadMeMain main;
     private static final String TAG = "LeaderSelect";
 
     public LeaderSelectAdapter(LeadMeMain main) {
@@ -89,22 +89,19 @@ public class LeaderSelectAdapter extends BaseAdapter {
 
     @Override
     public View getView(final int position, View convertView, ViewGroup parent) {
-        View view = inflater.inflate(R.layout.row_leader, null);
-        final TextView textView = (TextView) view.findViewById(R.id.leader_name);
+        if (convertView == null) {
+            //root must be null or it will crash
+            convertView = inflater.inflate(R.layout.row_leader, null);
+        }
+        final TextView textView = convertView.findViewById(R.id.leader_name);
         textView.setText(leader_list.get(position).getDisplayName());
-        Log.d(TAG, "getView: " + textView.getText());
-//            ImageView icon = (ImageView) view.findViewById(R.id.leader_icon);
-//            icon.setImageDrawable(leader_list.get(position).getIcon());
 
-        view.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Log.d(TAG, "Clicked view: " + textView.getText());
-                main.getNearbyManager().setSelectedLeader(leader_list.get(position));
-                main.showLoginDialog();
-            }
+        convertView.setOnClickListener(v -> {
+            Log.d(TAG, "Clicked view: " + textView.getText());
+            main.getNearbyManager().setSelectedLeader(leader_list.get(position));
+            main.showLoginDialog();
         });
 
-        return view;
+        return convertView;
     }
 }

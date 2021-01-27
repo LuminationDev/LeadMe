@@ -33,33 +33,30 @@
                 android:layout_height="match_parent"
                 android:orientation="horizontal">
 
-                <Space
-                    android:layout_width="30dp"
-                    android:layout_height="match_parent"
-                    android:layout_weight="1" />
 
                 <TextView
                     android:id="@+id/url_entry_label"
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
+                    android:layout_height="35dp"
                     android:layout_gravity="center_horizontal"
+                    android:layout_marginStart="35dp"
                     android:layout_marginTop="10dp"
+                    android:layout_weight="1"
                     android:fontFamily="@font/poppins_semibold"
+                    android:gravity="center"
+                    android:includeFontPadding="false"
+
                     android:text="Please enter URL"
                     android:textColor="@color/leadme_black"
                     android:textSize="18sp" />
 
-                <Space
-                    android:layout_width="wrap_content"
-                    android:layout_height="match_parent"
-                    android:layout_weight="1" />
+                <ImageView
+                    android:id="@+id/url_search_btn"
+                    android:layout_width="35dp"
+                    android:layout_height="35dp"
+                    android:layout_gravity="end"
+                    android:src="@drawable/search_icon" />
 
-                <Button
-                    android:id="@+id/search_btn"
-                    android:layout_width="34dp"
-                    android:layout_height="34dp"
-                    android:layout_gravity="right"
-                    android:background="@drawable/icon_search" />
             </LinearLayout>
 
             <EditText

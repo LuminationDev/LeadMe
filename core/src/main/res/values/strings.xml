@@ -12,7 +12,8 @@
     <string name="label_students">Active Learners</string>
     <string name="favourites">Favourites</string>
     <string name="all_apps">All Apps</string>
-    <string name="learner_connected_label">Connected</string>
+    <string name="connected_label">Connected</string>
+    <string name="connect_label">Connect</string>
     <string name="auto_install_title">Auto-install apps</string>
     <string name="reset_sett_app">Settings</string>
     <string name="exit_app">Exit</string>
@@ -38,6 +39,8 @@
     <string name="toggle_below_to">, toggle below to</string>
     <string name="menu_hamburger">Menu hamburger</string>
     <string name="teacher_code">Teacher code</string>
+    <string name="waiting_for_leaders">Waiting for leaders ...</string>
+    <string name="enable_location_to_connect">Please enable Location permission\nto connect to leaders</string>
 
     <string name="push_success_title">Push Successful!</string>
     <string name="save_success_title">Save Successful!</string>
@@ -91,5 +94,22 @@
     <string name="no_favourites_saved">No favourites saved.</string>
     <string name="clear_all">Clear All</string>
     <string name="clear">Clear</string>
+    <string name="preview_unavailable">Preview unavailable</string>
+    <string name="website_title">Website title</string>
+    <string name="add_to_favourites">Add to favourites</string>
+    <string name="website_url">Website URL</string>
+    <string name="will_open_in_your_default_browser">Will open in your default browser</string>
+    <string name="youtube_vr_video">YouTube VR Video</string>
+    <string name="will_automatically_load_in_vr_mode">Will automatically load in VR mode</string>
+    <string name="push_to_selected">Push to selected</string>
+    <string name="preview_image">Preview image</string>
+    <string name="preview_type_icon">Preview type icon</string>
+    <string name="globe_icon">Globe icon</string>
+    <string name="waiting_for_learners">Waiting for learners...</string>
+    <string name="unlock">Unlock</string>
+    <string name="select">Select</string>
+    <string name="alerts">Alerts</string>
+    <string name="lock">Lock</string>
+    <string name="block">Block</string>
 
 </resources>

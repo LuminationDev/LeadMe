@@ -18,9 +18,9 @@ public class QueryParser {
     private final static String[] combinators = {",", ">", "+", "~", " "};
     private static final String[] AttributeEvals = new String[]{"=", "!=", "^=", "$=", "*=", "~="};
 
-    private TokenQueue tq;
-    private String query;
-    private List<Evaluator> evals = new ArrayList<>();
+    private final TokenQueue tq;
+    private final String query;
+    private final List<Evaluator> evals = new ArrayList<>();
 
     /**
      * Create a new QueryParser.

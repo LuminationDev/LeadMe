@@ -12,31 +12,40 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.ImageView;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 public class AppManager extends BaseAdapter {
     private LeadMeMain main;
     private PackageManager pm;
     private List<ApplicationInfo> appList;
-    private LayoutInflater inflater;
+    private final LayoutInflater inflater;
     private String defaultBrowserUrl = "";
+    protected Drawable app_placeholder;
 
     private final String TAG = "AppLauncher";
 
     public AppManager(LeadMeMain main) {
         this.main = main;
-        app_placeholder = main.getDrawable(R.drawable.icon_unknown_app);
+        app_placeholder = main.getDrawable(R.drawable.icon_unknown_browser);
         defaultBrowserUrl = main.getResources().getString(R.string.default_browser_url);
         inflater = LayoutInflater.from(main);
         pm = main.getPackageManager();
         appList = listApps();
+
+        //set up lock spinner
+        lockSpinner = main.appPushDialogView.findViewById(R.id.push_spinner);
+        String[] items = {"Lock students", "Unlock students"};
+        Integer[] imgs = {R.drawable.controls_lock, R.drawable.controls_unlock};
+        SpinnerAdapter adapter = new SpinnerAdapter(main, R.layout.row_push_spinner, items, imgs);
+        lockSpinner.setAdapter(adapter);
     }
 
-    protected Drawable app_placeholder;
 
     public Drawable getAppIcon(String packageName) {
         try {
@@ -87,6 +96,11 @@ public class AppManager extends BaseAdapter {
 
     public String lastApp = "";
 
+    public void relaunchLast() {
+        relaunchLast(main.currentTaskPackageName, main.currentTaskName, main.currentTaskType, main.currentTaskURL);
+    }
+
+
     /**
      * used by LEARNER to relaunch the last app requested by the LEADER
      **/
@@ -109,22 +123,27 @@ public class AppManager extends BaseAdapter {
      * used by LEARNER to launch an app as requested by LEADER
      **/
     public void launchLocalApp(String packageName, String appName, boolean updateCurrentTask) {
+        //check overlay status and alert leader if there's an issue
+        main.verifyOverlay();
+
         //launch it locally
+        String actualAppPackage = packageName;
         Intent intent = main.getPackageManager().getLaunchIntentForPackage(packageName);
         if (intent == null) {
 
             if (packageName.toLowerCase().contains("browser")) {
                 //find default browser instead
                 intent = main.getWebManager().getBrowserIntent(defaultBrowserUrl);
-                Log.d(TAG, "Attempting to launch default browser instead: " + intent);
+                actualAppPackage = intent.getPackage();
+                Log.d(TAG, "Attempting to launch default browser instead: " + packageName + " // " + actualAppPackage + " // " + defaultBrowserUrl);
 
                 //prepare to install, which includes temporarily turning off
                 //overlay to allow capture of accessibility events
             } else if (main.autoInstallApps) {
                 autoInstall(packageName, appName);
             } else {
-                main.getRemoteDispatchService().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.AUTO_INSTALL_FAILED + appName + ":" + main.getNearbyManager().getID(), main.getNearbyManager().getSelectedPeerIDs());
-                Toast toast = Toast.makeText(main, "Sorry, the app \'" + appName + "\' doesn't exist on this device!", Toast.LENGTH_SHORT);
+                main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.AUTO_INSTALL_FAILED + appName + ":" + main.getNearbyManager().getID(), main.getNearbyManager().getSelectedPeerIDs());
+                Toast toast = Toast.makeText(main, "Sorry, the app '" + appName + "' doesn't exist on this device!", Toast.LENGTH_SHORT);
                 toast.show();
                 return;
             }
@@ -133,25 +152,28 @@ public class AppManager extends BaseAdapter {
         main.startActivity(intent);
         lastApp = packageName;
         if (updateCurrentTask) {
-            main.updateFollowerCurrentTask(packageName, appName, "Application", "");
+            main.updateFollowerCurrentTask(actualAppPackage, appName, "Application", "");
         }
-        main.getRemoteDispatchService().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.LAUNCH_SUCCESS + appName + ":" + main.getNearbyManager().getID() + ":" + packageName, main.getNearbyManager().getAllPeerIDs());
+        main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.LAUNCH_SUCCESS + appName + ":" + main.getNearbyManager().getID() + ":" + actualAppPackage, main.getNearbyManager().getAllPeerIDs());
     }
 
     protected void autoInstall(String packageName, String appName) {
-        main.getRemoteDispatchService().prepareToInstall(packageName, appName);
+        main.getLumiAccessibilityConnector().prepareToInstall(packageName, appName);
 
         //launch Play Store page
         Intent intent = new Intent(Intent.ACTION_VIEW);
         intent.setData(Uri.parse("market://details?id=" + packageName));//,  "application/vnd.android.package-archive");
         main.startActivity(intent);
+        main.getAppManager().lastApp = intent.getPackage();
 
-        main.getRemoteDispatchService().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.AUTO_INSTALL_ATTEMPT + appName + ":" + main.getNearbyManager().getID(), main.getNearbyManager().getSelectedPeerIDs());
-        Toast toast = Toast.makeText(main, "Attempting to install \'" + appName + "\', please wait...", Toast.LENGTH_SHORT);
+        main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.AUTO_INSTALL_ATTEMPT + appName + ":" + main.getNearbyManager().getID(), main.getNearbyManager().getSelectedPeerIDs());
+        Toast toast = Toast.makeText(main, "Attempting to install '" + appName + "', please wait...", Toast.LENGTH_SHORT);
         toast.show();
         return;
 
     }
+
+    private Spinner lockSpinner;
 
     /**
      * used by LEADER to launch an app on LEARNER devices
@@ -161,15 +183,22 @@ public class AppManager extends BaseAdapter {
             //launch it locally
             launchLocalApp(packageName, appName, true);
         }
-
-
-        if (!main.getConnectedLearnersAdapter().someoneIsSelected()) {
-            //if no-one is selected, request to launch it on all peers
-            main.getRemoteDispatchService().requestRemoteAppOpen(LeadMeMain.APP_TAG, packageName, appName, main.getNearbyManager().getAllPeerIDs());
+        Set<String> chosen;
+        if (main.getConnectedLearnersAdapter().someoneIsSelected()) {
+            chosen = main.getNearbyManager().getSelectedPeerIDs();
         } else {
-            //if someone is selected, request to launch only on selected peers
-            main.getRemoteDispatchService().requestRemoteAppOpen(LeadMeMain.APP_TAG, packageName, appName, main.getNearbyManager().getSelectedPeerIDs());
+            chosen = main.getNearbyManager().getAllPeerIDs();
         }
+
+        //update lock status
+        String lockTag = LeadMeMain.LOCK_TAG;
+        if (lockSpinner.getSelectedItemPosition() == 1) {
+            //locked by default, unlocked if selected
+            lockTag = LeadMeMain.UNLOCK_TAG;
+        }
+
+        //send launch request
+        main.getDispatcher().requestRemoteAppOpen(LeadMeMain.APP_TAG, packageName, appName, lockTag, chosen);
     }
 
 
@@ -194,7 +223,6 @@ public class AppManager extends BaseAdapter {
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
-
         final String packageName = appList.get(position).packageName;
         final String appName = pm.getApplicationLabel(appList.get(position)).toString();
 
@@ -211,21 +239,15 @@ public class AppManager extends BaseAdapter {
             final Drawable appIcon = pm.getApplicationIcon(packageName);
             viewHolder.myIcon.setImageDrawable(appIcon);
 
-            convertView.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    Log.i(TAG, "Launching " + appName + " from " + packageName);
-                    main.showAppPushDialog(appName, appIcon, packageName);
-                }
+            convertView.setOnClickListener(v -> {
+                Log.i(TAG, "Launching " + appName + " from " + packageName);
+                main.showAppPushDialog(appName, appIcon, packageName);
             });
 
             convertView.setLongClickable(true);
-            convertView.setOnLongClickListener(new View.OnLongClickListener() {
-                @Override
-                public boolean onLongClick(View v) {
-                    main.getFavouritesManager().manageFavouritesEntry(packageName);
-                    return true; //true if event is consumed
-                }
+            convertView.setOnLongClickListener(v -> {
+                main.getFavouritesManager().manageFavouritesEntry(packageName);
+                return true; //true if event is consumed
             });
 
         } catch (PackageManager.NameNotFoundException e) {

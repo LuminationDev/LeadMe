@@ -1,12 +1,16 @@
 
 package com.lumination.leadme;
 
+import android.accessibilityservice.AccessibilityService;
 import android.app.ActivityManager;
 import android.app.AlertDialog;
 import android.app.usage.UsageEvents;
 import android.app.usage.UsageStatsManager;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.PixelFormat;
 import android.graphics.Point;
@@ -30,47 +34,51 @@ import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.MotionEvent;
 import android.view.View;
+import android.view.WindowInsets;
 import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.CheckBox;
-import android.widget.CompoundButton;
 import android.widget.EditText;
-import android.widget.FrameLayout;
 import android.widget.GridView;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.SearchView;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ViewAnimator;
 import android.widget.ViewSwitcher;
 
+import androidx.core.content.res.ResourcesCompat;
 import androidx.fragment.app.FragmentActivity;
+import androidx.lifecycle.Lifecycle;
+import androidx.lifecycle.LifecycleObserver;
+import androidx.lifecycle.OnLifecycleEvent;
 
 import com.github.javiersantos.appupdater.AppUpdater;
 import com.github.javiersantos.appupdater.enums.UpdateFrom;
 
 import java.util.ArrayList;
 import java.util.Set;
+import java.util.UUID;
 
 
-public class LeadMeMain extends FragmentActivity implements Handler.Callback, SensorEventListener {
+public class LeadMeMain extends FragmentActivity implements Handler.Callback, SensorEventListener, LifecycleObserver {
 
     //tag for debugging
     static final String TAG = "LeadMe";
     Drawable leadmeIcon;
 
-    protected Object sharedLock = new Object();
-
-    private String teachercode = "1990";
-    private boolean nameEntered = false;
+    final private String teacherCode = "1234";
+    protected String leadMeAppName = "";
+    protected String leadMePackageName = "";
     private boolean codeEntered = false;
     private boolean selectEveryone = false;
 
     //tag to indicate what incoming message holds
+    static final String LOGOUT_TAG = "LumiLogout";
     static final String ACTION_TAG = "LumiAction";
     static final String APP_TAG = "LumiAppLaunch";
     static final String EXIT_TAG = "LumiExit";
@@ -88,9 +96,11 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     static final String AUTO_INSTALL_FAILED = "LumiAutoInstallFail:";
     static final String AUTO_INSTALL_ATTEMPT = "LumiAutoInstallAttempt:";
     static final String STUDENT_OFF_TASK_ALERT = "LumiOffTask:";
-
+    static final String STUDENT_NO_OVERLAY = "LumiOverlay:";
+    static final String STUDENT_NO_ACCESSIBILITY = "LumiAccess:";
+    static final String STUDENT_NO_INTERNET = "LumiInternet:";
     static final String LAUNCH_SUCCESS = "LumiSuccess:";
-
+    final static String SESSION_UUID_TAG = "SessionUUID";
     public final int OVERLAY_ON = 0;
     public final int ACCESSIBILITY_ON = 1;
     public final int BLUETOOTH_ON = 2;
@@ -104,16 +114,16 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     // Acceleration required to detect a shake. In multiples of Earth's gravity.
     private static final float SHAKE_THRESHOLD_GRAVITY = 2;
 
+    //sessionUUID to enable disconnect/reconnect as same user
+    private String sessionUUID = null;
+
     protected WindowManager windowManager;
     private InputMethodManager imm;
     private EditText code1, code2, code3, code4;
     protected WindowManager.LayoutParams overlayParams;
-    private RemoteDispatcherService remoteDispatcherService;
+    private LumiAccessibilityConnector lumiAccessibilityConnector;
+    private BroadcastReceiver accessibilityReceiver;
     protected View overlayView;
-
-    //local variables for exitApp function only
-    private long lastTap = 0;
-    private Toast exitToast;
 
     public boolean studentLockOn = true; //students start locked
     public boolean autoInstallApps = false; //if true, missing apps on student devices get installed automatically
@@ -123,43 +133,44 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     public boolean isReadyToConnect = false;
     public boolean dialogShowing = false;
 
-    private Handler handler = new Handler(this);
+    private final Handler handler = new Handler(this);
     private ViewAnimator leadmeAnimator;
     private ViewSwitcher leaderLearnerSwitcher;
-    private boolean loggingInAsLeader = true;
+    protected boolean loggingInAsLeader = true;
     public String leaderName = "Leader";
 
-    private int SWITCH_LEADER_INDEX = 0;
-    private int SWITCH_LEARNER_INDEX = 1;
+    private final int SWITCH_LEADER_INDEX = 0;
+    private final int SWITCH_LEARNER_INDEX = 1;
 
-    private int ANIM_SPLASH_INDEX = 0;
-    private int ANIM_START_SWITCH_INDEX = 1;
-    private int ANIM_LEARNER_INDEX = 2;
-    private int ANIM_LEADER_INDEX = 3;
-    private int ANIM_APP_LAUNCH_INDEX = 4;
-    private int ANIM_OPTIONS_INDEX = 5;
+    private final int ANIM_SPLASH_INDEX = 0;
+    private final int ANIM_START_SWITCH_INDEX = 1;
+    private final int ANIM_LEARNER_INDEX = 2;
+    private final int ANIM_LEADER_INDEX = 3;
+    private final int ANIM_APP_LAUNCH_INDEX = 4;
+    private final int ANIM_OPTIONS_INDEX = 5;
 
     AlertDialog warningDialog, loginDialog, appPushDialog;
     private AlertDialog confirmPushDialog;
-    View waitingForLearners, appLauncherScreen;
-    private View loginDialogView, confirmPushDialogView, appPushDialogView;
+    View waitingForLearners, appLauncherScreen, appPushDialogView;
+    private View loginDialogView, confirmPushDialogView;
     private View mainLearner, mainLeader, optionsScreen;
-    private TextView warningDialogMessage, learnerWaitingText;
+    private TextView warningDialogTitle, warningDialogMessage, learnerWaitingText;
     private Button leader_toggle, learner_toggle;
 
     private GridView connectedStudentsView;
 
     public Context context;
     private ActivityManager activityManager;
-    PermissionManager permissionManager;
+    private PermissionManager permissionManager;
     private NearbyPeersManager nearbyManager;
     private WebManager webManager;
     private AppManager appLaunchAdapter;
     private FavouritesManager favouritesManager; //TODO shift to app manager
     private ConnectedLearnersAdapter connectedLearnersAdapter;
     private LeaderSelectAdapter leaderSelectAdapter;
+    private static DispatchManager dispatcher;
 
-    public TextView nameView;
+    private TextView nameView;
     public Button readyBtn;
 
     ImageView currentTaskIcon;
@@ -233,26 +244,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         }
     }
 
-    @Override
-    protected void onRestart() {
-        super.onRestart();
-    }
-
-    @Override
-    protected void onStop() {
-        Log.w(TAG, "In onStop");
-        super.onStop();
-        closeKeyboard();
-        getNearbyManager().onStop();
-    }
-
-    @Override
-    protected void onStart() {
-        super.onStart();
-        getNearbyManager().onStart();
-    }
-
-
     public boolean handleMessage(Message msg) {
         Log.d(TAG, "Got a message! " + msg.what + ", " + msg.obj);
         return true;
@@ -261,18 +252,18 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     public boolean handlePayload(byte[] payloadBytes) {
 
         //if it's an action, execute it
-        if (remoteDispatcherService.readAction(payloadBytes)) {
+        if (getDispatcher().readAction(payloadBytes)) {
             Log.d(TAG, "Incoming message was an action!");
             return true; //it was an action, we're done!
         }
 
-        if (remoteDispatcherService.readBool(payloadBytes)) {
+        if (getDispatcher().readBool(payloadBytes)) {
             Log.d(TAG, "Incoming message was a boolean request!");
             return true; //it was a boolean, we're done!
         }
 
         //if it's an app launch request, deploy it
-        if (remoteDispatcherService.openApp(payloadBytes)) {
+        if (getDispatcher().openApp(payloadBytes)) {
             Log.d(TAG, "Incoming message was an app launch request!");
             return true; //it was an app launch request, we're done!
         }
@@ -280,59 +271,48 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         return true;
     }
 
+
+    protected DispatchManager getDispatcher() {
+        return dispatcher;
+    }
+
+    public LumiAccessibilityConnector getLumiAccessibilityConnector() {
+        return lumiAccessibilityConnector;
+    }
+
     public ConnectedLearnersAdapter getConnectedLearnersAdapter() {
         return connectedLearnersAdapter;
     }
 
+    public PermissionManager getPermissionsManager() {
+        return permissionManager;
+    }
+
     public NearbyPeersManager getNearbyManager() {
-        if (nearbyManager == null) {
-            nearbyManager = new NearbyPeersManager(this);
-        }
         return nearbyManager;
     }
 
     public LeaderSelectAdapter getLeaderSelectAdapter() {
-        if (leaderSelectAdapter == null) {
-            leaderSelectAdapter = new LeaderSelectAdapter(this);
-        }
         return leaderSelectAdapter;
     }
 
     public AppManager getAppManager() {
-        //this exists in the main layout, need to get a reference to it
-        if (appLaunchAdapter == null) {
-            appLaunchAdapter = new AppManager(this);
-        }
         return appLaunchAdapter;
     }
 
     public FavouritesManager getFavouritesManager() {
-        if (favouritesManager == null) {
-            favouritesManager = new FavouritesManager(this, null, FavouritesManager.FAVTYPE_APP, 4);
-        }
         return favouritesManager;
     }
 
     public WebManager getWebManager() {
-        if (webManager == null) {
-            webManager = new WebManager(this);
-        }
         return webManager;
     }
-
-    @Override
-    public void onResume() {
-        super.onResume();
-
-        closeKeyboard();
-        hideSystemUI();
-    }
-
 
     private boolean initPermissions = false;
 
     public void performNextAction() {
         Log.d(TAG, "PerformNextAction? " + initPermissions + ", " + permissionManager.isNearbyPermissionsGranted());
+
         permissionManager.waitingForPermission = false; //no longer waiting
         closeKeyboard();
 
@@ -352,11 +332,11 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         }
 
         //deal with other permissions
-        if (!loggingInAsLeader && !permissionManager.isOverlayPermissionGranted()) {
-            Log.d(TAG, "Permission return - request overlay, " + loggingInAsLeader + ", " + isGuide);
-            permissionManager.checkOverlayPermissions();
-            return;
-        }
+//        if (nearbyManager.isConnectedAsFollower() && !permissionManager.isOverlayPermissionGranted()) {
+//            Log.d(TAG, "Permission return - request overlay, " + loggingInAsLeader + ", " + isGuide);
+//            permissionManager.checkOverlayPermissions();
+//            return;
+//        }
 
         //can't go any further
         if (!canAskForAccessibility && !permissionManager.isAccessibilityGranted()) {
@@ -370,21 +350,16 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             return;
         }
 
-        Log.d(TAG, "Permission return - now start overlay");
-        startOverlayAndServices();
-
-        if (loginAttemptInAction) {
-            loginAction();
+        if (canAskForAccessibility && permissionManager.isAccessibilityGranted() && !permissionManager.isMyServiceRunning(AccessibilityService.class)) {
+            Log.d(TAG, "Permission return - accessibility permission granted, but service not running");
+            Intent accessibilityIntent = new Intent(this, LumiAccessibilityService.class);
+            startService(accessibilityIntent);
+            return;
         }
 
-    }
-
-    @Override
-    public void onPause() {
-        super.onPause();
-
-        if (overlayView != null && getNearbyManager().isConnectedAsFollower() && studentLockOn) {
-            overlayView.setVisibility(View.VISIBLE);
+        //make sure we're not just restarting
+        if (init && !getNearbyManager().isConnectedAsFollower() && !nearbyManager.isConnectedAsGuide()) {
+            loginAction();
         }
     }
 
@@ -394,7 +369,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         getNearbyManager().onBackPressed();
         Log.i(TAG, "On BACK!");
     }
-
 
     /**
      * The device has moved. We need to decide if it was intentional or not.
@@ -464,8 +438,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         }
     }
 
-    private boolean threadStarted = false;
-
     private void setupLoginDialog() {
         if (code1 == null) {
             code1 = loginDialogView.findViewById(R.id.codeInput1);
@@ -475,121 +447,66 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             readyBtn = loginDialogView.findViewById(R.id.connect_btn);
         }
 
-        loginDialogView.findViewById(R.id.close_login_alert_btn).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (!codeEntered) {
-                    code1.getText().clear();
-                    code2.getText().clear();
-                    code3.getText().clear();
-                    code4.getText().clear();
-                }
-                if (nameView.getText().toString().trim().length() == 0) {
-                    nameView.requestFocus();
-                } else {
-                    code1.requestFocus();
-                }
-                loginDialogView.findViewById(R.id.name_code_entry_view).setVisibility(View.VISIBLE);
-                loginDialogView.findViewById(R.id.wrong_code_view).setVisibility(View.GONE);
-                openKeyboard();
-                hideSystemUI();
+        loginDialogView.findViewById(R.id.close_login_alert_btn).setOnClickListener(v -> {
+            if (!codeEntered) {
+                code1.getText().clear();
+                code2.getText().clear();
+                code3.getText().clear();
+                code4.getText().clear();
             }
+            if (nameView.getText().toString().trim().length() == 0) {
+                nameView.requestFocus();
+            } else {
+                code1.requestFocus();
+            }
+            loginDialogView.findViewById(R.id.name_code_entry_view).setVisibility(View.VISIBLE);
+            loginDialogView.findViewById(R.id.wrong_code_view).setVisibility(View.GONE);
+            openKeyboard();
+            hideSystemUI();
         });
 
         if (readyBtn != null) {
-            readyBtn.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    boolean success = checkLoginDetails();
-                    if (!success) {
-                        return; //not ready to proceed yet
-                    }
-
-                    Log.d(TAG, "CLICKED READY!");
-                    canAskForAccessibility = true; //reset
-                    closeKeyboard();
-
-                    // if we're still waiting on some permissions,
-                    // test for them and wait for the result before continuing
-                    if (!permissionManager.isNearbyPermissionsGranted()) {
-
-                        //re-check permissions and wait until all granted before
-                        //trying to connect to other LeadMe users
-                        permissionManager.checkNearbyPermissions();
-
-//                        if (!threadStarted) {
-//                            threadStarted = true; //stop this happening more than once
-//                            Log.d(TAG, "WAITING FOR PERMISSIONS");
-//                            Thread waitThread = new Thread(new Runnable() {
-//                                @Override
-//                                public void run() {
-//                                    long timeoutEnd = System.currentTimeMillis() + 30000; //30 second timeout
-//                                    while (permissionManager.waitingForPermission) {// && System.currentTimeMillis() < timeoutEnd) {
-//                                        try {
-//                                            Thread.sleep(500); //just wait
-//                                        } catch (InterruptedException e) {
-//                                            e.printStackTrace();
-//                                        }
-//                                        if (System.currentTimeMillis() < timeoutEnd) {
-//                                            timeoutEnd = -1;
-//                                            break;
-//                                        }
-//                                    }
-//
-//                                    threadStarted = false; //reset
-//                                    initPermissions = true; //only prompt once here
-//
-//                                    if (permissionManager.isNearbyPermissionsGranted()) {
-//                                        Log.d(TAG, "1) What's the state? "+loggingInAsLeader+", "+permissionManager.isNearbyPermissionsGranted());
-//                                        handler.post(new Runnable() {
-//                                            @Override
-//                                            public void run() {
-//                                                loginAction();
-//                                            }
-//                                        });
-//                                    }
-////                                    else {
-////                                        Log.d(TAG, "2) What's the state? "+loggingInAsLeader+", "+permissionManager.isNearbyPermissionsGranted());
-////                                        handler.post(new Runnable() {
-////                                            @Override
-////                                            public void run() {
-////                                                hideLoginDialog(true);
-////                                            }
-////                                        });
-////                                    }
-//                                }
-//                            });
-//                            waitThread.start();
-                        //    }
-
-
-                    } else {
-                        //don't need to wait, so just login
-                        initPermissions = true; //only prompt once here
-                        loginAction();
-                    }
-
+            readyBtn.setOnClickListener(v -> {
+                boolean success = checkLoginDetails();
+                if (!success) {
+                    return; //not ready to proceed yet
                 }
+
+                Log.d(TAG, "CLICKED READY!");
+                canAskForAccessibility = true; //reset
+                closeKeyboard();
+
+                // if we're still waiting on some permissions,
+                // test for them and wait for the result before continuing
+                if (!permissionManager.isNearbyPermissionsGranted()) {
+
+                    //re-check permissions and wait until all granted before
+                    //trying to connect to other LeadMe users
+                    permissionManager.checkNearbyPermissions();
+
+                } else {
+                    //don't need to wait, so just login
+                    initPermissions = true; //only prompt once here
+                    loginAction();
+                }
+
             });
         }
 
-        View.OnKeyListener codeKeyListener = new View.OnKeyListener() {
-            @Override
-            public boolean onKey(View v, int keyCode, KeyEvent event) {
-                //View focus = null;
-                if (keyCode == KeyEvent.KEYCODE_DEL || keyCode == KeyEvent.KEYCODE_BACK) {
-                    code1.getText().clear();
-                    code2.getText().clear();
-                    code3.getText().clear();
-                    code4.getText().clear();
-                    code1.requestFocus();
-                }
+        View.OnKeyListener codeKeyListener = (v, keyCode, event) -> {
+            //View focus = null;
+            if (keyCode == KeyEvent.KEYCODE_DEL || keyCode == KeyEvent.KEYCODE_BACK) {
+                code1.getText().clear();
+                code2.getText().clear();
+                code3.getText().clear();
+                code4.getText().clear();
+                code1.requestFocus();
+            }
 //                Log.d(TAG, "Focus? " + focus);
 //                if (focus != null) {
 //                    focus.requestFocus();
 //                }
-                return false; //true if event consumed, false otherwise
-            }
+            return false; //true if event consumed, false otherwise
         };
 
 
@@ -605,15 +522,16 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
-            }
-
-            @Override
-            public void afterTextChanged(Editable s) {
                 if (s != null && s.length() == 1) {
                     code2.requestFocus();
                 } else if (s != null && s.length() == 0) {
                     nameView.requestFocus();
                 }
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+
             }
         });
 
@@ -624,16 +542,17 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
-            }
-
-            @Override
-            public void afterTextChanged(Editable s) {
                 if (s != null && s.length() == 1) {
                     code3.requestFocus();
 
                 } else if (s != null && s.length() == 0) {
                     code1.requestFocus();
                 }
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+
             }
         });
 
@@ -644,16 +563,17 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
-            }
-
-            @Override
-            public void afterTextChanged(Editable s) {
                 if (s != null && s.length() == 1) {
                     code4.requestFocus();
 
                 } else if (s != null && s.length() == 0) {
                     code2.requestFocus();
                 }
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+
             }
         });
 
@@ -662,6 +582,9 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
     protected void showLoginDialog() {
         Log.d(TAG, "Showing login dialog");
+        if (destroying) {
+            return;
+        }
         stopShakeDetection();
 
         //set appropriate mode
@@ -679,15 +602,12 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                     .create();
         }
 
-        if (loginDialog == null) {
-            return;
-        }
+        //hideSystemUI();
         initPermissions = false; //reset this to ask once more
         dialogShowing = true;
         loginDialog.show();
         nameView.requestFocus();
         openKeyboard();
-        hideSystemUI();
     }
 
     private void hideLoginDialog(boolean cancelled) {
@@ -696,7 +616,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         hideSystemUI();
         if (loginDialog != null) {
             dialogShowing = false;
-            loginDialog.hide();
+            loginDialog.dismiss();
             if (cancelled) {
                 startShakeDetection();
             }
@@ -709,66 +629,165 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     }
 
     private void moveAwayFromSplashScreen() {
-        handler.postDelayed(new Runnable() {
-            @Override
-            public void run() {
+        handler.postDelayed(() -> {
 //                leaderLearnerSwitcher.setDisplayedChild(SWITCH_LEADER_INDEX);
-                leadmeAnimator.setDisplayedChild(ANIM_START_SWITCH_INDEX);
-                init = true;
-                startShakeDetection();
-            }
+            leadmeAnimator.setDisplayedChild(ANIM_START_SWITCH_INDEX);
+            init = true;
+            startShakeDetection();
         }, 2000);
     }
 
+    @OnLifecycleEvent(Lifecycle.Event.ON_PAUSE)
+    public void onLifecyclePause() {
+        //Toast.makeText(this, "LC Pause", Toast.LENGTH_LONG).show();
+        Log.w(TAG, "LC Pause");
+        appHasFocus = false;
 
-    boolean appHasFocus = false;
-    @Override
-    public void onWindowFocusChanged(boolean hasFocus) {
-        super.onWindowFocusChanged(hasFocus);
-        appHasFocus = hasFocus;
+        if (overlayView != null && nearbyManager != null && nearbyManager.isConnectedAsFollower()) {
+            overlayView.setVisibility(View.VISIBLE);
+        }
 
-        if (hasFocus && !init) {
+        if (overlayView != null && getNearbyManager().isConnectedAsFollower() && studentLockOn) {
+            setStudentLock(ConnectedPeer.STATUS_LOCK);
+
+        } else if (overlayView != null && getNearbyManager().isConnectedAsFollower() && !studentLockOn) {
+            setStudentLock(ConnectedPeer.STATUS_UNLOCK);
+        }
+
+    }
+
+    @OnLifecycleEvent(Lifecycle.Event.ON_RESUME)
+    public void onLifecycleResume() {
+        //Toast.makeText(this, "LC Resume", Toast.LENGTH_LONG).show();
+        Log.w(TAG, "LC Resume");
+        appHasFocus = true;
+
+        if (leaderLearnerSwitcher.getDisplayedChild() == SWITCH_LEARNER_INDEX) {
+            if (permissionManager.isNearbyPermissionsGranted()) {
+                displayLearnerStartToggle();
+            }
+        }
+
+        if (!overlayInitialised && permissionManager.isOverlayPermissionGranted()) {
+            initialiseOverlayView();
+        }
+
+        if (overlayView != null && getNearbyManager().isConnectedAsFollower() && studentLockOn) {
+            setStudentLock(ConnectedPeer.STATUS_LOCK);
+
+        } else if (overlayView != null && getNearbyManager().isConnectedAsFollower() && !studentLockOn) {
+            setStudentLock(ConnectedPeer.STATUS_UNLOCK);
+        }
+
+        if (overlayView != null) {
+            overlayView.setVisibility(View.INVISIBLE);
+        }
+
+        if (accessibilityReceiver == null) {
+            //set up a receiver to capture the re-broadcast intent
+            accessibilityReceiver = new BroadcastReceiver() {
+                @Override
+                public void onReceive(Context context, Intent intent) {
+                    Log.d(TAG, "Received rebroadcast intent: " + intent);
+                    getLumiAccessibilityConnector().triageReceivedIntent(intent);
+                }
+            };
+            Log.w(TAG, "Registering receiver");
+            registerReceiver(accessibilityReceiver, new IntentFilter(LumiAccessibilityConnector.PROPAGATE_ACTION));
+        }
+
+        closeKeyboard();
+        hideSystemUI();
+    }
+
+    //maintains lifecycle state for us in other classes
+    boolean appHasFocus = true;
+
+    @OnLifecycleEvent(Lifecycle.Event.ON_START)
+    public void onLifecycleStart() {
+        //Toast.makeText(this, "LC Start", Toast.LENGTH_LONG).show();
+        Log.w(TAG, "LC Start");
+        appHasFocus = true;
+        manageFocus();
+    }
+
+    @OnLifecycleEvent(Lifecycle.Event.ON_STOP)
+    public void onLifecycleStop() {
+        //Toast.makeText(this, "LC Stop", Toast.LENGTH_LONG).show();
+        Log.w(TAG, "LC Stop");
+        appHasFocus = false;
+        manageFocus();
+    }
+
+    @OnLifecycleEvent(Lifecycle.Event.ON_DESTROY)
+    public void onLifecycleDestroy() {
+        //Toast.makeText(this, "LC Destroy", Toast.LENGTH_LONG).show();
+        Log.d(TAG, "LC Destroy");
+        appHasFocus = false;
+        destroyAndReset();
+    }
+
+
+    private void manageFocus() {
+        if (appHasFocus && !init) {
             //TODO call     mSensorManager.unregisterListener(this);
+            Log.d(TAG, "Moving away from splash...");
+            leadmeAnimator.setDisplayedChild(ANIM_SPLASH_INDEX);
             moveAwayFromSplashScreen();
         }
 
         hideSystemUI();
-        collapseStatusNow();
 
-        if (hasFocus && appToast != null) {
+        if (appHasFocus && appToast != null) {
             appToast.cancel();
             appToast = null;
         }
 
         //if there's an app to launch, do it
-        if (hasFocus) {
+        if (appHasFocus) {
             Log.d(TAG, "Focus is back! Launching delayed stuff.");
 
             //sometimes delayed things are stored here
-            getRemoteDispatchService().launchDelayedApp();
+            getDispatcher().launchDelayedApp();
 
             //sometimes they're here, so check both
             if (appIntentOnFocus != null) {
+                verifyOverlay();
                 startActivity(appIntentOnFocus);
+                getAppManager().lastApp = appIntentOnFocus.getPackage();
                 appIntentOnFocus = null;
             }
         }
     }
 
-    public RemoteDispatcherService getRemoteDispatchService() {
-        if (remoteDispatcherService == null) {
-            remoteDispatcherService = RemoteDispatcherService.getInstance(this);
-            Log.d(TAG, "Dispatch service: " + remoteDispatcherService);
-        }
-        return remoteDispatcherService;
-    }
+    boolean destroying = false;
 
     @Override
     public void onDestroy() {
         super.onDestroy();
         Log.w(TAG, "In onDestroy");
+        destroyAndReset();
+    }
+
+    private void destroyAndReset() {
+        destroying = true;
+        init = false;
+
+        //getLumiAccessibilityService().disableSelf(); //manually turn off the Accessibility Service
+
+        if (accessibilityReceiver != null) {
+            try {
+                unregisterReceiver(accessibilityReceiver); //stop listening for re-broadcast intents
+            } catch (Exception e) {
+                Log.e(TAG, "Accessibility receiver was not registered!");
+            }
+        }
+
+        cleanUpDialogs();
 
         //clean up nearby connections
+        isGuide = false;
+        isReadyToConnect = false;
         getNearbyManager().onStop();
         getNearbyManager().stopAdvertising();
         getNearbyManager().disconnectFromAllEndpoints();
@@ -779,9 +798,27 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         }
 
         //clean up link preview assets
-        getWebManager().textCrawler.cancel();
+        getWebManager().cleanUp();
     }
 
+    protected void cleanUpDialogs() {
+        if (loginDialog != null)
+            loginDialog.dismiss();
+        if (waitingDialog != null)
+            waitingDialog.dismiss();
+        if (warningDialog != null)
+            warningDialog.dismiss();
+        if (appPushDialog != null)
+            appPushDialog.dismiss();
+        if (confirmPushDialog != null)
+            confirmPushDialog.dismiss();
+        if (recallPrompt != null)
+            recallPrompt.dismiss();
+
+        if (webManager != null) {
+            webManager.cleanUp();
+        }
+    }
 
     public void hideSystemUI() {
         // Enables regular immersive mode.
@@ -799,18 +836,97 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                         | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
                         | View.SYSTEM_UI_FLAG_FULLSCREEN
         );
-
-        collapseStatusNow();
+        collapseStatus();
     }
 
+    public String getUUID() {
+        return sessionUUID;
+    }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
+        //onCreate can get called when device rotated, keyboard opened/shut, etc
+        super.onCreate(savedInstanceState);
+        Log.w(TAG, "On create! " + init);
+
+        //store a random UUID for this phone in shared preferences
+        //will be unique and anonymous and will stay stable for a
+        //good period of time to allow re-connections during a session
+        SharedPreferences sharedPreferences = getSharedPreferences(getResources().getString(R.string.preference_file_key), Context.MODE_PRIVATE);
+
+        //if a UUID exists, retrieve it
+        if (sharedPreferences.contains(SESSION_UUID_TAG)) {
+            sessionUUID = sharedPreferences.getString(SESSION_UUID_TAG, null);
+        }
+
+        //if none exists, make one and store it
+        if (sessionUUID == null) {
+            SharedPreferences.Editor editor = sharedPreferences.edit();
+            sessionUUID = UUID.randomUUID().toString();
+            editor.putString(SESSION_UUID_TAG, sessionUUID);
+            editor.apply();
+        }
+
+        context = getApplicationContext();
+
+        //add observer to respond to lifecycle events
+        getLifecycle().addObserver(this);
+
+        //create adapters
+        permissionManager = new PermissionManager(this);
+        nearbyManager = new NearbyPeersManager(this);
+        dispatcher = new DispatchManager(this);
+        webManager = new WebManager(this);
+        favouritesManager = new FavouritesManager(this, null, FavouritesManager.FAVTYPE_APP, 4);
+        leaderSelectAdapter = new LeaderSelectAdapter(this);
+        lumiAccessibilityConnector = new LumiAccessibilityConnector(this);
+
+        appPushDialogView = View.inflate(context, R.layout.e__preview_app_push, null);
+        appLaunchAdapter = new AppManager(this);
+
+        //set up a receiver to capture the re-broadcast intent
+        accessibilityReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                //Log.d(TAG, "Received rebroadcast intent: " + intent);
+                getLumiAccessibilityConnector().triageReceivedIntent(intent);
+            }
+        };
+        Log.w(TAG, "Registering receiver");
+        registerReceiver(accessibilityReceiver, new IntentFilter(LumiAccessibilityConnector.PROPAGATE_ACTION));
+
+        //details about me to send to peers
+        studentLockOn = true; //students start locked
+        isGuide = false;
+        isReadyToConnect = false;
+        loggingInAsLeader = true;
+
+        if (nearbyManager != null) {
+            nearbyManager.setID(null);
+        }
+        //}
+
+        initPermissions = false; //reset
+        appLaunchTime = System.currentTimeMillis();
+
+        leadMeAppName = getResources().getString(R.string.app_title);
+        leadMePackageName = getPackageName();
+
         setTheme(R.style.Theme_AppCompat_Light_NoActionBar); //switches from splash screen to main
         //https://android.jlelse.eu/the-complete-android-splash-screen-guide-c7db82bce565
 
-        super.onCreate(savedInstanceState);
-        appLaunchTime = System.currentTimeMillis();
+        //listen for UI visibility changes
+        Log.d(TAG, "Adding System Visibility listener to window/decor");
+        getWindow().getDecorView().setOnSystemUiVisibilityChangeListener(
+                visibility -> {
+                    Log.d(TAG, "DECOR VIEW! " + getNearbyManager().isConnectedAsFollower() + ", " + dialogShowing);
+                    if (getNearbyManager().isConnectedAsFollower()) {
+                        handler.postDelayed(this::hideSystemUI, 0);
+                    } else {
+                        //hide after short delay
+                        handler.postDelayed(this::hideSystemUI, 1500);
+                    }
+                });
 
         try {
             leadmeIcon = getPackageManager().getApplicationIcon(getPackageName());
@@ -824,9 +940,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         mSensorManager = (SensorManager) getSystemService(LeadMeMain.SENSOR_SERVICE);
         mAccelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
 
-        permissionManager = new PermissionManager(this);
-
-        context = getApplicationContext();
         activityManager = (ActivityManager) getApplicationContext().getSystemService(Context.ACTIVITY_SERVICE);
 
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
@@ -851,56 +964,56 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         appLauncherScreen = View.inflate(context, R.layout.d__app_list, null);
         learnerWaitingText = startLearner.findViewById(R.id.waiting_text);
 
+        //set up main page search
+
+        Button searchBtn = mainLeader.findViewById(R.id.search_btn);
+        SearchView searchView = mainLeader.findViewById(R.id.search_bar);
+        searchBtn.setOnClickListener(v -> {
+            //TODO enable this when search function implemented
+//            if(searchView.getVisibility() == View.GONE){
+//                //searchBtn.setBackground(getResources().getDrawable(R.drawable.close, null));
+//                searchView.setVisibility(View.VISIBLE);
+//            } else {
+//                //searchBtn.setBackground(getResources().getDrawable(R.drawable.search_icon, null));
+//                searchView.setVisibility(View.GONE);
+//            }
+        });
+
+        //initialise window manager for shared use
+        windowManager = (WindowManager) getSystemService(WINDOW_SERVICE);
+
+        //SET UP OVERLAY (don't add it to the window manager until permission granted)
+        buildOverlay();
+
         //add adapters for lists and grids
-        getRemoteDispatchService();
+        //getLumiAccessibilityService();
         ((GridView) appLauncherScreen.findViewById(R.id.app_list_grid)).setAdapter(getAppManager());
         ((GridView) appLauncherScreen.findViewById(R.id.fav_list_grid)).setAdapter(getFavouritesManager());
         ((ListView) startLearner.findViewById(R.id.leader_list_view)).setAdapter(getLeaderSelectAdapter());
 
-        ((Button) mainLeader.findViewById(R.id.url_core_btn)).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                getWebManager().showWebLaunchDialog(false);
-            }
-        });
+        mainLeader.findViewById(R.id.url_core_btn).setOnClickListener(v -> getWebManager().showWebLaunchDialog(false, false));
 
-        ((Button) mainLeader.findViewById(R.id.yt_core_btn)).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                getWebManager().showWebLaunchDialog(false);
-            }
-        });
+        mainLeader.findViewById(R.id.yt_core_btn).setOnClickListener(v -> getWebManager().showWebLaunchDialog(true, false));
 
-        Button app_btn = ((Button) mainLeader.findViewById(R.id.app_core_btn));
-        app_btn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                showAppLaunchScreen();
-            }
-        });
+        Button app_btn = mainLeader.findViewById(R.id.app_core_btn);
+        app_btn.setOnClickListener(v -> showAppLaunchScreen());
 
-        connectedLearnersAdapter = new ConnectedLearnersAdapter(this, new ArrayList<ConnectedPeer>());
-        connectedStudentsView = (GridView) mainLeader.findViewById(R.id.studentListView);
+        connectedLearnersAdapter = new ConnectedLearnersAdapter(this, new ArrayList<>());
+        connectedStudentsView = mainLeader.findViewById(R.id.studentListView);
         connectedStudentsView.setAdapter(connectedLearnersAdapter);
 
         //set up return to app button
-        mainLeader.findViewById(R.id.leadme_icon).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (isGuide) {
-                    showRecallDialog();
-                }
+        mainLeader.findViewById(R.id.leadme_icon).setOnClickListener(v -> {
+            if (isGuide) {
+                showRecallDialog();
             }
         });
 
         //set up select/deselect all button
-        mainLeader.findViewById(R.id.toggle_all_btn).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                //select or deselect all buddies
-                selectEveryone = !selectEveryone;
-                connectedLearnersAdapter.selectAllPeers(selectEveryone);
-            }
+        mainLeader.findViewById(R.id.toggle_all_btn).setOnClickListener(v -> {
+            //select or deselect all buddies
+            selectEveryone = !selectEveryone;
+            connectedLearnersAdapter.selectAllPeers(selectEveryone);
         });
 
         //set up start switcher and main animator
@@ -921,12 +1034,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         setContentView(leadmeAnimator);
 
         //set up menu buttons
-        View.OnClickListener menuListener = new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                leadmeAnimator.setDisplayedChild(ANIM_OPTIONS_INDEX);
-            }
-        };
+        View.OnClickListener menuListener = v -> leadmeAnimator.setDisplayedChild(ANIM_OPTIONS_INDEX);
 
         startLeader.findViewById(R.id.menu_btn).setOnClickListener(menuListener);
         startLearner.findViewById(R.id.menu_btn).setOnClickListener(menuListener);
@@ -935,167 +1043,103 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         appLauncherScreen.findViewById(R.id.menu_btn).setOnClickListener(menuListener);
 
         //set up back buttons
-        appLauncherScreen.findViewById(R.id.back_btn).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                leadmeAnimator.setDisplayedChild(ANIM_LEADER_INDEX);
-            }
+        appLauncherScreen.findViewById(R.id.back_btn).setOnClickListener(v -> leadmeAnimator.setDisplayedChild(ANIM_LEADER_INDEX));
+
+
+        //prepare elements for app push dialog
+        appPushDialogView.findViewById(R.id.push_btn).setOnClickListener(v -> {
+            appLaunchAdapter.launchApp(appPushPackageName, appPushTitle, false);
+            Log.d(TAG, "LAUNCHING! " + appPushPackageName);
+            hideAppPushDialogView();
+            showConfirmPushDialog(true, false);
         });
+
+        appPushDialogView.findViewById(R.id.back_btn).setOnClickListener(v -> hideAppPushDialogView());
 
         //set up options screen
-        optionsScreen.findViewById(R.id.back_btn).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (nearbyManager.isConnectedAsGuide()) {
-                    leadmeAnimator.setDisplayedChild(ANIM_LEADER_INDEX);
+        optionsScreen.findViewById(R.id.back_btn).setOnClickListener(v -> {
+            if (nearbyManager.isConnectedAsGuide()) {
+                leadmeAnimator.setDisplayedChild(ANIM_LEADER_INDEX);
 
-                } else if (nearbyManager.isConnectedAsFollower()) {
-                    leadmeAnimator.setDisplayedChild(ANIM_LEARNER_INDEX);
+            } else if (nearbyManager.isConnectedAsFollower()) {
+                leadmeAnimator.setDisplayedChild(ANIM_LEARNER_INDEX);
 
-                } else {
-                    //refresh button colours and state
-                    prepLoginSwitcher();
-                    //display the right card
-                    leadmeAnimator.setDisplayedChild(ANIM_START_SWITCH_INDEX);
-                }
+            } else {
+                //refresh button colours and state
+                prepLoginSwitcher();
+                //display the right card
+                leadmeAnimator.setDisplayedChild(ANIM_START_SWITCH_INDEX);
             }
         });
 
-        optionsScreen.findViewById(R.id.how_to_use_btn).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Toast.makeText(getApplicationContext(), "Coming soon!", Toast.LENGTH_SHORT).show();
+        optionsScreen.findViewById(R.id.how_to_use_btn).setOnClickListener(v -> Toast.makeText(getApplicationContext(), "Coming soon!", Toast.LENGTH_SHORT).show());
+
+        optionsScreen.findViewById(R.id.help_support_btn).setOnClickListener(v -> Toast.makeText(getApplicationContext(), "Coming soon!", Toast.LENGTH_SHORT).show());
+
+        optionsScreen.findViewById(R.id.logout_btn).setOnClickListener(v -> {
+            if (isGuide || !getNearbyManager().isConnectedAsFollower()) {
+                getDispatcher().alertLogout(); //need to send this before resetting 'isGuide'
+                isGuide = false;
+                getNearbyManager().onStop();
+                getNearbyManager().stopAdvertising();
+                getNearbyManager().disconnectFromAllEndpoints(); //disconnect everyone
+                getLeaderSelectAdapter().setLeaderList(new ArrayList<>()); //empty the list
+                setUIDisconnected();
+                leadmeAnimator.setDisplayedChild(ANIM_SPLASH_INDEX);
+                moveAwayFromSplashScreen();
+            } else {
+                Toast.makeText(getApplicationContext(), "Logout is unavailable.", Toast.LENGTH_SHORT).show();
             }
         });
 
-        optionsScreen.findViewById(R.id.help_support_btn).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Toast.makeText(getApplicationContext(), "Coming soon!", Toast.LENGTH_SHORT).show();
-            }
-        });
-        optionsScreen.findViewById(R.id.updates_btn).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                AutoUpdates(true);
-            }
-        });
-        optionsScreen.findViewById(R.id.logout_btn).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (isGuide || !getNearbyManager().isConnectedAsFollower()) {
-                    isGuide = false;
-                    getNearbyManager().stopDiscovering();
-                    getNearbyManager().stopAdvertising();
-                    getNearbyManager().disconnectFromAllEndpoints(); //disconnect everyone
-                    getLeaderSelectAdapter().setLeaderList(new ArrayList<ConnectedPeer>()); //empty the list
-                    prepLoginSwitcher(); //prep this before resetting isGuide for a smoother experience
-                    leadmeAnimator.setDisplayedChild(ANIM_SPLASH_INDEX);
-                    moveAwayFromSplashScreen();
 
-                    //look for people to connect to
-                    getNearbyManager().startDiscovering();
-                } else {
-                    Toast.makeText(getApplicationContext(), "Logout is unavailable.", Toast.LENGTH_SHORT).show();
-                }
-            }
-        });
+        optionsScreen.findViewById(R.id.connected_only_view).setVisibility(View.GONE);
+        optionsScreen.findViewById(R.id.settings_title).setVisibility(View.GONE);
+        optionsScreen.findViewById(R.id.auto_install_checkbox).setVisibility(View.GONE);
+
 
         //prepare elements for connection dialog
         leader_toggle = switcherView.findViewById(R.id.leader_btn);
         learner_toggle = switcherView.findViewById(R.id.learner_btn);
 
-        leader_toggle.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                displayLeaderStartToggle();
-            }
-        });
+        leader_toggle.setOnClickListener(v -> displayLeaderStartToggle());
 
-        learner_toggle.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                displayLearnerStartToggle();
-            }
-        });
+        learner_toggle.setOnClickListener(v -> displayLearnerStartToggle());
 
         //prepare elements for login dialog
-        loginDialogView = View.inflate(context, R.layout.b__login_popup, null);
-        nameView = loginDialogView.findViewById(R.id.name_input_field);
+        getNameView();
 
-        ((Button) startLeader.findViewById(R.id.app_login)).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                showLoginDialog();
-            }
-        });
+        startLeader.findViewById(R.id.app_login).setOnClickListener(v -> showLoginDialog());
 
-        ((Button) loginDialogView.findViewById(R.id.back_btn)).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                hideLoginDialog(true);
-            }
-        });
+        loginDialogView.findViewById(R.id.back_btn).setOnClickListener(v -> hideLoginDialog(true));
 
-        ((Button) loginDialogView.findViewById(R.id.connect_btn)).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                initiateLeaderAdvertising();
-            }
-        });
+        loginDialogView.findViewById(R.id.connect_btn).setOnClickListener(v -> initiateLeaderAdvertising());
 
         setupLoginDialog();
 
-        //prepare elements for app push dialog
-        appPushDialogView = View.inflate(context, R.layout.e__preview_app_push, null);
-
-        ((Button) appPushDialogView.findViewById(R.id.push_btn)).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                appLaunchAdapter.launchApp(appPushPackageName, appPushTitle, false);
-                Log.d(TAG, "LAUNCHING! " + appPushPackageName);
-                hideAppPushDialogView();
-                showConfirmPushDialog(true, false);
-            }
-        });
-
-        ((Button) appPushDialogView.findViewById(R.id.back_btn)).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                hideAppPushDialogView();
-            }
-        });
 
         //prepare elements for leader main view
         waitingForLearners = mainLeader.findViewById(R.id.no_students_connected);
         appLauncherScreen = View.inflate(context, R.layout.d__app_list, null);
         confirmPushDialogView = View.inflate(context, R.layout.e__confirm_popup, null);
 
-        ((Button) confirmPushDialogView.findViewById(R.id.ok_btn)).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                hideConfirmPushDialog();
-            }
-        });
+        confirmPushDialogView.findViewById(R.id.ok_btn).setOnClickListener(v -> hideConfirmPushDialog());
 
 
         //set up options screen
-        CheckBox autoinstall_checkbox = (CheckBox) optionsScreen.findViewById(R.id.auto_install_checkbox);
-        autoinstall_checkbox.setChecked(autoInstallApps); //toggle the checkbox
-        autoinstall_checkbox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                autoInstallApps = isChecked;
-                Log.d(TAG, "Changed detected! Auto install is now " + autoInstallApps);
-                Toast toast;
-                if (autoInstallApps) {
-                    toast = Toast.makeText(getApplicationContext(), "Missing apps will be installed automatically on student devices.", Toast.LENGTH_SHORT);
-                } else {
-                    toast = Toast.makeText(getApplicationContext(), "Missing apps will NOT be installed on student devices.", Toast.LENGTH_SHORT);
-                }
-                toast.show();
-                getRemoteDispatchService().sendBoolToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.AUTO_INSTALL, autoInstallApps, getNearbyManager().getSelectedPeerIDs());
+        CheckBox auto_install_checkbox = optionsScreen.findViewById(R.id.auto_install_checkbox);
+        auto_install_checkbox.setChecked(autoInstallApps); //toggle the checkbox
+        auto_install_checkbox.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            autoInstallApps = isChecked;
+            Log.d(TAG, "Changed detected! Auto install is now " + autoInstallApps);
+            Toast toast;
+            if (autoInstallApps) {
+                toast = Toast.makeText(getApplicationContext(), "Missing apps will be installed automatically on student devices.", Toast.LENGTH_SHORT);
+            } else {
+                toast = Toast.makeText(getApplicationContext(), "Missing apps will NOT be installed on student devices.", Toast.LENGTH_SHORT);
             }
+            toast.show();
+            getDispatcher().sendBoolToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.AUTO_INSTALL, autoInstallApps, getNearbyManager().getSelectedPeerIDs());
         });
 
         setUpControlButtons();
@@ -1114,6 +1158,50 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
     }
 
+    protected void buildOverlay() {
+        LinearLayout parentLayout = findViewById(R.id.c__leader_main);
+        overlayView = LayoutInflater.from(context).inflate(R.layout.transparent_overlay, parentLayout, false);
+        overlayView.findViewById(R.id.blocking_view).setVisibility(View.GONE); //default is this should be hidden
+    }
+
+    private boolean overlayInitialised = false;
+
+    private void initialiseOverlayView() {
+        if (overlayInitialised || !permissionManager.isOverlayPermissionGranted()) {
+            return; //already done OR don't have permission
+        }
+
+        if (overlayView == null) {
+            buildOverlay();
+        }
+
+        WindowInsets insets = getWindow().getDecorView().getRootWindowInsets();
+        Log.w(TAG, "INSETS = " + insets);
+        //overlayView.findViewById(R.id.overlay_lock_icon).
+
+        //prepare layout parameters so overlay fills whole screen
+        calcParams();
+
+        //add overlay to the window manager
+        windowManager.addView(overlayView, overlayParams);
+        windowManager.updateViewLayout(overlayView, overlayParams);
+        overlayView.setVisibility(View.INVISIBLE);
+
+        overlayInitialised = true; //must set this before calling disable interaction
+
+        //set default state
+        getDispatcher().disableInteraction(ConnectedPeer.STATUS_LOCK);
+
+    }
+
+    public TextView getNameView() {
+        if (loginDialogView == null || nameView == null) {
+            loginDialogView = View.inflate(context, R.layout.b__login_popup, null);
+            nameView = loginDialogView.findViewById(R.id.name_input_field);
+        }
+        return nameView;
+    }
+
     private void prepLoginSwitcher() {
         Log.d(TAG, "Prepping switcher! " + isGuide);
         if (loggingInAsLeader) {
@@ -1126,15 +1214,22 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     private void displayLeaderStartToggle() {
         loggingInAsLeader = true;
         leaderLearnerSwitcher.setDisplayedChild(SWITCH_LEADER_INDEX);
-        leader_toggle.setBackground(getResources().getDrawable(R.drawable.bg_active_right_leader, null));
-        learner_toggle.setBackground(getResources().getDrawable(R.drawable.bg_passive_left_white, null));
+        leader_toggle.setBackground(ResourcesCompat.getDrawable(getResources(), R.drawable.bg_active_right_leader, null));
+        learner_toggle.setBackground(ResourcesCompat.getDrawable(getResources(), R.drawable.bg_passive_left_white, null));
     }
 
     private void displayLearnerStartToggle() {
         loggingInAsLeader = false;
+        if (!permissionManager.isNearbyPermissionsGranted()) {
+            learnerWaitingText.setText(getResources().getString(R.string.enable_location_to_connect));
+            permissionManager.checkNearbyPermissions();
+        } else {
+            initiateLeaderDiscovery();
+            learnerWaitingText.setText(getResources().getString(R.string.waiting_for_leaders));
+        }
         leaderLearnerSwitcher.setDisplayedChild(SWITCH_LEARNER_INDEX);
-        leader_toggle.setBackground(getResources().getDrawable(R.drawable.bg_passive_right_white, null));
-        learner_toggle.setBackground(getResources().getDrawable(R.drawable.bg_active_left_learner, null));
+        leader_toggle.setBackground(ResourcesCompat.getDrawable(getResources(), R.drawable.bg_passive_right_white, null));
+        learner_toggle.setBackground(ResourcesCompat.getDrawable(getResources(), R.drawable.bg_active_left_learner, null));
     }
 
     public void showLeaderWaitMsg(boolean show) {
@@ -1147,8 +1242,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
     /**
      * Helper methods used by multiple managers
-     *
-     * @param isApp
      */
     public void showConfirmPushDialog(boolean isApp, boolean isSavedOnly) {
         //TODO include display a message if errors occur
@@ -1176,20 +1269,14 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         closeKeyboard();
 
         //auto close after 1.5 seconds
-        handler.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                hideConfirmPushDialog();
-            }
-        }, 1500);
+        handler.postDelayed(this::hideConfirmPushDialog, 1500);
 
     }
 
     boolean isOpen = false;
 
     public void openKeyboard() {
-        View view = this.getCurrentFocus();
-        Log.d(TAG, "Open keyboard! " + view);
+        //Log.d(TAG, "Open keyboard! " + isOpen);
         if (isOpen) {
             return; //not needed
         }
@@ -1199,7 +1286,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
     public void closeKeyboard() {
         View view = this.getCurrentFocus();
-        Log.d(TAG, "Close keyboard! " + view);
+        //Log.d(TAG, "Close keyboard! " + isOpen);
 
         if (!isOpen) {
             return; //not needed
@@ -1225,30 +1312,65 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         leadmeAnimator.setDisplayedChild(ANIM_LEADER_INDEX);
     }
 
-    public void showWarningDialog(String message) {
+    public void showWarningDialog(String title, String message) {
+        if (destroying) {
+            return;
+        }
         if (warningDialog == null) {
             setupWarningDialog();
         }
+        warningDialogTitle.setText(title);
         warningDialogMessage.setText(message);
         warningDialogMessage.setVisibility(View.VISIBLE);
         warningDialog.show();
         hideSystemUI();
-        collapseStatusNow();
+        dialogShowing = true;
+    }
+
+    public void showWarningDialog(String message) {
+        if (destroying) {
+            return;
+        }
+        if (warningDialog == null) {
+            setupWarningDialog();
+        }
+        warningDialogTitle.setText(getResources().getString(R.string.oops_something_went_wrong));
+        warningDialogMessage.setText(message);
+        warningDialogMessage.setVisibility(View.VISIBLE);
+        warningDialog.show();
+        hideSystemUI();
         dialogShowing = true;
     }
 
     protected void closeWaitingDialog(boolean success) {
-        if (waitingDialog != null) {
-            waitingDialog.hide();
-            dialogShowing = false;
+        Log.d(TAG, "Closing waiting dialog! " + success + ", " + waitingDialog + ", " + loginDialog);
+        if (waitingDialog != null && waitingDialog.isShowing()) {
+            waitingDialog.dismiss();
         }
+        if (loginDialog != null && loginDialog.isShowing()) {
+            loginDialog.dismiss();
+        }
+        dialogShowing = (waitingDialog != null && waitingDialog.isShowing()) || (loginDialog != null && loginDialog.isShowing());
+        Log.d(TAG, "Are they showing now?? " + (waitingDialog != null && waitingDialog.isShowing()) + " || " + (loginDialog != null && loginDialog.isShowing()));
+
+        if (dialogShowing) { //try again until they're both gone
+            closeWaitingDialog(success);
+            return;
+        }
+
         if (!success) {
             //failed to login, so show login screen again
             prepLoginSwitcher();
             leadmeAnimator.setDisplayedChild(ANIM_START_SWITCH_INDEX);
-        } else {
-            //succeeded, so need to show overlay now if haven't already.
-            startOverlayAndServices();
+
+        } else if (!isGuide) {
+            //only need this if we're a follower
+
+            if (!permissionManager.isOverlayPermissionGranted()) {
+                permissionManager.checkOverlayPermissions();
+            } else {
+                initialiseOverlayView();
+            }
         }
     }
 
@@ -1258,13 +1380,10 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         if (waitingDialog == null) {
             View waitingDialogView = View.inflate(context, R.layout.e__waiting_to_connect, null);
             Button backBtn = waitingDialogView.findViewById(R.id.back_btn);
-            backBtn.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    waitingDialog.hide();
-                    dialogShowing = false;
-                    getNearbyManager().cancelConnection();
-                }
+            backBtn.setOnClickListener(v -> {
+                waitingDialog.dismiss();
+                dialogShowing = false;
+                getNearbyManager().cancelConnection();
             });
 
             waitingDialog = new AlertDialog.Builder(this)
@@ -1272,6 +1391,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                     .create();
         }
 
+        loginDialog.dismiss();
         waitingDialog.show();
         dialogShowing = true;
     }
@@ -1279,15 +1399,13 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
     private void setupWarningDialog() {
         View warningDialogView = View.inflate(context, R.layout.e__warning_popup, null);
+        warningDialogTitle = warningDialogView.findViewById(R.id.warning_title);
         warningDialogMessage = warningDialogView.findViewById(R.id.warning_comment);
         Button okBtn = warningDialogView.findViewById(R.id.ok_btn);
-        okBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                warningDialog.hide();
-                dialogShowing = false;
-                warningDialogMessage.setVisibility(View.GONE);
-            }
+        okBtn.setOnClickListener(v -> {
+            warningDialog.dismiss();
+            dialogShowing = false;
+            warningDialogMessage.setVisibility(View.GONE);
         });
 
         warningDialog = new AlertDialog.Builder(this)
@@ -1314,6 +1432,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         loginDialogView.findViewById(R.id.wrong_code_message).setVisibility(View.GONE);
 
         //check that a name has been entered
+        boolean nameEntered;
         if (nameView.getText().toString().trim().length() == 0) { //no name entered
             nameEntered = false;
             loginDialogView.findViewById(R.id.no_name_message).setVisibility(View.VISIBLE);
@@ -1328,7 +1447,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             //check teacher code
             String code = "" + code1.getText() + code2.getText() + code3.getText() + code4.getText();
             Log.d(TAG, "Code entered: " + code);
-            if (code.equals(teachercode)) { //correct code
+            if (code.equals(teacherCode)) { //correct code
                 codeEntered = true;
             } else { //incorrect code
                 codeEntered = false;
@@ -1357,6 +1476,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     boolean loginAttemptInAction = false;
 
     void loginAction() {
+        Log.w(TAG, "LOGGING IN " + nearbyManager.getName());
         loginAttemptInAction = true;
         //if all permissions are already granted, just continue
         if (leaderLearnerSwitcher.getDisplayedChild() == SWITCH_LEADER_INDEX) {
@@ -1364,15 +1484,15 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             loginAttemptInAction = false;
 
         } else {
-            if (!permissionManager.isOverlayPermissionGranted() || !permissionManager.isAccessibilityGranted()) {
+            if (/*!permissionManager.isOverlayPermissionGranted() || */!permissionManager.isAccessibilityGranted()) {
                 performNextAction(); //work through permissions
                 return;
 
             } else {
                 permissionManager.waitingForPermission = false;
+                loginAttemptInAction = false;
                 getNearbyManager().connectToSelectedLeader();
                 showWaitingForConnectDialog();
-                loginAttemptInAction = false;
             }
         }
 
@@ -1382,15 +1502,18 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         Log.d(TAG, "Your name is " + name + ", are you a guide? " + isGuide);
 
         ((TextView) optionsScreen.findViewById(R.id.student_name)).setText(name);
+        optionsScreen.findViewById(R.id.connected_only_view).setVisibility(View.VISIBLE);
+
         if (isGuide) {
             //display main guide view
             leadmeAnimator.setDisplayedChild(ANIM_LEADER_INDEX);
 
             //update options
-            optionsScreen.findViewById(R.id.settings_title).setVisibility(View.VISIBLE);
-            optionsScreen.findViewById(R.id.auto_install_checkbox).setVisibility(View.VISIBLE);
+            //TODO re-implement these AUTO-INSTALL features later
+//            optionsScreen.findViewById(R.id.settings_title).setVisibility(View.VISIBLE);
+//            optionsScreen.findViewById(R.id.auto_install_checkbox).setVisibility(View.VISIBLE);
             ((TextView) optionsScreen.findViewById(R.id.logout_btn)).setTextColor(getResources().getColor(R.color.light, null));
-            TextView title = ((TextView) leadmeAnimator.getCurrentView().findViewById(R.id.leader_title));
+            TextView title = leadmeAnimator.getCurrentView().findViewById(R.id.leader_title);
             title.setText(name);
             ((TextView) optionsScreen.findViewById(R.id.connected_as_role)).setText(getResources().getText(R.string.leader));
             ((TextView) optionsScreen.findViewById(R.id.connected_as_role)).setTextColor(getResources().getColor(R.color.accent, null));
@@ -1400,10 +1523,8 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             leadmeAnimator.setDisplayedChild(ANIM_LEARNER_INDEX);
 
             //update options
-            optionsScreen.findViewById(R.id.settings_title).setVisibility(View.GONE);
-            optionsScreen.findViewById(R.id.auto_install_checkbox).setVisibility(View.GONE);
             ((TextView) optionsScreen.findViewById(R.id.logout_btn)).setTextColor(getResources().getColor(R.color.leadme_medium_grey, null));
-            TextView title = ((TextView) leadmeAnimator.getCurrentView().findViewById(R.id.learner_title));
+            TextView title = leadmeAnimator.getCurrentView().findViewById(R.id.learner_title);
             title.setText(name);
             ((TextView) optionsScreen.findViewById(R.id.connected_as_role)).setText(getResources().getText(R.string.learner));
             ((TextView) optionsScreen.findViewById(R.id.connected_as_role)).setTextColor(getResources().getColor(R.color.medium, null));
@@ -1411,8 +1532,8 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     }
 
     public void getForegroundActivity() {
-        String packageName = "";
-        String className = "";
+        String packageName;
+        String className;
         long _begTime = appLaunchTime;
         long _endTime = System.currentTimeMillis();
         appLaunchTime = _endTime; //update so we're only looking at history since last check
@@ -1425,8 +1546,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             if (queryEvents != null) {
                 UsageEvents.Event event = new UsageEvents.Event();
 
-                Log.d(TAG, queryEvents.toString());
-                Log.d(TAG, event.toString());
+                Log.d(TAG, queryEvents.toString() + " // " + event.toString());
 
                 while (queryEvents.hasNextEvent()) {
                     UsageEvents.Event eventAux = new UsageEvents.Event();
@@ -1448,90 +1568,22 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     private void setUpControlButtons() {
         //TODO reimplement this as needed
 
-        mainLeader.findViewById(R.id.unlock_selected_btn).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                //toggle and set
-                unlockFromMainAction();
-            }
+        mainLeader.findViewById(R.id.unlock_selected_btn).setOnClickListener(v -> {
+            unlockFromMainAction();
         });
 
-        mainLeader.findViewById(R.id.lock_selected_btn).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                //toggle and set
-                lockFromMainAction();
-            }
+        mainLeader.findViewById(R.id.lock_selected_btn).setOnClickListener(v -> {
+            lockFromMainAction();
         });
 
-        mainLeader.findViewById(R.id.block_selected_btn).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                //toggle and set
-                blackoutFromMainAction();
-            }
+        mainLeader.findViewById(R.id.block_selected_btn).setOnClickListener(v -> {
+            blackoutFromMainAction();
         });
     }
-
-    private void startOverlayAndServices() {
-        if (isGuide) {
-            return; //guide doesn't need this
-        }
-
-//        if(!permissionManager.isOverlayPermissionGranted()){
-//            permissionManager.checkOverlayPermissions();
-//        }
-
-        initialiseBlockingOverlay();
-        overlayView.setVisibility(View.INVISIBLE); //default is hidden behind main app
-    }
-
 
     @Override
     public void onActionModeStarted(ActionMode mode) {
         super.onActionModeStarted(mode);
-    }
-
-
-    private void initialiseBlockingOverlay() {
-        //overlay is already running
-        if (overlayView != null) {
-            refreshOverlay();
-            return;
-        }
-
-        //initialise window manager for shared use
-        windowManager = (WindowManager) getSystemService(WINDOW_SERVICE);
-
-        //retrieve a reference to the overlay view in the main layout
-        LinearLayout parentLayout = findViewById(R.id.c__leader_main);
-        overlayView = LayoutInflater.from(context).inflate(R.layout.transparent_overlay, parentLayout, false);
-        overlayView.findViewById(R.id.blocking_view).setVisibility(View.GONE); //default is this should be hidden
-
-        getWindow().getDecorView().setOnSystemUiVisibilityChangeListener(
-                new View.OnSystemUiVisibilityChangeListener() {
-                    @Override
-                    public void onSystemUiVisibilityChange(int visibility) {
-                        if (getNearbyManager().isConnectedAsFollower()) {
-                            hideSystemUI(); //hide immediately
-                        } else {
-                            handler.postDelayed(new Runnable() {
-                                @Override
-                                public void run() {
-                                    hideSystemUI(); //hide after short delay
-                                }
-                            }, 1500);
-                        }
-                    }
-                });
-
-
-        //prepare layout parameters so overlay fills whole screen
-        calcParams();
-
-        //add overlay to the window manager
-        windowManager.addView(overlayView, overlayParams);
-        windowManager.updateViewLayout(overlayView, overlayParams);
     }
 
     public void refreshOverlay() {
@@ -1555,6 +1607,12 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         display.getRealSize(size);
 
         int OTHER_FLAGS = WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN | WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE;
+
+//       int OTHER_FLAGS = WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE | WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH | WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL; //must have this for outside touch to function
+//        OTHER_FLAGS += WindowManager.LayoutParams.FLAG_FULLSCREEN;
+//        OTHER_FLAGS += WindowManager.LayoutParams.FLAG_TRANSLUCENT_NAVIGATION;
+//        OTHER_FLAGS += WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS;
+
         //OTHER_FLAGS += WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE; //passes touch through - non-blocking
 
         overlayParams = new WindowManager.LayoutParams(
@@ -1572,51 +1630,57 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
     }
 
+
     public void MuteAudio() {
-        AudioManager mAudioManager = (AudioManager) getSystemService(this.AUDIO_SERVICE);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            mAudioManager.adjustStreamVolume(AudioManager.STREAM_MUSIC, AudioManager.ADJUST_MUTE, 0);
-            mAudioManager.adjustStreamVolume(AudioManager.STREAM_SYSTEM, AudioManager.ADJUST_MUTE, 0);
-        } else {
-            mAudioManager.setStreamMute(AudioManager.STREAM_MUSIC, true);
-            mAudioManager.setStreamMute(AudioManager.STREAM_SYSTEM, true);
-        }
+        AudioManager mAudioManager = (AudioManager) getSystemService(AUDIO_SERVICE);
+        mAudioManager.adjustStreamVolume(AudioManager.STREAM_MUSIC, AudioManager.ADJUST_MUTE, 0);
+        mAudioManager.adjustStreamVolume(AudioManager.STREAM_SYSTEM, AudioManager.ADJUST_MUTE, 0);
+
     }
 
     public void UnMuteAudio() {
-        AudioManager mAudioManager = (AudioManager) getSystemService(this.AUDIO_SERVICE);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            mAudioManager.adjustStreamVolume(AudioManager.STREAM_MUSIC, AudioManager.ADJUST_UNMUTE, 0);
-            mAudioManager.adjustStreamVolume(AudioManager.STREAM_SYSTEM, AudioManager.ADJUST_UNMUTE, 0);
+        AudioManager mAudioManager = (AudioManager) getSystemService(AUDIO_SERVICE);
+        mAudioManager.adjustStreamVolume(AudioManager.STREAM_MUSIC, AudioManager.ADJUST_UNMUTE, 0);
+        mAudioManager.adjustStreamVolume(AudioManager.STREAM_SYSTEM, AudioManager.ADJUST_UNMUTE, 0);
+    }
+
+    public boolean verifyOverlay() {
+        if (overlayView == null && getNearbyManager().isConnectedAsFollower() && getNearbyManager().getID() != null) {
+            Toast.makeText(this, "Overlay is not working. Please turn on correct permissions.", Toast.LENGTH_SHORT).show();
+            getDispatcher().alertGuidePermissionGranted(STUDENT_NO_OVERLAY, false);
+            permissionManager.checkOverlayPermissions();
         } else {
-            mAudioManager.setStreamMute(AudioManager.STREAM_MUSIC, false);
-            mAudioManager.setStreamMute(AudioManager.STREAM_SYSTEM, false);
+            //in case it hasn't been done yet
+            initialiseOverlayView();
         }
+        return overlayView != null;
     }
 
     public void blackout(boolean on) {
+        if (on) {
+            MuteAudio();
+        } else {
+            UnMuteAudio();
+        }
 
-        if (overlayView == null) {
-            initialiseBlockingOverlay();
+        if (!verifyOverlay()) {
+            return;
         }
 
         View blocking_view = overlayView.findViewById(R.id.blocking_view);
-
         if (on) {
             blocking_view.setVisibility(View.VISIBLE);
-            MuteAudio();
         } else {
             blocking_view.setVisibility(View.GONE);
-            UnMuteAudio();
         }
     }
 
     public void setStudentLock(int status) {
-        permissionManager.checkOverlayPermissions();
+
         studentLockOn = (status == ConnectedPeer.STATUS_BLACKOUT || status == ConnectedPeer.STATUS_LOCK);
 
         Log.d(TAG, "Is locked? " + studentLockOn);
-        String statusMsg = "";
+        String statusMsg;
 
         if (isGuide) {
             statusMsg = "Students are now in ";
@@ -1626,15 +1690,12 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
         switch (status) {
             case ConnectedPeer.STATUS_LOCK:
-                overlayView.setVisibility(View.VISIBLE);
                 statusMsg += "FOLLOW mode.";
                 break;
             case ConnectedPeer.STATUS_BLACKOUT:
-                overlayView.setVisibility(View.VISIBLE);
                 statusMsg += "BLOCKED mode.";
                 break;
             case ConnectedPeer.STATUS_UNLOCK:
-                overlayView.setVisibility(View.INVISIBLE);
                 statusMsg += "FREE PLAY mode.";
                 break;
             default:
@@ -1644,6 +1705,25 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
         Toast studentStatus = Toast.makeText(context, statusMsg, Toast.LENGTH_SHORT);
         studentStatus.show();
+
+        if (!verifyOverlay()) {
+            return;
+        }
+
+        switch (status) {
+            case ConnectedPeer.STATUS_LOCK:
+                overlayView.setVisibility(View.VISIBLE);
+                break;
+            case ConnectedPeer.STATUS_BLACKOUT:
+                overlayView.setVisibility(View.VISIBLE);
+                break;
+            case ConnectedPeer.STATUS_UNLOCK:
+                overlayView.setVisibility(View.INVISIBLE);
+                break;
+            default:
+                Log.e(TAG, "Invalid status: " + status);
+        }
+
     }
 
     public void updateFollowerCurrentTask(String packageName, String appName, String
@@ -1657,16 +1737,13 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                 currentTaskLaunchBtn = mainLearner.findViewById(R.id.launch_btn);
                 currentTaskIcon.setImageDrawable(getPackageManager().getApplicationIcon(packageName));
 
-                currentTaskLaunchBtn.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        Log.d(TAG, "Clicking launch! " + currentTaskPackageName);
-                        try {
-                            appLaunchAdapter.relaunchLast(currentTaskPackageName, currentTaskName, currentTaskType, currentTaskURL);
+                currentTaskLaunchBtn.setOnClickListener(v -> {
+                    Log.d(TAG, "Clicking launch! " + currentTaskPackageName);
+                    try {
+                        appLaunchAdapter.relaunchLast(currentTaskPackageName, currentTaskName, currentTaskType, currentTaskURL);
 
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
                     }
                 });
             }
@@ -1718,6 +1795,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
     private void showRecallDialog() {
         dialogShowing = true;
+        Log.w(TAG, "Showing recall dialog");
 
         if (recallPrompt == null) {
             View recallView = View.inflate(context, R.layout.e__recall_confirm_popup, null);
@@ -1726,36 +1804,20 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             selectedBtn = recallView.findViewById(R.id.selected_btn);
             everyoneBtn = recallView.findViewById(R.id.everyone_btn);
 
-            recallView.findViewById(R.id.ok_btn).setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    returnToAppFromMainAction(returnEveryone);
-                    dialogShowing = false;
-                    recallPrompt.hide();
-                }
+            recallView.findViewById(R.id.ok_btn).setOnClickListener(v -> {
+                returnToAppFromMainAction(returnEveryone);
+                dialogShowing = false;
+                recallPrompt.hide();
             });
 
-            recallView.findViewById(R.id.back_btn).setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    dialogShowing = false;
-                    recallPrompt.hide();
-                }
+            recallView.findViewById(R.id.back_btn).setOnClickListener(v -> {
+                dialogShowing = false;
+                recallPrompt.hide();
             });
 
-            recallView.findViewById(R.id.selected_btn).setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    makeSelectedBtnActive();
-                }
-            });
+            recallView.findViewById(R.id.selected_btn).setOnClickListener(v -> makeSelectedBtnActive());
 
-            recallView.findViewById(R.id.everyone_btn).setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    makeEveryoneBtnActive();
-                }
-            });
+            recallView.findViewById(R.id.everyone_btn).setOnClickListener(v -> makeEveryoneBtnActive());
 
             recallPrompt = new AlertDialog.Builder(this)
                     .setView(recallView)
@@ -1777,48 +1839,43 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
     private void makeSelectedBtnActive() {
         returnEveryone = false;
-        selectedBtn.setBackground(getResources().getDrawable(R.drawable.bg_active_right, null));
-        everyoneBtn.setBackground(getResources().getDrawable(R.drawable.bg_passive_left, null));
+        selectedBtn.setBackground(ResourcesCompat.getDrawable(getResources(), R.drawable.bg_active_right, null));
+        everyoneBtn.setBackground(ResourcesCompat.getDrawable(getResources(), R.drawable.bg_passive_left, null));
         selectedBtn.setTextColor(getResources().getColor(R.color.leadme_light_grey, null));
         everyoneBtn.setTextColor(getResources().getColor(R.color.light, null));
     }
 
     private void makeEveryoneBtnActive() {
         returnEveryone = true;
-        selectedBtn.setBackground(getResources().getDrawable(R.drawable.bg_passive_right, null));
-        everyoneBtn.setBackground(getResources().getDrawable(R.drawable.bg_active_left, null));
+        selectedBtn.setBackground(ResourcesCompat.getDrawable(getResources(), R.drawable.bg_passive_right, null));
+        everyoneBtn.setBackground(ResourcesCompat.getDrawable(getResources(), R.drawable.bg_active_left, null));
 
         everyoneBtn.setTextColor(getResources().getColor(R.color.leadme_light_grey, null));
         selectedBtn.setTextColor(getResources().getColor(R.color.light, null));
     }
 
-//    public void returnToAppAction() {
-//        Log.d(TAG, "Current focus is: " + getCurrentFocus());
-//        if (!hasWindowFocus()) {
-//            Log.d(TAG, "Returning to app!");
-//            //TODO if calling this after launching a 3rd party app from within Lead Me, it works perfectly
-//            //TODO if calling this after minimising Lead Me, it can take multiple taps to return to the app - weird behaviour?
-//            recallToLeadMe();
-//        }
-//    }
 
     public void recallToLeadMe() {
-        collapseStatusNow();
-
-        //activityManager.moveTaskToFront(getTaskId(), ActivityManager.MOVE_TASK_WITH_HOME);
-        if (appHasFocus) {// || permissionManager.waitingForPermission) {
-            Log.d(TAG, "Already in LeadMe! " + permissionManager.waitingForPermission);
+        if (appHasFocus && hasWindowFocus()) {
+            Log.d(TAG, "Already in LeadMe! " + appHasFocus + ", " + hasWindowFocus());
             return;
         }
+
+        if (getLifecycle().getCurrentState() == Lifecycle.State.DESTROYED) {
+            finish();
+            return;
+        }
+
+        Log.d(TAG, "Recalling to LeadMe! " + dialogShowing + ", " + appHasFocus + ", " + hasWindowFocus() + ", " + getLifecycle().getCurrentState());
         closeKeyboard();
         permissionManager.needsRecall = false;
-        Log.d(TAG, "Recalling to LeadMe! " + dialogShowing);
-        getRemoteDispatchService().bringMainToFront();
+        getLumiAccessibilityConnector().bringMainToFront(); //call each other until it works
 
         Intent intent = new Intent(this, LeadMeMain.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
         intent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
         startActivity(intent);
+        getAppManager().lastApp = intent.getPackage();
         activityManager.moveTaskToFront(getTaskId(), ActivityManager.MOVE_TASK_WITH_HOME);
 
         if (!isGuide) {
@@ -1839,7 +1896,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         } else {
             chosen = getNearbyManager().getAllPeerIDs();
         }
-        getRemoteDispatchService().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.LOCK_TAG, chosen);
+        getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.LOCK_TAG, chosen);
     }
 
     public void unlockFromMainAction() {
@@ -1849,7 +1906,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         } else {
             chosen = getNearbyManager().getAllPeerIDs();
         }
-        getRemoteDispatchService().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.UNLOCK_TAG, chosen);
+        getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.UNLOCK_TAG, chosen);
     }
 
     public void blackoutFromMainAction() {
@@ -1859,17 +1916,13 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         } else {
             chosen = getNearbyManager().getAllPeerIDs();
         }
-        getRemoteDispatchService().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.BLACKOUT_TAG, chosen);
+        getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.BLACKOUT_TAG, chosen);
     }
 
-    //helper function, returns only selected learners
-//    public void returnToAppFromMainAction() {
-//        returnToAppFromMainAction(false);
-//    }
 
     //main function, can return everyone or only selected learners
     public void returnToAppFromMainAction(boolean returnEveryone) {
-        Log.d(TAG, "Returning to app from MAIN! " + hasWindowFocus());
+        Log.d(TAG, "Returning to app from MAIN! " + appHasFocus + ", " + hasWindowFocus());
         //String connections = getNearbyManager().getSelectedPeerIDsAsString();
 
         Set<String> chosenPeers;
@@ -1879,7 +1932,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             chosenPeers = getNearbyManager().getAllPeerIDs();
         }
         Log.i(TAG, "Returning " + chosenPeers.size() + " learners to LeadMe (" + chosenPeers.toString() + ") vs me: " + getNearbyManager().getID());
-        getRemoteDispatchService().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.RETURN_TAG, chosenPeers);
+        getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.RETURN_TAG, chosenPeers);
 
         if (appToast == null) {
             returningToApp = true;
@@ -1887,25 +1940,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             appToast.show();
         }
     }
-
-//    public void returnToAppFromSettings() {
-//        Log.d(TAG, "Returning to app from SETTINGS! "+hasWindowFocus());
-////        if (!hasWindowFocus()) {
-////            handler.post(new Runnable() {
-////                @Override
-////                public void run() {
-////                    recallToLeadMe();
-////                }
-////            });
-////        }
-//
-//        Intent intent = new Intent(context, LeadMeMain.class);
-//        intent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
-//        intent.addFlags(Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED);
-//        intent.addFlags(Intent.FLAG_ACTIVITY_PREVIOUS_IS_TOP);
-//        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-//        startActivity(intent);
-//    }
 
     public void displayLearnerMain(String leaderName) {
         TextView leaderTitle = mainLearner.findViewById(R.id.leader_name);
@@ -1915,9 +1949,12 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         learnerTitle.setText(getNearbyManager().getName());
     }
 
+    //UPDATE OPTIONS PAGE
     public void setUIDisconnected() {
         //reset state
         isReadyToConnect = false; //need to press button first
+
+        cleanUpDialogs();
 
         //reset views
         showConnectedStudents(false);
@@ -1927,15 +1964,17 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         }
 
         readyBtn.setEnabled(true);
+        readyBtn.setText(R.string.connect_label);
         if (isGuide) {
             waitingForLearners.setVisibility(View.GONE);
         }
 
         Log.d(TAG, "SET UI DISCONNECTED");
-        //make sure everything is stopped
-        getNearbyManager().onStop();
-        getNearbyManager().disconnectFromAllEndpoints();
-        getNearbyManager().stopAdvertising();
+
+        //update options screen
+        optionsScreen.findViewById(R.id.connected_only_view).setVisibility(View.GONE);
+        ((TextView) optionsScreen.findViewById(R.id.logout_btn)).setTextColor(getResources().getColor(R.color.light, null));
+
 
         //display login view
         prepLoginSwitcher();
@@ -1944,9 +1983,22 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         initiateLeaderDiscovery();
     }
 
-    public void collapseStatusNow() {
+    public void collapseStatus() {
+        if (!getNearbyManager().isConnectedAsGuide() && !getNearbyManager().isConnectedAsFollower()) {
+            //don't enforce any of this until we're connected
+            return;
+        }
+        Log.d(TAG, "TIME TO COLLAPSE! " + getLifecycle().getCurrentState() + ", " + getNearbyManager().isConnectedAsFollower());
         Intent closeDialog = new Intent(Intent.ACTION_CLOSE_SYSTEM_DIALOGS);
         sendBroadcast(closeDialog);
+
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                sendBroadcast(closeDialog);
+            }
+        }, 3000);
+
     }
 
     @Override
@@ -1993,7 +2045,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     @Override
     public void finish() {
         super.finish();
-        if (android.os.Build.VERSION.SDK_INT >= 19 && !isTaskRoot() && mIsRestoredToTop) {
+        if (!isTaskRoot() && mIsRestoredToTop) {
             // 4.4.2 platform issues for FLAG_ACTIVITY_REORDER_TO_FRONT,
             // reordered activity back press will go to home unexpectedly,
             // Workaround: move reordered activity current task to front when it's finished.
@@ -2002,51 +2054,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         }
     }
 
-
-    private boolean layoutTouchInit = false;
-
-    protected void setupLayoutTouchListener() {
-        if (layoutTouchInit) {
-            return;
-        }
-
-        Log.d(TAG, getRemoteDispatchService() + "" + getRemoteDispatchService().getBaseContext());
-        FrameLayout layout = new FrameLayout(this); //we want to detect things via the service
-
-        WindowManager.LayoutParams params = new WindowManager.LayoutParams(WindowManager.LayoutParams.MATCH_PARENT,
-                WindowManager.LayoutParams.MATCH_PARENT, WindowManager.LayoutParams.TYPE_ACCESSIBILITY_OVERLAY,
-                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE | WindowManager.LayoutParams.FLAG_FULLSCREEN |
-                        WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE |
-                        WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS |
-                        WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH,
-                PixelFormat.TRANSLUCENT);
-        params.gravity = Gravity.TOP;
-
-        if (windowManager != null) {
-            layoutTouchInit = true;
-            layout.setOnTouchListener(new View.OnTouchListener() {
-                @Override
-                public boolean onTouch(View v, MotionEvent event) {
-                    Log.d(TAG, "TEST: " + event.getY());
-                    if (getNearbyManager().isConnectedAsFollower() && event.getY() == 0) {
-                        Log.d(TAG, "STATUS OR NAV TOUCH!! " + event.getAction());
-                        collapseStatusNow();
-
-                        //main.getForegroundActivity();
-
-                        //hide status bar
-                        //check if target app still in front
-                        //IF NOT alert teacher and bring target app back to the front
-
-                        return true; //consume event
-                    }
-
-                    return false; //pass event on
-                }
-
-            });
-        }
-    }
     /*
     Auto app installation through javiersantos library
      */
@@ -2072,4 +2079,5 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         Log.d("AutoUpdates", "finished");
 
     }
+
 }

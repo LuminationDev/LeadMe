@@ -764,8 +764,8 @@ public abstract class Node implements Cloneable {
     }
 
     private static class OuterHtmlVisitor implements NodeVisitor {
-        private Appendable accum;
-        private Document.OutputSettings out;
+        private final Appendable accum;
+        private final Document.OutputSettings out;
 
         OuterHtmlVisitor(Appendable accum, Document.OutputSettings out) {
             this.accum = accum;

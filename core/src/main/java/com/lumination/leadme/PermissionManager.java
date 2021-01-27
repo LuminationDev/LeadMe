@@ -1,9 +1,14 @@
 package com.lumination.leadme;
 
 import android.Manifest;
+import android.app.ActivityManager;
 import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
+import android.net.Uri;
 import android.provider.Settings;
 import android.util.Log;
 import android.widget.Toast;
@@ -11,21 +16,24 @@ import android.widget.Toast;
 import com.gun0912.tedpermission.PermissionListener;
 import com.gun0912.tedpermission.TedPermission;
 
+import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.List;
 
 public class PermissionManager {
 
     private String app_title = "Lumination LeadMe";
-    private String TAG = "LumiPermissions";
+    private final String TAG = "LumiPermissions";
 
     private LeadMeMain main;
     private boolean overlayPermissionGranted = false, nearbyPermissionsGranted = false;
     protected boolean waitingForPermission = false;
-    private PermissionListener overlayPermissionListener, nearbyPermissionListener, miscPermissionListener;
+    private PermissionListener overlayPermissionListener;
+    private PermissionListener nearbyPermissionListener;
+    private PermissionListener miscPermissionListener;
     private ArrayList<String> rejectedPermissions = new ArrayList<>();
 
-    public PermissionManager(final LeadMeMain main) {
+    public PermissionManager(LeadMeMain main) {
         super();
         this.main = main;
         app_title = main.getResources().getString(R.string.app_title_with_brand);
@@ -86,15 +94,19 @@ public class PermissionManager {
     }
 
     public boolean isOverlayPermissionGranted() {
-        overlayPermissionGranted = overlayPermissionGranted || main.checkSelfPermission(Manifest.permission.SYSTEM_ALERT_WINDOW) == PackageManager.PERMISSION_GRANTED;
-        Log.d(TAG, "IsOverlayPermissionGranted? " + overlayPermissionGranted);
+        overlayPermissionGranted = (main.checkSelfPermission(Manifest.permission.SYSTEM_ALERT_WINDOW) == PackageManager.PERMISSION_GRANTED
+                || Settings.canDrawOverlays(main));
+        //&& main.overlayView != null;
+        Log.d(TAG, "IsOverlayPermissionGranted? " + (main.checkSelfPermission(Manifest.permission.SYSTEM_ALERT_WINDOW) == PackageManager.PERMISSION_GRANTED) + ", " + Settings.canDrawOverlays(main) + ", " + main.overlayView);
 
-        if (main.getNearbyManager().isConnectedAsFollower()) {
+
+        if (!overlayPermissionGranted && main.getNearbyManager().isConnectedAsFollower()) {
             //alert the teacher that the student may not be lockable
-            Log.e(TAG, "WARNING! This student may be off task - overlay can't be shown.");
-            main.getRemoteDispatchService().sendActionToSelected(LeadMeMain.ACTION_TAG,
-                    LeadMeMain.STUDENT_OFF_TASK_ALERT + "Permission Error - Blocking Overlay Can't be Shown:"
-                            + main.getNearbyManager().getID(), main.getNearbyManager().getSelectedPeerIDs());
+            Log.e(TAG, "WARNING! I may be off task - overlay can't be shown. " + main.getNearbyManager().getID());
+            main.getDispatcher().alertGuidePermissionGranted(LeadMeMain.STUDENT_NO_OVERLAY, false);
+
+        } else if (overlayPermissionGranted && main.getNearbyManager().isConnectedAsFollower()) {
+            main.getDispatcher().alertGuidePermissionGranted(LeadMeMain.STUDENT_NO_OVERLAY, true);
         }
 
         return overlayPermissionGranted;
@@ -110,16 +122,13 @@ public class PermissionManager {
     public void checkOverlayPermissions() {
         Log.d(TAG, "Checking Overlay Permissions. Currently " + overlayPermissionGranted + ", " + rejectedPermissions);
         waitingForPermission = true;
-        String rationaleMsg = "Please go to [Settings] > [Other permissions] and turn 'Display pop-up window' on so LeadMe can function correctly.";
-
-        TedPermission.with(main)
-                .setPermissionListener(overlayPermissionListener)
-//                .setGotoSettingButton(true)
-//                .setGotoSettingButtonText("Settings")
-//                .setRationaleTitle("Required Permissions")
-//                .setRationaleMessage(rationaleMsg)
-                .setPermissions(Manifest.permission.SYSTEM_ALERT_WINDOW)
-                .check();
+        if (!isOverlayPermissionGranted()) {
+            main.closeKeyboard();
+            TedPermission.with(main)
+                    .setPermissionListener(overlayPermissionListener)
+                    .setPermissions(Manifest.permission.SYSTEM_ALERT_WINDOW)
+                    .check();
+        }
 
         if (!isAccessibilityGranted()) {
             requestAccessibilitySettingsOn();
@@ -137,7 +146,7 @@ public class PermissionManager {
                 .setPermissions(Manifest.permission.INTERNET, Manifest.permission.REORDER_TASKS,
                         Manifest.permission.ACCESS_WIFI_STATE, Manifest.permission.CHANGE_WIFI_STATE,
                         Manifest.permission.BLUETOOTH, Manifest.permission.BLUETOOTH_ADMIN,
-                        //Manifest.permission.WRITE_EXTERNAL_STORAGE,
+                        Manifest.permission.NFC,
                         Manifest.permission.EXPAND_STATUS_BAR) //only learners/students need a system alert window
                 .check();
     }
@@ -148,21 +157,10 @@ public class PermissionManager {
         waitingForPermission = true;
         String rationaleMsg = "Please enable Location services to connect to other LeadMe users.";
 
-//        boolean canAsk = TedPermission.canRequestPermission(main, Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION,
-//                Manifest.permission.ACCESS_WIFI_STATE, Manifest.permission.CHANGE_WIFI_STATE,
-//                Manifest.permission.BLUETOOTH, Manifest.permission.BLUETOOTH_ADMIN);
-//
-//        if(canAsk) {
         TedPermission.with(main)
                 .setPermissionListener(nearbyPermissionListener)
-//                    .setRationaleTitle("Essential Permissions")
-//                    .setRationaleConfirmText("OK")
-//                    .setRationaleMessage(rationaleMsg)
                 .setPermissions(Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION)
                 .check();
-//        } else {
-//            Log.d(TAG, "NOPE! "+canAsk);
-//        }
     }
 
 
@@ -179,31 +177,40 @@ public class PermissionManager {
     }
 
     private void pingForAccess() {
-        main.getHandler().post(new Runnable() {
-            @Override
-            public void run() {
-                while (waitingForPermission && !isAccessibilityGranted()) {
-                    try {
-                        Thread.sleep(500);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
+        main.getHandler().post(() -> {
+            while (waitingForPermission && !isAccessibilityGranted()) {
+                try {
+                    Thread.sleep(500);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
                 }
+            }
 
-                //once all other settings are enabled, return to LeadMe
-                Log.d(TAG, "ACCESSIBILITY search complete.");
-                main.canAskForAccessibility = false;
-                if (needsRecall) {
-                    main.recallToLeadMe();
-                }
+            //once all other settings are enabled, return to LeadMe
+            Log.d(TAG, "ACCESSIBILITY search complete.");
+            main.canAskForAccessibility = false;
+            if (needsRecall) {
+                main.recallToLeadMe();
             }
         });
     }
 
     protected boolean needsRecall = false;
 
+    //this functionality is intended for testing, not control flow
+    //in future, find a better way to do it for production case
+    public boolean isMyServiceRunning(Class<?> serviceClass) {
+        ActivityManager manager = (ActivityManager) main.getSystemService(Context.ACTIVITY_SERVICE);
+        for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
+            if (serviceClass.getName().equals(service.service.getClassName())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public boolean isAccessibilityGranted() {
-        ComponentName expectedComponentName = new ComponentName(main, main.getRemoteDispatchService().getClass());
+        ComponentName expectedComponentName = new ComponentName(main, LumiAccessibilityService.class);
 
         String enabledServicesSetting = Settings.Secure.getString(main.getContentResolver(), Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES);
         if (enabledServicesSetting == null) {
@@ -211,7 +218,7 @@ public class PermissionManager {
         }
 
         String[] services = enabledServicesSetting.split(":");
-        main.getRemoteDispatchService(); //initialise this
+        // main.getLumiAccessibilityService(); //initialise this
 
 
         Log.d(TAG, "Searching for: " + expectedComponentName);
@@ -220,16 +227,52 @@ public class PermissionManager {
             ComponentName enabledService = ComponentName.unflattenFromString(componentNameString);
 
             if (enabledService != null && enabledService.equals(expectedComponentName)) {
-                Log.i(TAG, "***ACCESSIBILITY IS ENABLED***");
+                Log.i(TAG, "***ACCESSIBILITY IS ENABLED, IS IT RUNNING? (" + isMyServiceRunning(LumiAccessibilityService.class) + ") ***");
                 needsRecall = true;
                 waitingForPermission = false;
+                main.getDispatcher().alertGuidePermissionGranted(LeadMeMain.STUDENT_NO_ACCESSIBILITY, true);
                 return true;
             }
         }
+
+        main.getDispatcher().alertGuidePermissionGranted(LeadMeMain.STUDENT_NO_ACCESSIBILITY, false);
 
         Log.i(TAG, "***ACCESSIBILITY IS DISABLED***");
         waitingForPermission = false;
         return false;
     }
+
+    private boolean successfulPing = false;
+
+    protected boolean isInternetConnectionAvailable(String url) {
+        ConnectivityManager connectivityManager = (ConnectivityManager) main.getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
+        boolean connected = activeNetworkInfo != null && activeNetworkInfo.isConnected();
+        if (connected) {
+            try {
+                String host = Uri.parse(url).getHost();
+
+                Thread thread = new Thread(() -> {
+                    try {
+                        successfulPing = InetAddress.getByName(host).isReachable(500);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                });
+                thread.start();
+
+                //wait for isReachable to return
+                Thread.sleep(1200);
+
+                connected = connected && successfulPing;
+
+            } catch (Exception e) {
+                e.printStackTrace();
+                connected = false;
+            }
+        }
+        return connected;
+    }
+
 }
 

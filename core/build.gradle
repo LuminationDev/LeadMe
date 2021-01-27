@@ -16,15 +16,21 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
         }
     }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+    ndkVersion '21.1.6352462'
 }
 
 dependencies {
     implementation 'androidx.gridlayout:gridlayout:1.0.0'
     implementation 'com.google.android.material:material:1.2.1'
-    implementation 'com.google.android.gms:play-services-location:17.1.0'
+
+    //for nearby connections
     implementation 'com.google.android.gms:play-services-nearby:17.0.0'
-    implementation 'androidx.constraintlayout:constraintlayout:2.0.4'
     implementation 'com.github.javiersantos:AppUpdater:2.7'
+
 
     //for permissions manager
     implementation 'gun0912.ted:tedpermission:2.2.3'
