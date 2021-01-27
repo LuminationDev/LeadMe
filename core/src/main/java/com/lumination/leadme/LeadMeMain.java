@@ -57,6 +57,9 @@ import androidx.lifecycle.Lifecycle;
 import androidx.lifecycle.LifecycleObserver;
 import androidx.lifecycle.OnLifecycleEvent;
 
+import com.github.javiersantos.appupdater.AppUpdater;
+import com.github.javiersantos.appupdater.enums.UpdateFrom;
+
 import java.util.ArrayList;
 import java.util.Set;
 import java.util.UUID;
@@ -1089,9 +1092,11 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             }
         });
 
+
         optionsScreen.findViewById(R.id.connected_only_view).setVisibility(View.GONE);
         optionsScreen.findViewById(R.id.settings_title).setVisibility(View.GONE);
         optionsScreen.findViewById(R.id.auto_install_checkbox).setVisibility(View.GONE);
+
 
         //prepare elements for connection dialog
         leader_toggle = switcherView.findViewById(R.id.leader_btn);
@@ -1148,6 +1153,8 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
         //start this
         getForegroundActivity();
+        initiateLeaderDiscovery();
+        AutoUpdates(false);
 
     }
 
@@ -2046,4 +2053,31 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             tasksManager.moveTaskToFront(getTaskId(), ActivityManager.MOVE_TASK_NO_USER_ACTION);
         }
     }
+
+    /*
+    Auto app installation through javiersantos library
+     */
+    protected void AutoUpdates(boolean button){
+        Log.d("AutoUpdates", "started");
+        AppUpdater appUpdater = new AppUpdater(this)
+                .setDisplay(com.github.javiersantos.appupdater.enums.Display.DIALOG)
+                .setUpdateFrom(UpdateFrom.XML)
+                //Points to an XML file hosted on a public github, the XML file then contains the download link to check for a new update
+                .setUpdateXML("https://raw.githubusercontent.com/jlundlumination/WebFiles/master/Update.XML")
+                .setTitleOnUpdateAvailable("Update available")
+                .setContentOnUpdateAvailable("Check out the latest version available of my app!")
+                .setButtonUpdate("Update now?")
+	            .setButtonDismiss("Maybe later")
+	            .setButtonDoNotShowAgain("Don't Ask Me Again")//need to test if only stops showing for that update
+                .setCancelable(true);
+
+        //show already updated message only if the button in options is used
+        if(button){
+            appUpdater.showAppUpdated(true);
+        }
+        appUpdater.start();
+        Log.d("AutoUpdates", "finished");
+
+    }
+
 }
