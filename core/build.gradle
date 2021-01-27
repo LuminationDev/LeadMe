@@ -29,28 +29,12 @@ dependencies {
 
     //for nearby connections
     implementation 'com.google.android.gms:play-services-nearby:17.0.0'
-    implementation 'com.github.javiersantos:AppUpdater:2.7'
-
 
     //for permissions manager
     implementation 'gun0912.ted:tedpermission:2.2.3'
 
     //for link preview library
     implementation 'com.koushikdutta.urlimageviewhelper:urlimageviewhelper:1.0.4'
-
-    //for youtube API
-    implementation fileTree(dir: 'libs', include: ['*.jar'])
-    implementation 'com.google.oauth-client:google-oauth-client-jetty:1.23.0'
-    implementation 'com.google.android.gms:play-services-auth:19.0.0'
-    implementation 'pub.devrel:easypermissions:0.3.0'
-    implementation('com.google.api-client:google-api-client-android:1.22.0') {
-        exclude group: 'org.apache.httpcomponents'
-    }
-    implementation('com.google.apis:google-api-services-youtube:v3-rev183-1.22.0') {
-        exclude group: 'org.apache.httpcomponents'
-    }
-    implementation 'com.github.bumptech.glide:glide:4.11.0'
-
 }
 
 configurations.all {
