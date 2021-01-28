@@ -15,15 +15,6 @@ org/jsoup/nodes/LeafNode.java
  org.jsoup.nodes.LeafNode
 org/jsoup/nodes/DataNode.java
  org.jsoup.nodes.DataNode
-com/lumination/leadme/RemoteDispatcherService.java
- com.lumination.leadme.RemoteDispatcherService
- com.lumination.leadme.RemoteDispatcherService$1
- com.lumination.leadme.RemoteDispatcherService$1$1
- com.lumination.leadme.RemoteDispatcherService$2
- com.lumination.leadme.RemoteDispatcherService$3
- com.lumination.leadme.RemoteDispatcherService$4
- com.lumination.leadme.RemoteDispatcherService$5
- com.lumination.leadme.RemoteDispatcherService$6
 com/lumination/leadme/BuildConfig.java
  com.lumination.leadme.BuildConfig
 com/lumination/leadme/twowaygrid/TwoWayAdapterView.java
@@ -78,47 +69,29 @@ com/lumination/leadme/linkpreview/DefaultUrlExtractionStrategy.java
  com.lumination.leadme.linkpreview.DefaultUrlExtractionStrategy
 org/jsoup/nodes/FormElement.java
  org.jsoup.nodes.FormElement
-com/lumination/leadme/_old_PermissionManager.java
- com.lumination.leadme._old_PermissionManager
- com.lumination.leadme._old_PermissionManager$1
- com.lumination.leadme._old_PermissionManager$2
- com.lumination.leadme._old_PermissionManager$3
- com.lumination.leadme._old_PermissionManager$4
- com.lumination.leadme._old_PermissionManager$5
- com.lumination.leadme._old_PermissionManager$6
 org/jsoup/SerializationException.java
  org.jsoup.SerializationException
 org/jsoup/parser/Parser.java
  org.jsoup.parser.Parser
-com/lumination/leadme/linkpreview/LinkPreviewCallback.java
- com.lumination.leadme.linkpreview.LinkPreviewCallback
 org/jsoup/helper/DataUtil.java
  org.jsoup.helper.DataUtil
  org.jsoup.helper.DataUtil$BomCharset
+com/lumination/leadme/linkpreview/LinkPreviewCallback.java
+ com.lumination.leadme.linkpreview.LinkPreviewCallback
+com/lumination/leadme/LumiAccessibilityService.java
+ com.lumination.leadme.LumiAccessibilityService
 org/jsoup/internal/ConstrainableInputStream.java
  org.jsoup.internal.ConstrainableInputStream
-com/lumination/leadme/FavouritesManager.java
- com.lumination.leadme.FavouritesManager
- com.lumination.leadme.FavouritesManager$1
- com.lumination.leadme.FavouritesManager$1$1
- com.lumination.leadme.FavouritesManager$2
- com.lumination.leadme.FavouritesManager$3
- com.lumination.leadme.FavouritesManager$4
- com.lumination.leadme.FavouritesManager$5
- com.lumination.leadme.FavouritesManager$6
- com.lumination.leadme.FavouritesManager$7
- com.lumination.leadme.FavouritesManager$ViewHolder
 org/jsoup/UncheckedIOException.java
  org.jsoup.UncheckedIOException
+com/lumination/leadme/linkpreview/SourceContent.java
+ com.lumination.leadme.linkpreview.SourceContent
 org/jsoup/parser/ParseErrorList.java
  org.jsoup.parser.ParseErrorList
 org/jsoup/parser/TokenQueue.java
  org.jsoup.parser.TokenQueue
-com/lumination/leadme/ConnectedLearnersAdapter.java
- com.lumination.leadme.ConnectedLearnersAdapter
- com.lumination.leadme.ConnectedLearnersAdapter$1
- com.lumination.leadme.ConnectedLearnersAdapter$1$1
- com.lumination.leadme.ConnectedLearnersAdapter$1$2
+org/jsoup/parser/Tokeniser.java
+ org.jsoup.parser.Tokeniser
 com/lumination/leadme/twowaygrid/ScrollBarDrawable.java
  com.lumination.leadme.twowaygrid.ScrollBarDrawable
 org/jsoup/nodes/Element.java
@@ -126,8 +99,8 @@ org/jsoup/nodes/Element.java
  org.jsoup.nodes.Element$1
  org.jsoup.nodes.Element$2
  org.jsoup.nodes.Element$NodeList
-com/lumination/leadme/ConnectedPeer.java
- com.lumination.leadme.ConnectedPeer
+org/jsoup/select/QueryParser.java
+ org.jsoup.select.QueryParser
 org/jsoup/select/Evaluator.java
  org.jsoup.select.Evaluator
  org.jsoup.select.Evaluator$AllElements
@@ -317,17 +290,18 @@ org/jsoup/safety/package-info.java
  org.jsoup.safety.package-info
 com/lumination/leadme/linkpreview/BaseImagePickingStrategy.java
  com.lumination.leadme.linkpreview.BaseImagePickingStrategy
+com/lumination/leadme/LumiAccessibilityReceiver.java
+ com.lumination.leadme.LumiAccessibilityReceiver
 com/lumination/leadme/linkpreview/DowloadImageCallback.java
  com.lumination.leadme.linkpreview.DowloadImageCallback
 org/jsoup/nodes/Comment.java
  org.jsoup.nodes.Comment
 org/jsoup/HttpStatusException.java
  org.jsoup.HttpStatusException
-com/lumination/leadme/AppManager.java
- com.lumination.leadme.AppManager
- com.lumination.leadme.AppManager$1
- com.lumination.leadme.AppManager$2
- com.lumination.leadme.AppManager$ViewHolder
+org/jsoup/parser/ParseError.java
+ org.jsoup.parser.ParseError
+org/jsoup/select/package-info.java
+ org.jsoup.select.package-info
 org/jsoup/nodes/DocumentType.java
  org.jsoup.nodes.DocumentType
 org/jsoup/select/NodeTraversor.java
@@ -344,12 +318,11 @@ com/lumination/leadme/twowaygrid/TwoWayGridView.java
  com.lumination.leadme.twowaygrid.TwoWayGridView$VerticalGridBuilder
 org/jsoup/select/Elements.java
  org.jsoup.select.Elements
-com/lumination/leadme/PermissionManager.java
- com.lumination.leadme.PermissionManager
- com.lumination.leadme.PermissionManager$1
- com.lumination.leadme.PermissionManager$2
- com.lumination.leadme.PermissionManager$3
- com.lumination.leadme.PermissionManager$4
+org/jsoup/nodes/Entities.java
+ org.jsoup.nodes.Entities
+ org.jsoup.nodes.Entities$1
+ org.jsoup.nodes.Entities$CoreCharset
+ org.jsoup.nodes.Entities$EscapeMode
 com/lumination/leadme/linkpreview/SearchUrls.java
  com.lumination.leadme.linkpreview.SearchUrls
 com/lumination/leadme/twowaygrid/TwoWayAbsListView.java
@@ -380,6 +353,8 @@ com/lumination/leadme/twowaygrid/TwoWayAbsListView.java
  com.lumination.leadme.twowaygrid.TwoWayAbsListView$VerticalTouchHandler$VerticalFlingRunnable$1
  com.lumination.leadme.twowaygrid.TwoWayAbsListView$VerticalTouchHandler$VerticalPositionScroller
  com.lumination.leadme.twowaygrid.TwoWayAbsListView$WindowRunnnable
+com/lumination/leadme/SpinnerAdapter.java
+ com.lumination.leadme.SpinnerAdapter
 org/jsoup/nodes/XmlDeclaration.java
  org.jsoup.nodes.XmlDeclaration
 org/jsoup/select/CombiningEvaluator.java
@@ -389,33 +364,12 @@ org/jsoup/select/CombiningEvaluator.java
 org/jsoup/select/Selector.java
  org.jsoup.select.Selector
  org.jsoup.select.Selector$SelectorParseException
-com/lumination/leadme/WebManager.java
- com.lumination.leadme.WebManager
- com.lumination.leadme.WebManager$1
- com.lumination.leadme.WebManager$10
- com.lumination.leadme.WebManager$11
- com.lumination.leadme.WebManager$12
- com.lumination.leadme.WebManager$13
- com.lumination.leadme.WebManager$14
- com.lumination.leadme.WebManager$15
- com.lumination.leadme.WebManager$16
- com.lumination.leadme.WebManager$17
- com.lumination.leadme.WebManager$18
- com.lumination.leadme.WebManager$19
- com.lumination.leadme.WebManager$2
- com.lumination.leadme.WebManager$2$1
- com.lumination.leadme.WebManager$20
- com.lumination.leadme.WebManager$21
- com.lumination.leadme.WebManager$21$1
- com.lumination.leadme.WebManager$3
- com.lumination.leadme.WebManager$4
- com.lumination.leadme.WebManager$5
- com.lumination.leadme.WebManager$6
- com.lumination.leadme.WebManager$7
- com.lumination.leadme.WebManager$8
- com.lumination.leadme.WebManager$9
+org/jsoup/parser/package-info.java
+ org.jsoup.parser.package-info
 org/jsoup/parser/ParseSettings.java
  org.jsoup.parser.ParseSettings
+org/jsoup/parser/HtmlTreeBuilder.java
+ org.jsoup.parser.HtmlTreeBuilder
 org/jsoup/helper/HttpConnection.java
  org.jsoup.helper.HttpConnection
  org.jsoup.helper.HttpConnection$1
@@ -423,102 +377,60 @@ org/jsoup/helper/HttpConnection.java
  org.jsoup.helper.HttpConnection$KeyVal
  org.jsoup.helper.HttpConnection$Request
  org.jsoup.helper.HttpConnection$Response
-org/jsoup/parser/HtmlTreeBuilder.java
- org.jsoup.parser.HtmlTreeBuilder
-com/lumination/leadme/LeadMeMain.java
- com.lumination.leadme.LeadMeMain
- com.lumination.leadme.LeadMeMain$1
- com.lumination.leadme.LeadMeMain$10
- com.lumination.leadme.LeadMeMain$11
- com.lumination.leadme.LeadMeMain$12
- com.lumination.leadme.LeadMeMain$13
- com.lumination.leadme.LeadMeMain$14
- com.lumination.leadme.LeadMeMain$15
- com.lumination.leadme.LeadMeMain$16
- com.lumination.leadme.LeadMeMain$17
- com.lumination.leadme.LeadMeMain$18
- com.lumination.leadme.LeadMeMain$19
- com.lumination.leadme.LeadMeMain$2
- com.lumination.leadme.LeadMeMain$20
- com.lumination.leadme.LeadMeMain$21
- com.lumination.leadme.LeadMeMain$22
- com.lumination.leadme.LeadMeMain$23
- com.lumination.leadme.LeadMeMain$24
- com.lumination.leadme.LeadMeMain$25
- com.lumination.leadme.LeadMeMain$26
- com.lumination.leadme.LeadMeMain$27
- com.lumination.leadme.LeadMeMain$28
- com.lumination.leadme.LeadMeMain$29
- com.lumination.leadme.LeadMeMain$3
- com.lumination.leadme.LeadMeMain$30
- com.lumination.leadme.LeadMeMain$31
- com.lumination.leadme.LeadMeMain$32
- com.lumination.leadme.LeadMeMain$33
- com.lumination.leadme.LeadMeMain$34
- com.lumination.leadme.LeadMeMain$35
- com.lumination.leadme.LeadMeMain$35$1
- com.lumination.leadme.LeadMeMain$36
- com.lumination.leadme.LeadMeMain$37
- com.lumination.leadme.LeadMeMain$38
- com.lumination.leadme.LeadMeMain$39
- com.lumination.leadme.LeadMeMain$4
- com.lumination.leadme.LeadMeMain$40
- com.lumination.leadme.LeadMeMain$41
- com.lumination.leadme.LeadMeMain$5
- com.lumination.leadme.LeadMeMain$6
- com.lumination.leadme.LeadMeMain$7
- com.lumination.leadme.LeadMeMain$8
- com.lumination.leadme.LeadMeMain$9
-com/lumination/leadme/NearbyPeersManager.java
- com.lumination.leadme.NearbyPeersManager
- com.lumination.leadme.NearbyPeersManager$1
- com.lumination.leadme.NearbyPeersManager$10
- com.lumination.leadme.NearbyPeersManager$11
- com.lumination.leadme.NearbyPeersManager$12
- com.lumination.leadme.NearbyPeersManager$13
- com.lumination.leadme.NearbyPeersManager$14
- com.lumination.leadme.NearbyPeersManager$15
- com.lumination.leadme.NearbyPeersManager$16
- com.lumination.leadme.NearbyPeersManager$17
- com.lumination.leadme.NearbyPeersManager$2
- com.lumination.leadme.NearbyPeersManager$3
- com.lumination.leadme.NearbyPeersManager$4
- com.lumination.leadme.NearbyPeersManager$4$1
- com.lumination.leadme.NearbyPeersManager$4$2
- com.lumination.leadme.NearbyPeersManager$5
- com.lumination.leadme.NearbyPeersManager$6
- com.lumination.leadme.NearbyPeersManager$7
- com.lumination.leadme.NearbyPeersManager$8
- com.lumination.leadme.NearbyPeersManager$9
- com.lumination.leadme.NearbyPeersManager$Endpoint
- com.lumination.leadme.NearbyPeersManager$State
+org/jsoup/nodes/CDataNode.java
+ org.jsoup.nodes.CDataNode
 org/jsoup/UnsupportedMimeTypeException.java
  org.jsoup.UnsupportedMimeTypeException
+com/lumination/leadme/linkpreview/ImagePickingStrategy.java
+ com.lumination.leadme.linkpreview.ImagePickingStrategy
 org/jsoup/parser/Tag.java
  org.jsoup.parser.Tag
 org/jsoup/internal/Normalizer.java
  org.jsoup.internal.Normalizer
-org/jsoup/nodes/Entities.java
- org.jsoup.nodes.Entities
- org.jsoup.nodes.Entities$1
- org.jsoup.nodes.Entities$CoreCharset
- org.jsoup.nodes.Entities$EscapeMode
-com/lumination/leadme/linkpreview/SourceContent.java
- com.lumination.leadme.linkpreview.SourceContent
-org/jsoup/select/package-info.java
- org.jsoup.select.package-info
-org/jsoup/parser/ParseError.java
- org.jsoup.parser.ParseError
-com/lumination/leadme/linkpreview/ImagePickingStrategy.java
- com.lumination.leadme.linkpreview.ImagePickingStrategy
-org/jsoup/nodes/CDataNode.java
- org.jsoup.nodes.CDataNode
+com/lumination/leadme/FavouritesManager.java
+ com.lumination.leadme.FavouritesManager
+ com.lumination.leadme.FavouritesManager$1
+ com.lumination.leadme.FavouritesManager$2
+ com.lumination.leadme.FavouritesManager$ViewHolder
+com/lumination/leadme/ConnectedLearnersAdapter.java
+ com.lumination.leadme.ConnectedLearnersAdapter
+com/lumination/leadme/WebManager.java
+ com.lumination.leadme.WebManager
+ com.lumination.leadme.WebManager$1
+ com.lumination.leadme.WebManager$2
+ com.lumination.leadme.WebManager$3
+ com.lumination.leadme.WebManager$4
+ com.lumination.leadme.WebManager$4$1
+com/lumination/leadme/ConnectedPeer.java
+ com.lumination.leadme.ConnectedPeer
 com/lumination/leadme/LeaderSelectAdapter.java
  com.lumination.leadme.LeaderSelectAdapter
- com.lumination.leadme.LeaderSelectAdapter$1
-org/jsoup/select/QueryParser.java
- org.jsoup.select.QueryParser
-org/jsoup/parser/package-info.java
- org.jsoup.parser.package-info
-org/jsoup/parser/Tokeniser.java
- org.jsoup.parser.Tokeniser
+com/lumination/leadme/LeadMeMain.java
+ com.lumination.leadme.LeadMeMain
+ com.lumination.leadme.LeadMeMain$1
+ com.lumination.leadme.LeadMeMain$2
+ com.lumination.leadme.LeadMeMain$3
+ com.lumination.leadme.LeadMeMain$4
+ com.lumination.leadme.LeadMeMain$5
+ com.lumination.leadme.LeadMeMain$6
+com/lumination/leadme/NearbyPeersManager.java
+ com.lumination.leadme.NearbyPeersManager
+ com.lumination.leadme.NearbyPeersManager$1
+ com.lumination.leadme.NearbyPeersManager$2
+ com.lumination.leadme.NearbyPeersManager$3
+ com.lumination.leadme.NearbyPeersManager$4
+ com.lumination.leadme.NearbyPeersManager$5
+ com.lumination.leadme.NearbyPeersManager$Endpoint
+ com.lumination.leadme.NearbyPeersManager$State
+com/lumination/leadme/DispatchManager.java
+ com.lumination.leadme.DispatchManager
+com/lumination/leadme/AppManager.java
+ com.lumination.leadme.AppManager
+ com.lumination.leadme.AppManager$ViewHolder
+com/lumination/leadme/LumiAccessibilityConnector.java
+ com.lumination.leadme.LumiAccessibilityConnector
+com/lumination/leadme/PermissionManager.java
+ com.lumination.leadme.PermissionManager
+ com.lumination.leadme.PermissionManager$1
+ com.lumination.leadme.PermissionManager$2
+ com.lumination.leadme.PermissionManager$3

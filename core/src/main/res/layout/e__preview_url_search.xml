@@ -55,9 +55,10 @@
                 android:layout_height="50dp"
                 android:layout_margin="5dp"
                 android:layout_marginStart="-10dp"
-                app:cardBackgroundColor="@color/leadme_white"
+
                 app:cardElevation="5dp"
-                app:layout_gravity="center_vertical">
+                app:layout_gravity="center_vertical"
+                app:cardCornerRadius="10dp">
 
                 <ImageView
                     android:id="@+id/down_arrow"

@@ -3,6 +3,10 @@
 
     <style name="EmptyStyle"></style>
 
+    <style name="roundedImageView" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">8dp</item>
+    </style>
 
     <style name="LeadMeStyle" parent="">
         <item name="android:editTextColor">@color/leadme_dark_grey</item>
@@ -28,6 +32,7 @@
 
     <style name="MatchSpinnerTheme" parent="android:Theme.Holo.Light.NoActionBar.Fullscreen">
         <item name="android:dropDownListViewStyle">@style/MatchSpinnerStyle</item>
+
     </style>
 
 </resources>

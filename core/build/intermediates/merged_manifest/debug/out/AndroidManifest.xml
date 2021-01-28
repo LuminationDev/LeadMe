@@ -15,6 +15,7 @@
     <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.NFC" />
 
     <!-- needed for core activity management functions -->
     <uses-permission android:name="android.permission.REORDER_TASKS" />
@@ -24,12 +25,16 @@
 
     <!-- for youtube -->
     <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
     <!-- Google Play filtering -->
     <uses-feature
         android:name="android.hardware.wifi.direct"
         android:required="true" />
+    <uses-feature
+        android:name="android.hardware.nfc"
+        android:required="true" />
+
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
     <application
         android:appComponentFactory="androidx.core.app.CoreComponentFactory"
@@ -45,7 +50,8 @@
             android:name="com.lumination.leadme.LeadMeMain"
             android:label="@string/app_title"
             android:launchMode="singleTask"
-            android:screenOrientation="portrait" > <!-- was singleTask -->
+            android:screenOrientation="portrait"
+            android:windowSoftInputMode="adjustPan" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -53,11 +59,18 @@
             </intent-filter>
         </activity>
 
+        <receiver android:name="com.lumination.leadme.LumiAccessibilityReceiver" >
+            <intent-filter>
+                <action android:name="com.lumination.leadme.BROADCAST_ACTION" />
+            </intent-filter>
+        </receiver>
+
         <service
-            android:name="com.lumination.leadme.RemoteDispatcherService"
+            android:name="com.lumination.leadme.LumiAccessibilityService"
             android:configChanges="orientation"
             android:label="@string/app_title_with_brand"
-            android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE" >
+            android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE"
+            android:stopWithTask="true" >
             <intent-filter>
                 <action android:name="android.accessibilityservice.AccessibilityService" />
             </intent-filter>

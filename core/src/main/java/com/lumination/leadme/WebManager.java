@@ -42,7 +42,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 
-public class WebManager extends AppCompatActivity {
+public class WebManager {
 
     //tag for debugging
     private static final String TAG = "WebManager";
@@ -504,72 +504,7 @@ public class WebManager extends AppCompatActivity {
             return "";
         }
     }
-    private void buildAndShowSearchDialog(){
-        search=true;
-        hideWebsiteLaunchDialog();
-        //instantiates the search dialog popup if it does not already exist
-        if (searchDialog == null) {
-            searchDialog = new AlertDialog.Builder(main)
-                    .setView(previewSearchView)
-                    .show();
-            searchDialog.findViewById(R.id.push_btn).setVisibility(View.GONE);
-        } else {
-            searchDialog.show();
-        }
 
-        final ImageButton Google = searchDialog.findViewById(R.id.google_btn);
-        final ImageButton Youtube = searchDialog.findViewById(R.id.yt_btn);
-        final WebView web = previewSearchView.findViewById(R.id.webview_preview);
-        web.getSettings().setJavaScriptEnabled(true); // enable javascript
-        web.canGoBack();
-        final SearchView searchView = previewSearchView.findViewById(R.id.url_search_bar);
-        if(searchView.getQuery().length()>0){
-            if(!isYouTube){
-                //fixes the webpage loading in background
-                web.loadUrl("https://www.google.com/search?q=" +searchView.getQuery());
-            }
-        }
-        Youtube.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                //creates toggle effect
-                if(!searchYoutube){
-                    searchYoutube=!searchYoutube;
-                    Google.setBackgroundResource(R.drawable.btn_selector_passive_left);
-                    Youtube.setBackgroundResource(R.drawable.btn_selector_active_right);
-                    Google.setElevation(TypedValue.applyDimension( TypedValue.COMPLEX_UNIT_DIP, 3, main.getResources().getDisplayMetrics() ));
-                    Youtube.setElevation(0);
-                    web.loadUrl("https://www.google.com/search?q=" +searchView.getQuery() + "&tbm=vid&as_sitesearch=youtube.com");
-
-                }
-            }
-        });
-        Google.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                //creates toggle effect
-                if(searchYoutube){
-                    searchYoutube=!searchYoutube;
-                    Google.setBackgroundResource(R.drawable.btn_selector_active_left);
-                    Youtube.setBackgroundResource(R.drawable.btn_selector_passive_right);
-                    Google.setElevation(0);
-                    Youtube.setElevation(TypedValue.applyDimension( TypedValue.COMPLEX_UNIT_DIP, 3, main.getResources().getDisplayMetrics() ));
-                    web.loadUrl("https://www.google.com/search?q=" +searchView.getQuery());
-
-                }
-            }
-        });
-
-        searchDialog.findViewById(R.id.back_btn).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                searchDialog.hide();
-                websiteLaunchDialog.show();
-                search=false;
-            }
-            });
-        populateSearch();
-    }
     private void showYouTubePreview(String url) {
         isYouTube = true;
         //first position is 'locked' - default for YouTube
@@ -652,7 +587,7 @@ public class WebManager extends AppCompatActivity {
     }
 
     private void setupWebLaunchDialog() {
-        search=false;
+        //search=false;
         ((TextView) websiteLaunchDialogView.findViewById(R.id.url_input_field)).setText("https://www.youtube.com/w/SEbqkn1TWTA"); //sample for testing
 
         websiteLaunchDialogView.findViewById(R.id.paste_from_clipboard).setOnClickListener(v -> {
@@ -969,7 +904,14 @@ public class WebManager extends AppCompatActivity {
                         ((TextView) searchDialogView.findViewById(R.id.web_search_title)).setText("Search the web");
                         searchYoutube = false;
                     }
+                    if (searchView.getQuery().length() > 0) {
+                        if (searchYoutube) {
+                            web.loadUrl("https://www.google.com/search?q=" + searchView.getQuery() + "&tbm=vid&as_sitesearch=youtube.com");
 
+                        } else {
+                            web.loadUrl("https://www.google.com/search?q=" + searchView.getQuery());
+                        }
+                    }
                     searchView.performClick();
                     //populateSearch();
 
