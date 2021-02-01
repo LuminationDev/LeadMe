@@ -10,15 +10,23 @@ import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
+import android.net.http.SslError;
+import android.os.Bundle;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.View;
+import android.webkit.SslErrorHandler;
 import android.webkit.URLUtil;
+import android.webkit.WebChromeClient;
+import android.webkit.WebResourceError;
 import android.webkit.WebResourceRequest;
+import android.webkit.WebResourceResponse;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.CheckBox;
+import android.widget.GridView;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.SearchView;
@@ -30,7 +38,6 @@ import com.koushikdutta.urlimageviewhelper.UrlImageViewHelper;
 import com.lumination.leadme.linkpreview.LinkPreviewCallback;
 import com.lumination.leadme.linkpreview.SourceContent;
 import com.lumination.leadme.linkpreview.TextCrawler;
-import com.lumination.leadme.twowaygrid.TwoWayGridView;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -44,12 +51,16 @@ public class WebManager {
     private static final String TAG = "WebManager";
     private TextCrawler textCrawler = new TextCrawler();
 
-    private AlertDialog websiteLaunchDialog, previewDialog, urlYtFavDialog, searchDialog;
+    private AlertDialog websiteLaunchDialog, previewDialog, urlYtFavDialog;
+    private AlertDialog videoControlDialog, searchDialog;
     private final View websiteLaunchDialogView;
     private final View previewDialogView;
     private final View searchDialogView;
+    private View videoControllerDialogView;
     private View webYouTubeFavView;
-    public boolean launchingVR = false;
+
+    public boolean launchingVR = false, enteredVR = false;
+    public boolean lastWasGuideView = false;
 
     private ImageView previewImage;
     private TextView previewTitle;
@@ -57,7 +68,8 @@ public class WebManager {
     private ProgressBar previewProgress;
     private Button previewPushBtn;
     private boolean isYouTube = false;
-    private String pushURL = "";
+    private String pushURL = "", pushTitle = "";
+    private String controllerURL = "", controllerTitle = "";
 
     private FavouritesManager urlFavouritesManager;
     private FavouritesManager youTubeFavouritesManager;
@@ -66,6 +78,7 @@ public class WebManager {
     private CheckBox favCheckbox;
 
     private Spinner lockSpinner, searchSpinner;
+    private View lockSpinnerParent;
     private String[] searchSpinnerItems, lockSpinnerItems;
 
     public WebManager(LeadMeMain main) {
@@ -73,9 +86,11 @@ public class WebManager {
         websiteLaunchDialogView = View.inflate(main, R.layout.d__enter_url, null);
         previewDialogView = View.inflate(main, R.layout.e__preview_url_push, null);
         searchDialogView = View.inflate(main, R.layout.e__preview_url_search, null);
-        searchDialogView.setMinimumWidth(main.getWindow().getAttributes().width - 20);
+        videoControllerDialogView = View.inflate(main, R.layout.e__currently_streaming_popup, null);
+        setupGuideVideoController();
 
         //set up lock spinner
+        lockSpinnerParent = previewDialogView.findViewById(R.id.spinner_parent);
         lockSpinner = (Spinner) previewDialogView.findViewById(R.id.push_spinner);
         lockSpinnerItems = new String[2];
         lockSpinnerItems[0] = "Lock students";
@@ -107,8 +122,8 @@ public class WebManager {
         urlFavouritesManager = new FavouritesManager(main, this, FavouritesManager.FAVTYPE_URL, 10);
         youTubeFavouritesManager = new FavouritesManager(main, this, FavouritesManager.FAVTYPE_YT, 10);
 
-        ((TwoWayGridView) webYouTubeFavView.findViewById(R.id.yt_favourites)).setAdapter(getYouTubeFavouritesManager());
-        ((TwoWayGridView) webYouTubeFavView.findViewById(R.id.url_favourites)).setAdapter(getUrlFavouritesManager());
+        ((GridView) webYouTubeFavView.findViewById(R.id.yt_favourites)).setAdapter(getYouTubeFavouritesManager());
+        ((GridView) webYouTubeFavView.findViewById(R.id.url_favourites)).setAdapter(getUrlFavouritesManager());
 
         webYouTubeFavView.findViewById(R.id.clear_fav_btn).setOnClickListener(v -> {
             showClearWebFavDialog(CLEAR_ALL);
@@ -119,11 +134,10 @@ public class WebManager {
         setupViews();
         setupPreviewDialog();
         setupWebLaunchDialog();
-
-
     }
 
     private boolean error = false;
+    private boolean generatingPreview = false;
     // Create the callbacks to handle pre and post execution of the preview
     LinkPreviewCallback linkPreviewCallback = new LinkPreviewCallback() {
         @Override
@@ -135,16 +149,29 @@ public class WebManager {
 
         @Override
         public void onPos(SourceContent sourceContent, boolean b) {
+            generatingPreview = false;
             // Populate your preview layout with the results of sourceContent.
             String title = sourceContent.getTitle();
             if (title.isEmpty()) {
                 title = sourceContent.getFinalUrl();
             }
 
+            //store the title
+            pushTitle = title;
+
+            //update preview
             previewTitle.setText(title);
             previewTitle.setVisibility(View.VISIBLE);
 
-            //Log.d(TAG, sourceContent.toString() + ", " + sourceContent.getTitle() + ", " + sourceContent.getUrl() + ", " + sourceContent.getDescription() + ", " + sourceContent.getFinalUrl());
+            String testID1 = getYouTubeID(controllerURL);
+            String testID2 = getYouTubeID(sourceContent.getUrl());
+
+            //update controller title
+            if (controllerWebView != null && testID1.equals(testID2)) {
+                controllerTitle = sourceContent.getTitle();
+                ((TextView) controllerWebView.findViewById(R.id.video_title)).setText(title);
+            }
+            Log.d(TAG, "!!! " + title + ", " + testID1 + " vs " + testID2);
 
             String icon;
             if (!sourceContent.getImages().isEmpty()) {
@@ -192,6 +219,148 @@ public class WebManager {
         }
 
     };
+
+    //static variables
+    public static final int PLAY = 0;
+    public static final int PAUSE = 1;
+    public static final int FASTFWD = 2;
+    public static final int REWIND = 3;
+    public static final int UNKNOWN = 4;
+
+    public static final int STD_MODE = 0;
+    public static final int VR_MODE = 1;
+    public static final int FULLSCRN_MODE = 2;
+
+    //variables that accessibility service can inspect
+    //to see if a change has occurred
+    public static boolean playStateChanged = false;
+    public static boolean displayModeChanged = false;
+    public static boolean playFromChanged = false;
+    public static boolean showCaptions = false;
+
+    //variables to store what the latest request was
+    public static int videoCurrentPlayState = UNKNOWN; //PLAY, PAUSE, FWD, RWD, etc
+    public static int videoCurrentDisplayMode = STD_MODE; //VR, FS, STD
+    public static int playFromInSeconds = -1;
+
+    private void setupGuideVideoController() {
+        //set up standard dialog buttons
+        videoControllerDialogView.findViewById(R.id.new_video).setOnClickListener(v -> {
+            lastWasGuideView = false; //reset
+            hideVideoController();
+            showWebLaunchDialog(false);
+        });
+
+        videoControllerDialogView.findViewById(R.id.video_back_btn).setOnClickListener(v ->
+                hideVideoController()
+        );
+
+        //set up advanced controls toggle behaviour
+        final View advancedControls = videoControllerDialogView.findViewById(R.id.advanced_controls);
+        advancedControls.setVisibility(View.GONE); //hidden by default
+
+        videoControllerDialogView.findViewById(R.id.advanced_controls_expander).setOnClickListener(v -> {
+            if (advancedControls.getVisibility() == View.GONE) {
+                advancedControls.setVisibility(View.VISIBLE);
+            } else {
+                advancedControls.setVisibility(View.GONE);
+            }
+        });
+
+        //set up basic controls
+        videoControllerDialogView.findViewById(R.id.vr_mode_btn).setOnClickListener(v -> {
+            if (videoCurrentDisplayMode != VR_MODE) {
+                videoCurrentDisplayMode = VR_MODE;
+                ((ImageView) videoControllerDialogView.findViewById(R.id.vr_mode_btn)).setImageDrawable(main.getResources().getDrawable(R.drawable.task_vr_icon, null));
+            } else {
+                videoCurrentDisplayMode = FULLSCRN_MODE;
+                ((ImageView) videoControllerDialogView.findViewById(R.id.vr_mode_btn)).setImageDrawable(main.getResources().getDrawable(R.drawable.task_vr_icon_disabled, null));
+            }
+            displayModeChanged = true;
+            triggerAccessibilityUpdate(); //this needs the accessibility service to action it
+            //TODO determine what to send to students and how to action it at their end
+        });
+
+        videoControllerDialogView.findViewById(R.id.play_btn).setOnClickListener(v -> {
+            videoCurrentPlayState = PLAY;
+            playStateChanged = true;
+            triggerAccessibilityUpdate(); //this needs the accessibility service to action it
+            //TODO determine what to send to students and how to action it at their end
+        });
+
+        videoControllerDialogView.findViewById(R.id.pause_btn).setOnClickListener(v -> {
+            pauseVideo();
+        });
+
+        videoControllerDialogView.findViewById(R.id.rewind_btn).setOnClickListener(v -> {
+            videoCurrentPlayState = REWIND;
+            playStateChanged = true;
+            triggerAccessibilityUpdate(); //this needs the accessibility service to action it
+            //TODO determine what to send to students and how to action it at their end
+        });
+
+        videoControllerDialogView.findViewById(R.id.fastforward_btn).setOnClickListener(v -> {
+            videoCurrentPlayState = FASTFWD;
+            playStateChanged = true;
+            triggerAccessibilityUpdate(); //this needs the accessibility service to action it
+            //TODO determine what to send to students and how to action it at their end
+        });
+
+        //set up advanced controls
+        videoControllerDialogView.findViewById(R.id.play_from_btn).setOnClickListener(v -> {
+            playFromChanged = true;
+            playFromInSeconds = 0; //TODO retrieve current video location and send to all students
+            triggerAccessibilityUpdate(); //this needs the accessibility service to action it
+            //TODO determine what to send to students and how to action it at their end
+        });
+
+        videoControllerDialogView.findViewById(R.id.mute_btn).setOnClickListener(v -> {
+            muteVideo();
+        });
+
+        videoControllerDialogView.findViewById(R.id.unmute_btn).setOnClickListener(v -> {
+            unmuteVideo();
+        });
+
+        videoControllerDialogView.findViewById(R.id.captions_btn).setOnClickListener(v -> {
+            showCaptions = !showCaptions; //toggle this
+            triggerAccessibilityUpdate(); //this needs the accessibility service to action it
+            main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.VID_CAPTIONS_TAG + ":" + showCaptions, main.getNearbyManager().getSelectedPeerIDs());
+        });
+
+    }
+
+    private void unmuteVideo() {
+        main.unMuteAudio(); //this is managed by the main activity
+        main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.VID_UNMUTE_TAG, main.getNearbyManager().getSelectedPeerIDs());
+    }
+
+    private void muteVideo() {
+        main.muteAudio(); //this is managed by main activity
+        main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.VID_MUTE_TAG, main.getNearbyManager().getSelectedPeerIDs());
+    }
+
+    private void pauseVideo() {
+        videoCurrentPlayState = PAUSE;
+        playStateChanged = true;
+        triggerAccessibilityUpdate(); //this needs the accessibility service to action it
+        //TODO determine what to send to students and how to action it at their end
+    }
+
+    private void triggerAccessibilityUpdate() {
+        //trigger the accessibility service to run an upate
+        Intent intent = new Intent(LumiAccessibilityService.BROADCAST_ACTION);
+        intent.setComponent(new ComponentName("com.lumination.leadme", "com.lumination.leadme.LumiAccessibilityReceiver"));
+        Bundle data = new Bundle();
+        data.putString(LumiAccessibilityService.INFO_TAG, LumiAccessibilityService.REFRESH_ACTION);
+        intent.putExtras(data);
+        main.sendBroadcast(intent);
+    }
+
+    public void showCaptions(boolean captionsOn) {
+        triggerAccessibilityUpdate();
+        showCaptions = captionsOn;
+    }
 
 
     private final static List<ComponentName> browserComponents = new ArrayList<ComponentName>() {{
@@ -286,6 +455,92 @@ public class WebManager {
         warningDialog.show();
     }
 
+    private void showVideoController() {
+        if (videoControlDialog == null) {
+            videoControlDialog = new AlertDialog.Builder(main)
+                    .setView(videoControllerDialogView)
+                    .create();
+        }
+
+        Log.d(TAG, "Attempting to show video controller for " + controllerTitle + ", " + controllerURL);
+        if (controllerTitle != null) {
+            ((TextView) videoControllerDialogView.findViewById(R.id.video_title)).setText(controllerTitle);
+        }
+        if (controllerURL != null) {
+            loadVideoGuideURL(controllerURL);
+        }
+        videoControlDialog.show();
+        lastWasGuideView = true;
+    }
+
+    private WebView controllerWebView;
+    private String attemptedURL = "";
+
+    private void loadVideoGuideURL(String url) {
+
+        if (controllerWebView == null) {
+            controllerWebView = videoControllerDialogView.findViewById(R.id.video_stream_webview);
+            controllerWebView.setWebChromeClient(new WebChromeClient());
+            controllerWebView.getSettings().setJavaScriptEnabled(true); // enable javascript
+            controllerWebView.getSettings().setJavaScriptCanOpenWindowsAutomatically(true);
+            controllerWebView.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_YES);
+            //controllerWebView.canGoBack();
+
+            //controllerWebView.getSettings().setPluginState(WebSettings.PluginState.ON);
+            //web1.getSettings().setDefaultFontSize(18);
+            //controllerWebView.loadData(htmldata,"text/html; charset=utf-8",null);
+
+            controllerWebView.setWebViewClient(new WebViewClient() {
+                public void onLoadResource(WebView view, String url) {
+                    Log.d(TAG, "VIDEO GUIDE] onLoadResource: " + url + " (" + attemptedURL + ")");
+                    Log.d(TAG, "What is it? " + view.getAccessibilityNodeProvider());
+
+//                    controllerWebView.loadUrl("javascript:(function(){"+
+//                            "l=document.getElementById('movie_player');"+
+//                            "e=document.createEvent('HTMLEvents');"+
+//                            "e.initEvent('click',true,true);"+
+//                            "l.dispatchEvent(e);"+
+//                            "})()");
+                }
+
+                public void onPageFinished(WebView view, String url) {
+                    Log.d(TAG, "VIDEO GUIDE] onPageFinished: " + url + " (" + attemptedURL + ")");
+                }
+
+                @Override
+                public void onReceivedError(WebView view, WebResourceRequest request, WebResourceError error) {
+                    super.onReceivedError(view, request, error);
+                    Log.d(TAG, "VIDEO GUIDE] Received error: " + error.toString());
+                }
+
+                @Override
+                public void onReceivedHttpError(WebView view, WebResourceRequest request, WebResourceResponse errorResponse) {
+                    super.onReceivedHttpError(view, request, errorResponse);
+                    Log.d(TAG, "VIDEO GUIDE] Received HTTP error: " + errorResponse.toString());
+                }
+
+                @Override
+                public void onReceivedSslError(WebView view, SslErrorHandler handler, SslError error) {
+                    super.onReceivedSslError(view, handler, error);
+                    Log.d(TAG, "VIDEO GUIDE] Received SSL error: " + error.toString());
+                }
+            });
+        }
+        attemptedURL = convertYouTubeToEmbed(url);//url;
+        Log.d(TAG, "Attempting to show " + attemptedURL);
+
+        //http://www.youtube.com/embed/olC42gO-Ln4?fs=1&amp;feature=oembed
+        String content = "<body style=\"margin: 0; padding: 0\"><iframe width=\"100%\" height=\"100%\" " +
+                "frameborder=\"0\" marginwidth=\"0\" marginheight=\"0\" src=\"" + attemptedURL + "\" frameborder=\"0\"></iframe></body>";
+
+        controllerWebView.loadDataWithBaseURL(null, content, "text/html", "UTF-8", null);
+    }
+
+    private void hideVideoController() {
+        pauseVideo();
+        videoControlDialog.dismiss();
+    }
+
     private void setupPreviewDialog() {
         previewImage = previewDialogView.findViewById(R.id.preview_image);
         previewTitle = previewDialogView.findViewById(R.id.preview_title);
@@ -308,7 +563,7 @@ public class WebManager {
             //if we're not only saving to favourites, push it to learners
             if (!adding_to_fav) {
                 //retrieve appropriate list of receivers
-                pushYouTubeOrWeb(pushURL);
+                pushYouTubeOrWeb(pushURL, pushTitle);
             }
 
             //clean up dialogs
@@ -316,8 +571,19 @@ public class WebManager {
             hidePreviewDialog();
             main.showConfirmPushDialog(false, adding_to_fav);
 
+            if (!adding_to_fav) {
+                main.getHandler().postDelayed(() -> {
+                    //main.hideConfirmPushDialog();
+
+                    showVideoController();
+                }, 1000);
+            }
+
             //reset
+            controllerURL = pushURL;
+            controllerTitle = pushTitle;
             pushURL = "";
+            pushTitle = "";
             previewTitle.setText("");
             previewImage.setImageDrawable(null);
 
@@ -349,7 +615,22 @@ public class WebManager {
         return pushURL;
     }
 
-    public void pushYouTubeOrWeb(String url) {
+    protected String getLaunchTitle() {
+        return pushTitle;
+    }
+
+    private boolean freshPlay = true;
+
+    protected boolean isFreshPlay() {
+        return freshPlay;
+    }
+
+    protected void setFreshPlay(boolean freshPlay) {
+        this.freshPlay = freshPlay;
+    }
+
+
+    public void pushYouTubeOrWeb(String url, String urlTitle) {
         Set<String> selectedPeers;
         if (main.getConnectedLearnersAdapter().someoneIsSelected()) {
             selectedPeers = main.getNearbyManager().getSelectedPeerIDs();
@@ -368,9 +649,9 @@ public class WebManager {
 
         //push the right instruction to the receivers
         if (isYouTube) {
-            main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.LAUNCH_YT + url, selectedPeers);
+            main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.LAUNCH_YT + url + ":::" + urlTitle, selectedPeers);
         } else {
-            main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.LAUNCH_URL + url, selectedPeers);
+            main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.LAUNCH_URL + url + ":::" + urlTitle, selectedPeers);
         }
     }
 
@@ -394,13 +675,26 @@ public class WebManager {
         }
     }
 
-    public void launchWebsite(String url, boolean updateCurrentTask) {
-        if (!main.getPermissionsManager().isInternetConnectionAvailable(url)) {
-            Log.w(TAG, "No internet connection in LaunchWebsite");
-            Toast.makeText(main, "Can't launch URL, no Internet connection.", Toast.LENGTH_SHORT).show();
-            main.getDispatcher().alertGuidePermissionGranted(LeadMeMain.STUDENT_NO_INTERNET, false);
-            return;
-        }
+    public void launchWebsite(String url, String urlTitle, boolean updateCurrentTask) {
+        String finalUrl = url;
+        pushTitle = urlTitle;
+        freshPlay = true;
+        new Thread(() -> {
+            if (!main.getPermissionsManager().isInternetConnectionAvailable(finalUrl)) {
+                Log.w(TAG, "No internet connection in LaunchWebsite");
+                main.getHandler().post(new Runnable() {
+                    @Override
+                    public void run() {
+                        //Toast.makeText(main, "Can't launch URL, no Internet connection.", Toast.LENGTH_SHORT).show();
+                        main.showWarningDialog("No Internet Connection",
+                                "Internet based functions are unavailable at this time. " +
+                                        "Please check your WiFi connection and try again.");
+                        main.getDispatcher().alertGuidePermissionGranted(LeadMeMain.STUDENT_NO_INTERNET, false);
+                        hideWebsiteLaunchDialog();
+                    }
+                });
+            }
+        }).start();
 
         //check it's a minimally sensible url
         if (url == null || url.length() < 3 || !url.contains(".")) {
@@ -427,7 +721,7 @@ public class WebManager {
             if (ai != null) {
                 Log.w(TAG, "Selecting browser:  " + ai + " for " + uri.getHost());
 
-                scheduleActivityLaunch(intent, updateCurrentTask, ai.packageName, ai.name, "Website", url);
+                scheduleActivityLaunch(intent, updateCurrentTask, ai.packageName, ai.name, "Website", url, urlTitle);
                 main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG,
                         LeadMeMain.LAUNCH_SUCCESS + uri.getHost() + ":" + main.getNearbyManager().getID() + ":" + ai.packageName, main.getNearbyManager().getAllPeerIDs());
                 //success!
@@ -439,7 +733,7 @@ public class WebManager {
         Intent browserIntent = getBrowserIntent(url);
 
         if (browserIntent != null) {
-            scheduleActivityLaunch(browserIntent, updateCurrentTask, browserIntent.getStringExtra("packageName"), "Default Browser", "Website", url);
+            scheduleActivityLaunch(browserIntent, updateCurrentTask, browserIntent.getStringExtra("packageName"), "Default Browser", "Website", url, urlTitle);
             main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG,
                     LeadMeMain.LAUNCH_SUCCESS + uri.getHost() + ":" + main.getNearbyManager().getID() + ":" + browserIntent.getStringExtra("packageName"), main.getNearbyManager().getAllPeerIDs());
             //success!
@@ -520,16 +814,20 @@ public class WebManager {
         main.closeKeyboard();
 
         pushURL = url;
+        pushTitle = getYouTubeFavouritesManager().getTitle(url);
+        if (pushTitle == null && !previewTitle.getText().toString().equals("Website title")) {
+            pushTitle = previewTitle.getText().toString();
+        }
 
         //set up preview to appear correctly
         if (adding_to_fav) {
-            lockSpinner.setVisibility(View.INVISIBLE);
+            lockSpinnerParent.setVisibility(View.INVISIBLE);
             previewPushBtn.setText(main.getResources().getString(R.string.add_this_app_to_favourites));
             favCheckbox.setChecked(true);
             favCheckbox.setVisibility(View.GONE);
 
         } else {
-            lockSpinner.setVisibility(View.VISIBLE);
+            lockSpinnerParent.setVisibility(View.VISIBLE);
             if (main.getConnectedLearnersAdapter().someoneIsSelected()) {
                 previewPushBtn.setText(main.getResources().getString(R.string.push_this_to_selected));
             } else {
@@ -565,7 +863,12 @@ public class WebManager {
     }
 
     void showWebLaunchDialog(boolean add_fav_mode) {
+        if (lastWasGuideView) {
+            showVideoController();
+            return;
+        }
 
+        lastWasGuideView = false;
         if (websiteLaunchDialog == null) {
             websiteLaunchDialog = new AlertDialog.Builder(main)
                     .setView(websiteLaunchDialogView)
@@ -629,13 +932,20 @@ public class WebManager {
         main.hideSystemUI();
 
 
-        //placeholder URL for testing connection
-        if (!main.getPermissionsManager().isInternetConnectionAvailable("https://google.com")) {
-            main.showWarningDialog("No Internet Connection",
-                    "Internet based functions unavailable at this time. " +
-                            "Please check your WiFi connection and try again.");
-            return;
-        }
+        String finalUrl = url;
+        new Thread(() -> {
+            if (!main.getPermissionsManager().isInternetConnectionAvailable(finalUrl)) {
+                Log.w(TAG, "No internet connection in showPreview");
+                main.getHandler().post(() -> {
+                    //Toast.makeText(main, "Can't display preview, no Internet connection.", Toast.LENGTH_SHORT).show();
+                    main.showWarningDialog("No Internet Connection",
+                            "Internet based functions are unavailable at this time. " +
+                                    "Please check your WiFi connection and try again.");
+//                        main.getDispatcher().alertGuidePermissionGranted(LeadMeMain.STUDENT_NO_INTERNET, false);
+//                        hidePreviewDialog();
+                });
+            }
+        }).start();
 
 
         url = assistWithUrl(url);
@@ -665,7 +975,9 @@ public class WebManager {
 
         if (preview == null || title == null) {
             //generate correct information
+            generatingPreview = true;
             textCrawler.makePreview(linkPreviewCallback, url);
+
         }
 
         if (title != null) {
@@ -676,8 +988,9 @@ public class WebManager {
         if (preview != null) {
             //use stored preview
             previewImage.setImageDrawable(preview);
-            previewImage.setVisibility(View.VISIBLE); //show image
             previewProgress.setVisibility(View.GONE);
+            previewImage.setVisibility(View.VISIBLE); //show image
+            previewImage.invalidate(); //refresh
         }
 
         String youTubeId = getYouTubeID(url);
@@ -706,7 +1019,7 @@ public class WebManager {
         urlYtFavDialog.hide();
     }
 
-    private void launchUrlYtFavourites() {
+    void launchUrlYtFavourites() {
         getUrlFavouritesManager().clearPreviews();
         getUrlFavouritesManager().notifyDataSetChanged();
         getYouTubeFavouritesManager().clearPreviews();
@@ -731,35 +1044,58 @@ public class WebManager {
         }
     }
 
+    public String convertYouTubeToEmbed(String url) {
+        String id = getYouTubeID(url);
+        String finalURL = "https://www.youtube.com/embed/" + id + embedSuffix;
+        Log.i(TAG, "Returning embedded YT: " + finalURL);
+        return finalURL;
+    }
+
     public String cleanYouTubeURL(String url) {
         String id = getYouTubeID(url);
         Log.i(TAG, "YouTube ID = " + id + " from " + url);
-        return "https://www.youtube.com/watch?v=" + id + suffix; //turn back to t=1 if problems with video
+        return "https://www.youtube.com/watch?v=" + id + suffix;
     }
 
-    private String suffix = "&t=1&rel=0";
+    private String suffix = "&t=1&rel=0"; //&autoplay=1&start=1&end=10&controls=0&rel=0";
+    private String embedSuffix = "?t=1&fs=1&rel=0&controls=0&modestbranding=1&feature=oembed";//&t=1&rel=0"; //"?fs=1&feature=oembed"
 
     public String getSuffix() {
         return suffix;
     }
 
-    public void launchYouTube(String url, boolean updateTask) {
-
-        if (!main.getPermissionsManager().isInternetConnectionAvailable(url)) {
-            Log.w(TAG, "No internet connection in LaunchYouTube");
-            Toast.makeText(main, "Can't launch URL, no Internet connection.", Toast.LENGTH_SHORT).show();
-            main.getDispatcher().alertGuidePermissionGranted(LeadMeMain.STUDENT_NO_INTERNET, false);
-            return;
-        }
+    public void launchYouTube(String url, String urlTitle, boolean updateTask) {
+        freshPlay = true;
+        pushTitle = urlTitle;
+        String finalUrl = url;
+        new Thread(() -> {
+            if (!main.getPermissionsManager().isInternetConnectionAvailable(finalUrl)) {
+                Log.w(TAG, "No internet connection in launchYouTube");
+                main.getHandler().post(new Runnable() {
+                    @Override
+                    public void run() {
+                        //Toast.makeText(main, "Can't launch URL, no Internet connection.", Toast.LENGTH_SHORT).show();
+                        main.showWarningDialog("No Internet Connection",
+                                "Internet based functions are unavailable at this time. " +
+                                        "Please check your WiFi connection and try again.");
+                        main.getDispatcher().alertGuidePermissionGranted(LeadMeMain.STUDENT_NO_INTERNET, false);
+                        hideWebsiteLaunchDialog();
+                    }
+                });
+            }
+        }).start();
 
         launchingVR = true; //activate button pressing
+        enteredVR = false;
         final String youTubePackageName = "com.google.android.youtube"; //TODO don't hardcode the package name
-        //String cleanURL = cleanYouTubeURL(url);
+        String cleanURL = cleanYouTubeURL(url);
         //Uri uri = Uri.parse("vnd.youtube://" + getYouTubeID(url));
-        //Log.w(TAG, "YouTUBE: " + uri);
+        Log.w(TAG, "CLEAN YOUTUBE: " + cleanURL);
 
-        main.UnMuteAudio(); //turn sound back on, in case muted earlier
-        Intent appIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("vnd.youtube://" + getYouTubeID(url) + "?t=1"));
+        main.unMuteAudio(); //turn sound back on, in case muted earlier
+        Intent appIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(cleanURL));
+        //appIntent.putExtra("force_fullscreen",true);
+        //appIntent.putExtra("finishOnEnd", true);
         appIntent.setPackage(youTubePackageName);
         //startActivity(appIntent);
 
@@ -778,13 +1114,13 @@ public class WebManager {
 
         //YouTube app doesn't exist on this device
         if (!youTubeExists) {
-            launchWebsite(url, true); //fall back
+            launchWebsite(url, urlTitle, true); //fall back
             return;
         }
 
         try {
             //schedule this to run as soon as remote brings this to the front
-            scheduleActivityLaunch(appIntent, updateTask, youTubePackageName, "YouTube", "VR Video", cleanYouTubeURL(url));
+            scheduleActivityLaunch(appIntent, updateTask, youTubePackageName, "YouTube", "VR Video", cleanYouTubeURL(url), urlTitle);
 
             //alert other peers as needed
             main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG,
@@ -792,11 +1128,12 @@ public class WebManager {
 
 
         } catch (Exception ex) {
-            launchWebsite(url, true); //fall back
+            launchWebsite(url, urlTitle, true); //fall back
         }
     }
 
     private void scheduleActivityLaunch(Intent appIntent) {
+        freshPlay = true;
         if (!main.appHasFocus) {
             Log.w(TAG, "Need focus, scheduling for later " + appIntent + ", " + main + ", " + main.getLifecycle().getCurrentState());
             main.appIntentOnFocus = appIntent;
@@ -809,16 +1146,15 @@ public class WebManager {
         }
     }
 
-    private void scheduleActivityLaunch(Intent appIntent, boolean updateTask, String packageName, String appName, String taskType, String url) {
+    private void scheduleActivityLaunch(Intent appIntent, boolean updateTask, String packageName, String appName, String taskType, String url, String urlTitle) {
         scheduleActivityLaunch(appIntent);
 
         if (updateTask) {
-            main.updateFollowerCurrentTask(packageName, appName, taskType, url);
+            main.updateFollowerCurrentTask(packageName, appName, taskType, url, urlTitle);
         }
     }
 
     public void cleanUp() {
-
         if (textCrawler != null)
             textCrawler.cancel();
 
@@ -842,19 +1178,29 @@ public class WebManager {
     /////////////////////////////
 
     private boolean searchYoutube = true;
-    private WebView web;
+    private WebView searchWebView;
 
     private void buildAndShowSearchDialog() {
         hideWebsiteLaunchDialog();
 
 
         //placeholder URL for testing connection
-        if (!main.getPermissionsManager().isInternetConnectionAvailable("https://google.com")) {
-            main.showWarningDialog("No Internet Connection",
-                    "Internet based functions unavailable at this time. " +
-                            "Please check your WiFi connection and try again.");
-            return;
-        }
+        String finalUrl = "https://google.com";
+        new Thread(() -> {
+            if (!main.getPermissionsManager().isInternetConnectionAvailable(finalUrl)) {
+                Log.w(TAG, "No internet connection in buildAndShowSearch");
+                main.getHandler().post(new Runnable() {
+                    @Override
+                    public void run() {
+                        //Toast.makeText(main, "Can't display preview, no Internet connection.", Toast.LENGTH_SHORT).show();
+                        main.showWarningDialog("No Internet Connection",
+                                "Internet based functions are unavailable at this time. " +
+                                        "Please check your WiFi connection and try again.");
+                        hideSearchDialog();
+                    }
+                });
+            }
+        }).start();
 
 
         //instantiates the search dialog popup if it does not already exist
@@ -863,11 +1209,15 @@ public class WebManager {
                     .setView(searchDialogView)
                     .show();
 
+            DisplayMetrics displayMetrics = main.getResources().getDisplayMetrics();
+            searchDialogView.getLayoutParams().width = displayMetrics.widthPixels - 140;
+
             searchDialogView.findViewById(R.id.url_search_bar).requestFocus();
 
-            web = searchDialogView.findViewById(R.id.webview_preview);
-            web.getSettings().setJavaScriptEnabled(true); // enable javascript
-            web.canGoBack();
+            searchWebView = searchDialogView.findViewById(R.id.webview_preview);
+            searchWebView.getSettings().setJavaScriptEnabled(true); // enable javascript
+            searchWebView.canGoBack();
+            searchWebView.setVisibility(View.GONE);
             //web.setWebViewClient(new WebViewClient());
 
             final SearchView searchView = searchDialogView.findViewById(R.id.url_search_bar);
@@ -876,7 +1226,7 @@ public class WebManager {
             if (searchView.getQuery().length() > 0) {
                 if (!isYouTube) {
                     //fixes the webpage loading in background
-                    web.loadUrl("https://www.google.com/search?q=" + searchView.getQuery());
+                    searchWebView.loadUrl("https://www.google.com/search?q=" + searchView.getQuery());
                 }
             }
 
@@ -927,22 +1277,23 @@ public class WebManager {
 
     private void populateSearch() {
         final SearchView searchView = searchDialogView.findViewById(R.id.url_search_bar);
-        if (!(searchView.getQuery().length() > 0)) {
-            web.setVisibility(View.GONE);
-        }
+//        if (!(searchView.getQuery().length() > 0)) {
+//            web.setVisibility(View.GONE);
+//        }
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             //moved listener to end of search to avoid triggering recaptcha for rapid querys
             public boolean onQueryTextSubmit(String newText) {
                 if (newText.length() > 0) {
-                    web.setVisibility(View.VISIBLE);
-                } else {
-                    web.setVisibility(View.GONE);
+                    searchWebView.setVisibility(View.VISIBLE);
                 }
+//                } else {
+//                    web.setVisibility(View.GONE);
+//                }
 
                 //filters the search results
                 if (searchYoutube) {
-                    web.loadUrl("https://www.google.com/search?q=" + newText + "&tbm=vid&as_sitesearch=youtube.com");
+                    searchWebView.loadUrl("https://www.google.com/search?q=" + newText + "&tbm=vid&as_sitesearch=youtube.com");
 
                     //swap the above line with the one below to index youtube's site directly
                     //NOTE - if this is used, will need to change triggers for when to show preview
@@ -950,11 +1301,11 @@ public class WebManager {
                     //web.loadUrl("https://www.youtube.com/results?search_query="+newText);
 
                 } else {
-                    web.loadUrl("https://www.google.com/search?q=" + newText);
+                    searchWebView.loadUrl("https://www.google.com/search?q=" + newText);
                 }
 
 
-                web.setWebViewClient(new WebViewClient() {
+                searchWebView.setWebViewClient(new WebViewClient() {
                     /*
                     Exists for the sole purpose of handling google's top stories news sites
                     handles all resources as they load including fonts etc
@@ -980,7 +1331,7 @@ public class WebManager {
                     public void onPageFinished(WebView view, String url) {
                         //scrolls the page down to cut off the google rubbish at top
                         if (url.startsWith("https://www.google.com")) {
-                            web.scrollTo(0, 400);
+                            searchWebView.scrollTo(0, 400);
                         }
 
                         Log.d(TAG, "onPageFinished: " + url);
@@ -1026,9 +1377,9 @@ public class WebManager {
             @Override
             public boolean onQueryTextChange(String newText) {
                 //removes the webview when text is cleared
-                if (!(newText.length() > 0)) {
-                    web.setVisibility(View.GONE);
-                }
+//                if (!(newText.length() > 0)) {
+//                    web.setVisibility(View.GONE);
+//                }
                 return false;
             }
         });

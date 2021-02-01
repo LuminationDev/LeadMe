@@ -5,12 +5,14 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.graphics.drawable.Drawable;
 import android.util.ArraySet;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.Button;
+import android.widget.GridView;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -101,6 +103,24 @@ public class FavouritesManager extends BaseAdapter {
         setupFavouritesDialog();
     }
 
+    private void updateSizes(int itemCount, GridView view) {
+        //this is only applicable for scrolling views
+        //the app favourites is a static view
+        if (favType != FAVTYPE_APP) {
+            //get dp conversion
+            DisplayMetrics displayMetrics = main.getResources().getDisplayMetrics();
+            int itemWidth = (int) (160 * displayMetrics.density);
+            int calculatedWidth = itemWidth * itemCount;
+            Log.w(TAG, "Calculated width for parent is: " + calculatedWidth + ", " + actualItems + ", " + contentList + ", " + itemCount);
+
+            if (calculatedWidth < displayMetrics.widthPixels - 145) {
+                calculatedWidth = displayMetrics.widthPixels - 145;
+            }
+            view.setNumColumns(itemCount);
+            view.getLayoutParams().width = calculatedWidth;
+        }
+    }
+
     public void clearFavourites() {
         editor.remove(favPrefix);     //TODO work this out
         editor.commit();
@@ -153,7 +173,6 @@ public class FavouritesManager extends BaseAdapter {
                 iconList.add(null);
             }
         }
-
         Log.d(TAG, "SHARED PREFs: " + sharedPreferences.getAll().toString());
         Log.d(TAG, "FAV LIST: " + contentList + " for type " + favType + " with " + titleList);
     }
@@ -191,10 +210,18 @@ public class FavouritesManager extends BaseAdapter {
                             img = sourceContent.getImages().get(0);
                         }
                         if (sourceContent.isSuccess()) {
-                            UrlImageViewHelper.setUrlDrawable(webManager.getPreviewImageView(), img, (imageView, loadedBitmap, url, loadedFromCache) -> {
+                            ImageView tmpView = new ImageView(main);
+                            UrlImageViewHelper.setUrlDrawable(tmpView, img, (imageView, loadedBitmap, url, loadedFromCache) -> {
                                 Drawable drawable = imageView.getDrawable();
                                 iconList.set(prevIndex, drawable);
                                 previewStorage.put(sourceContent.getFinalUrl(), drawable);
+
+                                if (webManager.getPreviewTitle() == sourceContent.getTitle()) {
+                                    Log.d(TAG, "This is the one we're trying to show!");
+                                    webManager.getPreviewImageView().setImageDrawable(drawable);
+                                } else {
+                                    Log.d(TAG, "This is another we're loading in the background");
+                                }
                             });
                         } else {
                             Drawable drawable = main.getResources().getDrawable(R.drawable.placeholder_broken_img, null);
@@ -231,14 +258,19 @@ public class FavouritesManager extends BaseAdapter {
     }
 
     private void updateListVisibilities() {
-        if (contentList.size() > 0) {
+        int itemCount = contentList.size();
+        if (itemCount > 0) {
             if (favType == FAVTYPE_YT) {
                 webManager.getWebYouTubeFavView().findViewById(R.id.yt_no_favs).setVisibility(View.GONE);
-                webManager.getWebYouTubeFavView().findViewById(R.id.yt_favourites).setVisibility(View.VISIBLE);
+                GridView view = webManager.getWebYouTubeFavView().findViewById(R.id.yt_favourites);
+                view.setVisibility(View.VISIBLE);
+                updateSizes(itemCount, view);
 
             } else if (favType == FAVTYPE_URL) {
                 webManager.getWebYouTubeFavView().findViewById(R.id.url_no_favs).setVisibility(View.GONE);
-                webManager.getWebYouTubeFavView().findViewById(R.id.url_favourites).setVisibility(View.VISIBLE);
+                GridView view = webManager.getWebYouTubeFavView().findViewById(R.id.url_favourites);
+                view.setVisibility(View.VISIBLE);
+                updateSizes(itemCount, view);
             }
         } else {
             if (favType == FAVTYPE_YT) {
@@ -471,7 +503,7 @@ public class FavouritesManager extends BaseAdapter {
         if (favType == FAVTYPE_APP) {
             final String content = contentList.get(position);
             if (convertView == null) {
-                convertView = inflater.inflate(R.layout.row_fav_app, parent, false);
+                convertView = inflater.inflate(R.layout.row_fav_app, null); // parent, false);
                 final FavouritesManager.ViewHolder viewHolder = new FavouritesManager.ViewHolder(convertView);
                 convertView.setTag(viewHolder);
             }
@@ -483,7 +515,7 @@ public class FavouritesManager extends BaseAdapter {
             final String title = titleList.get(position);
             final Drawable icon = iconList.get(position);
             if (convertView == null) {
-                convertView = inflater.inflate(R.layout.row_fav_url, parent, false);
+                convertView = inflater.inflate(R.layout.row_fav_url, null);//parent, false);
                 final FavouritesManager.ViewHolder viewHolder = new FavouritesManager.ViewHolder(convertView);
                 convertView.setTag(viewHolder);
             }
@@ -582,6 +614,7 @@ public class FavouritesManager extends BaseAdapter {
                 icon = getPreview(url);
 
             } else {
+                Log.d(TAG, "Setting placeholder as preview for " + url);
                 viewHolder.favouriteIcon.setImageDrawable(placeholder);
                 refreshPreview(url);
             }
@@ -636,6 +669,7 @@ public class FavouritesManager extends BaseAdapter {
 
             convertView.setClickable(true);
             convertView.setOnClickListener(v -> {
+                webManager.adding_to_fav = false;
                 main.showAppPushDialog(appName, appIcon, favPackage);
                 //main.getAppLaunchAdapter().launchApp(favPackage, appName, false);
             });

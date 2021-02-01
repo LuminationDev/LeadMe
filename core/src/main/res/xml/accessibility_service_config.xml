@@ -4,5 +4,6 @@
     android:accessibilityFeedbackType="feedbackAllMask"
     android:accessibilityFlags="flagDefault"
     android:canRetrieveWindowContent="true"
+    android:canPerformGestures="true"
     android:description="@string/app_title_with_brand"
     android:notificationTimeout="100" />

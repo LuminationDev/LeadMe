@@ -3,7 +3,6 @@
 
     <style name="EmptyStyle"></style>
 
-
     <style name="LeadMeStyle" parent="">
         <item name="android:editTextColor">@color/leadme_dark_grey</item>
         <item name="android:textColorHint">@color/leadme_medium_grey</item>

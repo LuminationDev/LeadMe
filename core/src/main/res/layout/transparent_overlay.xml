@@ -9,15 +9,12 @@
     android:keepScreenOn="true">
 
 
-    <!-- app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />-->
-
     <ImageView
         android:id="@+id/overlay_lock_icon"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="10dp"
-        android:layout_marginTop="10dp"
+        android:layout_marginTop="40dp"
         android:foregroundGravity="top|left"
         android:src="@drawable/controls_lock"
         android:visibility="visible" />
@@ -26,15 +23,11 @@
         android:id="@+id/blocking_view"
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
-        android:background="#000000"
+        android:background="@color/leadme_black"
         android:foregroundGravity="center"
         android:gravity="center"
         android:orientation="vertical"
         android:visibility="gone">
-        <!-- app:layout_constraintBottom_toTopOf="parent"
-    app:layout_constraintEnd_toStartOf="parent"
-    app:layout_constraintStart_toStartOf="parent"
-    app:layout_constraintTop_toTopOf="parent">-->
 
         <ImageView
             android:layout_width="wrap_content"
@@ -45,10 +38,11 @@
             android:src="@android:drawable/ic_dialog_alert" />
 
         <TextView
-            android:layout_width="wrap_content"
+            android:layout_width="300dp"
             android:layout_height="wrap_content"
             android:fontFamily="@font/poppins_semibold"
             android:gravity="center"
+            android:padding="20dp"
             android:text="@string/student_view_blocked"
             android:textAlignment="center"
             android:textColor="#FFFFFF"

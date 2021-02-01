@@ -25,6 +25,9 @@ allprojects {
 
         //for link preview library
         maven { url 'https://github.com/leonardocardoso/mvn-repo/raw/master/maven-deploy' }
+
+        //for auto-updates
+        maven { url "https://jitpack.io" }
     }
 }
 

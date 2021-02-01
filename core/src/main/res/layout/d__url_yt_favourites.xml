@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="fill_parent"
     android:layout_height="wrap_content"
@@ -144,32 +143,47 @@
             android:paddingTop="10dp"
             android:paddingEnd="10dp"
             android:text="@string/no_favourites_saved"
-            android:textColor="@color/leadme_medium_grey" />
+            android:textColor="@color/leadme_medium_grey"
+            android:visibility="gone" />
 
-        <com.lumination.leadme.twowaygrid.TwoWayGridView
-            android:id="@+id/yt_favourites"
-            android:layout_width="fill_parent"
-            android:layout_height="150dp"
+        <HorizontalScrollView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:fillViewport="true">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical">
+
+                <GridView
+                    android:id="@+id/yt_favourites"
+                    android:layout_width="1500dp"
+                    android:layout_height="150dp"
+                    android:layout_gravity="start"
+                    android:background="@color/leadme_light_grey"
+                    android:gravity="start"
+                    android:isScrollContainer="false"
+                    android:numColumns="10"
+                    android:orientation="horizontal"
+                    android:paddingTop="10dp"
+                    android:scrollIndicators="end"
+                    android:scrollbarAlwaysDrawHorizontalTrack="true"
+                    android:scrollbarAlwaysDrawVerticalTrack="false"
+                    android:scrollbarStyle="outsideInset"
+                    android:scrollbars="horizontal"
+                    android:visibility="visible"
+                    tools:listitem="@layout/row_fav_url" />
+            </LinearLayout>
+        </HorizontalScrollView>
+
+        <!--app:gravity="center_vertical"
             android:layout_gravity="center_vertical"
-            android:background="@color/leadme_light_grey"
             android:foregroundGravity="center_vertical"
-            android:isScrollContainer="true"
-            android:paddingStart="10dp"
-            android:paddingTop="10dp"
-            android:paddingEnd="10dp"
-            android:scrollIndicators="bottom"
-            android:scrollbarAlwaysDrawHorizontalTrack="true"
-            android:scrollbarAlwaysDrawVerticalTrack="false"
-            android:scrollbarStyle="outsideInset"
-            android:scrollbars="horizontal"
-            android:visibility="gone"
-            app:gravity="center_vertical"
             app:horizontalSpacing="20dp"
             app:scrollDirectionLandscape="horizontal"
-            app:scrollDirectionPortrait="horizontal"
-            tools:listitem="@layout/row_fav_url">
-
-        </com.lumination.leadme.twowaygrid.TwoWayGridView>
+            app:scrollDirectionPortrait="horizontal"-->
+        tools:listitem="@layout/row_fav_url"/>
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -243,9 +257,10 @@
             android:paddingTop="10dp"
             android:paddingEnd="10dp"
             android:text="@string/no_favourites_saved"
-            android:textColor="@color/leadme_medium_grey" />
+            android:textColor="@color/leadme_medium_grey"
+            android:visibility="gone" />
 
-        <com.lumination.leadme.twowaygrid.TwoWayGridView
+        <!--com.lumination.leadme.twowaygrid.TwoWayGridView
             android:id="@+id/url_favourites"
             android:layout_width="fill_parent"
             android:layout_height="150dp"
@@ -268,7 +283,39 @@
             app:scrollDirectionPortrait="horizontal"
             tools:listitem="@layout/row_fav_url">
 
-        </com.lumination.leadme.twowaygrid.TwoWayGridView>
+        </com.lumination.leadme.twowaygrid.TwoWayGridView-->
+
+
+        <HorizontalScrollView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:fillViewport="true">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical">
+
+                <GridView
+                    android:id="@+id/url_favourites"
+                    android:layout_width="1500dp"
+                    android:layout_height="150dp"
+                    android:layout_gravity="start"
+                    android:background="@color/leadme_light_grey"
+                    android:gravity="start"
+                    android:isScrollContainer="false"
+                    android:numColumns="10"
+                    android:orientation="horizontal"
+                    android:paddingTop="10dp"
+                    android:scrollIndicators="end"
+                    android:scrollbarAlwaysDrawHorizontalTrack="true"
+                    android:scrollbarAlwaysDrawVerticalTrack="false"
+                    android:scrollbarStyle="outsideInset"
+                    android:scrollbars="horizontal"
+                    android:visibility="visible"
+                    tools:listitem="@layout/row_fav_url" />
+            </LinearLayout>
+        </HorizontalScrollView>
 
     </LinearLayout>
 

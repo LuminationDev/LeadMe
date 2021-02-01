@@ -1,7 +1,8 @@
 package com.lumination.leadme;
 
 import android.graphics.drawable.Drawable;
-import android.util.Log;
+
+import java.util.ArrayList;
 
 public class ConnectedPeer {
 
@@ -13,7 +14,8 @@ public class ConnectedPeer {
     public static final int STATUS_BLACKOUT = 3;
     public static final int STATUS_LOCK = 4;
     public static final int STATUS_UNLOCK = 5;
-    public static final int STATUS_WARNING = 6;
+    public static final int STATUS_OFF_TASK = 6;
+    public static final int STATUS_WARNING = 7;
 
     public static final int PRIORITY_TOP = 2;
     public static final int PRIORITY_HIGH = 1;
@@ -67,29 +69,72 @@ public class ConnectedPeer {
     }
 
     public void setWarning(String warning, boolean success) {
-        Log.w(TAG, "Setting warning state: " + warning + ", " + success);
+        //Log.w(TAG, "Setting warning state: " + warning + ", " + success);
 
         switch (warning) {
-            case LeadMeMain.AUTO_INSTALL:
+            case LeadMeMain.AUTO_INSTALL_FAILED:
+                hiddenAlerts.remove("launchSuccess");
+                lastAppLaunchSucceeded = false; //if it failed, it's always false here
+                break;
+            case LeadMeMain.APP_TAG:
+                hiddenAlerts.remove("launchSuccess");
                 lastAppLaunchSucceeded = success;
                 break;
             case LeadMeMain.STUDENT_NO_OVERLAY:
+                hiddenAlerts.remove("overlayOn");
                 overlayEnabled = success;
                 break;
             case LeadMeMain.STUDENT_NO_ACCESSIBILITY:
+                hiddenAlerts.remove("accessOn");
                 accessEnabled = success;
                 break;
             case LeadMeMain.STUDENT_NO_INTERNET:
+                hiddenAlerts.remove("internetOn");
                 internetEnabled = success;
                 break;
             case LeadMeMain.STUDENT_OFF_TASK_ALERT:
+                hiddenAlerts.remove("onTask");
                 onTask = success;
                 break;
         }
     }
 
+    String lastApp = "none";
+
+    public void setLastLaunchedApp(String lastApp) {
+        this.lastApp = lastApp;
+    }
+
+    public String getAlertsList() {
+        String res = "";
+
+        if (status == STATUS_ERROR) {
+            res += "• DISCONNECTED FROM GUIDE\n";
+        }
+        if (!onTask && !hiddenAlerts.contains("onTask")) {
+            res += "• May be off task\n";
+        }
+        if (!lastAppLaunchSucceeded && !hiddenAlerts.contains("launchSuccess")) {
+            res += "• Last app (" + lastApp + ") did not launch\n";
+        }
+        if (!accessEnabled && !hiddenAlerts.contains("accessOn")) {
+            res += "• Accessibility service disabled\n";
+        }
+        if (!overlayEnabled && !hiddenAlerts.contains("overlayOn")) {
+            res += "• Locking overlay disabled\n";
+        }
+        if (!internetEnabled && !hiddenAlerts.contains("internetOn")) {
+            res += "• No internet connection\n";
+        }
+        if (res.isEmpty() && status == STATUS_WARNING) {
+            res += "• Unspecified warning\n";
+        }
+        //Log.w(TAG, "Returning warning list: "+res);
+        return res.trim();
+    }
+
     public void setStatus(int newStatus) {
-        Log.d(TAG, "Setting status to " + newStatus + " in ConnectedPeer " + id);
+        //Log.d(TAG, "Setting status to " + newStatus + " in ConnectedPeer " + id);
         if (newStatus == STATUS_SUCCESS) {
             //changes nothing! Still need to display the warnings/other states
             return;
@@ -142,7 +187,48 @@ public class ConnectedPeer {
     }
 
     public boolean hasWarning() {
-        return !(onTask && accessEnabled && overlayEnabled && lastAppLaunchSucceeded && internetEnabled);
+        //Log.d(TAG, "Warning? ("+getAlertsList()+") "+(!getAlertsList().isEmpty()));
+        return !getAlertsList().isEmpty(); // !(onTask && accessEnabled && overlayEnabled && lastAppLaunchSucceeded && internetEnabled);
+    }
+
+    private ArrayList<String> hiddenAlerts = new ArrayList<>();
+
+    public void hideAlerts(boolean hide) {
+        if (!onTask) {
+            if (hide) {
+                hiddenAlerts.add("onTask");
+            } else {
+                hiddenAlerts.remove("onTask");
+            }
+        }
+        if (!lastAppLaunchSucceeded) {
+            if (hide) {
+                hiddenAlerts.add("launchSuccess");
+            } else {
+                hiddenAlerts.remove("launchSuccess");
+            }
+        }
+        if (!accessEnabled) {
+            if (hide) {
+                hiddenAlerts.add("accessOn");
+            } else {
+                hiddenAlerts.remove("accessOn");
+            }
+        }
+        if (!overlayEnabled) {
+            if (hide) {
+                hiddenAlerts.add("overlayOn");
+            } else {
+                hiddenAlerts.remove("overlayOn");
+            }
+        }
+        if (!internetEnabled) {
+            if (hide) {
+                hiddenAlerts.add("internetOn");
+            } else {
+                hiddenAlerts.remove("internetOn");
+            }
+        }
     }
 
     public void setPriority(int priority) {

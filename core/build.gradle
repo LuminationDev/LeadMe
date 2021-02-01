@@ -35,6 +35,9 @@ dependencies {
 
     //for link preview library
     implementation 'com.koushikdutta.urlimageviewhelper:urlimageviewhelper:1.0.4'
+
+    //for auto-updates
+    implementation 'com.github.javiersantos:AppUpdater:2.7'
 }
 
 configurations.all {

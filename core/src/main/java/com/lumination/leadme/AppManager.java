@@ -97,24 +97,24 @@ public class AppManager extends BaseAdapter {
     public String lastApp = "";
 
     public void relaunchLast() {
-        relaunchLast(main.currentTaskPackageName, main.currentTaskName, main.currentTaskType, main.currentTaskURL);
+        relaunchLast(main.currentTaskPackageName, main.currentTaskName, main.currentTaskType, main.currentTaskURL, main.currentTaskURLTitle);
     }
 
 
     /**
      * used by LEARNER to relaunch the last app requested by the LEADER
      **/
-    public void relaunchLast(String packageName, String appName, String taskType, String url) {
+    public void relaunchLast(String packageName, String appName, String taskType, String url, String urlTitle) {
         //launch it locally
         switch (taskType) {
             case "Application":
                 launchLocalApp(packageName, appName, false);
                 break;
             case "YouTube":
-                main.getWebManager().launchYouTube(url, false);
+                main.getWebManager().launchYouTube(url, urlTitle, false);
                 break;
             case "Website":
-                main.getWebManager().launchWebsite(url, false);
+                main.getWebManager().launchWebsite(url, urlTitle, false);
                 break;
         }
     }
@@ -134,7 +134,7 @@ public class AppManager extends BaseAdapter {
             if (packageName.toLowerCase().contains("browser")) {
                 //find default browser instead
                 intent = main.getWebManager().getBrowserIntent(defaultBrowserUrl);
-                actualAppPackage = intent.getPackage();
+                actualAppPackage = intent.getPackage(); //store the ACTUAL app that is getting launched, not just what was requested
                 Log.d(TAG, "Attempting to launch default browser instead: " + packageName + " // " + actualAppPackage + " // " + defaultBrowserUrl);
 
                 //prepare to install, which includes temporarily turning off
@@ -152,8 +152,9 @@ public class AppManager extends BaseAdapter {
         main.startActivity(intent);
         lastApp = packageName;
         if (updateCurrentTask) {
-            main.updateFollowerCurrentTask(actualAppPackage, appName, "Application", "");
+            main.updateFollowerCurrentTask(actualAppPackage, appName, "Application", "", "");
         }
+        Log.e(TAG, "Relaunching last: " + appName + ", " + actualAppPackage);
         main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.LAUNCH_SUCCESS + appName + ":" + main.getNearbyManager().getID() + ":" + actualAppPackage, main.getNearbyManager().getAllPeerIDs());
     }
 

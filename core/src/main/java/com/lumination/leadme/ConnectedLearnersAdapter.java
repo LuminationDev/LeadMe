@@ -27,14 +27,28 @@ public class ConnectedLearnersAdapter extends BaseAdapter {
     private LeadMeMain main;
     private View studentDisconnectedView;
     private View studentLogoutView;
+    private StudentAlertsAdapter alertsAdapter;
 
-    ConnectedLearnersAdapter(LeadMeMain main, List<ConnectedPeer> data) {
+    ConnectedLearnersAdapter(LeadMeMain main, List<ConnectedPeer> data, StudentAlertsAdapter alertsAdapter) {
         this.main = main;
         this.mInflater = LayoutInflater.from(main);
+        this.alertsAdapter = alertsAdapter;
         mData.addAll(data);
     }
 
+    public void refreshAlertsView() {
+        ArrayList<ConnectedPeer> peersWithWarnings = new ArrayList<>();
+        for (ConnectedPeer peer : mData) {
+            if (!peer.getAlertsList().isEmpty()) {
+                peersWithWarnings.add(peer);
+            }
+        }
+        alertsAdapter.setData(peersWithWarnings);
+        alertsAdapter.notifyDataSetChanged();
+    }
+
     public void refresh() {
+        refreshAlertsView();
         notifyDataSetChanged();
         super.notifyDataSetChanged();
     }
@@ -88,7 +102,7 @@ public class ConnectedLearnersAdapter extends BaseAdapter {
         return mData.size() > 0;
     }
 
-    private ConnectedPeer getMatchingPeer(String peerID) {
+    public ConnectedPeer getMatchingPeer(String peerID) {
         if (mData == null || mData.size() == 0) {
             return null;
         }
@@ -128,21 +142,34 @@ public class ConnectedLearnersAdapter extends BaseAdapter {
         }
     }
 
+    public void appLaunchFail(String id, String lastApp) {
+        ConnectedPeer thisPeer = getMatchingPeer(id);
+        thisPeer.setLastLaunchedApp(lastApp);
+        thisPeer.setWarning(LeadMeMain.APP_TAG, false);
+    }
+
+    public void appLaunchSuccess(String id, String lastApp) {
+        ConnectedPeer thisPeer = getMatchingPeer(id);
+        thisPeer.setLastLaunchedApp(lastApp);
+        thisPeer.setWarning(LeadMeMain.APP_TAG, true);
+    }
+
     //helper to manage updating a warning status
     private String warningMessage = "";
 
-    public void updateStatus(String name, int status, String msg) {
-        ConnectedPeer thisPeer = getMatchingPeer(name);
+    public void updateStatus(String id, int status, String msg) {
+        ConnectedPeer thisPeer = getMatchingPeer(id);
 
-        Log.w(TAG, "Received: " + name + ", " + thisPeer + ", " + status + ", " + msg);
+        Log.w(TAG, "Received: " + id + ", " + thisPeer + ", " + status + ", " + msg);
 
         if (thisPeer == null) {
-            Log.d(TAG, "Received warning for UNKNOWN student " + name + ": " + msg);
+            Log.d(TAG, "Received warning for UNKNOWN student " + id + ": " + msg);
             return;
         }
 
         if (status == ConnectedPeer.STATUS_WARNING) {
             switch (msg) {
+                case LeadMeMain.AUTO_INSTALL_FAILED:
                 case LeadMeMain.AUTO_INSTALL:
                     warningMessage = "could not install requested app.";
                     break;
@@ -179,13 +206,13 @@ public class ConnectedLearnersAdapter extends BaseAdapter {
 
         Log.d(TAG, "Updating status for " + name + " to " + status + " (" + thisPeer + ")"); // with " + warningMessage);
         thisPeer.setStatus(status);
-        if (status == ConnectedPeer.STATUS_WARNING || status == ConnectedPeer.STATUS_ERROR || status == ConnectedPeer.STATUS_INSTALLING) {
+        if (status == ConnectedPeer.STATUS_OFF_TASK || status == ConnectedPeer.STATUS_WARNING || status == ConnectedPeer.STATUS_ERROR || status == ConnectedPeer.STATUS_INSTALLING) {
             moveToFrontOfList(thisPeer);
         }
         refresh();
 
         //certain states should alert the guide - e.g. failure to load or attempt to install
-        if (status == ConnectedPeer.STATUS_INSTALLING || status == ConnectedPeer.STATUS_ERROR || status == ConnectedPeer.STATUS_WARNING) {
+        if (status == ConnectedPeer.STATUS_OFF_TASK || status == ConnectedPeer.STATUS_INSTALLING || status == ConnectedPeer.STATUS_ERROR || status == ConnectedPeer.STATUS_WARNING) {
             String msg = thisPeer.getDisplayName();
             switch (status) {
                 case ConnectedPeer.STATUS_INSTALLING:
@@ -193,6 +220,9 @@ public class ConnectedLearnersAdapter extends BaseAdapter {
                     break;
                 case ConnectedPeer.STATUS_ERROR:
                     msg += " is disconnected.";
+                    break;
+                case ConnectedPeer.STATUS_OFF_TASK:
+                    msg += " may be off task.";
                     break;
                 default: //case ConnectedPeer.STATUS_WARNING:
                     msg += " " + warningMessage;
@@ -261,10 +291,6 @@ public class ConnectedLearnersAdapter extends BaseAdapter {
             Drawable icon = peer.getIcon();
             if (icon == null) {
                 icon = main.leadmeIcon;
-            } else if (icon.equals(main.getAppManager().app_placeholder)) {
-                //something went wrong!
-                peer.setStatus(ConnectedPeer.STATUS_WARNING);
-                moveToFrontOfList(peer);
             }
 
             //draw the student icon and status icon
@@ -347,9 +373,7 @@ public class ConnectedLearnersAdapter extends BaseAdapter {
     }
 
     public void drawAlertIcon(ConnectedPeer peer, ImageView statusIcon) {
-        //Log.w(TAG, "Updating alert icon for " + peer.getDisplayName() + ", to " + ConnectedPeer.statusToString(peer.getStatus()));
         if (statusIcon == null) {
-            //Log.e(TAG, "Status icon ImageView is null");
             return;
         }
 
@@ -358,16 +382,17 @@ public class ConnectedLearnersAdapter extends BaseAdapter {
                 statusIcon.setImageDrawable(main.getResources().getDrawable(R.drawable.alert_error, null));
                 break;
 
-            case ConnectedPeer.STATUS_WARNING:
-                statusIcon.setImageDrawable(main.getResources().getDrawable(R.drawable.alert_offtask_learner, null));
-                break;
-
             case ConnectedPeer.STATUS_INSTALLING:
                 statusIcon.setImageDrawable(main.getResources().getDrawable(R.drawable.alert_downloading, null));
                 break;
 
             default:
-                setLockStatus(peer, statusIcon);
+                if (peer.hasWarning()) {
+                    Log.d(TAG, peer.getDisplayName() + " has warning: " + peer.getAlertsList());
+                    statusIcon.setImageDrawable(main.getResources().getDrawable(R.drawable.alert_warning, null));
+                } else {
+                    setLockStatus(peer, statusIcon);
+                }
                 break;
         }
     }

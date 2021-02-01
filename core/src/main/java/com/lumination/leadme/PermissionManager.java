@@ -44,12 +44,13 @@ public class PermissionManager {
                 overlayPermissionGranted = true; //all granted
                 waitingForPermission = false; //no longer waiting
 
-                Log.d(TAG, "Permission granted! " + main.getNearbyManager().isConnectedAsFollower() + ", " + main.getNearbyManager().isConnectedAsGuide());
+                //Log.d(TAG, "Permission granted! " + main.getNearbyManager().isConnectedAsFollower() + ", " + main.getNearbyManager().isConnectedAsGuide());
                 main.performNextAction();
             }
 
             @Override
             public void onPermissionDenied(List<String> deniedPermissions) {
+                //Log.d(TAG, "Overlay Permission DENIED!");
                 overlayPermissionGranted = false; //not all granted
                 waitingForPermission = false; //no longer waiting
             }
@@ -62,7 +63,7 @@ public class PermissionManager {
                         main.checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED;
                 waitingForPermission = false; //no longer waiting
 
-                Log.d(TAG, "Nearby permission granted? " + nearbyPermissionsGranted + ", " + main.checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) + ", " + main.checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION));
+                //Log.d(TAG, "Nearby permission granted? " + nearbyPermissionsGranted + ", " + main.checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) + ", " + main.checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION));
                 if (nearbyPermissionsGranted) {
                     main.performNextAction();
                 }
@@ -80,25 +81,25 @@ public class PermissionManager {
         miscPermissionListener = new PermissionListener() {
             @Override
             public void onPermissionGranted() {
-                Log.d(TAG, "Misc permissions granted!");
+                //Log.d(TAG, "Misc permissions granted!");
                 main.performNextAction();
                 waitingForPermission = false; //no longer waiting
             }
 
             @Override
             public void onPermissionDenied(List<String> deniedPermissions) {
-                Log.e(TAG, "Misc permission REJECTED! " + deniedPermissions.toString());
+                //Log.e(TAG, "Misc permission REJECTED! " + deniedPermissions.toString());
                 waitingForPermission = false; //no longer waiting
             }
         };
     }
 
     public boolean isOverlayPermissionGranted() {
-        overlayPermissionGranted = (main.checkSelfPermission(Manifest.permission.SYSTEM_ALERT_WINDOW) == PackageManager.PERMISSION_GRANTED
-                || Settings.canDrawOverlays(main));
-        //&& main.overlayView != null;
-        Log.d(TAG, "IsOverlayPermissionGranted? " + (main.checkSelfPermission(Manifest.permission.SYSTEM_ALERT_WINDOW) == PackageManager.PERMISSION_GRANTED) + ", " + Settings.canDrawOverlays(main) + ", " + main.overlayView);
+        overlayPermissionGranted = /*(main.checkSelfPermission(Manifest.permission.SYSTEM_ALERT_WINDOW) == PackageManager.PERMISSION_GRANTED ||*/ Settings.canDrawOverlays(main);
 
+//        Log.d(TAG, "IsOverlayPermissionGranted? "
+//                + (main.checkSelfPermission(Manifest.permission.SYSTEM_ALERT_WINDOW) == PackageManager.PERMISSION_GRANTED)
+//                + ", " + Settings.canDrawOverlays(main) + ", " + main.overlayView);
 
         if (!overlayPermissionGranted && main.getNearbyManager().isConnectedAsFollower()) {
             //alert the teacher that the student may not be lockable
@@ -115,12 +116,12 @@ public class PermissionManager {
     public boolean isNearbyPermissionsGranted() {
         nearbyPermissionsGranted = main.checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED &&
                 main.checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED;
-        Log.d(TAG, "IsNearbyPermissionGranted? " + nearbyPermissionsGranted);
+        //Log.d(TAG, "IsNearbyPermissionGranted? " + nearbyPermissionsGranted);
         return nearbyPermissionsGranted;
     }
 
     public void checkOverlayPermissions() {
-        Log.d(TAG, "Checking Overlay Permissions. Currently " + overlayPermissionGranted + ", " + rejectedPermissions);
+        //Log.d(TAG, "Checking Overlay Permissions. Currently " + overlayPermissionGranted + ", " + rejectedPermissions);
         waitingForPermission = true;
         if (!isOverlayPermissionGranted()) {
             main.closeKeyboard();
@@ -137,7 +138,7 @@ public class PermissionManager {
 
     //these permissions don't need user prompting, but CAN be turned off
     public void checkMiscPermissions() {
-        Log.d(TAG, "Checking Misc Permissions.");
+        //Log.d(TAG, "Checking Misc Permissions.");
         waitingForPermission = true;
         String rationaleMsg = "Please turn on the following permissions to connect with a Leader and ensure LeadMe functions correctly.";
 
@@ -153,12 +154,13 @@ public class PermissionManager {
 
 
     public void checkNearbyPermissions() {
-        Log.d(TAG, "Checking Nearby Permissions. Currently " + nearbyPermissionsGranted + ", " + rejectedPermissions);
+        //Log.d(TAG, "Checking Nearby Permissions. Currently " + nearbyPermissionsGranted + ", " + rejectedPermissions);
         waitingForPermission = true;
         String rationaleMsg = "Please enable Location services to connect to other LeadMe users.";
 
         TedPermission.with(main)
                 .setPermissionListener(nearbyPermissionListener)
+                .setDeniedMessage(rationaleMsg)
                 .setPermissions(Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION)
                 .check();
     }
@@ -187,7 +189,7 @@ public class PermissionManager {
             }
 
             //once all other settings are enabled, return to LeadMe
-            Log.d(TAG, "ACCESSIBILITY search complete.");
+            //Log.d(TAG, "ACCESSIBILITY search complete.");
             main.canAskForAccessibility = false;
             if (needsRecall) {
                 main.recallToLeadMe();
@@ -221,7 +223,7 @@ public class PermissionManager {
         // main.getLumiAccessibilityService(); //initialise this
 
 
-        Log.d(TAG, "Searching for: " + expectedComponentName);
+        //Log.d(TAG, "Searching for: " + expectedComponentName);
         for (String componentNameString : services) {
             Log.d(TAG, "\t>> " + componentNameString);
             ComponentName enabledService = ComponentName.unflattenFromString(componentNameString);
@@ -254,7 +256,7 @@ public class PermissionManager {
 
                 Thread thread = new Thread(() -> {
                     try {
-                        successfulPing = InetAddress.getByName(host).isReachable(500);
+                        successfulPing = InetAddress.getByName(host).isReachable(1000);
                     } catch (Exception e) {
                         e.printStackTrace();
                     }

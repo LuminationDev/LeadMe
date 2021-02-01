@@ -64,12 +64,12 @@
 
     </LinearLayout>
 
-    <androidx.recyclerview.widget.RecyclerView
+    <ListView
         android:id="@+id/current_alerts_list"
         android:layout_width="fill_parent"
         android:layout_height="315dp"
-        android:layout_marginStart="15dp"
-        android:layout_marginEnd="15dp"
+        android:layout_marginStart="20dp"
+        android:layout_marginEnd="20dp"
         android:background="@color/leadme_light_grey"
         android:fontFamily="@font/poppins_regular"
         android:gravity="center"
@@ -79,7 +79,24 @@
         android:scrollbarStyle="insideInset"
         android:scrollbars="vertical"
         android:textColor="@color/leadme_light_grey"
-        tools:listitem="@layout/row_student_alert" />
+        android:visibility="gone"
+        tools:listitem="@layout/row_student_alert">
+
+    </ListView>
+
+    <TextView
+        android:id="@+id/no_alerts_message"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="20dp"
+        android:layout_marginEnd="20dp"
+        android:background="@drawable/rounded_btn_highlight"
+        android:fontFamily="@font/poppins_semibold"
+        android:gravity="center"
+        android:padding="30dp"
+        android:text="No current alerts"
+        android:textAlignment="center"
+        android:textSize="14sp" />
 
     <Button
         android:id="@+id/confirm_btn"

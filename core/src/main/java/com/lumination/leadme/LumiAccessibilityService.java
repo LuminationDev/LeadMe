@@ -22,6 +22,7 @@ public class LumiAccessibilityService extends AccessibilityService {
     protected final static String EVENT_RECEIVED = "ACCESS_EVENT";
     protected final static String EVENT_OBJ = "EVENT_OBJ";
     protected final static String EVENT_ROOT = "EVENT_ROOT";
+    protected static final String REFRESH_ACTION = "REFRESH_ACTION";
 
     private String leadmePackageName = "";
 
@@ -79,6 +80,7 @@ public class LumiAccessibilityService extends AccessibilityService {
     protected void onServiceConnected() {
         Log.d(TAG, "Accessibility Service CONNECTED!");
         sendInfoBroadcast(LumiAccessibilityService.INFO_CONNECTED);
+        LeadMeMain.setAccessibilityService(this);
     }
 
 

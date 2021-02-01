@@ -10,7 +10,7 @@
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
     <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
-    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.NFC" />
 
     <!-- needed for core activity management functions -->
@@ -18,6 +18,8 @@
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
     <uses-permission android:name="android.permission.EXPAND_STATUS_BAR" />
+
+    <uses-permission android:name="android.permission.ACTION_MANAGE_OVERLAY_PERMISSION" />
 
     <!-- for youtube -->
     <uses-permission android:name="android.permission.INTERNET" />
@@ -30,11 +32,13 @@
         android:name="android.hardware.nfc"
         android:required="true" />
 
+    <!-- hardware acceleration needed for YouTube playback in WebView -->
     <application
         android:clearTaskOnLaunch="true"
         android:icon="@mipmap/leadme_icon_round"
         android:label="@string/app_title"
         android:theme="@android:style/Theme.Holo.Light.NoActionBar.Fullscreen"
+        android:hardwareAccelerated="true"
         android:usesCleartextTraffic="true">
 
         <activity

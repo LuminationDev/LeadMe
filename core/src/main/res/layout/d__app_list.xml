@@ -74,11 +74,9 @@
         android:id="@+id/fav_list_grid"
         android:layout_width="match_parent"
         android:layout_height="140dp"
-        android:clipToPadding="false"
-        android:horizontalSpacing="20dp"
+        android:isScrollContainer="true"
         android:numColumns="4"
-        android:paddingStart="10dp"
-        android:paddingEnd="10dp"
+        android:orientation="horizontal"
         android:scrollbars="none"
         tools:listitem="@layout/row_fav_app" />
 

@@ -7,6 +7,7 @@ import android.widget.Toast;
 
 import com.google.android.gms.nearby.connection.Payload;
 
+import java.util.HashSet;
 import java.util.Set;
 
 public class DispatchManager {
@@ -20,7 +21,10 @@ public class DispatchManager {
 
     protected void disableInteraction(final int status) {
         final boolean interactionBlocked = (status == ConnectedPeer.STATUS_BLACKOUT || status == ConnectedPeer.STATUS_LOCK);
-        Log.d(TAG, "Is interaction blocked? " + interactionBlocked + ", " + main.getNearbyManager().isConnectedAsFollower() + ", " + main.isGuide + ", " + main.getPermissionsManager().isOverlayPermissionGranted() + ", " + main.overlayView);
+        Log.d(TAG, "Is interaction blocked? " + interactionBlocked + ", follower="
+                + main.getNearbyManager().isConnectedAsFollower() + ", guide=" + main.isGuide + ", permission="
+                + main.getPermissionsManager().isOverlayPermissionGranted() + ", view=" + main.overlayView);
+
         main.setStudentLock(status);
         Runnable myRunnable = () -> {
             //we never want to block someone if they're disconnected from the guide
@@ -31,14 +35,10 @@ public class DispatchManager {
             }
             if (main.getNearbyManager().isConnectedAsFollower() && interactionBlocked) {
                 Log.d(TAG, "BLOCKING!");
-                main.overlayParams.flags = WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN | WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE;
-                main.overlayParams.width = main.size.x;
-                main.overlayParams.height = main.size.y;
+                main.overlayParams.flags = main.CORE_FLAGS;
             } else {
                 Log.d(TAG, "NOT BLOCKING!");
-                main.overlayParams.flags = WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE | WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN | WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE;
-                main.overlayParams.width = 0;
-                main.overlayParams.height = 0;
+                main.overlayParams.flags = main.CORE_FLAGS + WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE;
             }
             main.getWindowManager().updateViewLayout(main.overlayView, main.overlayParams);
         };
@@ -89,6 +89,7 @@ public class DispatchManager {
                 action.startsWith(LeadMeMain.STUDENT_NO_INTERNET) ||
                 action.startsWith(LeadMeMain.STUDENT_NO_ACCESSIBILITY) ||
                 action.startsWith(LeadMeMain.STUDENT_OFF_TASK_ALERT) ||
+                action.startsWith(LeadMeMain.PING_TAG) ||
                 action.startsWith(LeadMeMain.LAUNCH_SUCCESS)) {
             main.getNearbyManager().sendToSelected(Payload.fromBytes(bytes), selectedPeerIDs);
         } else {
@@ -152,11 +153,18 @@ public class DispatchManager {
         if (actionTag != null && actionTag.equals(LeadMeMain.ACTION_TAG)) {
 
             switch (action) {
+                case LeadMeMain.PING_ACTION:
+                    Set<String> peerSet = new HashSet<>();
+                    peerSet.add(action.split(":")[1]);
+                    //send a response back to the ID that pinged me
+                    sendActionToSelected(LeadMeMain.PING_TAG, LeadMeMain.PING_ACTION + ":" + main.getNearbyManager().getID(), peerSet);
+                    break;
+
                 case LeadMeMain.RETURN_TAG:
                     Log.d(TAG, "Trying to return to " + main.leadMeAppName);
-                    sendActionToSelected(LeadMeMain.ACTION_TAG,
-                            LeadMeMain.LAUNCH_SUCCESS + main.leadMeAppName + ":" + main.getNearbyManager().getID() + ":" + main.leadMePackageName,
-                            main.getNearbyManager().getAllPeerIDs());
+                    main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.LAUNCH_SUCCESS + main.leadMePackageName
+                            + ":" + main.getNearbyManager().getID() + ":" + main.leadMePackageName, main.getNearbyManager().getAllPeerIDs());
+                    main.updateFollowerCurrentTaskToLeadMe();
                     main.recallToLeadMe();
                     break;
 
@@ -171,25 +179,28 @@ public class DispatchManager {
                         String[] split = action.split(":");
                         if (split.length == 3) {
                             //Now I know my ID! Store it.
-                            if (split[2].equals(main.getNearbyManager().getName())) {
-                                Log.d(TAG, "My peer tells me my ID is " + split[1] + " -- " + action + ", " + main.getNearbyManager().getName());
+                            Log.d(TAG, ">>> INCOMING: " + action + " vs " + main.getNearbyManager().getName() + " // " + main.getNearbyManager().getID());
+                            if (split[2].equals(main.getUUID())) {
+                                Log.d(TAG, "My peer tells me my ID is " + split[1] + " -- " + action + ", " + main.getNearbyManager().getName() + "/" + main.getUUID());
                                 main.getNearbyManager().setID(split[1]);
                             }
                         }
                         break;
 
+                    } else if (action.startsWith(LeadMeMain.VID_MUTE_TAG)) {
+                        main.muteAudio();
+
+                    } else if (action.startsWith(LeadMeMain.VID_UNMUTE_TAG)) {
+                        main.unMuteAudio();
+
+                    } else if (action.startsWith(LeadMeMain.VID_CAPTIONS_TAG)) {
+                        boolean areCaptionsOn = action.endsWith("true");
+                        main.getWebManager().showCaptions(areCaptionsOn);
+
                     } else if (action.startsWith(LeadMeMain.LOGOUT_TAG)) {
                         String id = action.split(":")[1];
                         Log.d(TAG, "Guide " + id + " has logged out!");
                         main.getNearbyManager().disconnectFromEndpoint(id);
-
-                    } else if (action.startsWith(LeadMeMain.RETURN_TAG)) {
-                        Log.d(TAG, "Leader told me to return!");
-                        sendActionToSelected(LeadMeMain.ACTION_TAG,
-                                LeadMeMain.LAUNCH_SUCCESS + main.leadMeAppName + ":" + main.getNearbyManager().getID() + ":" + main.leadMePackageName,
-                                main.getNearbyManager().getAllPeerIDs());
-                        main.recallToLeadMe();
-                        break;
 
                     } else if (action.startsWith(LeadMeMain.LOCK_TAG)) {
                         //I've been selected to toggle student lock
@@ -227,6 +238,12 @@ public class DispatchManager {
                         }
                         break;
 
+                    } else if (action.startsWith(LeadMeMain.STUDENT_OFF_TASK_ALERT)) {
+                        String[] split = action.split(":");
+                        Log.i(TAG, "STUDENT OFF TASK? " + split[1]);
+                        main.getConnectedLearnersAdapter().updateStatus(split[1], ConnectedPeer.STATUS_WARNING, LeadMeMain.STUDENT_OFF_TASK_ALERT);
+                        break;
+
                     } else if (action.startsWith(LeadMeMain.STUDENT_NO_INTERNET)) {
                         String[] split = action.split(":");
                         Log.i(TAG, "STUDENT HAS INTERNET? " + split[1].equals("OK"));
@@ -252,9 +269,10 @@ public class DispatchManager {
                         break;
 
                     } else if (action.startsWith(LeadMeMain.AUTO_INSTALL_FAILED)) {
-                        Log.i(TAG, "FAILED");
                         String[] split = action.split(":");
-                        main.getConnectedLearnersAdapter().updateStatus(split[2], ConnectedPeer.STATUS_WARNING, LeadMeMain.AUTO_INSTALL_FAILED);
+                        Log.i(TAG, "FAILED " + split[2]);
+                        //main.getConnectedLearnersAdapter().updateStatus(split[2], ConnectedPeer.STATUS_WARNING, LeadMeMain.AUTO_INSTALL_FAILED);
+                        main.getConnectedLearnersAdapter().appLaunchFail(split[2], split[1]);
 
                         //in this case, student will be back in LeadMe, so update icon too
                         main.getConnectedLearnersAdapter().updateIcon(split[2], main.getAppManager().getAppIcon(main.leadMePackageName));
@@ -268,6 +286,8 @@ public class DispatchManager {
                     } else if (action.startsWith(LeadMeMain.LAUNCH_SUCCESS)) {
                         Log.i(TAG, "SUCCEEDED - " + action);
                         String[] split = action.split(":");
+                        main.getConnectedLearnersAdapter().updateStatus(split[2], ConnectedPeer.STATUS_SUCCESS, LeadMeMain.STUDENT_OFF_TASK_ALERT);
+
                         if (split[1].equals("LOCKON")) {
                             main.getConnectedLearnersAdapter().updateStatus(split[2], ConnectedPeer.STATUS_LOCK);
 
@@ -279,19 +299,20 @@ public class DispatchManager {
 
                         } else {
                             Log.d(TAG, "Updating icon to " + split[3]);
-                            main.getConnectedLearnersAdapter().updateStatus(split[2], ConnectedPeer.STATUS_SUCCESS);
+                            main.getConnectedLearnersAdapter().appLaunchSuccess(split[2], split[1]);
+                            //main.getConnectedLearnersAdapter().updateStatus(split[2], ConnectedPeer.STATUS_SUCCESS);
                             main.getConnectedLearnersAdapter().updateIcon(split[2], main.getAppManager().getAppIcon(split[3]));
                         }
                         break;
 
                     } else if (action.startsWith(LeadMeMain.LAUNCH_URL)) {
-                        String[] split = action.split(":", 2);
-                        main.getWebManager().launchWebsite(split[1], true);
+                        String[] split = action.split(":::", 3);
+                        main.getWebManager().launchWebsite(split[1], split[2], true);
                         break;
 
                     } else if (action.startsWith(LeadMeMain.LAUNCH_YT)) {
-                        String[] split = action.split(":", 2);
-                        main.getWebManager().launchYouTube(split[1], true);
+                        String[] split = action.split(":::", 3);
+                        main.getWebManager().launchYouTube(split[1], split[2], true);
                         break;
 
                     } else {
@@ -312,7 +333,7 @@ public class DispatchManager {
 
     public void launchDelayedApp() {
         main.verifyOverlay();
-        Log.d(TAG, "Have something to launch? " + launchAppOnFocus);
+        Log.d(TAG, "[XX] Have something to launch? " + launchAppOnFocus);
         if (launchAppOnFocus != null) {
             final String[] tmp = launchAppOnFocus;
             launchAppOnFocus = null; //reset
@@ -377,5 +398,11 @@ public class DispatchManager {
             sendActionToSelected(LeadMeMain.ACTION_TAG, whichPermission + "FAIL:" + main.getNearbyManager().getID(), main.getNearbyManager().getAllPeerIDs());
         }
     }
+
+    protected void alertGuideStudentOffTask() {
+        sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.STUDENT_OFF_TASK_ALERT + main.getNearbyManager().getID(),
+                main.getNearbyManager().getAllPeerIDs());
+    }
+
 
 }

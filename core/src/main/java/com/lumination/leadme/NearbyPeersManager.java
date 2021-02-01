@@ -46,6 +46,11 @@ public class NearbyPeersManager {
 
     private static final String TAG = "NearbyManager";
 
+    //sending regular pings can help keep connections active
+    //we'll do that when this is set to true
+    //TODO turn this on in options, and save to savedprefs
+    private boolean keepAlivePing = false;
+
     private AlertDialog disconnectPrompt;
     private View everyoneDisconnectedView;
 
@@ -81,6 +86,7 @@ public class NearbyPeersManager {
     //A Handler that allows us to post back on to the UI thread. We use this to resume discovery after an uneventful bout of advertising.
     //private final Handler mUiHandler;
     private LeadMeMain main;
+    private Thread pingThread;
 
     private String myName;
     private String myId;
@@ -100,12 +106,46 @@ public class NearbyPeersManager {
         }
     };
 
+    private int PING_THRESHOLD = 30000; // every 30 seconds
+    Runnable connectionTester = new Runnable() {
+        @Override
+        public void run() {
+            while (true) {
+                if (timeOfLastReceive != -1 && System.currentTimeMillis() - timeOfLastReceive > PING_THRESHOLD) {
+                    main.getDispatcher().sendActionToSelected(LeadMeMain.PING_TAG, LeadMeMain.PING_ACTION + ":" + getID(), getAllPeerIDs());
+                }
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    };
+
     public NearbyPeersManager(LeadMeMain main) {
         this.main = main;
         //mUiHandler = main.getHandler();
         mConnectionsClient = Nearby.getConnectionsClient(main);
         Log.d(TAG, "NEW NEARBY PEERS MANAGER");
-        //disconnectFromAllEndpoints(); //clear any old connections
+
+        //only do this when necessary (e.g. connections keep dropping)
+        pingThread = new Thread(connectionTester);
+        if (keepAlivePing) {
+            startPingThread();
+        }
+    }
+
+    protected void startPingThread() {
+        if (!pingThread.isAlive()) {
+            pingThread.interrupt();
+        }
+    }
+
+    protected void stopPingThread() {
+        if (pingThread.isAlive()) {
+            pingThread.interrupt();
+        }
     }
 
     protected void discoverLeaders() {
@@ -146,6 +186,7 @@ public class NearbyPeersManager {
             main.stopShakeDetection();
             main.getHandler().removeCallbacksAndMessages(null);
         }
+        stopPingThread();
     }
 
     public void onBackPressed() {
@@ -183,19 +224,16 @@ public class NearbyPeersManager {
 
             //NOTE: this must be done on main thread
             Log.d(TAG, "Am I the guide? " + main.isGuide);
+            ConnectedPeer thisPeer = new ConnectedPeer(endpoint);
             if (main.isGuide) {
-                ConnectedPeer thisPeer = new ConnectedPeer(endpoint);
                 main.getConnectedLearnersAdapter().addStudent(thisPeer);
                 //send the ID back to the student
-                main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.YOUR_ID_IS + thisPeer.getID() + ":" + thisPeer.getDisplayName(),
-                        getAllPeerIDs());
             } else {
                 main.findViewById(R.id.client_main).setVisibility(View.VISIBLE);
                 main.setLeaderName(endpoint.getName());
-
-                main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.YOUR_ID_IS + endpoint.getId() + ":" + endpoint.getName(),
-                        getAllPeerIDs());
+                //main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.YOUR_ID_IS + endpoint.getId() + ":" + endpoint.getName(), getAllPeerIDs());
             }
+            main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.YOUR_ID_IS + thisPeer.getID() + ":" + thisPeer.getUUID(), getAllPeerIDs());
         });
     }
 
@@ -411,7 +449,10 @@ public class NearbyPeersManager {
     }
 
 
+    private long timeOfLastReceive = -1;
+
     protected void onReceive(Endpoint endpoint, Payload payload) {
+        timeOfLastReceive = System.currentTimeMillis();
         if (payload.getType() == Payload.Type.STREAM) {
             Log.d(TAG, "Got payload with a stream! -- TODO");
 
@@ -777,6 +818,7 @@ public class NearbyPeersManager {
      * Sends a connection request to the endpoint.
      */
     private int currentReconnectAttempts = 0;
+
     protected void connectToEndpoint(final Endpoint endpoint) {
         Log.v(TAG, "Sending a connection request to endpoint " + endpoint + " (" + main.isGuide + ", " + main.getUUID() + ")");
         // Mark ourselves as connecting so we don't connect multiple times
@@ -853,7 +895,7 @@ public class NearbyPeersManager {
     }
 
     void sendToSelected(Payload payload, Set<String> endpoints) {
-        Log.d(TAG, "Sending >> " + payload.toString() + ", " + endpoints.size());
+        //Log.d(TAG, "Sending >> " + payload.toString() + ", " + endpoints.size());
         if (endpoints.size() > 0) {
             mConnectionsClient.sendPayload(new ArrayList<>(endpoints), payload)
                     .addOnFailureListener(e -> Log.w(TAG, "sendPayload() failed.", e));
