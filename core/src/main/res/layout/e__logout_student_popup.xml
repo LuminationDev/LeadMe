@@ -72,6 +72,21 @@
                 android:textSize="16sp" />
 
             <Button
+                android:id="@+id/monitor_btn"
+                style="?android:attr/borderlessButtonStyle"
+                android:layout_width="@dimen/standard_btn_width"
+                android:layout_height="@dimen/standard_btn_height"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginTop="10dp"
+                android:background="@drawable/bg_"
+                android:clickable="true"
+                android:fontFamily="@font/poppins_semibold"
+                android:text="Monitor"
+                android:textAllCaps="false"
+                android:textColor="@color/leadme_white"
+                android:textSize="16sp" />
+
+            <Button
                 android:id="@+id/back_btn"
                 style="?android:attr/borderlessButtonStyle"
                 android:layout_width="@dimen/standard_btn_width"

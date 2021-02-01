@@ -21,6 +21,13 @@
 
     <uses-permission android:name="android.permission.ACTION_MANAGE_OVERLAY_PERMISSION" />
 
+    <!-- Added -->
+    <!-- for screen monitoring service-->
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.ACCESS_MEDIA_LOCATION" />
+    <!-- Added -->
+
     <!-- for youtube -->
     <uses-permission android:name="android.permission.INTERNET" />
 
@@ -73,6 +80,14 @@
                 android:name="android.accessibilityservice"
                 android:resource="@xml/accessibility_service_config" />
         </service>
+
+        <!-- added-->
+        <service
+            android:enabled="true"
+            android:name=".ScreensharingService"
+            android:foregroundServiceType="mediaProjection" >
+        </service>
+        <!-- added-->
 
     </application>
 </manifest>

@@ -96,6 +96,30 @@
 
             </LinearLayout>
 
+            <LinearLayout
+                android:id="@+id/capture_rate_display"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:visibility="gone">
+
+                <TextView
+                    android:id="@+id/screen_capture"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="20dp"
+                    android:fontFamily="@font/poppins_semibold"
+                    android:text="Capture Rate"
+                    android:textColor="@color/leadme_medium_grey"
+                    android:textSize="16sp" />
+
+                <SeekBar
+                    android:id="@+id/screen_capture_rate"
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:max="1000"
+                    android:progress="10" />
+            </LinearLayout>
+
         </LinearLayout>
 
         <TextView

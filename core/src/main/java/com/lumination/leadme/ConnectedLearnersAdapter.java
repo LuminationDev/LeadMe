@@ -299,10 +299,12 @@ public class ConnectedLearnersAdapter extends BaseAdapter {
 
             convertView.setLongClickable(true);
             convertView.setOnLongClickListener(v -> {
+
                 lastClickedID = peer.getID();
                 if (studentLogoutView == null) {
                     studentLogoutView = View.inflate(main, R.layout.e__logout_student_popup, null);
                     Button ok_btn = studentLogoutView.findViewById(R.id.ok_btn);
+                    Button monitor_btn = studentLogoutView.findViewById(R.id.monitor_btn);
                     Button back_btn = studentLogoutView.findViewById(R.id.back_btn);
 
                     ok_btn.setOnClickListener(v12 -> {
@@ -313,7 +315,17 @@ public class ConnectedLearnersAdapter extends BaseAdapter {
                         logoutPrompt.hide();
                     });
 
-                    back_btn.setOnClickListener(v1 -> logoutPrompt.hide());
+                    //added
+                    monitor_btn.setOnClickListener(v2 -> {
+                        logoutPrompt.hide();
+                        main.currentPeerID = lastClickedID; // update for the guide
+                        main.setupMonitorScreen(lastClickedID);
+                    });
+                    //added
+
+                    back_btn.setOnClickListener(v1 -> {
+                        logoutPrompt.hide();
+                    });
                 }
 
                 if (logoutPrompt == null) {
@@ -323,6 +335,7 @@ public class ConnectedLearnersAdapter extends BaseAdapter {
                 } else {
                     logoutPrompt.show();
                 }
+
                 return true;
             });
 

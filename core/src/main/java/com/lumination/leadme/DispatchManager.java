@@ -13,6 +13,7 @@ import java.util.Set;
 public class DispatchManager {
     private final String TAG = "Dispatcher";
     private LeadMeMain main;
+    private Set<String> peer_set = new HashSet<String>();
     protected String[] launchAppOnFocus = null;
 
     public DispatchManager(LeadMeMain main) {
@@ -71,6 +72,31 @@ public class DispatchManager {
         sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.LOGOUT_TAG + ":" + main.getNearbyManager().getID(), main.getNearbyManager().getAllPeerIDs());
     }
 
+    //added------
+    // action to start a server on a connected device
+    //change to single peer instead of all.
+    public synchronized void launchMonitorServer(String peer) {
+        peer_set.add(peer);
+        sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.MONITOR_STUDENT_TAG+":"+LeadMeMain.CAPTURE_RATE, peer_set);
+    }
+
+    // send ip address
+    public synchronized void sendIpAddress(String ipAddress, String target) {
+        if (target.equals(LeadMeMain.SEND_TO_GUIDE)) { // send ip address back to guide
+            sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.RECEIVE_IP_ADDRESS_TAG+":"+ipAddress, main.getNearbyManager().getSelectedPeerIDs());
+        } else if (target.equals(LeadMeMain.SEND_TO_PEERS)) { // send ip address to all connected peers
+            sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.SEND_IP_ADDRESS_TAG+":"+ipAddress, main.getNearbyManager().getAllPeerIDs());
+        }
+    }
+
+    //send action to stop a monitoring server
+    //change to single peer instead of getAllPeerIDS.
+    public synchronized  void destroyServer(String peer) {
+        sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.DESTROY_SERVER_TAG, peer_set);
+        peer_set = new HashSet<String>(); //reset peer set
+    }
+    //added------
+
     public synchronized void sendActionToSelected(String actionTag, String action, Set<String> selectedPeerIDs) {
         Parcel p = Parcel.obtain();
         byte[] bytes;
@@ -90,7 +116,12 @@ public class DispatchManager {
                 action.startsWith(LeadMeMain.STUDENT_NO_ACCESSIBILITY) ||
                 action.startsWith(LeadMeMain.STUDENT_OFF_TASK_ALERT) ||
                 action.startsWith(LeadMeMain.PING_TAG) ||
-                action.startsWith(LeadMeMain.LAUNCH_SUCCESS)) {
+                action.startsWith(LeadMeMain.LAUNCH_SUCCESS) ||
+                //added----------------
+                action.startsWith(LeadMeMain.MONITOR_STUDENT_TAG) ||
+                action.startsWith(LeadMeMain.RECEIVE_IP_ADDRESS_TAG) ||
+                action.startsWith(LeadMeMain.SEND_IP_ADDRESS_TAG)) {
+                //added----------------
             main.getNearbyManager().sendToSelected(Payload.fromBytes(bytes), selectedPeerIDs);
         } else {
             Log.i(TAG, "Sorry, you can't send actions!");
@@ -315,7 +346,41 @@ public class DispatchManager {
                         main.getWebManager().launchYouTube(split[1], split[2], true);
                         break;
 
-                    } else {
+                    }
+                    //added-------------------
+                    else if (action.startsWith(LeadMeMain.MONITOR_STUDENT_TAG)) { //start server on student device
+                        String[] split = action.split(":");
+                        LeadMeMain.CAPTURE_RATE = Integer.parseInt(split[1]);
+
+                        Log.d("Monitoring", "Student server started");
+                        Toast monitor = Toast.makeText(main.getApplicationContext(), "Monitoring started", Toast.LENGTH_SHORT);
+                        monitor.show();
+                        main.startServer();
+                        break;
+
+                    } else if (action.startsWith(LeadMeMain.RECEIVE_IP_ADDRESS_TAG)) { //guide receives back ip address
+                        String[] split = action.split(":");
+                        main.ipAddress = split[1];
+                        main.startImageClient();
+
+                        Log.d("Monitoring", split[1]);
+                        Toast monitor = Toast.makeText(main.getApplicationContext(), split[1], Toast.LENGTH_SHORT);
+                        monitor.show();
+                        break;
+
+                    } else if (action.startsWith(LeadMeMain.SEND_IP_ADDRESS_TAG)) { //sending ipAddress to peers
+                        String[] split = action.split(":");
+                        main.ipAddress = split[1];
+                        main.startClientThread(null, null);
+                        break;
+
+                    } else if (action.startsWith(LeadMeMain.DESTROY_SERVER_TAG)) { //stop the server on student device
+                        main.stopServer();
+                        break;
+
+                    }
+                    //added-------------------
+                    else {
                         return false;
                     }
             }

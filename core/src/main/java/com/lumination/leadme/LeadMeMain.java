@@ -3,6 +3,8 @@ package com.lumination.leadme;
 
 import android.accessibilityservice.AccessibilityService;
 import android.accessibilityservice.GestureDescription;
+import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.app.ActivityManager;
 import android.app.AlertDialog;
 import android.content.BroadcastReceiver;
@@ -11,6 +13,10 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.PixelFormat;
 import android.graphics.Point;
@@ -20,13 +26,19 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.hardware.display.DisplayManager;
 import android.media.AudioManager;
+import android.media.Image;
+import android.media.ImageReader;
+import android.media.projection.MediaProjection;
+import android.media.projection.MediaProjectionManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.ActionMode;
 import android.view.Display;
@@ -35,17 +47,22 @@ import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.SurfaceHolder;
+import android.view.SurfaceView;
 import android.view.View;
 import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
+import android.widget.FrameLayout;
 import android.widget.GridView;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.ProgressBar;
 import android.widget.SearchView;
+import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ViewAnimator;
@@ -57,12 +74,17 @@ import androidx.lifecycle.Lifecycle;
 import androidx.lifecycle.LifecycleObserver;
 import androidx.lifecycle.OnLifecycleEvent;
 
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Set;
 import java.util.UUID;
 
 
-public class LeadMeMain extends FragmentActivity implements Handler.Callback, SensorEventListener, LifecycleObserver {
+public class LeadMeMain extends FragmentActivity implements Handler.Callback, SensorEventListener, LifecycleObserver, SurfaceHolder.Callback {
 
     //tag for debugging
     static final String TAG = "LeadMe";
@@ -81,6 +103,18 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     static final String EXIT_TAG = "LumiExit";
     static final String RETURN_TAG = "LumiReturnToApp";
     static final String YOUR_ID_IS = "LumiYourID:";
+
+    //added-------
+    static final String MONITOR_STUDENT_TAG = "LumiMonitor";
+    static final String RECEIVE_IP_ADDRESS_TAG = "LumiReceiveIpAddress";
+    static final String SEND_IP_ADDRESS_TAG = "LumiSendIpAddress";
+    static final String DESTROY_SERVER_TAG = "LumiDestroyServer";
+    static final String SEND_TO_GUIDE = "Guide";
+    static final String SEND_TO_PEERS = "Peers";
+    static public int CAPTURE_RATE = 200;
+    public final int SCREEN_CAPTURE = 999;
+    SeekBar seekBar;
+    //added-------
 
     static final String LOCK_TAG = "LumiLock";
     static final String UNLOCK_TAG = "LumiUnlock";
@@ -225,6 +259,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
     protected boolean canAskForAccessibility = true;
 
+    @SuppressLint({"NewApi", "WrongConstant"}) //needed for pixelFormat use
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -245,6 +280,31 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             case 99:
                 Log.d(TAG, "RETURNED RESULT FROM YOUTUBE! " + resultCode + ", " + data);
                 break;
+            //added------------
+            case SCREEN_CAPTURE:
+                MediaProjection mediaProjection = projectionManager.getMediaProjection(resultCode, data);
+                if (mediaProjection != null) {
+
+                    DisplayMetrics metrics = getResources().getDisplayMetrics();
+                    int density = metrics.densityDpi;
+                    int flags = DisplayManager.VIRTUAL_DISPLAY_FLAG_OWN_CONTENT_ONLY
+                            | DisplayManager.VIRTUAL_DISPLAY_FLAG_PUBLIC;
+
+                    Point size = new Point();
+                    size.y = metrics.heightPixels;
+                    size.x = metrics.widthPixels;
+                    displayHeight = size.y;
+                    displayWidth = size.x;
+
+                    imageReader = ImageReader.newInstance(size.x, size.y, PixelFormat.RGBA_8888, 2);
+
+                    mediaProjection.createVirtualDisplay("screencap",
+                            size.x, size.y, density,
+                            flags, imageReader.getSurface(), null, handler);
+                    imageReader.setOnImageAvailableListener(new ImageAvailableListener(), handler);
+                }
+                break;
+            //added------------
             default:
                 Log.d(TAG, "RETURNED FROM ?? with " + resultCode);
                 break;
@@ -1321,9 +1381,32 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             autoUpdater.startUpdateChecker();
         }
 
+        //added
+        seekBar = (SeekBar) findViewById(R.id.screen_capture_rate);
+        seekBar.setProgress(200); //default value that seems to work with slowish phones
+        seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            int rate;
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress,
+                                          boolean fromUser) {
+                rate = progress;
+                //Toast.makeText(getApplicationContext(),"seekbar progress: " + progress, Toast.LENGTH_SHORT).show();
+            }
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+                //Toast.makeText(getApplicationContext(),"seekbar touch started!", Toast.LENGTH_SHORT).show();
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+                CAPTURE_RATE = rate;
+                Toast.makeText(getApplicationContext(), "Capture rate: " + CAPTURE_RATE, Toast.LENGTH_SHORT).show();
+            }
+        });
+        //added
+
         //start this
         //getForegroundActivity();
-
     }
 
     private void updateAutoCheckPreference(SharedPreferences sharedPreferences) {
@@ -1709,6 +1792,8 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
             //TODO remove auto update functionality when needed
             optionsScreen.findViewById(R.id.auto_updates).setVisibility(View.VISIBLE);
+            //show the Seekbar
+            optionsScreen.findViewById(R.id.capture_rate_display).setVisibility(View.VISIBLE);
 
         } else {
             //display main student view
@@ -2211,4 +2296,267 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             tasksManager.moveTaskToFront(getTaskId(), ActivityManager.MOVE_TASK_NO_USER_ACTION);
         }
     }
+
+    //added---------------------
+    LocalServer server;
+    String ipAddress;
+    Intent screen_share_intent;
+    private MediaProjectionManager projectionManager;
+    private int displayWidth,displayHeight,imagesProduced=0;
+    ImageReader imageReader;
+
+    public void setupMonitorScreen(String peer) {
+        getDispatcher().launchMonitorServer(peer);
+    }
+
+    // start a server on the device that will be casted
+    public void startServer() {
+        projectionManager = (MediaProjectionManager)
+                getSystemService(Context.MEDIA_PROJECTION_SERVICE);
+
+        //create an instance of a server
+        createServer(this, true, "Monitoring", null);
+
+        //start service class
+        screen_share_intent = new Intent(context, ScreensharingService.class);
+        startService(screen_share_intent);
+
+        //start screen capturing
+        projectionManager = (MediaProjectionManager)
+                getSystemService(Context.MEDIA_PROJECTION_SERVICE);
+
+        startActivityForResult(projectionManager.createScreenCaptureIntent(), SCREEN_CAPTURE);
+
+        //send IP address to guide
+        Log.d(RECEIVE_IP_ADDRESS_TAG, ipAddress);
+        getDispatcher().sendIpAddress(ipAddress, SEND_TO_GUIDE);
+    }
+
+    public void createServer(Activity activity, Boolean monitoring, String folder, String fileToTransfer) {
+        //start the server and return the ip address
+        server = new LocalServer(activity, monitoring, folder, fileToTransfer);
+        ipAddress = server.getIpAddress();
+    }
+
+    public void stopServer() {
+        stopService(screen_share_intent);
+        server.onDestroy();
+        ipAddress = null;
+        imagesProduced = 0;
+
+        // clear the Monitoring file
+        File file = new File(context.getFilesDir(), "LeadMe" + File.separator + "Monitoring");
+        if (file.isDirectory()) {
+            String[] children = file.list();
+            if(children != null) {
+                for (String child : children) {
+                    Log.e("Files", child);
+                    new File(file, child).delete();
+                }
+            }
+        }
+    }
+
+    private class ImageAvailableListener implements ImageReader.OnImageAvailableListener {
+        @Override
+        public void onImageAvailable(ImageReader reader) {
+            Bitmap bitmap = null;
+            ByteArrayOutputStream stream = null;
+
+            try (Image image = imageReader.acquireLatestImage()) {
+                //sleep allows control over how many screenshots are taken
+                //old/less powerful phones need this otherwise there is heavy lag (etc for >20 screen shots a second)
+                //newer phones can have this disabled for a faster display
+                if(CAPTURE_RATE > 0) Thread.sleep(CAPTURE_RATE);
+
+                if (image != null) {
+                    Image.Plane[] planes = image.getPlanes();
+                    ByteBuffer buffer = planes[0].getBuffer();
+                    int pixelStride = planes[0].getPixelStride();
+                    int rowStride = planes[0].getRowStride();
+                    int rowPadding = rowStride - pixelStride * displayWidth;
+
+                    stream = new ByteArrayOutputStream();
+
+                    // create bitmap
+                    bitmap = Bitmap.createBitmap(displayWidth + rowPadding / pixelStride,
+                            displayHeight, Bitmap.Config.ARGB_8888);
+                    bitmap.copyPixelsFromBuffer(buffer);
+                    bitmap.compress(Bitmap.CompressFormat.JPEG, 5, stream);
+                    createImage(bitmap, imagesProduced);
+
+                    imagesProduced++;
+                    //Log.d("img_num", "captured image: " + imagesProduced);
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            } finally {
+                if (stream != null) {
+                    try {
+                        stream.close();
+                    } catch (IOException ioe) {
+                        ioe.printStackTrace();
+                    }
+                }
+
+                if (bitmap != null) {
+                    bitmap.recycle();
+                }
+            }
+        }
+    }
+
+    public void createImage(Bitmap bmp, int i) {
+        ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+        bmp.compress(Bitmap.CompressFormat.JPEG, 10, bytes);
+
+        try {
+            File path = new File(context.getFilesDir(), "LeadMe" + File.separator + "Monitoring");
+
+            if(!path.exists()) {
+                if(path.mkdirs()) {
+                    Log.d(TAG, "Scoped storage file created");
+                } else Log.e(TAG, "Scoped storage file not created");
+            }
+                File outFile = new File(path, "capturedscreenandroid" + i + ".jpg");
+                FileOutputStream outputStream = new FileOutputStream(outFile);
+                outputStream.write(bytes.toByteArray());
+                outputStream.close();
+        } catch (IOException e) {
+            Log.e(TAG, "Saving received message failed with", e);
+        }
+    }
+
+    //starting the client
+    ClientSocket clientSocket;
+    FrameLayout monitorLayout;
+    SurfaceView monitorView;
+    String currentPeerID;
+    Bitmap response;
+    Boolean monitorInProgress = false;
+    final static int port = 8080;
+
+    //client socket for monitoring
+    public void startImageClient() {
+        //can be refactored out to onCreate?
+        monitorLayout = findViewById(R.id.monitor_layout);
+        monitorView = findViewById(R.id.monitor_popup);
+
+        SurfaceHolder holder = monitorView.getHolder();
+        monitorView.getHolder().addCallback(this);
+        monitorLayout.setVisibility(View.VISIBLE);
+
+        //can be refactored out to onCreate?
+        Button closeButton = findViewById(R.id.close_monitor_btn);
+        closeButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                getDispatcher().destroyServer(currentPeerID);
+                monitorLayout.setVisibility(View.GONE);
+                monitorInProgress = false; //break connection loop in clientStream
+                response = null; //reset bitmap for next connection
+                tryDrawing(holder);
+            }
+        });
+
+        if (monitorLayout.getVisibility() == View.VISIBLE) {
+            monitorInProgress = true;
+            startClientThread(holder, monitorView);
+        } else {
+            Log.e(TAG, "Monitor layout - no visibility change");
+        }
+    }
+
+    public void startClientThread(SurfaceHolder holder, SurfaceView monitorView) {
+        clientSocket = new ClientSocket(ipAddress, port, monitorView, this, holder);
+        new Thread(clientSocket).start();
+    }
+
+    //functions below relate the surfaceview
+    //using a surfaceview as the seperate rendering layout is quicker than resetting imageviews
+    @Override
+    public void surfaceCreated(SurfaceHolder holder) {
+        monitorView.setWillNotDraw(false);
+        tryDrawing(holder);
+    }
+
+    @Override
+    public void surfaceDestroyed(SurfaceHolder holder) {}
+
+    @Override
+    public void surfaceChanged(SurfaceHolder holder, int frmt, int w, int h) {
+        tryDrawing(holder);
+    }
+
+    public void tryDrawing(SurfaceHolder holder) {
+        Canvas canvas = holder.lockCanvas();
+
+        if (response != null) {
+            drawMyStuff(canvas, response);
+        } else canvas.drawColor(Color.BLACK);
+
+        holder.unlockCanvasAndPost(canvas);
+        monitorView.invalidate();
+    }
+
+    private void drawMyStuff(final Canvas canvas, Bitmap bitmap) {
+        Paint paint = new Paint();
+        paint.setFilterBitmap(true);
+        canvas.drawBitmap(bitmap, 0,0, paint);
+    }
+
+    //for push files to students
+    //on click of something
+//    public void fileSharing(String folder, String fileName) {
+//        Log.e("Sharing", "File shared");
+//        File fileToTransfer = null;
+//
+//        File path = new File(context.getFilesDir(), "LeadMe" + File.separator + folder);
+//        if(!path.exists()) {
+//            if(path.mkdirs()) {
+//                Log.d(TAG, "Scoped storage file created");
+//            } else Log.e(TAG, "Scoped storage file not created");
+//        }
+//
+//        //creating a dummy file to test transfer
+//        try {
+//            fileToTransfer = new File(path, fileName + ".txt");
+//            if (fileToTransfer.createNewFile()) {
+//                System.out.println("File created: " + fileToTransfer.getName());
+//            } else {
+//                System.out.println("File already exists.");
+//
+//            }
+//        } catch (IOException e) {
+//            System.out.println("An error occurred.");
+//            e.printStackTrace();
+//        }
+//
+//        //createServer(this, false, folder, fileToTransfer);
+//
+//        //send IP address to connected peers
+//        Log.d(SEND_IP_ADDRESS_TAG, ipAddress);
+//        getDispatcher().sendIpAddress(ipAddress, SEND_TO_PEERS);
+//    }
+
+//    public void saveFile(String fileToSave) {
+//        Log.e("Saving", fileToSave);
+//        ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+//
+//        try {
+//            File path = new File(context.getFilesDir(), "LeadMe" + File.separator + folder);
+//
+//            if(!path.exists()) {
+//                if(path.mkdirs()) {
+//                    Log.d(TAG, "Scoped storage file created");
+//                } else Log.e(TAG, "Scoped storage file not created");
+//            }
+//            FileOutputStream outputStream = new FileOutputStream(fileToSave);
+//            outputStream.write(bytes.toByteArray());
+//            outputStream.close();
+//        } catch (IOException e) {
+//            Log.e(TAG, "Saving received message failed with", e);
+//        }
+//    }
+    //added---------------------
 }

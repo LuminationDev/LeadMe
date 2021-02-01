@@ -1,0 +1,209 @@
+1<?xml version="1.0" encoding="utf-8"?>
+2<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+3    package="com.lumination.leadme"
+4    android:versionCode="1"
+5    android:versionName="1.0" >
+6
+7    <uses-sdk
+8        android:minSdkVersion="24"
+8-->C:\Users\Edward\Desktop\Lumination\Dev Work\LeadMe\LeadMe\core\src\main\AndroidManifest.xml
+9        android:targetSdkVersion="29" />
+9-->C:\Users\Edward\Desktop\Lumination\Dev Work\LeadMe\LeadMe\core\src\main\AndroidManifest.xml
+10
+11    <!-- for nearby connections -->
+12    <uses-permission android:name="android.permission.BLUETOOTH" />
+12-->C:\Users\Edward\Desktop\Lumination\Dev Work\LeadMe\LeadMe\core\src\main\AndroidManifest.xml:8:5-68
+12-->C:\Users\Edward\Desktop\Lumination\Dev Work\LeadMe\LeadMe\core\src\main\AndroidManifest.xml:8:22-65
+13    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
+13-->C:\Users\Edward\Desktop\Lumination\Dev Work\LeadMe\LeadMe\core\src\main\AndroidManifest.xml:9:5-74
+13-->C:\Users\Edward\Desktop\Lumination\Dev Work\LeadMe\LeadMe\core\src\main\AndroidManifest.xml:9:22-71
+14    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+14-->C:\Users\Edward\Desktop\Lumination\Dev Work\LeadMe\LeadMe\core\src\main\AndroidManifest.xml:10:5-76
+14-->C:\Users\Edward\Desktop\Lumination\Dev Work\LeadMe\LeadMe\core\src\main\AndroidManifest.xml:10:22-73
+15    <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
+15-->C:\Users\Edward\Desktop\Lumination\Dev Work\LeadMe\LeadMe\core\src\main\AndroidManifest.xml:11:5-76
+15-->C:\Users\Edward\Desktop\Lumination\Dev Work\LeadMe\LeadMe\core\src\main\AndroidManifest.xml:11:22-73
+16    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+16-->C:\Users\Edward\Desktop\Lumination\Dev Work\LeadMe\LeadMe\core\src\main\AndroidManifest.xml:12:5-81
+16-->C:\Users\Edward\Desktop\Lumination\Dev Work\LeadMe\LeadMe\core\src\main\AndroidManifest.xml:12:22-78
+17    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+17-->C:\Users\Edward\Desktop\Lumination\Dev Work\LeadMe\LeadMe\core\src\main\AndroidManifest.xml:13:5-79
+17-->C:\Users\Edward\Desktop\Lumination\Dev Work\LeadMe\LeadMe\core\src\main\AndroidManifest.xml:13:22-76
+18    <uses-permission android:name="android.permission.NFC" />
+18-->C:\Users\Edward\Desktop\Lumination\Dev Work\LeadMe\LeadMe\core\src\main\AndroidManifest.xml:14:5-62
+18-->C:\Users\Edward\Desktop\Lumination\Dev Work\LeadMe\LeadMe\core\src\main\AndroidManifest.xml:14:22-59
+19
+20    <!-- needed for core activity management functions -->
+21    <uses-permission android:name="android.permission.REORDER_TASKS" />
+21-->C:\Users\Edward\Desktop\Lumination\Dev Work\LeadMe\LeadMe\core\src\main\AndroidManifest.xml:17:5-72
+21-->C:\Users\Edward\Desktop\Lumination\Dev Work\LeadMe\LeadMe\core\src\main\AndroidManifest.xml:17:22-69
+22    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+22-->C:\Users\Edward\Desktop\Lumination\Dev Work\LeadMe\LeadMe\core\src\main\AndroidManifest.xml:18:5-81
+22-->C:\Users\Edward\Desktop\Lumination\Dev Work\LeadMe\LeadMe\core\src\main\AndroidManifest.xml:18:22-78
+23    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+23-->C:\Users\Edward\Desktop\Lumination\Dev Work\LeadMe\LeadMe\core\src\main\AndroidManifest.xml:19:5-78
+23-->C:\Users\Edward\Desktop\Lumination\Dev Work\LeadMe\LeadMe\core\src\main\AndroidManifest.xml:19:22-75
+24    <uses-permission android:name="android.permission.EXPAND_STATUS_BAR" />
+24-->C:\Users\Edward\Desktop\Lumination\Dev Work\LeadMe\LeadMe\core\src\main\AndroidManifest.xml:20:5-76
+24-->C:\Users\Edward\Desktop\Lumination\Dev Work\LeadMe\LeadMe\core\src\main\AndroidManifest.xml:20:22-73
+25    <uses-permission android:name="android.permission.ACTION_MANAGE_OVERLAY_PERMISSION" />
+25-->C:\Users\Edward\Desktop\Lumination\Dev Work\LeadMe\LeadMe\core\src\main\AndroidManifest.xml:22:5-91
+25-->C:\Users\Edward\Desktop\Lumination\Dev Work\LeadMe\LeadMe\core\src\main\AndroidManifest.xml:22:22-88
+26
+27    <!-- Added -->
+28    <!-- for screen monitoring service -->
+29    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+29-->C:\Users\Edward\Desktop\Lumination\Dev Work\LeadMe\LeadMe\core\src\main\AndroidManifest.xml:26:5-79
+29-->C:\Users\Edward\Desktop\Lumination\Dev Work\LeadMe\LeadMe\core\src\main\AndroidManifest.xml:26:22-77
+30    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+30-->C:\Users\Edward\Desktop\Lumination\Dev Work\LeadMe\LeadMe\core\src\main\AndroidManifest.xml:27:5-77
+30-->C:\Users\Edward\Desktop\Lumination\Dev Work\LeadMe\LeadMe\core\src\main\AndroidManifest.xml:27:22-74
+31    <uses-permission android:name="android.permission.ACCESS_MEDIA_LOCATION" />
+31-->C:\Users\Edward\Desktop\Lumination\Dev Work\LeadMe\LeadMe\core\src\main\AndroidManifest.xml:28:5-80
+31-->C:\Users\Edward\Desktop\Lumination\Dev Work\LeadMe\LeadMe\core\src\main\AndroidManifest.xml:28:22-77
+32    <!-- Added -->
+33
+34
+35    <!-- for youtube -->
+36    <uses-permission android:name="android.permission.INTERNET" />
+36-->C:\Users\Edward\Desktop\Lumination\Dev Work\LeadMe\LeadMe\core\src\main\AndroidManifest.xml:32:5-67
+36-->C:\Users\Edward\Desktop\Lumination\Dev Work\LeadMe\LeadMe\core\src\main\AndroidManifest.xml:32:22-64
+37
+38    <!-- Google Play filtering -->
+39    <uses-feature
+39-->C:\Users\Edward\Desktop\Lumination\Dev Work\LeadMe\LeadMe\core\src\main\AndroidManifest.xml:35:5-37:35
+40        android:name="android.hardware.wifi.direct"
+40-->C:\Users\Edward\Desktop\Lumination\Dev Work\LeadMe\LeadMe\core\src\main\AndroidManifest.xml:36:9-52
+41        android:required="true" />
+41-->C:\Users\Edward\Desktop\Lumination\Dev Work\LeadMe\LeadMe\core\src\main\AndroidManifest.xml:37:9-32
+42    <uses-feature
+42-->C:\Users\Edward\Desktop\Lumination\Dev Work\LeadMe\LeadMe\core\src\main\AndroidManifest.xml:38:5-40:35
+43        android:name="android.hardware.nfc"
+43-->C:\Users\Edward\Desktop\Lumination\Dev Work\LeadMe\LeadMe\core\src\main\AndroidManifest.xml:39:9-44
+44        android:required="true" />
+44-->C:\Users\Edward\Desktop\Lumination\Dev Work\LeadMe\LeadMe\core\src\main\AndroidManifest.xml:40:9-32
+45
+46    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" /> <!-- hardware acceleration needed for YouTube playback in WebView -->
+46-->[com.github.javiersantos:AppUpdater:2.7] C:\Users\Edward\.gradle\caches\transforms-2\files-2.1\91d40afa733cbc544301b7294ab79043\jetified-AppUpdater-2.7\AndroidManifest.xml:12:5-79
+46-->[com.github.javiersantos:AppUpdater:2.7] C:\Users\Edward\.gradle\caches\transforms-2\files-2.1\91d40afa733cbc544301b7294ab79043\jetified-AppUpdater-2.7\AndroidManifest.xml:12:22-76
+47    <application
+47-->C:\Users\Edward\Desktop\Lumination\Dev Work\LeadMe\LeadMe\core\src\main\AndroidManifest.xml:43:5-92:19
+48        android:appComponentFactory="androidx.core.app.CoreComponentFactory"
+48-->[androidx.core:core:1.2.0] C:\Users\Edward\.gradle\caches\transforms-2\files-2.1\3d6216aba90003f0465b9fc417981e29\core-1.2.0\AndroidManifest.xml:24:18-86
+49        android:clearTaskOnLaunch="true"
+49-->C:\Users\Edward\Desktop\Lumination\Dev Work\LeadMe\LeadMe\core\src\main\AndroidManifest.xml:44:9-41
+50        android:debuggable="true"
+51        android:extractNativeLibs="false"
+52        android:hardwareAccelerated="true"
+52-->C:\Users\Edward\Desktop\Lumination\Dev Work\LeadMe\LeadMe\core\src\main\AndroidManifest.xml:48:9-43
+53        android:icon="@mipmap/leadme_icon_round"
+53-->C:\Users\Edward\Desktop\Lumination\Dev Work\LeadMe\LeadMe\core\src\main\AndroidManifest.xml:45:9-49
+54        android:label="@string/app_title"
+54-->C:\Users\Edward\Desktop\Lumination\Dev Work\LeadMe\LeadMe\core\src\main\AndroidManifest.xml:46:9-42
+55        android:testOnly="true"
+56        android:theme="@android:style/Theme.Holo.Light.NoActionBar.Fullscreen"
+56-->C:\Users\Edward\Desktop\Lumination\Dev Work\LeadMe\LeadMe\core\src\main\AndroidManifest.xml:47:9-79
+57        android:usesCleartextTraffic="true" >
+57-->C:\Users\Edward\Desktop\Lumination\Dev Work\LeadMe\LeadMe\core\src\main\AndroidManifest.xml:49:9-44
+58        <activity
+58-->C:\Users\Edward\Desktop\Lumination\Dev Work\LeadMe\LeadMe\core\src\main\AndroidManifest.xml:51:9-61:20
+59            android:name="com.lumination.leadme.LeadMeMain"
+59-->C:\Users\Edward\Desktop\Lumination\Dev Work\LeadMe\LeadMe\core\src\main\AndroidManifest.xml:52:13-60
+60            android:label="@string/app_title"
+60-->C:\Users\Edward\Desktop\Lumination\Dev Work\LeadMe\LeadMe\core\src\main\AndroidManifest.xml:54:13-46
+61            android:launchMode="singleTask"
+61-->C:\Users\Edward\Desktop\Lumination\Dev Work\LeadMe\LeadMe\core\src\main\AndroidManifest.xml:56:13-44
+62            android:screenOrientation="portrait"
+62-->C:\Users\Edward\Desktop\Lumination\Dev Work\LeadMe\LeadMe\core\src\main\AndroidManifest.xml:53:13-49
+63            android:windowSoftInputMode="adjustPan" >
+63-->C:\Users\Edward\Desktop\Lumination\Dev Work\LeadMe\LeadMe\core\src\main\AndroidManifest.xml:55:13-52
+64            <intent-filter>
+64-->C:\Users\Edward\Desktop\Lumination\Dev Work\LeadMe\LeadMe\core\src\main\AndroidManifest.xml:57:13-60:29
+65                <action android:name="android.intent.action.MAIN" />
+65-->C:\Users\Edward\Desktop\Lumination\Dev Work\LeadMe\LeadMe\core\src\main\AndroidManifest.xml:58:17-69
+65-->C:\Users\Edward\Desktop\Lumination\Dev Work\LeadMe\LeadMe\core\src\main\AndroidManifest.xml:58:25-66
+66
+67                <category android:name="android.intent.category.LAUNCHER" />
+67-->C:\Users\Edward\Desktop\Lumination\Dev Work\LeadMe\LeadMe\core\src\main\AndroidManifest.xml:59:17-77
+67-->C:\Users\Edward\Desktop\Lumination\Dev Work\LeadMe\LeadMe\core\src\main\AndroidManifest.xml:59:27-74
+68            </intent-filter>
+69        </activity>
+70
+71        <receiver android:name="com.lumination.leadme.LumiAccessibilityReceiver" >
+71-->C:\Users\Edward\Desktop\Lumination\Dev Work\LeadMe\LeadMe\core\src\main\AndroidManifest.xml:63:9-67:20
+71-->C:\Users\Edward\Desktop\Lumination\Dev Work\LeadMe\LeadMe\core\src\main\AndroidManifest.xml:63:19-60
+72            <intent-filter>
+72-->C:\Users\Edward\Desktop\Lumination\Dev Work\LeadMe\LeadMe\core\src\main\AndroidManifest.xml:64:13-66:29
+73                <action android:name="com.lumination.leadme.BROADCAST_ACTION" />
+73-->C:\Users\Edward\Desktop\Lumination\Dev Work\LeadMe\LeadMe\core\src\main\AndroidManifest.xml:65:17-81
+73-->C:\Users\Edward\Desktop\Lumination\Dev Work\LeadMe\LeadMe\core\src\main\AndroidManifest.xml:65:25-78
+74            </intent-filter>
+75        </receiver>
+76
+77        <service
+77-->C:\Users\Edward\Desktop\Lumination\Dev Work\LeadMe\LeadMe\core\src\main\AndroidManifest.xml:69:9-82:19
+78            android:name="com.lumination.leadme.LumiAccessibilityService"
+78-->C:\Users\Edward\Desktop\Lumination\Dev Work\LeadMe\LeadMe\core\src\main\AndroidManifest.xml:70:13-74
+79            android:configChanges="orientation"
+79-->C:\Users\Edward\Desktop\Lumination\Dev Work\LeadMe\LeadMe\core\src\main\AndroidManifest.xml:72:13-48
+80            android:label="@string/app_title_with_brand"
+80-->C:\Users\Edward\Desktop\Lumination\Dev Work\LeadMe\LeadMe\core\src\main\AndroidManifest.xml:71:13-57
+81            android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE"
+81-->C:\Users\Edward\Desktop\Lumination\Dev Work\LeadMe\LeadMe\core\src\main\AndroidManifest.xml:74:13-79
+82            android:stopWithTask="true" >
+82-->C:\Users\Edward\Desktop\Lumination\Dev Work\LeadMe\LeadMe\core\src\main\AndroidManifest.xml:73:13-40
+83            <intent-filter>
+83-->C:\Users\Edward\Desktop\Lumination\Dev Work\LeadMe\LeadMe\core\src\main\AndroidManifest.xml:75:13-77:29
+84                <action android:name="android.accessibilityservice.AccessibilityService" />
+84-->C:\Users\Edward\Desktop\Lumination\Dev Work\LeadMe\LeadMe\core\src\main\AndroidManifest.xml:76:17-92
+84-->C:\Users\Edward\Desktop\Lumination\Dev Work\LeadMe\LeadMe\core\src\main\AndroidManifest.xml:76:25-89
+85            </intent-filter>
+86
+87            <meta-data
+87-->C:\Users\Edward\Desktop\Lumination\Dev Work\LeadMe\LeadMe\core\src\main\AndroidManifest.xml:79:13-81:72
+88                android:name="android.accessibilityservice"
+88-->C:\Users\Edward\Desktop\Lumination\Dev Work\LeadMe\LeadMe\core\src\main\AndroidManifest.xml:80:17-60
+89                android:resource="@xml/accessibility_service_config" />
+89-->C:\Users\Edward\Desktop\Lumination\Dev Work\LeadMe\LeadMe\core\src\main\AndroidManifest.xml:81:17-69
+90        </service>
+91
+92        <!-- added -->
+93        <service
+93-->C:\Users\Edward\Desktop\Lumination\Dev Work\LeadMe\LeadMe\core\src\main\AndroidManifest.xml:85:9-89:19
+94            android:name="com.lumination.leadme.ScreensharingService"
+94-->C:\Users\Edward\Desktop\Lumination\Dev Work\LeadMe\LeadMe\core\src\main\AndroidManifest.xml:87:13-49
+95            android:enabled="true"
+95-->C:\Users\Edward\Desktop\Lumination\Dev Work\LeadMe\LeadMe\core\src\main\AndroidManifest.xml:86:13-35
+96            android:foregroundServiceType="mediaProjection" >
+96-->C:\Users\Edward\Desktop\Lumination\Dev Work\LeadMe\LeadMe\core\src\main\AndroidManifest.xml:88:13-60
+97        </service>
+98        <!-- added -->
+99
+100        <activity
+100-->[gun0912.ted:tedpermission:2.2.3] C:\Users\Edward\.gradle\caches\transforms-2\files-2.1\594eb988915f00d3d105ee0d9643be86\jetified-tedpermission-2.2.3\AndroidManifest.xml:10:9-14:67
+101            android:name="com.gun0912.tedpermission.TedPermissionActivity"
+101-->[gun0912.ted:tedpermission:2.2.3] C:\Users\Edward\.gradle\caches\transforms-2\files-2.1\594eb988915f00d3d105ee0d9643be86\jetified-tedpermission-2.2.3\AndroidManifest.xml:11:13-75
+102            android:configChanges="mcc|mnc|locale|keyboard|keyboardHidden|screenLayout|fontScale|uiMode|orientation|screenSize|layoutDirection"
+102-->[gun0912.ted:tedpermission:2.2.3] C:\Users\Edward\.gradle\caches\transforms-2\files-2.1\594eb988915f00d3d105ee0d9643be86\jetified-tedpermission-2.2.3\AndroidManifest.xml:12:13-144
+103            android:screenOrientation="unspecified"
+103-->[gun0912.ted:tedpermission:2.2.3] C:\Users\Edward\.gradle\caches\transforms-2\files-2.1\594eb988915f00d3d105ee0d9643be86\jetified-tedpermission-2.2.3\AndroidManifest.xml:13:13-52
+104            android:theme="@style/Theme.Transparent.Permission" />
+104-->[gun0912.ted:tedpermission:2.2.3] C:\Users\Edward\.gradle\caches\transforms-2\files-2.1\594eb988915f00d3d105ee0d9643be86\jetified-tedpermission-2.2.3\AndroidManifest.xml:14:13-64
+105        <activity
+105-->[com.google.android.gms:play-services-base:17.0.0] C:\Users\Edward\.gradle\caches\transforms-2\files-2.1\e89850fe42c791c3c283686970241174\jetified-play-services-base-17.0.0\AndroidManifest.xml:23:9-26:75
+106            android:name="com.google.android.gms.common.api.GoogleApiActivity"
+106-->[com.google.android.gms:play-services-base:17.0.0] C:\Users\Edward\.gradle\caches\transforms-2\files-2.1\e89850fe42c791c3c283686970241174\jetified-play-services-base-17.0.0\AndroidManifest.xml:24:13-79
+107            android:exported="false"
+107-->[com.google.android.gms:play-services-base:17.0.0] C:\Users\Edward\.gradle\caches\transforms-2\files-2.1\e89850fe42c791c3c283686970241174\jetified-play-services-base-17.0.0\AndroidManifest.xml:25:13-37
+108            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
+108-->[com.google.android.gms:play-services-base:17.0.0] C:\Users\Edward\.gradle\caches\transforms-2\files-2.1\e89850fe42c791c3c283686970241174\jetified-play-services-base-17.0.0\AndroidManifest.xml:26:13-72
+109
+110        <meta-data
+110-->[com.google.android.gms:play-services-basement:17.0.0] C:\Users\Edward\.gradle\caches\transforms-2\files-2.1\25d61c48f35d1cbe5658ca0e3766b671\jetified-play-services-basement-17.0.0\AndroidManifest.xml:23:9-25:69
+111            android:name="com.google.android.gms.version"
+111-->[com.google.android.gms:play-services-basement:17.0.0] C:\Users\Edward\.gradle\caches\transforms-2\files-2.1\25d61c48f35d1cbe5658ca0e3766b671\jetified-play-services-basement-17.0.0\AndroidManifest.xml:24:13-58
+112            android:value="@integer/google_play_services_version" />
+112-->[com.google.android.gms:play-services-basement:17.0.0] C:\Users\Edward\.gradle\caches\transforms-2\files-2.1\25d61c48f35d1cbe5658ca0e3766b671\jetified-play-services-basement-17.0.0\AndroidManifest.xml:25:13-66
+113    </application>
+114
+115</manifest>
