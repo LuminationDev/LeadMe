@@ -696,29 +696,46 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
     private static AccessibilityService accessibilityService;
 
+    // callback invoked either when the gesture has been completed or cancelled
+    AccessibilityService.GestureResultCallback gestureResultCallback = new AccessibilityService.GestureResultCallback() {
+        @Override
+        public void onCompleted(GestureDescription gestureDescription) {
+            super.onCompleted(gestureDescription);
+            Log.d(TAG, "gesture completed");
+        }
+
+        @Override
+        public void onCancelled(GestureDescription gestureDescription) {
+            super.onCancelled(gestureDescription);
+            Log.d(TAG, "gesture cancelled");
+        }
+    };
+
     public static void setAccessibilityService(AccessibilityService service) {
         accessibilityService = service;
     }
 
-    public void tapBounds(Rect rect) {
-        //Log.e(TAG, "ATTEMPTING TAP!");
+    public void tapBounds(int x, int y) {
+        Log.e(TAG, "ATTEMPTING TAP!");
         if (accessibilityService == null) {
             return;
         }
         runOnUiThread(() -> {
-
+            getWebManager().getYouTubeEmbedPlayer().blockWebTouch(false);
             Path swipePath = new Path();
-            swipePath.moveTo(rect.centerX(), rect.centerY());
-            //swipePath.lineTo(100, 1000);
+            swipePath.moveTo(x, y);
+//            swipePath.lineTo(x + 200, y);
+//            swipePath.lineTo(x - 200, y);
             GestureDescription.Builder gestureBuilder = new GestureDescription.Builder();
-            gestureBuilder.addStroke(new GestureDescription.StrokeDescription(swipePath, 0, 1));
+            gestureBuilder.addStroke(new GestureDescription.StrokeDescription(swipePath, 0, 50));
             GestureDescription swipe = gestureBuilder.build();
+
 
             if (studentLockOn) {
                 overlayParams.flags = WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE | WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN | WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE;
             }
 
-            boolean success = accessibilityService.dispatchGesture(swipe, null, null);
+            boolean success = accessibilityService.dispatchGesture(swipe, gestureResultCallback, null);
             Log.e(TAG, "Did I dispatch " + swipe + " to " + accessibilityService + "? " + success);
 
             //give it a second to actually dispatch
@@ -726,6 +743,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                 if (studentLockOn) {
                     overlayParams.flags = WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN | WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE;
                 }
+                getWebManager().getYouTubeEmbedPlayer().blockWebTouch(true);
             }, 1000);
 
 
@@ -1748,7 +1766,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
     public void refreshOverlay() {
         calcParams();
-        if (overlayView != null) {
+        if (overlayInitialised && overlayView != null) {
             windowManager.updateViewLayout(overlayView, overlayParams);
         }
     }

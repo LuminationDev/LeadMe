@@ -51,14 +51,10 @@ public class WebManager {
     private static final String TAG = "WebManager";
     private TextCrawler textCrawler = new TextCrawler();
 
-    private AlertDialog websiteLaunchDialog, previewDialog, urlYtFavDialog;
-    private AlertDialog videoControlDialog, searchDialog;
+    private AlertDialog websiteLaunchDialog, previewDialog, urlYtFavDialog, searchDialog;
     private final View websiteLaunchDialogView;
     private final View previewDialogView;
     private final View searchDialogView;
-    private View videoControllerDialogView;
-    private View webYouTubeFavView;
-
     public boolean launchingVR = false, enteredVR = false;
     public boolean lastWasGuideView = false;
 
@@ -69,8 +65,8 @@ public class WebManager {
     private Button previewPushBtn;
     private boolean isYouTube = false;
     private String pushURL = "", pushTitle = "";
-    private String controllerURL = "", controllerTitle = "";
 
+    private View webYouTubeFavView;
     private FavouritesManager urlFavouritesManager;
     private FavouritesManager youTubeFavouritesManager;
 
@@ -81,13 +77,15 @@ public class WebManager {
     private View lockSpinnerParent;
     private String[] searchSpinnerItems, lockSpinnerItems;
 
+    private YouTubeEmbedPlayer youTubeEmbedPlayer;
+
     public WebManager(LeadMeMain main) {
         this.main = main;
+        youTubeEmbedPlayer = new YouTubeEmbedPlayer(main, this);
+
         websiteLaunchDialogView = View.inflate(main, R.layout.d__enter_url, null);
         previewDialogView = View.inflate(main, R.layout.e__preview_url_push, null);
         searchDialogView = View.inflate(main, R.layout.e__preview_url_search, null);
-        videoControllerDialogView = View.inflate(main, R.layout.e__currently_streaming_popup, null);
-        setupGuideVideoController();
 
         //set up lock spinner
         lockSpinnerParent = previewDialogView.findViewById(R.id.spinner_parent);
@@ -163,15 +161,7 @@ public class WebManager {
             previewTitle.setText(title);
             previewTitle.setVisibility(View.VISIBLE);
 
-            String testID1 = getYouTubeID(controllerURL);
-            String testID2 = getYouTubeID(sourceContent.getUrl());
-
-            //update controller title
-            if (controllerWebView != null && testID1.equals(testID2)) {
-                controllerTitle = sourceContent.getTitle();
-                ((TextView) controllerWebView.findViewById(R.id.video_title)).setText(title);
-            }
-            Log.d(TAG, "!!! " + title + ", " + testID1 + " vs " + testID2);
+            youTubeEmbedPlayer.refreshView(sourceContent.getUrl(), sourceContent.getTitle());
 
             String icon;
             if (!sourceContent.getImages().isEmpty()) {
@@ -220,146 +210,16 @@ public class WebManager {
 
     };
 
-    //static variables
-    public static final int PLAY = 0;
-    public static final int PAUSE = 1;
-    public static final int FASTFWD = 2;
-    public static final int REWIND = 3;
-    public static final int UNKNOWN = 4;
 
-    public static final int STD_MODE = 0;
-    public static final int VR_MODE = 1;
-    public static final int FULLSCRN_MODE = 2;
 
-    //variables that accessibility service can inspect
-    //to see if a change has occurred
-    public static boolean playStateChanged = false;
-    public static boolean displayModeChanged = false;
-    public static boolean playFromChanged = false;
-    public static boolean showCaptions = false;
-
-    //variables to store what the latest request was
-    public static int videoCurrentPlayState = UNKNOWN; //PLAY, PAUSE, FWD, RWD, etc
-    public static int videoCurrentDisplayMode = STD_MODE; //VR, FS, STD
-    public static int playFromInSeconds = -1;
-
-    private void setupGuideVideoController() {
-        //set up standard dialog buttons
-        videoControllerDialogView.findViewById(R.id.new_video).setOnClickListener(v -> {
-            lastWasGuideView = false; //reset
-            hideVideoController();
-            showWebLaunchDialog(false);
-        });
-
-        videoControllerDialogView.findViewById(R.id.video_back_btn).setOnClickListener(v ->
-                hideVideoController()
-        );
-
-        //set up advanced controls toggle behaviour
-        final View advancedControls = videoControllerDialogView.findViewById(R.id.advanced_controls);
-        advancedControls.setVisibility(View.GONE); //hidden by default
-
-        videoControllerDialogView.findViewById(R.id.advanced_controls_expander).setOnClickListener(v -> {
-            if (advancedControls.getVisibility() == View.GONE) {
-                advancedControls.setVisibility(View.VISIBLE);
-            } else {
-                advancedControls.setVisibility(View.GONE);
-            }
-        });
-
-        //set up basic controls
-        videoControllerDialogView.findViewById(R.id.vr_mode_btn).setOnClickListener(v -> {
-            if (videoCurrentDisplayMode != VR_MODE) {
-                videoCurrentDisplayMode = VR_MODE;
-                ((ImageView) videoControllerDialogView.findViewById(R.id.vr_mode_btn)).setImageDrawable(main.getResources().getDrawable(R.drawable.task_vr_icon, null));
-            } else {
-                videoCurrentDisplayMode = FULLSCRN_MODE;
-                ((ImageView) videoControllerDialogView.findViewById(R.id.vr_mode_btn)).setImageDrawable(main.getResources().getDrawable(R.drawable.task_vr_icon_disabled, null));
-            }
-            displayModeChanged = true;
-            triggerAccessibilityUpdate(); //this needs the accessibility service to action it
-            //TODO determine what to send to students and how to action it at their end
-        });
-
-        videoControllerDialogView.findViewById(R.id.play_btn).setOnClickListener(v -> {
-            videoCurrentPlayState = PLAY;
-            playStateChanged = true;
-            triggerAccessibilityUpdate(); //this needs the accessibility service to action it
-            //TODO determine what to send to students and how to action it at their end
-        });
-
-        videoControllerDialogView.findViewById(R.id.pause_btn).setOnClickListener(v -> {
-            pauseVideo();
-        });
-
-        videoControllerDialogView.findViewById(R.id.rewind_btn).setOnClickListener(v -> {
-            videoCurrentPlayState = REWIND;
-            playStateChanged = true;
-            triggerAccessibilityUpdate(); //this needs the accessibility service to action it
-            //TODO determine what to send to students and how to action it at their end
-        });
-
-        videoControllerDialogView.findViewById(R.id.fastforward_btn).setOnClickListener(v -> {
-            videoCurrentPlayState = FASTFWD;
-            playStateChanged = true;
-            triggerAccessibilityUpdate(); //this needs the accessibility service to action it
-            //TODO determine what to send to students and how to action it at their end
-        });
-
-        //set up advanced controls
-        videoControllerDialogView.findViewById(R.id.play_from_btn).setOnClickListener(v -> {
-            playFromChanged = true;
-            playFromInSeconds = 0; //TODO retrieve current video location and send to all students
-            triggerAccessibilityUpdate(); //this needs the accessibility service to action it
-            //TODO determine what to send to students and how to action it at their end
-        });
-
-        videoControllerDialogView.findViewById(R.id.mute_btn).setOnClickListener(v -> {
-            muteVideo();
-        });
-
-        videoControllerDialogView.findViewById(R.id.unmute_btn).setOnClickListener(v -> {
-            unmuteVideo();
-        });
-
-        videoControllerDialogView.findViewById(R.id.captions_btn).setOnClickListener(v -> {
-            showCaptions = !showCaptions; //toggle this
-            triggerAccessibilityUpdate(); //this needs the accessibility service to action it
-            main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.VID_CAPTIONS_TAG + ":" + showCaptions, main.getNearbyManager().getSelectedPeerIDs());
-        });
-
-    }
-
-    private void unmuteVideo() {
+    void unmuteVideo() {
         main.unMuteAudio(); //this is managed by the main activity
         main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.VID_UNMUTE_TAG, main.getNearbyManager().getSelectedPeerIDs());
     }
 
-    private void muteVideo() {
+    void muteVideo() {
         main.muteAudio(); //this is managed by main activity
         main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.VID_MUTE_TAG, main.getNearbyManager().getSelectedPeerIDs());
-    }
-
-    private void pauseVideo() {
-        videoCurrentPlayState = PAUSE;
-        playStateChanged = true;
-        triggerAccessibilityUpdate(); //this needs the accessibility service to action it
-        //TODO determine what to send to students and how to action it at their end
-    }
-
-    private void triggerAccessibilityUpdate() {
-        //trigger the accessibility service to run an upate
-        Intent intent = new Intent(LumiAccessibilityService.BROADCAST_ACTION);
-        intent.setComponent(new ComponentName("com.lumination.leadme", "com.lumination.leadme.LumiAccessibilityReceiver"));
-        Bundle data = new Bundle();
-        data.putString(LumiAccessibilityService.INFO_TAG, LumiAccessibilityService.REFRESH_ACTION);
-        intent.putExtras(data);
-        main.sendBroadcast(intent);
-    }
-
-    public void showCaptions(boolean captionsOn) {
-        triggerAccessibilityUpdate();
-        showCaptions = captionsOn;
     }
 
 
@@ -455,92 +315,6 @@ public class WebManager {
         warningDialog.show();
     }
 
-    private void showVideoController() {
-        if (videoControlDialog == null) {
-            videoControlDialog = new AlertDialog.Builder(main)
-                    .setView(videoControllerDialogView)
-                    .create();
-        }
-
-        Log.d(TAG, "Attempting to show video controller for " + controllerTitle + ", " + controllerURL);
-        if (controllerTitle != null) {
-            ((TextView) videoControllerDialogView.findViewById(R.id.video_title)).setText(controllerTitle);
-        }
-        if (controllerURL != null) {
-            loadVideoGuideURL(controllerURL);
-        }
-        videoControlDialog.show();
-        lastWasGuideView = true;
-    }
-
-    private WebView controllerWebView;
-    private String attemptedURL = "";
-
-    private void loadVideoGuideURL(String url) {
-
-        if (controllerWebView == null) {
-            controllerWebView = videoControllerDialogView.findViewById(R.id.video_stream_webview);
-            controllerWebView.setWebChromeClient(new WebChromeClient());
-            controllerWebView.getSettings().setJavaScriptEnabled(true); // enable javascript
-            controllerWebView.getSettings().setJavaScriptCanOpenWindowsAutomatically(true);
-            controllerWebView.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_YES);
-            //controllerWebView.canGoBack();
-
-            //controllerWebView.getSettings().setPluginState(WebSettings.PluginState.ON);
-            //web1.getSettings().setDefaultFontSize(18);
-            //controllerWebView.loadData(htmldata,"text/html; charset=utf-8",null);
-
-            controllerWebView.setWebViewClient(new WebViewClient() {
-                public void onLoadResource(WebView view, String url) {
-                    Log.d(TAG, "VIDEO GUIDE] onLoadResource: " + url + " (" + attemptedURL + ")");
-                    Log.d(TAG, "What is it? " + view.getAccessibilityNodeProvider());
-
-//                    controllerWebView.loadUrl("javascript:(function(){"+
-//                            "l=document.getElementById('movie_player');"+
-//                            "e=document.createEvent('HTMLEvents');"+
-//                            "e.initEvent('click',true,true);"+
-//                            "l.dispatchEvent(e);"+
-//                            "})()");
-                }
-
-                public void onPageFinished(WebView view, String url) {
-                    Log.d(TAG, "VIDEO GUIDE] onPageFinished: " + url + " (" + attemptedURL + ")");
-                }
-
-                @Override
-                public void onReceivedError(WebView view, WebResourceRequest request, WebResourceError error) {
-                    super.onReceivedError(view, request, error);
-                    Log.d(TAG, "VIDEO GUIDE] Received error: " + error.toString());
-                }
-
-                @Override
-                public void onReceivedHttpError(WebView view, WebResourceRequest request, WebResourceResponse errorResponse) {
-                    super.onReceivedHttpError(view, request, errorResponse);
-                    Log.d(TAG, "VIDEO GUIDE] Received HTTP error: " + errorResponse.toString());
-                }
-
-                @Override
-                public void onReceivedSslError(WebView view, SslErrorHandler handler, SslError error) {
-                    super.onReceivedSslError(view, handler, error);
-                    Log.d(TAG, "VIDEO GUIDE] Received SSL error: " + error.toString());
-                }
-            });
-        }
-        attemptedURL = convertYouTubeToEmbed(url);//url;
-        Log.d(TAG, "Attempting to show " + attemptedURL);
-
-        //http://www.youtube.com/embed/olC42gO-Ln4?fs=1&amp;feature=oembed
-        String content = "<body style=\"margin: 0; padding: 0\"><iframe width=\"100%\" height=\"100%\" " +
-                "frameborder=\"0\" marginwidth=\"0\" marginheight=\"0\" src=\"" + attemptedURL + "\" frameborder=\"0\"></iframe></body>";
-
-        controllerWebView.loadDataWithBaseURL(null, content, "text/html", "UTF-8", null);
-    }
-
-    private void hideVideoController() {
-        pauseVideo();
-        videoControlDialog.dismiss();
-    }
-
     private void setupPreviewDialog() {
         previewImage = previewDialogView.findViewById(R.id.preview_image);
         previewTitle = previewDialogView.findViewById(R.id.preview_title);
@@ -571,17 +345,17 @@ public class WebManager {
             hidePreviewDialog();
             main.showConfirmPushDialog(false, adding_to_fav);
 
+
+
             if (!adding_to_fav) {
+                youTubeEmbedPlayer.setVideoDetails(pushURL, pushTitle);
                 main.getHandler().postDelayed(() -> {
                     //main.hideConfirmPushDialog();
-
-                    showVideoController();
+                    youTubeEmbedPlayer.showVideoController();
                 }, 1000);
             }
 
             //reset
-            controllerURL = pushURL;
-            controllerTitle = pushTitle;
             pushURL = "";
             pushTitle = "";
             previewTitle.setText("");
@@ -767,7 +541,7 @@ public class WebManager {
     }
 
     @SuppressWarnings("SpellCheckingInspection")
-    private String getYouTubeID(String youTubeUrl) {
+    public String getYouTubeID(String youTubeUrl) {
         if (!youTubeUrl.toLowerCase().contains("youtu.be") && !youTubeUrl.toLowerCase().contains("youtube.com") && !youTubeUrl.toLowerCase().contains("youtube-nocookie.com")) {
             Log.w(TAG, "Not a YouTube URL! " + youTubeUrl);
             return "";
@@ -864,7 +638,7 @@ public class WebManager {
 
     void showWebLaunchDialog(boolean add_fav_mode) {
         if (lastWasGuideView) {
-            showVideoController();
+            youTubeEmbedPlayer.showVideoController();
             return;
         }
 
@@ -1044,12 +818,6 @@ public class WebManager {
         }
     }
 
-    public String convertYouTubeToEmbed(String url) {
-        String id = getYouTubeID(url);
-        String finalURL = "https://www.youtube.com/embed/" + id + embedSuffix;
-        Log.i(TAG, "Returning embedded YT: " + finalURL);
-        return finalURL;
-    }
 
     public String cleanYouTubeURL(String url) {
         String id = getYouTubeID(url);
@@ -1057,9 +825,11 @@ public class WebManager {
         return "https://www.youtube.com/watch?v=" + id + suffix;
     }
 
-    private String suffix = "&t=1&rel=0"; //&autoplay=1&start=1&end=10&controls=0&rel=0";
-    private String embedSuffix = "?t=1&fs=1&rel=0&controls=0&modestbranding=1&feature=oembed";//&t=1&rel=0"; //"?fs=1&feature=oembed"
+    public YouTubeEmbedPlayer getYouTubeEmbedPlayer(){
+        return youTubeEmbedPlayer;
+    }
 
+    private String suffix = "&t=1&rel=0"; //&autoplay=1&start=1&end=10&controls=0&rel=0";
     public String getSuffix() {
         return suffix;
     }

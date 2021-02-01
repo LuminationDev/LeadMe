@@ -56,13 +56,24 @@
                 android:textColor="@color/leadme_white"
                 android:textSize="16sp" />
 
-            <WebView
-                android:id="@+id/video_stream_webview"
+            <RelativeLayout
                 android:layout_width="match_parent"
-                android:layout_height="180dp"
-                android:background="@color/leadme_black">
+                android:layout_height="180dp">
 
-            </WebView>
+                <WebView
+                    android:id="@+id/video_stream_webview"
+                    android:layout_width="match_parent"
+                    android:layout_height="180dp"
+                    android:background="@color/leadme_black">
+
+                </WebView>
+
+                <View
+                    android:id="@+id/web_blocking_view"
+                    android:layout_width="wrap_content"
+                    android:layout_height="180dp"/>
+
+            </RelativeLayout>
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -81,7 +92,9 @@
                     android:layout_marginEnd="5dp"
                     android:layout_weight="0"
                     android:fontFamily="@font/poppins_semibold"
+                    android:gravity="center"
                     android:includeFontPadding="false"
+                    android:minWidth="38dp"
                     android:text="@string/_00_00"
                     android:textAllCaps="false"
                     android:textColor="@color/leadme_white"
@@ -94,7 +107,6 @@
                     android:layout_height="15dp"
                     android:layout_weight="3"
                     android:padding="4dp"
-                    android:progress="0"
                     android:progressDrawable="@drawable/lumi_video_progress" />
 
                 <TextView
@@ -104,7 +116,9 @@
                     android:layout_marginStart="5dp"
                     android:layout_weight="0"
                     android:fontFamily="@font/poppins_semibold"
+                    android:gravity="center"
                     android:includeFontPadding="false"
+                    android:minWidth="38dp"
                     android:text="@string/_00_00"
                     android:textAllCaps="false"
                     android:textColor="@color/leadme_white"

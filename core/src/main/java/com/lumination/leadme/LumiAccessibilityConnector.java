@@ -151,7 +151,7 @@ public class LumiAccessibilityConnector {
             Rect bounds = new Rect();
             thisNode.getBoundsInScreen(bounds);
             Log.e(TAG, "CLICK FAILED FOR " + thisNode.getText() + " // " + thisNode.getContentDescription() + "! Trying something new. " + bounds);
-            main.tapBounds(bounds);
+            main.tapBounds(bounds.centerX(), bounds.centerY());
         } else {
             Log.e(TAG, "CLICK SUCCESS FOR " + thisNode.getText() + " // " + thisNode.getContentDescription() + "!");
         }
