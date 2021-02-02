@@ -10,17 +10,11 @@ import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
-import android.net.http.SslError;
-import android.os.Bundle;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.View;
-import android.webkit.SslErrorHandler;
 import android.webkit.URLUtil;
-import android.webkit.WebChromeClient;
-import android.webkit.WebResourceError;
 import android.webkit.WebResourceRequest;
-import android.webkit.WebResourceResponse;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.AdapterView;
@@ -64,7 +58,7 @@ public class WebManager {
     private ProgressBar previewProgress;
     private Button previewPushBtn;
     private boolean isYouTube = false;
-    private String pushURL = "", pushTitle = "";
+    private String pushURL = "", pushTitle = "", controllerURL = "";
 
     private View webYouTubeFavView;
     private FavouritesManager urlFavouritesManager;
@@ -79,6 +73,7 @@ public class WebManager {
 
     private YouTubeEmbedPlayer youTubeEmbedPlayer;
 
+    //this entire thing is in progress
     public WebManager(LeadMeMain main) {
         this.main = main;
         youTubeEmbedPlayer = new YouTubeEmbedPlayer(main, this);
@@ -160,8 +155,6 @@ public class WebManager {
             //update preview
             previewTitle.setText(title);
             previewTitle.setVisibility(View.VISIBLE);
-
-            youTubeEmbedPlayer.refreshView(sourceContent.getUrl(), sourceContent.getTitle());
 
             String icon;
             if (!sourceContent.getImages().isEmpty()) {
@@ -348,10 +341,9 @@ public class WebManager {
 
 
             if (!adding_to_fav) {
-                youTubeEmbedPlayer.setVideoDetails(pushURL, pushTitle);
                 main.getHandler().postDelayed(() -> {
                     //main.hideConfirmPushDialog();
-                    youTubeEmbedPlayer.showVideoController();
+                    youTubeEmbedPlayer.showVideoController(controllerURL);
                 }, 1000);
             }
 
@@ -588,6 +580,7 @@ public class WebManager {
         main.closeKeyboard();
 
         pushURL = url;
+        controllerURL = url;
         pushTitle = getYouTubeFavouritesManager().getTitle(url);
         if (pushTitle == null && !previewTitle.getText().toString().equals("Website title")) {
             pushTitle = previewTitle.getText().toString();
@@ -638,7 +631,7 @@ public class WebManager {
 
     void showWebLaunchDialog(boolean add_fav_mode) {
         if (lastWasGuideView) {
-            youTubeEmbedPlayer.showVideoController();
+            youTubeEmbedPlayer.showVideoController(null);
             return;
         }
 

@@ -33,31 +33,15 @@
             event.target.playVideo();
           }
 
-            var mytimer;
           // 5. The API calls this function when the player's state changes.
           //    The function indicates that when playing a video (state=1),
           //    the player should play for six seconds and then stop.
           function onPlayerStateChange(event) {
-            if (event.data == YT.PlayerState.ENDED) {
-               //let Java know where we got up to so UI can be updated
-               Android.setCurrentTime(parseInt(player.getCurrentTime()));
-               clearTimeout(mytimer);
-               stopVideo();
+                Android.updateState(event.data);
 
-            } else if (event.data == YT.PlayerState.PLAYING){
-                showAndroidToast("Starting progress bar!");
-                var playerTotalTime = player.getDuration();
-                Android.setTotalTime(parseInt(playerTotalTime));
-
-                  mytimer = setInterval(function() {
-                    var playerCurrentTime = player.getCurrentTime();
-                    var playerTimeDifference = (playerCurrentTime / playerTotalTime) * 100;
-                    Android.setCurrentTime(parseInt(player.getCurrentTime()));
-                    Android.onData(playerTimeDifference);
-                  }, 1000);
-                } else {
-
-                  clearTimeout(mytimer);
+                if (event.data == YT.PlayerState.ENDED) {
+                   //let Java know where we got up to so UI can be updated
+                   stopVideo();
                 }
           }
 

@@ -41,164 +41,16 @@
             android:background="@color/leadme_darkest_grey"
             android:orientation="vertical">
 
-            <TextView
-                android:id="@+id/video_title"
+            <WebView
+                android:id="@+id/video_stream_webview"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:ellipsize="end"
-                android:fontFamily="@font/poppins_semibold"
-                android:gravity="center_vertical"
-                android:maxLines="2"
-                android:paddingStart="15dp"
-                android:paddingTop="10dp"
-                android:paddingEnd="15dp"
-                android:paddingBottom="10dp"
-                android:textColor="@color/leadme_white"
-                android:textSize="16sp" />
+                android:layout_height="240dp"
+                android:background="@color/leadme_black">
 
-            <RelativeLayout
-                android:layout_width="match_parent"
-                android:layout_height="180dp">
-
-                <WebView
-                    android:id="@+id/video_stream_webview"
-                    android:layout_width="match_parent"
-                    android:layout_height="180dp"
-                    android:background="@color/leadme_black">
-
-                </WebView>
-
-                <View
-                    android:id="@+id/web_blocking_view"
-                    android:layout_width="wrap_content"
-                    android:layout_height="180dp"/>
-
-            </RelativeLayout>
+            </WebView>
 
             <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:gravity="center_vertical"
-                android:orientation="horizontal"
-                android:paddingStart="10dp"
-                android:paddingTop="5dp"
-                android:paddingEnd="10dp"
-                android:paddingBottom="5dp">
-
-                <TextView
-                    android:id="@+id/elapsedTimeText"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginEnd="5dp"
-                    android:layout_weight="0"
-                    android:fontFamily="@font/poppins_semibold"
-                    android:gravity="center"
-                    android:includeFontPadding="false"
-                    android:minWidth="38dp"
-                    android:text="@string/_00_00"
-                    android:textAllCaps="false"
-                    android:textColor="@color/leadme_white"
-                    android:textSize="12sp" />
-
-                <ProgressBar
-                    android:id="@+id/progressBar"
-                    style="@android:style/Widget.DeviceDefault.ProgressBar.Horizontal"
-                    android:layout_width="match_parent"
-                    android:layout_height="15dp"
-                    android:layout_weight="3"
-                    android:padding="4dp"
-                    android:progressDrawable="@drawable/lumi_video_progress" />
-
-                <TextView
-                    android:id="@+id/totalTimeText"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="5dp"
-                    android:layout_weight="0"
-                    android:fontFamily="@font/poppins_semibold"
-                    android:gravity="center"
-                    android:includeFontPadding="false"
-                    android:minWidth="38dp"
-                    android:text="@string/_00_00"
-                    android:textAllCaps="false"
-                    android:textColor="@color/leadme_white"
-                    android:textSize="12sp" />
-            </LinearLayout>
-
-            <View
-                android:id="@+id/divider"
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:background="@color/leadme_black" />
-
-            <LinearLayout
-                android:id="@+id/basic_controls"
-                android:layout_width="match_parent"
-                android:layout_height="60dp"
-                android:background="@color/leadme_darkest_grey"
-                android:gravity="center"
-                android:orientation="horizontal">
-
-                <ImageView
-                    android:id="@+id/vr_mode_btn"
-                    android:layout_width="40dp"
-                    android:layout_height="wrap_content"
-                    android:layout_margin="10dp"
-                    android:src="@drawable/task_vr_icon_disabled" />
-
-                <Space
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1" />
-
-                <ImageView
-                    android:id="@+id/rewind_btn"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:padding="12dp"
-                    android:src="@drawable/vid_rewind" />
-
-                <ImageView
-                    android:id="@+id/play_btn"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:padding="12dp"
-                    android:src="@drawable/vid_play" />
-
-                <ImageView
-                    android:id="@+id/pause_btn"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:padding="12dp"
-                    android:src="@drawable/vid_pause" />
-
-                <ImageView
-                    android:id="@+id/fastforward_btn"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:padding="12dp"
-                    android:src="@drawable/vid_fastforward" />
-
-                <Space
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1" />
-
-                <TextView
-                    android:id="@+id/advanced_controls_expander"
-                    android:layout_width="40dp"
-                    android:layout_height="wrap_content"
-                    android:layout_margin="10dp"
-                    android:drawableBottom="@drawable/vid_more"
-                    android:fontFamily="@font/poppins_semibold"
-                    android:gravity="center_horizontal"
-                    android:text="@string/more"
-                    android:textColor="@color/leadme_white"
-                    android:textSize="12sp" />
-            </LinearLayout>
-
-            <LinearLayout
-                android:id="@+id/advanced_controls"
+                android:id="@+id/controls"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:background="@color/leadme_black"
@@ -208,25 +60,23 @@
 
 
                 <TextView
-                    android:id="@+id/play_from_btn"
+                    android:id="@+id/vr_mode_btn"
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="bottom"
+                    android:layout_height="45dp"
                     android:layout_weight="1"
-                    android:drawableTop="@drawable/vid_playfrom"
+                    android:drawableTop="@drawable/task_vr_icon_disabled"
                     android:drawablePadding="8dp"
                     android:fontFamily="@font/poppins_semibold"
                     android:gravity="center_horizontal"
                     android:includeFontPadding="false"
-                    android:text="@string/play_from"
+                    android:text="@string/vr_mode_off"
                     android:textColor="@color/leadme_white"
                     android:textSize="12sp" />
 
                 <TextView
                     android:id="@+id/mute_btn"
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="bottom"
+                    android:layout_height="45dp"
                     android:layout_weight="1"
                     android:drawableTop="@drawable/vid_mute"
                     android:drawablePadding="8dp"
@@ -240,8 +90,7 @@
                 <TextView
                     android:id="@+id/unmute_btn"
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="bottom"
+                    android:layout_height="45dp"
                     android:layout_weight="1"
                     android:drawableTop="@drawable/vid_unmute"
                     android:drawablePadding="8dp"
@@ -255,8 +104,7 @@
                 <TextView
                     android:id="@+id/captions_btn"
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="bottom"
+                    android:layout_height="45dp"
                     android:layout_weight="1"
                     android:drawableTop="@drawable/vid_captions"
                     android:drawablePadding="8dp"
@@ -266,6 +114,7 @@
                     android:text="@string/captions"
                     android:textColor="@color/leadme_white"
                     android:textSize="12sp" />
+
             </LinearLayout>
         </LinearLayout>
 

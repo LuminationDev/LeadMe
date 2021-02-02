@@ -14,7 +14,6 @@ import android.content.pm.PackageManager;
 import android.graphics.Path;
 import android.graphics.PixelFormat;
 import android.graphics.Point;
-import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
@@ -721,7 +720,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             return;
         }
         runOnUiThread(() -> {
-            getWebManager().getYouTubeEmbedPlayer().blockWebTouch(false);
             Path swipePath = new Path();
             swipePath.moveTo(x, y);
 //            swipePath.lineTo(x + 200, y);
@@ -743,7 +741,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                 if (studentLockOn) {
                     overlayParams.flags = WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN | WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE;
                 }
-                getWebManager().getYouTubeEmbedPlayer().blockWebTouch(true);
             }, 1000);
 
 
@@ -982,6 +979,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     public void onCreate(Bundle savedInstanceState) {
         //onCreate can get called when device rotated, keyboard opened/shut, etc
         super.onCreate(savedInstanceState);
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         Log.w(TAG, "On create! " + init);
 
         autoUpdater = new AutoUpdater(this);
@@ -1116,12 +1114,9 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         });
 
         Button alertsBtn = mainLeader.findViewById(R.id.alerts_button);
-        alertsBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                showAlertsDialog();
-            }
-        });
+        alertsBtn.setOnClickListener(v -> showAlertsDialog());
+        //by default, hide this
+        alertsBtn.setVisibility(View.GONE);
 
         //initialise window manager for shared use
         windowManager = (WindowManager) getSystemService(WINDOW_SERVICE);
@@ -1342,6 +1337,12 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         //start this
         //getForegroundActivity();
 
+    }
+
+    Button alertsBtn;
+
+    public void setAlertsBtnVisibility(int visibility) {
+        alertsBtn.setVisibility(visibility);
     }
 
     private void updateAutoCheckPreference(SharedPreferences sharedPreferences) {

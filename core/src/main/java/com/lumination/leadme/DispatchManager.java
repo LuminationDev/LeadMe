@@ -195,7 +195,7 @@ public class DispatchManager {
 
                     } else if (action.startsWith(LeadMeMain.VID_CAPTIONS_TAG)) {
                         boolean areCaptionsOn = action.endsWith("true");
-                        main.getWebManager().getYouTubeEmbedPlayer().showCaptions(areCaptionsOn);
+                        //TODO
 
                     } else if (action.startsWith(LeadMeMain.LOGOUT_TAG)) {
                         String id = action.split(":")[1];
