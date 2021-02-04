@@ -120,6 +120,7 @@
     <string name="mute">Mute</string>
     <string name="unmute">Unmute</string>
     <string name="captions">Captions</string>
-    <string name="vr_mode_off">VR mode off</string>
+    <string name="vr_mode_off">VR off</string>
+    <string name="vr_mode_on">VR on</string>
 
 </resources>

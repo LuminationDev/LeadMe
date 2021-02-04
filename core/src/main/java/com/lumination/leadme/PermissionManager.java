@@ -259,6 +259,7 @@ public class PermissionManager {
                         successfulPing = InetAddress.getByName(host).isReachable(1000);
                     } catch (Exception e) {
                         e.printStackTrace();
+                        successfulPing = false;
                     }
                 });
                 thread.start();

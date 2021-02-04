@@ -338,8 +338,6 @@ public class WebManager {
             hidePreviewDialog();
             main.showConfirmPushDialog(false, adding_to_fav);
 
-
-
             if (!adding_to_fav) {
                 main.getHandler().postDelayed(() -> {
                     //main.hideConfirmPushDialog();

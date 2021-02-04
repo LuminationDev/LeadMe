@@ -3,6 +3,7 @@ package com.lumination.leadme;
 import android.app.AlertDialog;
 import android.graphics.Point;
 import android.net.http.SslError;
+import android.text.format.DateUtils;
 import android.util.Log;
 import android.view.View;
 import android.webkit.JavascriptInterface;
@@ -13,6 +14,7 @@ import android.webkit.WebResourceRequest;
 import android.webkit.WebResourceResponse;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -51,6 +53,8 @@ public class YouTubeEmbedPlayer {
     private AlertDialog videoControlDialog;
     private View videoControllerDialogView;
     private WebView controllerWebView;
+    private TextView totalTimeText, elapsedTimeText;
+    private SeekBar progressBar;
     private String attemptedURL = "";
     private boolean firstPlay = true;
 
@@ -66,24 +70,40 @@ public class YouTubeEmbedPlayer {
      * https://developers.google.com/youtube/iframe_api_reference
      */
 
-    private boolean blockingTouch = true;
-
     public YouTubeEmbedPlayer(LeadMeMain main, WebManager webManager) {
         this.main = main;
         this.webManager = webManager;
 
         videoControllerDialogView = View.inflate(main, R.layout.e__currently_streaming_popup, null);
         controllerWebView = videoControllerDialogView.findViewById(R.id.video_stream_webview);
+        internetUnavailableMsg = videoControllerDialogView.findViewById(R.id.no_internet);
+        totalTimeText = videoControllerDialogView.findViewById(R.id.totalTimeText);
+        elapsedTimeText = videoControllerDialogView.findViewById(R.id.elapsedTimeText);
+        progressBar = videoControllerDialogView.findViewById(R.id.progressBar);
+
+        progressBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+                //convert from percentage to seconds
+                int durationCalc = (int) ((seekBar.getProgress() / 100.0) * totalTime);
+                setNewTime(durationCalc);
+            }
+        });
+
+        internetUnavailableMsg.setOnClickListener(v -> loadVideoGuideURL(controllerURL));
 
         controllerWebView.setWebChromeClient(new WebChromeClient());
         controllerWebView.getSettings().setJavaScriptEnabled(true); // enable javascript
         controllerWebView.getSettings().setJavaScriptCanOpenWindowsAutomatically(true);
-        controllerWebView.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_YES);
-        //controllerWebView.canGoBack();
-
-        //controllerWebView.getSettings().setPluginState(WebSettings.PluginState.ON);
-        //web1.getSettings().setDefaultFontSize(18);
-        //controllerWebView.loadData(htmldata,"text/html; charset=utf-8",null);
+        //controllerWebView.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_YES);
 
         controllerWebView.addJavascriptInterface(this, "Android");
 
@@ -112,8 +132,10 @@ public class YouTubeEmbedPlayer {
     }
 
     @JavascriptInterface
-    public void optionsChanged(String options) {
-        Log.d(TAG, "Got options: " + options);
+    public void captionsLoaded() {
+        Toast.makeText(main, "Captions loaded / API change", Toast.LENGTH_SHORT).show();
+        //turn them back on to stay in sync with students
+        //controllerWebView.loadUrl("javascript:hideCaptions()");
     }
 
 
@@ -178,17 +200,54 @@ public class YouTubeEmbedPlayer {
         videoControllerDialogView.findViewById(R.id.video_back_btn).setOnClickListener(v ->
                 hideVideoController()
         );
+        //set up advanced controls toggle behaviour
+        final View advancedControls = videoControllerDialogView.findViewById(R.id.advanced_controls);
+        advancedControls.setVisibility(View.GONE); //hidden by default
+
+        TextView expander = videoControllerDialogView.findViewById(R.id.advanced_controls_expander);
+        expander.setOnClickListener(v -> {
+            if (advancedControls.getVisibility() == View.GONE) {
+                advancedControls.setVisibility(View.VISIBLE);
+                expander.setText("Less");
+                expander.setCompoundDrawablesWithIntrinsicBounds(0, R.drawable.vid_less, 0, 0);
+            } else {
+                advancedControls.setVisibility(View.GONE);
+                expander.setText("More");
+                expander.setCompoundDrawablesWithIntrinsicBounds(0, 0, 0, R.drawable.vid_more);
+            }
+        });
+
+        TextView captionsBtn = (TextView) videoControllerDialogView.findViewById(R.id.captions_btn);
+        videoControllerDialogView.findViewById(R.id.captions_btn).setOnClickListener(v -> {
+            if (videoCurrentPlayState != PLAYING) {
+                Toast.makeText(main, "Captions only available when video is playing", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            if (!showCaptions) {
+                showCaptions = true;
+                captionsBtn.setText("Captions on");
+                captionsBtn.setCompoundDrawablesWithIntrinsicBounds(0, R.drawable.vid_captions, 0, 0);
+                controllerWebView.loadUrl("javascript:showCaptions()");
+            } else {
+                showCaptions = false;
+                captionsBtn.setText("Captions off");
+                captionsBtn.setCompoundDrawablesWithIntrinsicBounds(0, R.drawable.vid_captions_disabled, 0, 0);
+                controllerWebView.loadUrl("javascript:hideCaptions()");
+            }
+            displayModeChanged = true;
+        });
+
 
         //set up basic controls
         TextView vrModeBtn = (TextView) videoControllerDialogView.findViewById(R.id.vr_mode_btn);
         videoControllerDialogView.findViewById(R.id.vr_mode_btn).setOnClickListener(v -> {
             if (videoCurrentDisplayMode != VR_MODE) {
                 videoCurrentDisplayMode = VR_MODE;
-                vrModeBtn.setText("VR mode on");
+                vrModeBtn.setText("VR on");
                 vrModeBtn.setCompoundDrawablesWithIntrinsicBounds(0, R.drawable.task_vr_icon, 0, 0);
             } else {
                 videoCurrentDisplayMode = FULLSCRN_MODE;
-                vrModeBtn.setText("VR mode off");
+                vrModeBtn.setText("VR off");
                 vrModeBtn.setCompoundDrawablesWithIntrinsicBounds(0, R.drawable.task_vr_icon_disabled, 0, 0);
             }
             displayModeChanged = true;
@@ -204,6 +263,36 @@ public class YouTubeEmbedPlayer {
             webManager.unmuteVideo();
         });
 
+        videoControllerDialogView.findViewById(R.id.play_btn).setOnClickListener(v -> {
+            playVideo();
+        });
+
+        videoControllerDialogView.findViewById(R.id.pause_btn).setOnClickListener(v -> {
+            pauseVideo();
+        });
+
+        videoControllerDialogView.findViewById(R.id.rewind_btn).setOnClickListener(v -> {
+            int rwdTime = ((int) currentTime - 10);
+            setNewTime(rwdTime);
+        });
+
+        videoControllerDialogView.findViewById(R.id.fastforward_btn).setOnClickListener(v -> {
+            int ffwdTime = ((int) currentTime + 10);
+            setNewTime(ffwdTime);
+        });
+
+    }
+
+    private void setNewTime(int newTime) {
+        //ensure new time is sensible
+        if (newTime < 0) {
+            newTime = 0;
+        } else if (newTime > totalTime) {
+            newTime = totalTime;
+        }
+        //update player and local view
+        controllerWebView.loadUrl("javascript:seekTo(\"" + attemptedURL + "\", " + newTime + ")");
+        setCurrentTime("" + newTime);
     }
 
 
@@ -211,13 +300,10 @@ public class YouTubeEmbedPlayer {
         if (firstPlay) {
             firstPlay = false;
             //touch the screen, we're ready
-            int[] location = new int[2];
-            int[] size = new int[2];
             Point p = new Point();
             main.getWindowManager().getDefaultDisplay().getRealSize(p);
-            Log.w(TAG, "TAP TAP! " + (p.x / 2) + ", " + (p.y / 3));
-            blockingTouch = false;
             main.tapBounds(518, 927);
+            Log.w(TAG, "TAP TAP! " + (p.x / 2) + ", " + (p.y / 3) + " vs hardcoded 518, 927");
         } else {
             controllerWebView.loadUrl("javascript:playVideo()");
         }
@@ -228,29 +314,12 @@ public class YouTubeEmbedPlayer {
     }
 
     private void stopVideo() {
-        controllerWebView.loadUrl("javascript:(stopVideo())()");
+        controllerWebView.loadUrl("javascript:stopVideo()");
     }
-//
-//    private void triggerAccessibilityUpdate() {
-//        if (main.getNearbyManager().isConnectedAsFollower()) {
-//            //trigger the accessibility service to run an update
-//            Intent intent = new Intent(LumiAccessibilityService.BROADCAST_ACTION);
-//            intent.setComponent(new ComponentName("com.lumination.leadme", "com.lumination.leadme.LumiAccessibilityReceiver"));
-//            Bundle data = new Bundle();
-//            data.putString(LumiAccessibilityService.INFO_TAG, LumiAccessibilityService.REFRESH_ACTION);
-//            intent.putExtras(data);
-//            main.sendBroadcast(intent);
-//        }
-//    }
-
 
     public String getiFrameForURL(String url) {
         Log.d(TAG, "Attempting to show " + url);
         String embedID = webManager.getYouTubeID(url);
-
-//        //http://www.youtube.com/embed/olC42gO-Ln4?fs=1&amp;feature=oembed
-//        String content = "<body style=\"margin: 0; padding: 0\"><iframe width=\"100%\" height=\"100%\" " +
-//                "frameborder=\"0\" marginwidth=\"0\" marginheight=\"0\" src=\"" + url + "\" frameborder=\"0\"></iframe></body>";
 
         InputStream htmlTemplate = main.getResources().openRawResource(R.raw.embed_player);
         Scanner scanner = new Scanner(htmlTemplate);
@@ -259,7 +328,6 @@ public class YouTubeEmbedPlayer {
             output += scanner.nextLine() + "\n";
         }
         output = output.replace("PLACEHOLDER_ID", embedID);
-        Log.d(TAG, "Read file! " + output);
         return output;
 
     }
@@ -281,9 +349,17 @@ public class YouTubeEmbedPlayer {
         webManager.lastWasGuideView = true;
     }
 
+    TextView internetUnavailableMsg;
     private void loadVideoGuideURL(String url) {
         attemptedURL = convertYouTubeToEmbed(url);
-        controllerWebView.loadDataWithBaseURL(null, getiFrameForURL(attemptedURL), "text/html", "UTF-8", null);
+        if (main.getPermissionsManager().isInternetConnectionAvailable(attemptedURL)) {
+            internetUnavailableMsg.setVisibility(View.GONE);
+            controllerWebView.setVisibility(View.VISIBLE);
+            controllerWebView.loadDataWithBaseURL(null, getiFrameForURL(attemptedURL), "text/html", "UTF-8", null);
+        } else {
+            internetUnavailableMsg.setVisibility(View.VISIBLE);
+            controllerWebView.setVisibility(View.GONE);
+        }
     }
 
     private void hideVideoController() {
@@ -300,6 +376,30 @@ public class YouTubeEmbedPlayer {
         String finalURL = "https://www.youtube.com/embed/" + id + getEmbedSuffixSuffix();
         Log.i(TAG, "Returning embedded YT: " + finalURL);
         return finalURL;
+    }
+
+    float currentTime = -1;
+
+    @JavascriptInterface
+    public void setCurrentTime(String value) {
+        currentTime = Integer.parseInt(value);
+        main.runOnUiThread(() -> {
+            elapsedTimeText.setText(intToTime((int) currentTime));
+            int progress = Math.round((currentTime / totalTime) * 100);
+            progressBar.setProgress(progress);
+        });
+    }
+
+    private String intToTime(int duration) {
+        return DateUtils.formatElapsedTime(duration);
+    }
+
+    int totalTime = -1;
+
+    @JavascriptInterface
+    public void setTotalTime(String value) {
+        totalTime = Integer.parseInt(value);
+        main.runOnUiThread(() -> totalTimeText.setText(intToTime(totalTime)));
     }
 
 

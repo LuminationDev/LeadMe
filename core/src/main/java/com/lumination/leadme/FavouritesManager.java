@@ -373,6 +373,8 @@ public class FavouritesManager extends BaseAdapter {
         favOKBtn.setOnClickListener(v -> {
             if (favAdding) {
                 addToFavourites(favPackageName, favTitleView.getText().toString(), null);
+                favAdding = false; //reset
+                webManager.adding_to_fav = false; //reset
             } else {
                 deleteFromFavourites(favPackageName);
             }
@@ -624,6 +626,7 @@ public class FavouritesManager extends BaseAdapter {
         viewHolder.favouriteName.setText(title);
         viewHolder.favouriteIcon.setImageDrawable(icon);
         convertView.setOnClickListener(v -> {
+            webManager.adding_to_fav = false;
             if (favType != FAVTYPE_APP) {
                 Log.d(TAG, "Showing preview");
                 webManager.showPreview(url);
@@ -632,17 +635,14 @@ public class FavouritesManager extends BaseAdapter {
         });
 
         convertView.setLongClickable(true);
-        convertView.setOnLongClickListener(new View.OnLongClickListener() {
-            @Override
-            public boolean onLongClick(View v) {
-                if (favType != FAVTYPE_APP) {
-                    if (url == null || url.trim().isEmpty()) {
-                        return false;
-                    }
-                    showDeleteFavDialog(url);
+        convertView.setOnLongClickListener(v -> {
+            if (favType != FAVTYPE_APP) {
+                if (url == null || url.trim().isEmpty()) {
+                    return false;
                 }
-                return true;
+                showDeleteFavDialog(url);
             }
+            return true;
         });
     }
 
@@ -670,6 +670,7 @@ public class FavouritesManager extends BaseAdapter {
             convertView.setClickable(true);
             convertView.setOnClickListener(v -> {
                 webManager.adding_to_fav = false;
+                favAdding = false;
                 main.showAppPushDialog(appName, appIcon, favPackage);
                 //main.getAppLaunchAdapter().launchApp(favPackage, appName, false);
             });

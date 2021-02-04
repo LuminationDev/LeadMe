@@ -851,6 +851,10 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
         hideSystemUI();
 
+        if (init && loginDialog != null && loginDialog.isShowing()) {
+            openKeyboard();
+        }
+
         if (appHasFocus && appToast != null) {
             appToast.cancel();
             appToast = null;
@@ -1113,10 +1117,9 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 //            }
         });
 
-        Button alertsBtn = mainLeader.findViewById(R.id.alerts_button);
+        alertsBtn = mainLeader.findViewById(R.id.alerts_button);
         alertsBtn.setOnClickListener(v -> showAlertsDialog());
-        //by default, hide this
-        alertsBtn.setVisibility(View.GONE);
+        alertsBtn.setVisibility(View.GONE); //by default, hide this
 
         //initialise window manager for shared use
         windowManager = (WindowManager) getSystemService(WINDOW_SERVICE);
@@ -1806,15 +1809,18 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
 
     public void muteAudio() {
+
         AudioManager mAudioManager = (AudioManager) getSystemService(AUDIO_SERVICE);
-        mAudioManager.adjustStreamVolume(AudioManager.STREAM_MUSIC, AudioManager.ADJUST_MUTE, 0);
-        mAudioManager.adjustStreamVolume(AudioManager.STREAM_SYSTEM, AudioManager.ADJUST_MUTE, 0);
+        mAudioManager.adjustVolume(AudioManager.ADJUST_MUTE, AudioManager.FLAG_ALLOW_RINGER_MODES);
+        //mAudioManager.adjustStreamVolume(AudioManager.STREAM_MUSIC, AudioManager.ADJUST_MUTE, 0);
+        //mAudioManager.adjustStreamVolume(AudioManager.STREAM_SYSTEM, AudioManager.ADJUST_MUTE, 0);
     }
 
     public void unMuteAudio() {
         AudioManager mAudioManager = (AudioManager) getSystemService(AUDIO_SERVICE);
-        mAudioManager.adjustStreamVolume(AudioManager.STREAM_MUSIC, AudioManager.ADJUST_UNMUTE, 0);
-        mAudioManager.adjustStreamVolume(AudioManager.STREAM_SYSTEM, AudioManager.ADJUST_UNMUTE, 0);
+        mAudioManager.adjustVolume(AudioManager.ADJUST_UNMUTE, AudioManager.FLAG_ALLOW_RINGER_MODES);
+        //mAudioManager.adjustStreamVolume(AudioManager.STREAM_MUSIC, AudioManager.ADJUST_UNMUTE, 0);
+        //mAudioManager.adjustStreamVolume(AudioManager.STREAM_SYSTEM, AudioManager.ADJUST_UNMUTE, 0);
     }
 
     public boolean verifyOverlay() {
@@ -2161,20 +2167,13 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     }
 
     public void collapseStatus() {
-        if (!getNearbyManager().isConnectedAsGuide() && !getNearbyManager().isConnectedAsFollower()) {
-            //don't enforce any of this until we're connected
+        if (/*!getNearbyManager().isConnectedAsGuide() &&*/ !getNearbyManager().isConnectedAsFollower()) {
+            //only enforce this for connected students
             return;
         }
-        //Log.d(TAG, "TIME TO COLLAPSE! " + getLifecycle().getCurrentState() + ", " + getNearbyManager().isConnectedAsFollower());
         Intent closeDialog = new Intent(Intent.ACTION_CLOSE_SYSTEM_DIALOGS);
         sendBroadcast(closeDialog);
-
-        handler.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                sendBroadcast(closeDialog);
-            }
-        }, 3000);
+        handler.postDelayed(() -> sendBroadcast(closeDialog), 3000);
 
     }
 
