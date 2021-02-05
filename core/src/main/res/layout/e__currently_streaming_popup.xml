@@ -129,8 +129,9 @@
                     android:id="@+id/vr_mode_btn"
                     android:layout_width="70dp"
                     android:layout_height="45dp"
+                    android:layout_marginLeft="10dp"
                     android:layout_marginTop="2dp"
-                    android:layout_weight="1"
+                    android:layout_weight="0"
                     android:drawableTop="@drawable/task_vr_icon_disabled"
                     android:drawablePadding="8dp"
                     android:fontFamily="@font/poppins_semibold"
@@ -150,7 +151,8 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:padding="12dp"
-                    android:src="@drawable/vid_rewind" />
+                    android:src="@drawable/vid_rewind"
+                    android:visibility="gone" />
 
                 <ImageView
                     android:id="@+id/play_btn"
@@ -171,7 +173,8 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:padding="12dp"
-                    android:src="@drawable/vid_fastforward" />
+                    android:src="@drawable/vid_fastforward"
+                    android:visibility="gone" />
 
                 <Space
                     android:layout_width="wrap_content"
@@ -183,6 +186,7 @@
                     android:layout_width="70dp"
                     android:layout_height="wrap_content"
                     android:layout_margin="10dp"
+                    android:layout_weight="0"
                     android:drawableBottom="@drawable/vid_more"
                     android:fontFamily="@font/poppins_semibold"
                     android:gravity="center_horizontal"
@@ -239,7 +243,7 @@
                     android:layout_height="wrap_content"
                     android:layout_gravity="center_horizontal"
                     android:layout_weight="1"
-                    android:drawableTop="@drawable/vid_captions"
+                    android:drawableTop="@drawable/vid_captions_disabled"
                     android:drawablePadding="8dp"
                     android:fontFamily="@font/poppins_semibold"
                     android:foregroundGravity="center_horizontal"
@@ -247,7 +251,8 @@
                     android:includeFontPadding="false"
                     android:text="Captions off"
                     android:textColor="@color/leadme_white"
-                    android:textSize="12sp" />
+                    android:textSize="12sp"
+                    android:visibility="gone" />
 
             </LinearLayout>
 

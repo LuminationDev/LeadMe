@@ -18,7 +18,6 @@ import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 public class AppManager extends BaseAdapter {
     private LeadMeMain main;
@@ -142,7 +141,7 @@ public class AppManager extends BaseAdapter {
             } else if (main.autoInstallApps) {
                 autoInstall(packageName, appName);
             } else {
-                main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.AUTO_INSTALL_FAILED + appName + ":" + main.getNearbyManager().getID(), main.getNearbyManager().getSelectedPeerIDs());
+                main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.AUTO_INSTALL_FAILED + appName + ":" + main.getNearbyManager().getID(), main.getNearbyManager().getSelectedPeerIDsOrAll());
                 Toast toast = Toast.makeText(main, "Sorry, the app '" + appName + "' doesn't exist on this device!", Toast.LENGTH_SHORT);
                 toast.show();
                 return;
@@ -184,12 +183,6 @@ public class AppManager extends BaseAdapter {
             //launch it locally
             launchLocalApp(packageName, appName, true);
         }
-        Set<String> chosen;
-        if (main.getConnectedLearnersAdapter().someoneIsSelected()) {
-            chosen = main.getNearbyManager().getSelectedPeerIDs();
-        } else {
-            chosen = main.getNearbyManager().getAllPeerIDs();
-        }
 
         //update lock status
         String lockTag = LeadMeMain.LOCK_TAG;
@@ -199,7 +192,7 @@ public class AppManager extends BaseAdapter {
         }
 
         //send launch request
-        main.getDispatcher().requestRemoteAppOpen(LeadMeMain.APP_TAG, packageName, appName, lockTag, chosen);
+        main.getDispatcher().requestRemoteAppOpen(LeadMeMain.APP_TAG, packageName, appName, lockTag, main.getNearbyManager().getSelectedPeerIDs());
     }
 
 
@@ -235,6 +228,7 @@ public class AppManager extends BaseAdapter {
 
         final ViewHolder viewHolder = (ViewHolder) convertView.getTag();
         viewHolder.myTextView.setText(appName);
+        viewHolder.myIcon.setContentDescription(appName); //for screen readers
 
         try {
             final Drawable appIcon = pm.getApplicationIcon(packageName);

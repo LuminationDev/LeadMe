@@ -87,7 +87,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
     static final String VID_MUTE_TAG = "LumiVidMute";
     static final String VID_UNMUTE_TAG = "LumiVidUnmute";
-    static final String VID_CAPTIONS_TAG = "LumiVidCaptions";
+    static final String VID_ACTION_TAG = "LumiVid:";
 
     static final String AUTO_INSTALL = "LumiAutoInstall";
 
@@ -256,7 +256,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     }
 
     public boolean handlePayload(byte[] payloadBytes) {
-
         //if it's an action, execute it
         if (getDispatcher().readAction(payloadBytes)) {
             Log.d(TAG, "Incoming message was an action!");
@@ -273,6 +272,8 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             Log.d(TAG, "Incoming message was an app launch request!");
             return true; //it was an app launch request, we're done!
         }
+
+        Log.d(TAG, "Incoming message was unknown type.");
 
         return true;
     }
@@ -701,6 +702,8 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         public void onCompleted(GestureDescription gestureDescription) {
             super.onCompleted(gestureDescription);
             Log.d(TAG, "gesture completed");
+            //activate the event once the tap completes
+            getLumiAccessibilityConnector().manageYouTubeAccess(null, null);
         }
 
         @Override
@@ -715,7 +718,8 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     }
 
     public void tapBounds(int x, int y) {
-        Log.e(TAG, "ATTEMPTING TAP!");
+        Log.e(TAG, "ATTEMPTING TAP! " + x + ", " + y);
+
         if (accessibilityService == null) {
             return;
         }
@@ -729,9 +733,14 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             GestureDescription swipe = gestureBuilder.build();
 
 
-            if (studentLockOn) {
-                overlayParams.flags = WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE | WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN | WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE;
-            }
+            handler.postDelayed(() -> {
+                if (studentLockOn) {
+                    if (overlayView.isAttachedToWindow()) {
+                        overlayParams.flags = WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE | WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN | WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE;
+                        getWindowManager().updateViewLayout(overlayView, overlayParams);
+                    }
+                }
+            }, 1000);
 
             boolean success = accessibilityService.dispatchGesture(swipe, gestureResultCallback, null);
             Log.e(TAG, "Did I dispatch " + swipe + " to " + accessibilityService + "? " + success);
@@ -739,7 +748,10 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             //give it a second to actually dispatch
             handler.postDelayed(() -> {
                 if (studentLockOn) {
-                    overlayParams.flags = WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN | WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE;
+                    if (overlayView.isAttachedToWindow()) {
+                        overlayParams.flags = WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN | WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE;
+                        getWindowManager().updateViewLayout(overlayView, overlayParams);
+                    }
                 }
             }, 1000);
 
@@ -1293,7 +1305,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                 toast = Toast.makeText(getApplicationContext(), "Missing apps will NOT be installed on student devices.", Toast.LENGTH_SHORT);
             }
             toast.show();
-            getDispatcher().sendBoolToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.AUTO_INSTALL, autoInstallApps, getNearbyManager().getSelectedPeerIDs());
+            getDispatcher().sendBoolToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.AUTO_INSTALL, autoInstallApps, getNearbyManager().getSelectedPeerIDsOrAll());
         });
 
 
@@ -1992,6 +2004,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             everyoneBtn = recallView.findViewById(R.id.everyone_btn);
 
             recallView.findViewById(R.id.ok_btn).setOnClickListener(v -> {
+                getWebManager().lastWasGuideView = false;
                 returnToAppFromMainAction(returnEveryone);
                 dialogShowing = false;
                 recallPrompt.hide();
@@ -2070,36 +2083,24 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             appToast = Toast.makeText(context, "Returning to " + getResources().getString(R.string.app_title), Toast.LENGTH_SHORT);
             appToast.show();
         }
+
+        try {
+            Thread.sleep(500);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 
     public void lockFromMainAction() {
-        Set<String> chosen;
-        if (getConnectedLearnersAdapter().someoneIsSelected()) {
-            chosen = getNearbyManager().getSelectedPeerIDs();
-        } else {
-            chosen = getNearbyManager().getAllPeerIDs();
-        }
-        getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.LOCK_TAG, chosen);
+        getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.LOCK_TAG, getNearbyManager().getSelectedPeerIDsOrAll());
     }
 
     public void unlockFromMainAction() {
-        Set<String> chosen;
-        if (getConnectedLearnersAdapter().someoneIsSelected()) {
-            chosen = getNearbyManager().getSelectedPeerIDs();
-        } else {
-            chosen = getNearbyManager().getAllPeerIDs();
-        }
-        getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.UNLOCK_TAG, chosen);
+        getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.UNLOCK_TAG, getNearbyManager().getSelectedPeerIDsOrAll());
     }
 
     public void blackoutFromMainAction() {
-        Set<String> chosen;
-        if (getConnectedLearnersAdapter().someoneIsSelected()) {
-            chosen = getNearbyManager().getSelectedPeerIDs();
-        } else {
-            chosen = getNearbyManager().getAllPeerIDs();
-        }
-        getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.BLACKOUT_TAG, chosen);
+        getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.BLACKOUT_TAG, getNearbyManager().getSelectedPeerIDsOrAll());
     }
 
 

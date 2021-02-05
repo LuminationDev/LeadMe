@@ -21,10 +21,6 @@ public class DispatchManager {
 
     protected void disableInteraction(final int status) {
         final boolean interactionBlocked = (status == ConnectedPeer.STATUS_BLACKOUT || status == ConnectedPeer.STATUS_LOCK);
-        Log.d(TAG, "Is interaction blocked? " + interactionBlocked + ", follower="
-                + main.getNearbyManager().isConnectedAsFollower() + ", guide=" + main.isGuide + ", permission="
-                + main.getPermissionsManager().isOverlayPermissionGranted() + ", view=" + main.overlayView);
-
         main.setStudentLock(status);
         Runnable myRunnable = () -> {
             //we never want to block someone if they're disconnected from the guide
@@ -40,7 +36,11 @@ public class DispatchManager {
                 Log.d(TAG, "NOT BLOCKING!");
                 main.overlayParams.flags = main.CORE_FLAGS + WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE;
             }
-            main.getWindowManager().updateViewLayout(main.overlayView, main.overlayParams);
+            if (main.overlayView.isAttachedToWindow()) {
+                main.getWindowManager().updateViewLayout(main.overlayView, main.overlayParams);
+            } else {
+                Log.e(TAG, "ERROR: Overlay not attached to window yet! Might need to accept permission first");
+            }
         };
 
         main.runOnUiThread(myRunnable);
@@ -63,7 +63,6 @@ public class DispatchManager {
         p.writeString(lockTag);
         bytes = p.marshall();
         p.recycle();
-
         writeMessageToSelected(bytes, selectedPeerIDs);
     }
 
@@ -188,14 +187,17 @@ public class DispatchManager {
                         break;
 
                     } else if (action.startsWith(LeadMeMain.VID_MUTE_TAG)) {
+                        Log.d(TAG, "GOT MUTE");
                         main.muteAudio();
 
                     } else if (action.startsWith(LeadMeMain.VID_UNMUTE_TAG)) {
+                        Log.d(TAG, "GOT UNMUTE");
                         main.unMuteAudio();
 
-                    } else if (action.startsWith(LeadMeMain.VID_CAPTIONS_TAG)) {
-                        boolean areCaptionsOn = action.endsWith("true");
-                        //TODO
+                    } else if (action.startsWith(LeadMeMain.VID_ACTION_TAG)) {
+                        Log.d(TAG, "GOT SOMETHING VID RELATED");
+                        String[] split = action.split(":");
+                        main.getLumiAccessibilityConnector().cueYouTubeAction(split[1]);
 
                     } else if (action.startsWith(LeadMeMain.LOGOUT_TAG)) {
                         String id = action.split(":")[1];
@@ -228,7 +230,7 @@ public class DispatchManager {
                         break;
                     } else if (action.startsWith(LeadMeMain.STUDENT_NO_OVERLAY)) {
                         String[] split = action.split(":");
-                        Log.i(TAG, "STUDENT HAS OVERLAY? " + split[1].equals("OK"));
+                        //Log.i(TAG, "STUDENT HAS OVERLAY? " + split[1].equals("OK"));
                         //main.getConnectedLearnersAdapter().updateStatus(split[2], ConnectedPeer.STATUS_ERROR, split[1]);
                         if (split[1].equalsIgnoreCase("OK")) {
                             //clear previous flag
@@ -240,13 +242,13 @@ public class DispatchManager {
 
                     } else if (action.startsWith(LeadMeMain.STUDENT_OFF_TASK_ALERT)) {
                         String[] split = action.split(":");
-                        Log.i(TAG, "STUDENT OFF TASK? " + split[1]);
+                        //Log.i(TAG, "STUDENT OFF TASK? " + split[1]);
                         main.getConnectedLearnersAdapter().updateStatus(split[1], ConnectedPeer.STATUS_WARNING, LeadMeMain.STUDENT_OFF_TASK_ALERT);
                         break;
 
                     } else if (action.startsWith(LeadMeMain.STUDENT_NO_INTERNET)) {
                         String[] split = action.split(":");
-                        Log.i(TAG, "STUDENT HAS INTERNET? " + split[1].equals("OK"));
+                        //Log.i(TAG, "STUDENT HAS INTERNET? " + split[1].equals("OK"));
                         //main.getConnectedLearnersAdapter().updateStatus(split[2], ConnectedPeer.STATUS_ERROR, split[1]);
                         if (split[1].equalsIgnoreCase("OK")) {
                             //clear previous flag
@@ -258,7 +260,7 @@ public class DispatchManager {
 
                     } else if (action.startsWith(LeadMeMain.STUDENT_NO_ACCESSIBILITY)) {
                         String[] split = action.split(":");
-                        Log.i(TAG, "STUDENT HAS ACCESS? " + split[1].equals("OK"));
+                        //Log.i(TAG, "STUDENT HAS ACCESS? " + split[1].equals("OK"));
                         //main.getConnectedLearnersAdapter().updateStatus(split[2], ConnectedPeer.STATUS_ERROR, split[1]);
                         if (split[1].equalsIgnoreCase("OK")) {
                             //clear previous flag
@@ -270,7 +272,7 @@ public class DispatchManager {
 
                     } else if (action.startsWith(LeadMeMain.AUTO_INSTALL_FAILED)) {
                         String[] split = action.split(":");
-                        Log.i(TAG, "FAILED " + split[2]);
+                        //Log.i(TAG, "FAILED " + split[2]);
                         //main.getConnectedLearnersAdapter().updateStatus(split[2], ConnectedPeer.STATUS_WARNING, LeadMeMain.AUTO_INSTALL_FAILED);
                         main.getConnectedLearnersAdapter().appLaunchFail(split[2], split[1]);
 
@@ -284,7 +286,7 @@ public class DispatchManager {
                         break;
 
                     } else if (action.startsWith(LeadMeMain.LAUNCH_SUCCESS)) {
-                        Log.i(TAG, "SUCCEEDED - " + action);
+                        //Log.i(TAG, "SUCCEEDED - " + action);
                         String[] split = action.split(":");
                         main.getConnectedLearnersAdapter().updateStatus(split[2], ConnectedPeer.STATUS_SUCCESS, LeadMeMain.STUDENT_OFF_TASK_ALERT);
 
@@ -298,7 +300,7 @@ public class DispatchManager {
                             main.getConnectedLearnersAdapter().updateStatus(split[2], ConnectedPeer.STATUS_BLACKOUT);
 
                         } else {
-                            Log.d(TAG, "Updating icon to " + split[3]);
+                            //Log.d(TAG, "Updating icon to " + split[3]);
                             main.getConnectedLearnersAdapter().appLaunchSuccess(split[2], split[1]);
                             //main.getConnectedLearnersAdapter().updateStatus(split[2], ConnectedPeer.STATUS_SUCCESS);
                             main.getConnectedLearnersAdapter().updateIcon(split[2], main.getAppManager().getAppIcon(split[3]));

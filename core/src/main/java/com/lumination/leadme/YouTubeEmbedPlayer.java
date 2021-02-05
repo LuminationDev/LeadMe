@@ -27,27 +27,23 @@ public class YouTubeEmbedPlayer {
 
 
     //static variables
-    public static final int UNSTARTED = -1;
-    public static final int ENDED = 0;
-    public static final int PLAYING = 1;
-    public static final int PAUSED = 2;
-    public static final int BUFFERING = 3;
-    public static final int VIDEO_CUED = 5;
+    private static final int UNSTARTED = -1;
+    private static final int ENDED = 0;
+    private static final int PLAYING = 1;
+    private static final int PAUSED = 2;
+    private static final int BUFFERING = 3;
+    private static final int VIDEO_CUED = 5;
 
-    public static final int VR_MODE = 1;
-    public static final int FULLSCRN_MODE = 0;
+    private static final int VR_MODE = 1;
+    private static final int FULLSCRN_MODE = 0;
 
     //variables that accessibility service can inspect
     //to see if a change has occurred
-    public static boolean playStateChanged = false;
-    public static boolean displayModeChanged = false;
-    public static boolean playFromChanged = false;
-    public static boolean showCaptions = false;
+    private static boolean showCaptions = false;
 
     //variables to store what the latest request was
-    public static int videoCurrentPlayState = UNSTARTED;
-    public static int videoCurrentDisplayMode = FULLSCRN_MODE; //VR, FS, STD
-    public static int playFromInSeconds = -1;
+    private static int videoCurrentPlayState = UNSTARTED;
+    private static int videoCurrentDisplayMode = FULLSCRN_MODE; //VR, FS, STD
 
     private String controllerURL = "";
     private AlertDialog videoControlDialog;
@@ -57,8 +53,6 @@ public class YouTubeEmbedPlayer {
     private SeekBar progressBar;
     private String attemptedURL = "";
     private boolean firstPlay = true;
-
-    private String embedSuffix = "";//?t=1&fs=1&rel=0&controls=0&modestbranding=1&feature=oembed&enablejsapi=1";//&t=1&rel=0"; //"?fs=1&feature=oembed"
 
     WebManager webManager;
     LeadMeMain main;
@@ -103,8 +97,6 @@ public class YouTubeEmbedPlayer {
         controllerWebView.setWebChromeClient(new WebChromeClient());
         controllerWebView.getSettings().setJavaScriptEnabled(true); // enable javascript
         controllerWebView.getSettings().setJavaScriptCanOpenWindowsAutomatically(true);
-        //controllerWebView.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_YES);
-
         controllerWebView.addJavascriptInterface(this, "Android");
 
         setupGuideVideoControllerWebClient();
@@ -122,18 +114,18 @@ public class YouTubeEmbedPlayer {
     @JavascriptInterface
     public void onData(String value) {
         //.. do something with the data
-        Log.d(TAG, "Data is currently: " + value);
+        //Log.d(TAG, "Data is currently: " + value);
     }
 
     @JavascriptInterface
     public void updateState(int state) {
-        Log.d(TAG, "Video state is now: " + state);
+        //Log.d(TAG, "Video state is now: " + state);
         videoCurrentPlayState = state;
     }
 
     @JavascriptInterface
     public void captionsLoaded() {
-        Toast.makeText(main, "Captions loaded / API change", Toast.LENGTH_SHORT).show();
+        //Toast.makeText(main, "Captions loaded / API change", Toast.LENGTH_SHORT).show();
         //turn them back on to stay in sync with students
         //controllerWebView.loadUrl("javascript:hideCaptions()");
     }
@@ -145,7 +137,7 @@ public class YouTubeEmbedPlayer {
         controllerWebView.setWebViewClient(new WebViewClient() {
             @Override
             public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
-                Log.d(TAG, videoCurrentPlayState + ", " + request.getUrl() + " // " + request.getMethod() + " // " + request.getRequestHeaders());
+                //Log.d(TAG, videoCurrentPlayState + ", " + request.getUrl() + " // " + request.getMethod() + " // " + request.getRequestHeaders());
                 //we shouldn't be navigating away once a video is loaded, so block this
                 if (pageLoaded) {
                     //this will pause the video, so if it should
@@ -166,25 +158,25 @@ public class YouTubeEmbedPlayer {
                 firstPlay = true;
                 pageLoaded = true;
                 stopVideo(); //stop it cleanly
-                Log.d(TAG, "VIDEO GUIDE] onPageFinished: " + url + " (" + attemptedURL + ")");
+                //Log.d(TAG, "VIDEO GUIDE] onPageFinished: " + url + " (" + attemptedURL + ")");
             }
 
             @Override
             public void onReceivedError(WebView view, WebResourceRequest request, WebResourceError error) {
                 super.onReceivedError(view, request, error);
-                Log.d(TAG, "VIDEO GUIDE] Received error: " + error.toString());
+                //Log.d(TAG, "VIDEO GUIDE] Received error: " + error.toString());
             }
 
             @Override
             public void onReceivedHttpError(WebView view, WebResourceRequest request, WebResourceResponse errorResponse) {
                 super.onReceivedHttpError(view, request, errorResponse);
-                Log.d(TAG, "VIDEO GUIDE] Received HTTP error: " + errorResponse.toString());
+                //Log.d(TAG, "VIDEO GUIDE] Received HTTP error: " + errorResponse.toString());
             }
 
             @Override
             public void onReceivedSslError(WebView view, SslErrorHandler handler, SslError error) {
                 super.onReceivedSslError(view, handler, error);
-                Log.d(TAG, "VIDEO GUIDE] Received SSL error: " + error.toString());
+                //Log.d(TAG, "VIDEO GUIDE] Received SSL error: " + error.toString());
             }
         });
     }
@@ -228,13 +220,20 @@ public class YouTubeEmbedPlayer {
                 captionsBtn.setText("Captions on");
                 captionsBtn.setCompoundDrawablesWithIntrinsicBounds(0, R.drawable.vid_captions, 0, 0);
                 controllerWebView.loadUrl("javascript:showCaptions()");
+
+                main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG,
+                        LeadMeMain.VID_ACTION_TAG + LumiAccessibilityConnector.CUE_CAPTIONS_ON,
+                        main.getNearbyManager().getSelectedPeerIDsOrAll());
             } else {
                 showCaptions = false;
                 captionsBtn.setText("Captions off");
                 captionsBtn.setCompoundDrawablesWithIntrinsicBounds(0, R.drawable.vid_captions_disabled, 0, 0);
                 controllerWebView.loadUrl("javascript:hideCaptions()");
+
+                main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG,
+                        LeadMeMain.VID_ACTION_TAG + LumiAccessibilityConnector.CUE_CAPTIONS_OFF,
+                        main.getNearbyManager().getSelectedPeerIDsOrAll());
             }
-            displayModeChanged = true;
         });
 
 
@@ -245,40 +244,72 @@ public class YouTubeEmbedPlayer {
                 videoCurrentDisplayMode = VR_MODE;
                 vrModeBtn.setText("VR on");
                 vrModeBtn.setCompoundDrawablesWithIntrinsicBounds(0, R.drawable.task_vr_icon, 0, 0);
+                playVideo(); //entering VR mode automatically plays the video for students, so replicate that here
+
+                main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG,
+                        LeadMeMain.VID_ACTION_TAG + LumiAccessibilityConnector.CUE_VR_ON,
+                        main.getNearbyManager().getSelectedPeerIDsOrAll());
             } else {
                 videoCurrentDisplayMode = FULLSCRN_MODE;
                 vrModeBtn.setText("VR off");
                 vrModeBtn.setCompoundDrawablesWithIntrinsicBounds(0, R.drawable.task_vr_icon_disabled, 0, 0);
+
+                main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG,
+                        LeadMeMain.VID_ACTION_TAG + LumiAccessibilityConnector.CUE_VR_OFF,
+                        main.getNearbyManager().getSelectedPeerIDsOrAll());
             }
-            displayModeChanged = true;
             //TODO determine what to send to students and how to action it at their end
         });
 
 
         videoControllerDialogView.findViewById(R.id.mute_btn).setOnClickListener(v -> {
-            webManager.muteVideo();
+            main.muteAudio(); //this is managed by the main activity
+            main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.VID_MUTE_TAG, main.getNearbyManager().getSelectedPeerIDsOrAll());
         });
 
         videoControllerDialogView.findViewById(R.id.unmute_btn).setOnClickListener(v -> {
-            webManager.unmuteVideo();
+            main.unMuteAudio(); //this is managed by the main activity
+            main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.VID_UNMUTE_TAG, main.getNearbyManager().getSelectedPeerIDsOrAll());
         });
 
         videoControllerDialogView.findViewById(R.id.play_btn).setOnClickListener(v -> {
+            if (videoCurrentDisplayMode == VR_MODE) {
+                showToast("Cannot play in VR mode. Exit VR mode and try again.");
+                return;
+            }
             playVideo();
+            main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG,
+                    LeadMeMain.VID_ACTION_TAG + LumiAccessibilityConnector.CUE_PLAY,
+                    main.getNearbyManager().getSelectedPeerIDsOrAll());
         });
 
         videoControllerDialogView.findViewById(R.id.pause_btn).setOnClickListener(v -> {
+            if (videoCurrentDisplayMode == VR_MODE) {
+                showToast("Cannot pause in VR mode. Exit VR mode and try again.");
+                return;
+            }
             pauseVideo();
+            main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG,
+                    LeadMeMain.VID_ACTION_TAG + LumiAccessibilityConnector.CUE_PAUSE,
+                    main.getNearbyManager().getSelectedPeerIDsOrAll());
         });
 
         videoControllerDialogView.findViewById(R.id.rewind_btn).setOnClickListener(v -> {
             int rwdTime = ((int) currentTime - 10);
             setNewTime(rwdTime);
+
+            main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG,
+                    LeadMeMain.VID_ACTION_TAG + LumiAccessibilityConnector.CUE_RWD + ":" + rwdTime,
+                    main.getNearbyManager().getSelectedPeerIDsOrAll());
         });
 
         videoControllerDialogView.findViewById(R.id.fastforward_btn).setOnClickListener(v -> {
-            int ffwdTime = ((int) currentTime + 10);
-            setNewTime(ffwdTime);
+            int fwdTime = ((int) currentTime + 10);
+            setNewTime(fwdTime);
+
+            main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG,
+                    LeadMeMain.VID_ACTION_TAG + LumiAccessibilityConnector.CUE_FWD + ":" + fwdTime,
+                    main.getNearbyManager().getSelectedPeerIDsOrAll());
         });
 
     }
@@ -318,7 +349,7 @@ public class YouTubeEmbedPlayer {
     }
 
     public String getiFrameForURL(String url) {
-        Log.d(TAG, "Attempting to show " + url);
+        //Log.d(TAG, "Attempting to show " + url);
         String embedID = webManager.getYouTubeID(url);
 
         InputStream htmlTemplate = main.getResources().openRawResource(R.raw.embed_player);
@@ -343,13 +374,14 @@ public class YouTubeEmbedPlayer {
                     .create();
         }
         pageLoaded = false; //reset flag
-        Log.d(TAG, "Attempting to show video controller for " + controllerURL);
+        //Log.d(TAG, "Attempting to show video controller for " + controllerURL);
         loadVideoGuideURL(controllerURL);
         videoControlDialog.show();
         webManager.lastWasGuideView = true;
     }
 
     TextView internetUnavailableMsg;
+
     private void loadVideoGuideURL(String url) {
         attemptedURL = convertYouTubeToEmbed(url);
         if (main.getPermissionsManager().isInternetConnectionAvailable(attemptedURL)) {
@@ -367,14 +399,10 @@ public class YouTubeEmbedPlayer {
         videoControlDialog.dismiss();
     }
 
-    public String getEmbedSuffixSuffix() {
-        return embedSuffix;
-    }
-
     public String convertYouTubeToEmbed(String url) {
         String id = webManager.getYouTubeID(url);
-        String finalURL = "https://www.youtube.com/embed/" + id + getEmbedSuffixSuffix();
-        Log.i(TAG, "Returning embedded YT: " + finalURL);
+        String finalURL = "https://www.youtube.com/embed/" + id;
+        //Log.i(TAG, "Returning embedded YT: " + finalURL);
         return finalURL;
     }
 

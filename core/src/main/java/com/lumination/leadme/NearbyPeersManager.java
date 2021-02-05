@@ -872,6 +872,29 @@ public class NearbyPeersManager {
         return new HashSet<>(mEstablishedConnections.values());
     }
 
+    public Set<String> getSelectedPeerIDsOrAll() {
+        Set<String> endpoints = new ArraySet<>();
+        //if connected as guide, send message to specific peers
+        if (isConnectedAsGuide()) {
+            for (ConnectedPeer thisPeer : main.getConnectedLearnersAdapter().mData) {
+                if (thisPeer.isSelected()) {
+                    Log.d(TAG, "Adding " + thisPeer.getDisplayName());
+                    endpoints.add(thisPeer.getID());
+                }
+            }
+
+            if (endpoints.isEmpty()) {
+                return getAllPeerIDs();
+            }
+
+            return endpoints;
+
+            //if connected as follower, send message back to guide
+        } else {
+            return mEstablishedConnections.keySet();
+        }
+    }
+
     public Set<String> getSelectedPeerIDs() {
         Set<String> endpoints = new ArraySet<>();
         //if connected as guide, send message to specific peers

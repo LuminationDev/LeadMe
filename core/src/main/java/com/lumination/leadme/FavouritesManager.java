@@ -669,7 +669,6 @@ public class FavouritesManager extends BaseAdapter {
 
             convertView.setClickable(true);
             convertView.setOnClickListener(v -> {
-                webManager.adding_to_fav = false;
                 favAdding = false;
                 main.showAppPushDialog(appName, appIcon, favPackage);
                 //main.getAppLaunchAdapter().launchApp(favPackage, appName, false);

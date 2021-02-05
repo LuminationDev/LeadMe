@@ -159,8 +159,7 @@ public class ConnectedLearnersAdapter extends BaseAdapter {
 
     public void updateStatus(String id, int status, String msg) {
         ConnectedPeer thisPeer = getMatchingPeer(id);
-
-        Log.w(TAG, "Received: " + id + ", " + thisPeer + ", " + status + ", " + msg);
+        //Log.w(TAG, "Received: " + id + ", " + thisPeer + ", " + status + ", " + msg);
 
         if (thisPeer == null) {
             Log.d(TAG, "Received warning for UNKNOWN student " + id + ": " + msg);
