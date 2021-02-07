@@ -409,7 +409,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
         if (appPushMessageView == null) {
             appPushMessageView = appPushDialogView.findViewById(R.id.push_confirm_txt);
-            appPushBtn = appPushDialogView.findViewById(R.id.new_video);
+            appPushBtn = appPushDialogView.findViewById(R.id.app_push_btn);
         }
 
         if (!getConnectedLearnersAdapter().someoneIsSelected()) {
@@ -703,7 +703,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             super.onCompleted(gestureDescription);
             Log.d(TAG, "gesture completed");
             //activate the event once the tap completes
-            getLumiAccessibilityConnector().manageYouTubeAccess(null, null);
+            getLumiAccessibilityConnector().manageAccessibilityEvent(null, null);
         }
 
         @Override
@@ -1224,7 +1224,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
 
         //prepare elements for app push dialog
-        appPushDialogView.findViewById(R.id.new_video).setOnClickListener(v -> {
+        appPushDialogView.findViewById(R.id.app_push_btn).setOnClickListener(v -> {
             appLaunchAdapter.launchApp(appPushPackageName, appPushTitle, false);
             Log.d(TAG, "LAUNCHING! " + appPushPackageName);
             hideAppPushDialogView();

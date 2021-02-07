@@ -168,7 +168,7 @@ public class AppManager extends BaseAdapter {
         main.startActivity(intent);
         main.getAppManager().lastApp = intent.getPackage();
 
-        main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.AUTO_INSTALL_ATTEMPT + appName + ":" + main.getNearbyManager().getID(), main.getNearbyManager().getSelectedPeerIDs());
+        main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.AUTO_INSTALL_ATTEMPT + appName + ":" + main.getNearbyManager().getID(), main.getNearbyManager().getSelectedPeerIDsOrAll());
         Toast toast = Toast.makeText(main, "Attempting to install '" + appName + "', please wait...", Toast.LENGTH_SHORT);
         toast.show();
         return;
@@ -194,7 +194,7 @@ public class AppManager extends BaseAdapter {
         }
 
         //send launch request
-        main.getDispatcher().requestRemoteAppOpen(LeadMeMain.APP_TAG, packageName, appName, lockTag, main.getNearbyManager().getSelectedPeerIDs());
+        main.getDispatcher().requestRemoteAppOpen(LeadMeMain.APP_TAG, packageName, appName, lockTag, main.getNearbyManager().getSelectedPeerIDsOrAll());
     }
 
 

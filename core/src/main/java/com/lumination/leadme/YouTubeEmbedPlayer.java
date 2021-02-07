@@ -122,12 +122,12 @@ public class YouTubeEmbedPlayer {
         //make sure student state is updated too
         if (state == PLAYING) {
             main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG,
-                    LeadMeMain.VID_ACTION_TAG + LumiAccessibilityConnector.CUE_PLAY,
+                    LeadMeMain.VID_ACTION_TAG + YouTubeAccessibilityManager.CUE_PLAY,
                     main.getNearbyManager().getSelectedPeerIDsOrAll());
 
         } else if (state == PAUSED) {
             main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG,
-                    LeadMeMain.VID_ACTION_TAG + LumiAccessibilityConnector.CUE_PAUSE,
+                    LeadMeMain.VID_ACTION_TAG + YouTubeAccessibilityManager.CUE_PAUSE,
                     main.getNearbyManager().getSelectedPeerIDsOrAll());
         }
     }
@@ -240,7 +240,7 @@ public class YouTubeEmbedPlayer {
                 controllerWebView.loadUrl("javascript:showCaptions()");
 
                 main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG,
-                        LeadMeMain.VID_ACTION_TAG + LumiAccessibilityConnector.CUE_CAPTIONS_ON,
+                        LeadMeMain.VID_ACTION_TAG + YouTubeAccessibilityManager.CUE_CAPTIONS_ON,
                         main.getNearbyManager().getSelectedPeerIDsOrAll());
             } else {
                 showCaptions = false;
@@ -249,7 +249,7 @@ public class YouTubeEmbedPlayer {
                 controllerWebView.loadUrl("javascript:hideCaptions()");
 
                 main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG,
-                        LeadMeMain.VID_ACTION_TAG + LumiAccessibilityConnector.CUE_CAPTIONS_OFF,
+                        LeadMeMain.VID_ACTION_TAG + YouTubeAccessibilityManager.CUE_CAPTIONS_OFF,
                         main.getNearbyManager().getSelectedPeerIDsOrAll());
             }
         });
@@ -265,7 +265,7 @@ public class YouTubeEmbedPlayer {
                 playVideo(); //entering VR mode automatically plays the video for students, so replicate that here
 
                 main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG,
-                        LeadMeMain.VID_ACTION_TAG + LumiAccessibilityConnector.CUE_VR_ON,
+                        LeadMeMain.VID_ACTION_TAG + YouTubeAccessibilityManager.CUE_VR_ON,
                         main.getNearbyManager().getSelectedPeerIDsOrAll());
             } else {
                 videoCurrentDisplayMode = FULLSCRN_MODE;
@@ -273,7 +273,7 @@ public class YouTubeEmbedPlayer {
                 vrModeBtn.setCompoundDrawablesWithIntrinsicBounds(0, R.drawable.task_vr_icon_disabled, 0, 0);
 
                 main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG,
-                        LeadMeMain.VID_ACTION_TAG + LumiAccessibilityConnector.CUE_VR_OFF,
+                        LeadMeMain.VID_ACTION_TAG + YouTubeAccessibilityManager.CUE_VR_OFF,
                         main.getNearbyManager().getSelectedPeerIDsOrAll());
             }
             //TODO determine what to send to students and how to action it at their end
@@ -297,7 +297,7 @@ public class YouTubeEmbedPlayer {
             }
             playVideo();
             main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG,
-                    LeadMeMain.VID_ACTION_TAG + LumiAccessibilityConnector.CUE_PLAY,
+                    LeadMeMain.VID_ACTION_TAG + YouTubeAccessibilityManager.CUE_PLAY,
                     main.getNearbyManager().getSelectedPeerIDsOrAll());
         });
 
@@ -308,7 +308,7 @@ public class YouTubeEmbedPlayer {
             }
             pauseVideo();
             main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG,
-                    LeadMeMain.VID_ACTION_TAG + LumiAccessibilityConnector.CUE_PAUSE,
+                    LeadMeMain.VID_ACTION_TAG + YouTubeAccessibilityManager.CUE_PAUSE,
                     main.getNearbyManager().getSelectedPeerIDsOrAll());
         });
 
@@ -317,7 +317,7 @@ public class YouTubeEmbedPlayer {
             setNewTime(rwdTime);
 
             main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG,
-                    LeadMeMain.VID_ACTION_TAG + LumiAccessibilityConnector.CUE_RWD + ":" + rwdTime,
+                    LeadMeMain.VID_ACTION_TAG + YouTubeAccessibilityManager.CUE_RWD + ":" + rwdTime,
                     main.getNearbyManager().getSelectedPeerIDsOrAll());
         });
 
@@ -326,7 +326,7 @@ public class YouTubeEmbedPlayer {
             setNewTime(fwdTime);
 
             main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG,
-                    LeadMeMain.VID_ACTION_TAG + LumiAccessibilityConnector.CUE_FWD + ":" + fwdTime,
+                    LeadMeMain.VID_ACTION_TAG + YouTubeAccessibilityManager.CUE_FWD + ":" + fwdTime,
                     main.getNearbyManager().getSelectedPeerIDsOrAll());
         });
 
@@ -336,23 +336,23 @@ public class YouTubeEmbedPlayer {
         //update on play/pause
         if (videoCurrentPlayState == PLAYING) {
             main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG,
-                    LeadMeMain.VID_ACTION_TAG + LumiAccessibilityConnector.CUE_PLAY,
+                    LeadMeMain.VID_ACTION_TAG + YouTubeAccessibilityManager.CUE_PLAY,
                     main.getNearbyManager().getSelectedPeerIDsOrAll());
         } else {
             main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG,
-                    LeadMeMain.VID_ACTION_TAG + LumiAccessibilityConnector.CUE_PAUSE,
+                    LeadMeMain.VID_ACTION_TAG + YouTubeAccessibilityManager.CUE_PAUSE,
                     main.getNearbyManager().getSelectedPeerIDsOrAll());
         }
 
         //update on VR on/off
         if (videoCurrentDisplayMode == VR_MODE) {
             main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG,
-                    LeadMeMain.VID_ACTION_TAG + LumiAccessibilityConnector.CUE_VR_ON,
+                    LeadMeMain.VID_ACTION_TAG + YouTubeAccessibilityManager.CUE_VR_ON,
                     main.getNearbyManager().getSelectedPeerIDsOrAll());
         } else {
 
             main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG,
-                    LeadMeMain.VID_ACTION_TAG + LumiAccessibilityConnector.CUE_VR_OFF,
+                    LeadMeMain.VID_ACTION_TAG + YouTubeAccessibilityManager.CUE_VR_OFF,
                     main.getNearbyManager().getSelectedPeerIDsOrAll());
         }
 
