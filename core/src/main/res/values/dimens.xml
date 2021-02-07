@@ -26,6 +26,7 @@
     <dimen name="code_textbox_size">40dp</dimen>
     <dimen name="standard_btn_width">180dp</dimen>
     <dimen name="half_standard_btn_width">95dp</dimen>
+    <dimen name="twothirds_standard_btn_width">140dp</dimen>
     <dimen name="standard_btn_height">60dp</dimen>
 
     <dimen name="video_thumb_width">128dp</dimen>

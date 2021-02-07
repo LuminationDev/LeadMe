@@ -43,6 +43,11 @@ public class ConnectedLearnersAdapter extends BaseAdapter {
                 peersWithWarnings.add(peer);
             }
         }
+        if (peersWithWarnings.isEmpty()) {
+            main.setAlertsBtnVisibility(View.INVISIBLE);
+        } else {
+            main.setAlertsBtnVisibility(View.VISIBLE);
+        }
         alertsAdapter.setData(peersWithWarnings);
         alertsAdapter.notifyDataSetChanged();
     }
@@ -193,6 +198,7 @@ public class ConnectedLearnersAdapter extends BaseAdapter {
         }
 
         notifyDataSetChanged();
+        main.getConnectedLearnersAdapter().refreshAlertsView();
     }
 
     //standard status update
@@ -375,7 +381,6 @@ public class ConnectedLearnersAdapter extends BaseAdapter {
         if (statusIcon == null) {
             return;
         }
-
         switch (peer.getStatus()) {
             case ConnectedPeer.STATUS_ERROR:
                 statusIcon.setImageDrawable(main.getResources().getDrawable(R.drawable.alert_error, null));
@@ -394,6 +399,7 @@ public class ConnectedLearnersAdapter extends BaseAdapter {
                 }
                 break;
         }
+
     }
 
     private void setLockStatus(ConnectedPeer peer, ImageView statusIcon) {

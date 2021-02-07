@@ -37,19 +37,17 @@ public class YouTubeEmbedPlayer {
     private static final int VR_MODE = 1;
     private static final int FULLSCRN_MODE = 0;
 
-    //variables that accessibility service can inspect
-    //to see if a change has occurred
-    private static boolean showCaptions = false;
-
     //variables to store what the latest request was
+    private static boolean showCaptions = false;
     private static int videoCurrentPlayState = UNSTARTED;
     private static int videoCurrentDisplayMode = FULLSCRN_MODE; //VR, FS, STD
 
-    private String controllerURL = "";
+    private String controllerURL = "", controllerTitle = "";
     private AlertDialog videoControlDialog;
     private View videoControllerDialogView;
     private WebView controllerWebView;
     private TextView totalTimeText, elapsedTimeText;
+    private TextView vrModeBtn, captionsBtn, expander;
     private SeekBar progressBar;
     private String attemptedURL = "";
     private boolean firstPlay = true;
@@ -119,8 +117,19 @@ public class YouTubeEmbedPlayer {
 
     @JavascriptInterface
     public void updateState(int state) {
-        //Log.d(TAG, "Video state is now: " + state);
+        Log.d(TAG, "[GUIDE] Video state is now: " + state);
         videoCurrentPlayState = state;
+        //make sure student state is updated too
+        if (state == PLAYING) {
+            main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG,
+                    LeadMeMain.VID_ACTION_TAG + LumiAccessibilityConnector.CUE_PLAY,
+                    main.getNearbyManager().getSelectedPeerIDsOrAll());
+
+        } else if (state == PAUSED) {
+            main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG,
+                    LeadMeMain.VID_ACTION_TAG + LumiAccessibilityConnector.CUE_PAUSE,
+                    main.getNearbyManager().getSelectedPeerIDsOrAll());
+        }
     }
 
     @JavascriptInterface
@@ -187,6 +196,15 @@ public class YouTubeEmbedPlayer {
             webManager.lastWasGuideView = false; //reset
             hideVideoController();
             webManager.showWebLaunchDialog(false);
+            main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.RETURN_TAG, main.getNearbyManager().getSelectedPeerIDsOrAll());
+        });
+
+        videoControllerDialogView.findViewById(R.id.push_again_btn).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                webManager.pushYouTubeOrWeb(attemptedURL, controllerTitle);
+                syncNewStudentsWithCurrentState();
+            }
         });
 
         videoControllerDialogView.findViewById(R.id.video_back_btn).setOnClickListener(v ->
@@ -196,7 +214,7 @@ public class YouTubeEmbedPlayer {
         final View advancedControls = videoControllerDialogView.findViewById(R.id.advanced_controls);
         advancedControls.setVisibility(View.GONE); //hidden by default
 
-        TextView expander = videoControllerDialogView.findViewById(R.id.advanced_controls_expander);
+        expander = videoControllerDialogView.findViewById(R.id.advanced_controls_expander);
         expander.setOnClickListener(v -> {
             if (advancedControls.getVisibility() == View.GONE) {
                 advancedControls.setVisibility(View.VISIBLE);
@@ -209,7 +227,7 @@ public class YouTubeEmbedPlayer {
             }
         });
 
-        TextView captionsBtn = (TextView) videoControllerDialogView.findViewById(R.id.captions_btn);
+        captionsBtn = (TextView) videoControllerDialogView.findViewById(R.id.captions_btn);
         videoControllerDialogView.findViewById(R.id.captions_btn).setOnClickListener(v -> {
             if (videoCurrentPlayState != PLAYING) {
                 Toast.makeText(main, "Captions only available when video is playing", Toast.LENGTH_SHORT).show();
@@ -238,7 +256,7 @@ public class YouTubeEmbedPlayer {
 
 
         //set up basic controls
-        TextView vrModeBtn = (TextView) videoControllerDialogView.findViewById(R.id.vr_mode_btn);
+        vrModeBtn = (TextView) videoControllerDialogView.findViewById(R.id.vr_mode_btn);
         videoControllerDialogView.findViewById(R.id.vr_mode_btn).setOnClickListener(v -> {
             if (videoCurrentDisplayMode != VR_MODE) {
                 videoCurrentDisplayMode = VR_MODE;
@@ -314,6 +332,38 @@ public class YouTubeEmbedPlayer {
 
     }
 
+    private void syncNewStudentsWithCurrentState() {
+        //update on play/pause
+        if (videoCurrentPlayState == PLAYING) {
+            main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG,
+                    LeadMeMain.VID_ACTION_TAG + LumiAccessibilityConnector.CUE_PLAY,
+                    main.getNearbyManager().getSelectedPeerIDsOrAll());
+        } else {
+            main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG,
+                    LeadMeMain.VID_ACTION_TAG + LumiAccessibilityConnector.CUE_PAUSE,
+                    main.getNearbyManager().getSelectedPeerIDsOrAll());
+        }
+
+        //update on VR on/off
+        if (videoCurrentDisplayMode == VR_MODE) {
+            main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG,
+                    LeadMeMain.VID_ACTION_TAG + LumiAccessibilityConnector.CUE_VR_ON,
+                    main.getNearbyManager().getSelectedPeerIDsOrAll());
+        } else {
+
+            main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG,
+                    LeadMeMain.VID_ACTION_TAG + LumiAccessibilityConnector.CUE_VR_OFF,
+                    main.getNearbyManager().getSelectedPeerIDsOrAll());
+        }
+
+        //update on mute on/off
+        if (main.isMuted) {
+            main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.VID_MUTE_TAG, main.getNearbyManager().getSelectedPeerIDsOrAll());
+        } else {
+            main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.VID_UNMUTE_TAG, main.getNearbyManager().getSelectedPeerIDsOrAll());
+        }
+    }
+
     private void setNewTime(int newTime) {
         //ensure new time is sensible
         if (newTime < 0) {
@@ -364,9 +414,10 @@ public class YouTubeEmbedPlayer {
     }
 
 
-    void showVideoController(String url) {
+    void showVideoController(String url, String title) {
         if (url != null) {
             controllerURL = url;
+            controllerTitle = title;
         }
         if (videoControlDialog == null) {
             videoControlDialog = new AlertDialog.Builder(main)
@@ -383,6 +434,7 @@ public class YouTubeEmbedPlayer {
     TextView internetUnavailableMsg;
 
     private void loadVideoGuideURL(String url) {
+        resetControllerState();
         attemptedURL = convertYouTubeToEmbed(url);
         if (main.getPermissionsManager().isInternetConnectionAvailable(attemptedURL)) {
             internetUnavailableMsg.setVisibility(View.GONE);
@@ -391,6 +443,26 @@ public class YouTubeEmbedPlayer {
         } else {
             internetUnavailableMsg.setVisibility(View.VISIBLE);
             controllerWebView.setVisibility(View.GONE);
+        }
+    }
+
+    private void resetControllerState() {
+        showCaptions = false;
+        videoCurrentDisplayMode = FULLSCRN_MODE;
+        controllerURL = "";
+        controllerTitle = "";
+        attemptedURL = "";
+
+        if (vrModeBtn != null && vrModeBtn.getText().equals("VR on")) {
+            vrModeBtn.performClick(); //toggle it
+        }
+
+        if (captionsBtn != null && captionsBtn.getText().equals("Captions on")) {
+            captionsBtn.performClick(); //toggle it
+        }
+
+        if (expander != null && expander.getText().equals("Less")) {
+            expander.performClick(); //toggle it
         }
     }
 

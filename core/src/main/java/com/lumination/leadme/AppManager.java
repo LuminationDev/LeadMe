@@ -105,10 +105,12 @@ public class AppManager extends BaseAdapter {
      **/
     public void relaunchLast(String packageName, String appName, String taskType, String url, String urlTitle) {
         //launch it locally
+        Log.w(TAG, "Relaunching: " + taskType + ", " + url + ", " + packageName);
         switch (taskType) {
             case "Application":
                 launchLocalApp(packageName, appName, false);
                 break;
+            case "VR Video":
             case "YouTube":
                 main.getWebManager().launchYouTube(url, urlTitle, false);
                 break;

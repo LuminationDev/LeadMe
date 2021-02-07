@@ -9,12 +9,9 @@ import android.view.accessibility.AccessibilityEvent;
 import android.view.accessibility.AccessibilityNodeInfo;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class LumiAccessibilityConnector {
 
@@ -46,6 +43,9 @@ public class LumiAccessibilityConnector {
     }
 
     public void cueYouTubeAction(String actionStr) {
+        if (main.getNearbyManager().isConnectedAsGuide()) {
+            return; //guides manage YT their own way
+        }
         int action = Integer.parseInt(actionStr);
         if (!cuedActions.isEmpty()) {
             switch (action) {
@@ -96,56 +96,60 @@ public class LumiAccessibilityConnector {
             "Continue",
             "Dismiss",
             "Skip trial",
-            "Skip ad",
-            "Skip ads",
             "No Thanks",
             "Cancel auto",
-            "Hide related videos",
-            "Rotate"
+            "Hide related videos"
     };
+
+    private static String[] skipAdsPhrases = {
+            "Skip ad",
+            "Skip ads",
+    };
+
+    private static String[] detectAdsPhrases = {
+            "Video will play after ad",
+            "Ad",
+            "Up next"
+    };
+
+    private static String[] detectMiniPlayer = {
+            "Close miniplayer"
+    };
+
+    private void skipAds(AccessibilityNodeInfo rootInActiveWindow) {
+        ArrayList<AccessibilityNodeInfo> popupNodes = collectChildren(rootInActiveWindow, skipAdsPhrases, 0);
+        for (AccessibilityNodeInfo thisInfo : popupNodes) {
+            Rect bounds = new Rect();
+            thisInfo.getBoundsInScreen(bounds);
+            main.tapBounds(bounds.centerX(), bounds.centerY());
+        }
+    }
+
+    boolean videoPlayStarted = false;
+    boolean closedMini = false;
+
+    private void closeMiniPlayer(AccessibilityNodeInfo rootInActiveWindow) {
+        if (closedMini) {
+            return; //don't launch it twice
+        }
+        ArrayList<AccessibilityNodeInfo> miniPlayerNodes = collectChildren(rootInActiveWindow, detectMiniPlayer, 0);
+        if (!miniPlayerNodes.isEmpty()) {
+            closedMini = true;
+            //difficult to accurately tap the right button, so just relaunch the video
+            String title = main.getWebManager().getLaunchTitle();
+            String url = main.getWebManager().getPushURL();
+            main.getWebManager().launchYouTube(url, title, false);
+            cueYouTubeAction(CUE_PAUSE + "");
+            cueYouTubeAction(CUE_VR_OFF + "");
+        }
+    }
 
     private void dismissPopups(AccessibilityNodeInfo rootInActiveWindow) {
         ArrayList<AccessibilityNodeInfo> popupNodes = collectChildren(rootInActiveWindow, popupPhrases, 0);
         for (AccessibilityNodeInfo thisInfo : popupNodes) {
-            if (thisInfo.getText().equals("You can skip ad in 0s")) {
-                continue; //skip this, don't click it!
-            }
             clickNode(thisInfo);
         }
     }
-
-    private int[] getWordyMatches(String str, String regex) {
-        Pattern pattern = Pattern.compile(regex);
-        Matcher matcher = pattern.matcher(str);
-
-        int[] vals = new int[6]; //max we'll need
-        int val_count = 0;
-        while (matcher.find()) {
-            vals[val_count] = Integer.parseInt(matcher.group(0));
-            val_count++;
-        }
-        if (val_count == 0) {
-            return new int[0];
-        }
-        return Arrays.copyOfRange(vals, 0, val_count);
-    }
-
-    private boolean hasExactMatch(String str, String regex) {
-        Pattern pattern = Pattern.compile(regex);
-        Matcher matcher = pattern.matcher(str);
-        boolean foundMatch = matcher.find();
-        String match = "";
-        if (foundMatch) {
-            match = matcher.group(0);
-        }
-        //if there's a match and the match is the same length as the input string
-        //we must have an exact match
-        return foundMatch && (match.length() == str.length()); //matcher.find();
-    }
-
-    private String durationRegex = "\\d{0,2}:?\\d{1,2}:\\d{2}(?:\\s)*/(?:\\s)*\\d{0,2}:?\\d{1,2}:\\d{2}";
-    private String wordyDurationRegex = "(\\d{1,3})(?= hour| second| minute)";
-    //"(\\d{1,3} hour(s)* )?(\\d{1,3} minute(s)* )?\\d{1,3} second(s)* of (\\d{1,3} hour(s)* )?(\\d{1,3} minute(s)* )?\\d{1,3} second(s)*";
 
     private ArrayList<AccessibilityNodeInfo> collectChildren(AccessibilityNodeInfo nodeInfo, String phrase, int level) {
         String[] tmp = {phrase};
@@ -158,7 +162,7 @@ public class LumiAccessibilityConnector {
         //Log.e(TAG, "SEEKING: " + Arrays.toString(phrases));
         Set<AccessibilityNodeInfo> infoArrayList = new HashSet<>();
         if (nodeInfo == null) {
-            return new ArrayList<AccessibilityNodeInfo>();
+            return new ArrayList<>();
         }
 
         //do the standard search for each phrase
@@ -169,38 +173,17 @@ public class LumiAccessibilityConnector {
             }
         }
 
-        //do the deep search for each phrase
-        for (int i = 0; i < nodeInfo.getChildCount(); i++) {
-            AccessibilityNodeInfo v1 = nodeInfo.getChild(i);
-            if (v1 == null) {
-                continue;
-            }
-            if (v1.getChildCount() > 0)
-                infoArrayList.addAll(collectChildren(v1, phrases, (level + 1)));
-
-            if (v1.getText() == null && v1.getContentDescription() == null) {
-                continue; //nothing useful here, move to the next
-            }
-
-            String testForDur = "" + v1.getText();
-            String testForDurDesc = "" + v1.getContentDescription();
-            String searchStr = testForDur + " // " + testForDurDesc;
-
-            for (String phrase : phrases) {
-                if (searchStr.contains(phrase)) {
-                    //Log.d(TAG, "\tContains " + phrase + "!");
-                    infoArrayList.add(v1); //contains at least one desired phrase, collect it
-                    break;
-                }
-            }
-        }
-
-        for (AccessibilityNodeInfo info : infoArrayList) {
-            Log.d(TAG, level + " || " + info.getText() + ", " + info.getContentDescription()); //searchStr + " || " + v1.isFocused() + ", " + v1.isEnabled() + ", " + v1.isClickable());
-        }
 
         ArrayList<AccessibilityNodeInfo> finalList = new ArrayList<>();
-        finalList.addAll(infoArrayList);
+        //do some filtering
+        for (AccessibilityNodeInfo info : infoArrayList) {
+            String searchStr = info.getText() + " // " + info.getContentDescription();
+            if (!searchStr.contains("You can skip ad in 0s") && !searchStr.contains("Ad · 0:00") && !searchStr.contains("Download")) {
+                Log.d(TAG, level + " || " + searchStr);
+                finalList.add(info);
+            }
+        }
+
         return finalList;
     }
 
@@ -212,7 +195,15 @@ public class LumiAccessibilityConnector {
 
     //click a given node, ideally using performClick but with a secondary attempt via accessibility gesture
     private boolean clickNode(AccessibilityNodeInfo thisNode) {
+        Log.w(TAG, "CLICKNODE: " + thisNode.getText() + ", " + thisNode.getContentDescription());
         boolean success = thisNode.performAction(AccessibilityNodeInfo.ACTION_CLICK);
+        if ((thisNode.getText() != null && thisNode.getText().equals("back"))
+                || thisNode.getContentDescription() != null && thisNode.getContentDescription().equals("back")) {
+            Log.d(TAG, "Clicking BACK again!");
+            //when exiting VR mode, back needs to be clicked TWICE
+            //once to activate, once to actually go back
+            success |= thisNode.performAction(AccessibilityNodeInfo.ACTION_CLICK);
+        }
         if (!success) {
 //            Rect bounds = new Rect();
 //            thisNode.getBoundsInScreen(bounds);
@@ -226,9 +217,10 @@ public class LumiAccessibilityConnector {
     }
 
     public void manageYouTubeAccess(AccessibilityEvent event, AccessibilityNodeInfo rootInActiveWindow) {
+        if (main.getNearbyManager().isConnectedAsGuide()) {
+            return; //guides manage YT their own way
+        }
         Log.d(TAG, "Managing YT: " + event);
-        Point p = new Point();
-        main.windowManager.getDefaultDisplay().getRealSize(p);
 
         if (event == null && rootInActiveWindow == null && lastEvent != null && lastInfo != null) {
             event = lastEvent;
@@ -238,14 +230,57 @@ public class LumiAccessibilityConnector {
             lastInfo = rootInActiveWindow;
         }
 
+        closeMiniPlayer(rootInActiveWindow);
+        skipAds(rootInActiveWindow);
+
+        ArrayList<AccessibilityNodeInfo> detectAdNodes = collectChildren(rootInActiveWindow, detectAdsPhrases, 0);
+        if (!detectAdNodes.isEmpty()) {
+            Log.e(TAG, "WAITING FOR AD TO FINISH >> " + main.getWebManager().getLaunchTitle());
+
+            //this indicates the video finished
+            if (videoPlayStarted) {
+                bringMainToFront();
+                main.updateFollowerCurrentTaskToLeadMe();
+                return;
+            }
+
+            for (AccessibilityNodeInfo detectNode : detectAdNodes) {
+                if (detectNode.getText() != null && detectNode.getText().toString().contains("Up next in")) {
+                    bringMainToFront();
+                    main.updateFollowerCurrentTaskToLeadMe();
+                    return;
+                }
+            }
+
+            ArrayList<AccessibilityNodeInfo> playNodes = collectChildren(rootInActiveWindow, "Play video", 0);
+            for (AccessibilityNodeInfo playNode : playNodes) {
+                clickNode(playNode); //if we've paused the video, we actually need to play it to continue
+            }
+
+
+            //main.getWebManager().setFreshPlay(true); //keep resetting this until the ad is gone
+            return; //don't do ANYTHING else until the ad is gone
+        }
+
+        if (!videoPlayStarted && !main.getWebManager().isFreshPlay()
+                && !collectChildren(rootInActiveWindow, " / ", 0).isEmpty()
+                && !collectChildren(rootInActiveWindow, main.getWebManager().getLaunchTitle(), 0).isEmpty()) {
+            Log.w(TAG, "Found ELAPSED time for CURRENT video!");
+            videoPlayStarted = true;
+        }
+
+        Point p = new Point();
+        main.windowManager.getDefaultDisplay().getRealSize(p);
+
         if (main.getWebManager().isFreshPlay()) {
             Log.w(TAG, "FRESH PLAY");
+            videoPlayStarted = false; //reset this here
+            closedMini = false; //reset
+            main.getWebManager().setFreshPlay(false); //done!
+            tapVideoScreen();
             dismissPopups(rootInActiveWindow); //do this for each fresh load of the video
-            ArrayList<AccessibilityNodeInfo> freshPlayNodes = collectChildren(rootInActiveWindow, getPausePhrases(), 0);
-            freshPlayNodes.addAll(collectChildren(rootInActiveWindow, getVROffPhrases(), 0));
-            for (AccessibilityNodeInfo thisInfo : freshPlayNodes) {
-                clickNode(thisInfo);
-            }
+            cueYouTubeAction(CUE_PAUSE + "");
+            cueYouTubeAction(CUE_VR_OFF + "");
         }
 
         if (cuedActions.isEmpty()) {
@@ -253,6 +288,8 @@ public class LumiAccessibilityConnector {
         }
 
         String[] selectedPhrases = {};
+        //make a copy of the cued actions so we can act on the array list
+        //during iteration without causing a concurrent access exception
         String[] currentlyCuedActions = new String[cuedActions.size()];
         currentlyCuedActions = cuedActions.toArray(currentlyCuedActions);
         for (int i = 0; i < currentlyCuedActions.length; i++) {
@@ -262,7 +299,7 @@ public class LumiAccessibilityConnector {
                 case CUE_PLAY:
                     selectedPhrases = getPlayPhrases();
                     //not a fresh vid after we play it
-                    main.getWebManager().setFreshPlay(false);
+                    //main.getWebManager().setFreshPlay(false);
                     break;
 
                 case CUE_PAUSE:
@@ -273,7 +310,7 @@ public class LumiAccessibilityConnector {
                     selectedPhrases = getVROnPhrases();
                     //this will also automatically play
                     //not a fresh vid after we play it
-                    main.getWebManager().setFreshPlay(false);
+                    //main.getWebManager().setFreshPlay(false);
                     break;
 
                 case CUE_VR_OFF:
@@ -295,6 +332,7 @@ public class LumiAccessibilityConnector {
                 boolean success = false;
                 if (!actionNodes.isEmpty()) {
                     for (AccessibilityNodeInfo thisInfo : actionNodes) {
+                        Log.w(TAG, "Looping: " + thisInfo.getText() + " // " + thisInfo.getContentDescription());
                         tapVideoScreen();
                         success = clickNode(thisInfo);
                         if (success && cuedActions.contains(action + "")) {
@@ -311,6 +349,8 @@ public class LumiAccessibilityConnector {
                         Log.i(TAG, "Already in FULLSCREEN mode");
                         cuedActions.remove(CUE_VR_OFF + ""); //don't need to keep looking
                     } else {
+                        ArrayList<AccessibilityNodeInfo> fsNodes = collectChildren(rootInActiveWindow, main.getWebManager().getLaunchTitle(), 0);
+                        Log.e(TAG, "What is there? " + fsNodes);
                         tapVideoScreen();
                     }
 
@@ -359,11 +399,11 @@ public class LumiAccessibilityConnector {
         Point p = new Point();
         main.getWindowManager().getDefaultDisplay().getRealSize(p);
         if (p.x < p.y) {
-            main.tapBounds(518, 927); //portrait
-            Log.w(TAG, "TAP TAP! " + (p.x / 2) + ", " + (p.y / 3) + " vs hardcoded 518, 927");
+            main.tapBounds((p.x / 2), (p.y / 3)); //portrait
+            //Log.w(TAG, "TAP TAP! " + (p.x / 2) + ", " + (p.y / 3) + " vs hardcoded 518, 927");
         } else {
-            main.tapBounds(927, 518); //landscape
-            Log.w(TAG, "TAP TAP! " + (p.x / 2) + ", " + (p.y / 3) + " vs hardcoded 927, 518");
+            main.tapBounds((p.x / 2), (p.y / 3)); //landscape
+            //Log.w(TAG, "TAP TAP! " + (p.x / 2) + ", " + (p.y / 3) + " vs hardcoded 927, 518");
         }
     }
 
@@ -387,9 +427,10 @@ public class LumiAccessibilityConnector {
     }
 
     private String[] getVROffPhrases() {
-        String[] selectedPhrases = new String[2];
+        String[] selectedPhrases = new String[3];
         selectedPhrases[0] = "back";
-        selectedPhrases[1] = "Enter full screen";
+        selectedPhrases[1] = "Enter full screen"; //used for MiSE8
+        selectedPhrases[2] = "Enter fullscreen"; //used for Redmi7
         return selectedPhrases;
     }
 
@@ -420,11 +461,6 @@ public class LumiAccessibilityConnector {
                 }
                 Log.e(TAG, "SOMETHING! " + event.getPackageName() + ", " + event.getClassName() + ", " + event.getText() + ", " + event.getAction() + ", " + bounds);
                 Log.e(TAG, "SOURCE! >>>  " + event.getSource());
-
-//                if (event.getText().contains("back") && main.getWebManager().launchingVR) {
-//                    main.getWebManager().enteredVR = false; //reset this
-//                }
-
             }
 
             //if (showDebugMsg)
@@ -509,6 +545,9 @@ public class LumiAccessibilityConnector {
                 if (nodeInfo == null) {
                     return false;
                 }
+
+                //TODO this hasn't been tested since some pretty major updates were made
+                //needs thorough testing before release
 
                 List<AccessibilityNodeInfo> installNodes = nodeInfo.findAccessibilityNodeInfosByText("Install");
                 List<AccessibilityNodeInfo> acceptNodes = nodeInfo.findAccessibilityNodeInfosByText("ACCEPT"); //is this case sensitive?

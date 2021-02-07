@@ -58,11 +58,9 @@ public class StudentAlertsAdapter extends BaseAdapter {
 
     public void refresh() {
         if (mData.size() == 0) {
-            main.setAlertsBtnVisibility(View.GONE);
             no_alerts_view.setVisibility(View.VISIBLE);
             list_view.setVisibility(View.GONE);
         } else {
-            main.setAlertsBtnVisibility(View.VISIBLE);
             no_alerts_view.setVisibility(View.GONE);
             list_view.setVisibility(View.VISIBLE);
         }

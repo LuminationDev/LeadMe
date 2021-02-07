@@ -57,7 +57,9 @@ public class WebManager {
     private ProgressBar previewProgress;
     private Button previewPushBtn;
     private boolean isYouTube = false;
-    private String pushURL = "", pushTitle = "", controllerURL = "";
+    private String pushURL = "";
+    private String pushTitle = "";
+    String controllerURL = "";
 
     private View webYouTubeFavView;
     private FavouritesManager urlFavouritesManager;
@@ -328,7 +330,7 @@ public class WebManager {
             if (!adding_to_fav) {
                 main.getHandler().postDelayed(() -> {
                     //main.hideConfirmPushDialog();
-                    youTubeEmbedPlayer.showVideoController(controllerURL);
+                    youTubeEmbedPlayer.showVideoController(controllerURL, getPreviewTitle());
                 }, 1000);
             }
 
@@ -378,6 +380,10 @@ public class WebManager {
 
     protected void setFreshPlay(boolean freshPlay) {
         this.freshPlay = freshPlay;
+        if (freshPlay) {
+            //also reset the state
+            main.getLumiAccessibilityConnector().clearCuedActions();
+        }
     }
 
 
@@ -422,7 +428,9 @@ public class WebManager {
     public void launchWebsite(String url, String urlTitle, boolean updateCurrentTask) {
         String finalUrl = url;
         pushTitle = urlTitle;
+        pushURL = url;
         freshPlay = true;
+        lastWasGuideView = false;
         main.getLumiAccessibilityConnector().clearCuedActions();
         new Thread(() -> {
             if (!main.getPermissionsManager().isInternetConnectionAvailable(finalUrl)) {
@@ -609,12 +617,11 @@ public class WebManager {
     }
 
     void showWebLaunchDialog(boolean add_fav_mode) {
-        if (lastWasGuideView) {
-            youTubeEmbedPlayer.showVideoController(null);
+        if (isYouTube && lastWasGuideView) {
+            youTubeEmbedPlayer.showVideoController(null, null);
             return;
         }
 
-        lastWasGuideView = false;
         if (websiteLaunchDialog == null) {
             websiteLaunchDialog = new AlertDialog.Builder(main)
                     .setView(websiteLaunchDialogView)
@@ -795,6 +802,9 @@ public class WebManager {
     public String cleanYouTubeURL(String url) {
         String id = getYouTubeID(url);
         Log.i(TAG, "YouTube ID = " + id + " from " + url);
+        if (id.isEmpty()) {
+            return "";
+        }
         return "https://www.youtube.com/watch?v=" + id + suffix;
     }
 
@@ -809,23 +819,21 @@ public class WebManager {
     }
 
     public void launchYouTube(String url, String urlTitle, boolean updateTask) {
+        Log.w(TAG, "Launching: " + url + ", " + urlTitle);
         freshPlay = true;
         main.getLumiAccessibilityConnector().clearCuedActions();
         pushTitle = urlTitle;
+        pushURL = url;
         String finalUrl = url;
         new Thread(() -> {
             if (!main.getPermissionsManager().isInternetConnectionAvailable(finalUrl)) {
                 Log.w(TAG, "No internet connection in launchYouTube");
-                main.getHandler().post(new Runnable() {
-                    @Override
-                    public void run() {
-                        //Toast.makeText(main, "Can't launch URL, no Internet connection.", Toast.LENGTH_SHORT).show();
-                        main.showWarningDialog("No Internet Connection",
-                                "Internet based functions are unavailable at this time. " +
-                                        "Please check your WiFi connection and try again.");
-                        main.getDispatcher().alertGuidePermissionGranted(LeadMeMain.STUDENT_NO_INTERNET, false);
-                        hideWebsiteLaunchDialog();
-                    }
+                main.getHandler().post(() -> {
+                    main.showWarningDialog("No Internet Connection",
+                            "Internet based functions are unavailable at this time. " +
+                                    "Please check your WiFi connection and try again.");
+                    main.getDispatcher().alertGuidePermissionGranted(LeadMeMain.STUDENT_NO_INTERNET, false);
+                    hideWebsiteLaunchDialog();
                 });
             }
         }).start();
@@ -836,6 +844,13 @@ public class WebManager {
         String cleanURL = cleanYouTubeURL(url);
         //Uri uri = Uri.parse("vnd.youtube://" + getYouTubeID(url));
         Log.w(TAG, "CLEAN YOUTUBE: " + cleanURL);
+
+        if (cleanURL.isEmpty()) {
+            //TODO not sure if this is the right spot to exit on fail
+            //could cause other URLs to fail instead of being launched as websites
+            Log.e(TAG, "No URL to push!");
+            return;
+        }
 
         main.unMuteAudio(); //turn sound back on, in case muted earlier
         Intent appIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(cleanURL));

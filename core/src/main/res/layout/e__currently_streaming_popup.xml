@@ -268,23 +268,49 @@
         android:orientation="vertical"
         android:paddingBottom="10dp">
 
-        <Button
-            android:id="@+id/new_video"
-            style="?android:attr/borderlessButtonStyle"
-            android:layout_width="@dimen/standard_btn_width"
-            android:layout_height="@dimen/standard_btn_height"
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
             android:layout_gravity="center_horizontal"
-            android:accessibilityTraversalAfter="@id/back_btn"
-            android:accessibilityTraversalBefore="@id/codeInput4"
-            android:background="@drawable/bg_active"
-            android:clickable="true"
-            android:focusable="true"
-            android:fontFamily="@font/poppins_semibold"
-            android:text="@string/new_video"
-            android:textAllCaps="false"
-            android:textColor="@color/leadme_white"
-            android:textSize="16sp"
-            app:layout_gravity="center_horizontal" />
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/new_video"
+                style="?android:attr/borderlessButtonStyle"
+                android:layout_width="@dimen/twothirds_standard_btn_width"
+                android:layout_height="@dimen/standard_btn_height"
+                android:layout_gravity="center_horizontal"
+                android:accessibilityTraversalAfter="@id/back_btn"
+                android:accessibilityTraversalBefore="@id/codeInput4"
+                android:background="@drawable/bg_active"
+                android:clickable="true"
+                android:focusable="true"
+                android:fontFamily="@font/poppins_semibold"
+                android:text="@string/new_video"
+                android:textAllCaps="false"
+                android:textColor="@color/leadme_white"
+                android:textSize="16sp"
+                app:layout_gravity="center_horizontal" />
+
+            <Button
+                android:id="@+id/push_again_btn"
+                style="?android:attr/borderlessButtonStyle"
+                android:layout_width="@dimen/twothirds_standard_btn_width"
+                android:layout_height="@dimen/standard_btn_height"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginStart="10dp"
+                android:accessibilityTraversalAfter="@id/back_btn"
+                android:accessibilityTraversalBefore="@id/codeInput4"
+                android:background="@drawable/bg_active"
+                android:clickable="true"
+                android:focusable="true"
+                android:fontFamily="@font/poppins_semibold"
+                android:text="Push again"
+                android:textAllCaps="false"
+                android:textColor="@color/leadme_white"
+                android:textSize="16sp"
+                app:layout_gravity="center_horizontal" />
+        </LinearLayout>
 
         <Space
             android:layout_width="52dp"
