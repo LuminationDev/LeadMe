@@ -374,7 +374,9 @@ public class FavouritesManager extends BaseAdapter {
             if (favAdding) {
                 addToFavourites(favPackageName, favTitleView.getText().toString(), null);
                 favAdding = false; //reset
-                webManager.adding_to_fav = false; //reset
+                if (favType != FAVTYPE_APP) {
+                    webManager.adding_to_fav = false; //reset
+                }
             } else {
                 deleteFromFavourites(favPackageName);
             }
@@ -626,9 +628,9 @@ public class FavouritesManager extends BaseAdapter {
         viewHolder.favouriteName.setText(title);
         viewHolder.favouriteIcon.setImageDrawable(icon);
         convertView.setOnClickListener(v -> {
-            webManager.adding_to_fav = false;
             if (favType != FAVTYPE_APP) {
                 Log.d(TAG, "Showing preview");
+                webManager.adding_to_fav = false;
                 webManager.showPreview(url);
             }
             webManager.hideFavDialog();
@@ -670,7 +672,11 @@ public class FavouritesManager extends BaseAdapter {
             convertView.setClickable(true);
             convertView.setOnClickListener(v -> {
                 favAdding = false;
-                main.showAppPushDialog(appName, appIcon, favPackage);
+                if (favPackage.equals(main.getAppManager().withinPackage)) {
+                    main.getAppManager().getWithinPlayer().showGuideController();
+                } else {
+                    main.showAppPushDialog(appName, appIcon, favPackage);
+                }
                 //main.getAppLaunchAdapter().launchApp(favPackage, appName, false);
             });
 

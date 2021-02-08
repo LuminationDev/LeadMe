@@ -142,11 +142,17 @@ public class LumiAccessibilityConnector {
         }
 
         if (event == null && lastEvent != null) {
+            Log.w(TAG, "Revisiting previous event...");
             event = lastEvent;
             rootInActiveWindow = lastInfo;
 
-        } else if (event == null) {
+        } else if (event == null && rootInActiveWindow == null) {
+            Log.e(TAG, "No events here to act on");
             return false;
+
+        } else {
+            lastEvent = event;
+            lastInfo = rootInActiveWindow;
         }
 
         try {
@@ -350,6 +356,12 @@ public class LumiAccessibilityConnector {
         } catch (Exception e) {
             //giant try-catch because we'd prefer to fail managing a single accessibility
             //action than crash the program outright
+            e.printStackTrace();
+        }
+
+        try {
+            Thread.sleep(200); //make sure we don't end up with endless looping
+        } catch (InterruptedException e) {
             e.printStackTrace();
         }
 

@@ -402,7 +402,7 @@ public class YouTubeEmbedPlayer {
         //Log.d(TAG, "Attempting to show " + url);
         String embedID = webManager.getYouTubeID(url);
 
-        InputStream htmlTemplate = main.getResources().openRawResource(R.raw.embed_player);
+        InputStream htmlTemplate = main.getResources().openRawResource(R.raw.embed_yt_player);
         Scanner scanner = new Scanner(htmlTemplate);
         String output = "";
         while (scanner.hasNext()) {

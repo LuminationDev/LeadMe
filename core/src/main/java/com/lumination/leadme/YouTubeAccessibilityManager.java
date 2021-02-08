@@ -90,13 +90,14 @@ public class YouTubeAccessibilityManager {
         Point p = new Point();
         main.windowManager.getDefaultDisplay().getRealSize(p);
 
+        dismissPopups(rootInActiveWindow); //do this for each fresh load of the video
+
         if (main.getWebManager().isFreshPlay()) {
             Log.w(TAG, "FRESH PLAY");
             videoPlayStarted = false; //reset this here
             closedMini = false; //reset
             main.getWebManager().setFreshPlay(false); //done!
             tapVideoScreen();
-            dismissPopups(rootInActiveWindow); //do this for each fresh load of the video
             cueYouTubeAction(CUE_PAUSE + "");
             cueYouTubeAction(CUE_VR_OFF + "");
         }

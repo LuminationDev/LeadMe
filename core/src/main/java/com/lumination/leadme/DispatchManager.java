@@ -1,5 +1,7 @@
 package com.lumination.leadme;
 
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Parcel;
 import android.util.Log;
 import android.view.WindowManager;
@@ -54,6 +56,20 @@ public class DispatchManager {
         }
     }
 
+    public void requestRemoteAppOpenWithExtra(String tag, String packageName, String appName, String lockTag, String extra, boolean streaming, Set<String> selectedPeerIDs) {
+        Parcel p = Parcel.obtain();
+        byte[] bytes;
+        p.writeString(tag);
+        p.writeString(packageName);
+        p.writeString(appName);
+        p.writeString(lockTag);
+        p.writeString(extra);
+        p.writeString(streaming + "");
+        bytes = p.marshall();
+        p.recycle();
+        writeMessageToSelected(bytes, selectedPeerIDs);
+    }
+
     public void requestRemoteAppOpen(String tag, String packageName, String appName, String lockTag, Set<String> selectedPeerIDs) {
         Parcel p = Parcel.obtain();
         byte[] bytes;
@@ -61,6 +77,8 @@ public class DispatchManager {
         p.writeString(packageName);
         p.writeString(appName);
         p.writeString(lockTag);
+        p.writeString("");
+        p.writeString("");
         bytes = p.marshall();
         p.recycle();
         writeMessageToSelected(bytes, selectedPeerIDs);
@@ -351,9 +369,11 @@ public class DispatchManager {
         final String packageName = p.readString();
         final String appName = p.readString();
         final String lockTag = p.readString();
+        final String extra = p.readString();
+        final String streaming = p.readString();
         p.recycle();
 
-        Log.d(TAG, "Received in OpenApp!: " + tag + ", " + packageName + ", " + appName + ", " + lockTag + " vs " + main.getAppManager().lastApp);
+        Log.d(TAG, "Received in OpenApp!: " + tag + ", " + packageName + ", " + appName + ", " + lockTag + ", " + extra + ", " + streaming + " vs " + main.getAppManager().lastApp);
         if (tag != null && tag.equals(LeadMeMain.APP_TAG)) {
 
             if (lockTag.equals(LeadMeMain.LOCK_TAG)) {
@@ -372,7 +392,20 @@ public class DispatchManager {
                         main.getNearbyManager().getAllPeerIDs());
             }
 
-            if (!main.appHasFocus) {//!main.getAppLaunchAdapter().lastApp.equals(packageName)) {
+            if (!extra.isEmpty()) {
+                main.getAppManager().isStreaming = Boolean.parseBoolean(streaming);
+                Intent appIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(extra));
+                appIntent.setPackage(packageName);
+
+                if (!main.appHasFocus) {
+                    main.appIntentOnFocus = appIntent;
+                    main.getLumiAccessibilityConnector().bringMainToFront();
+                } else {
+                    main.startActivity(appIntent);
+                }
+                Log.d(TAG, "TRYING TO LAUNCH WITHIN APP FOR " + extra + ", " + streaming);
+
+            } else if (!main.appHasFocus) {//!main.getAppLaunchAdapter().lastApp.equals(packageName)) {
                 Log.d(TAG, "NEED FOCUS!");
                 //only needed if it's not what we've already got open
                 //TODO make this more robust, check if it's actually running

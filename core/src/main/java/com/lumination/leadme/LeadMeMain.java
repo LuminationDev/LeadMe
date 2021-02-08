@@ -701,6 +701,12 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         @Override
         public void onCompleted(GestureDescription gestureDescription) {
             super.onCompleted(gestureDescription);
+
+            if (overlayView.isAttachedToWindow()) {
+                overlayParams.flags = WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN | WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE;
+                getWindowManager().updateViewLayout(overlayView, overlayParams);
+            }
+
             Log.d(TAG, "gesture completed");
             //activate the event once the tap completes
             getLumiAccessibilityConnector().manageAccessibilityEvent(null, null);
@@ -709,7 +715,14 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         @Override
         public void onCancelled(GestureDescription gestureDescription) {
             super.onCancelled(gestureDescription);
+
+            if (overlayView.isAttachedToWindow()) {
+                overlayParams.flags = WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN | WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE;
+                getWindowManager().updateViewLayout(overlayView, overlayParams);
+            }
+
             Log.d(TAG, "gesture cancelled");
+            getLumiAccessibilityConnector().manageAccessibilityEvent(null, null);
         }
     };
 
@@ -729,31 +742,41 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 //            swipePath.lineTo(x + 200, y);
 //            swipePath.lineTo(x - 200, y);
             GestureDescription.Builder gestureBuilder = new GestureDescription.Builder();
-            gestureBuilder.addStroke(new GestureDescription.StrokeDescription(swipePath, 0, 50));
+            gestureBuilder.addStroke(new GestureDescription.StrokeDescription(swipePath, 0, 150)); //50 was too short for Within
             GestureDescription swipe = gestureBuilder.build();
 
-
-            handler.postDelayed(() -> {
-                if (studentLockOn) {
-                    if (overlayView.isAttachedToWindow()) {
-                        overlayParams.flags = WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE | WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN | WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE;
-                        getWindowManager().updateViewLayout(overlayView, overlayParams);
-                    }
+            handler.postAtFrontOfQueue(() -> {
+                if (overlayView.isAttachedToWindow()) {
+                    overlayParams.flags = WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE | WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN | WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE;
+                    getWindowManager().updateViewLayout(overlayView, overlayParams);
                 }
-            }, 1000);
 
-            boolean success = accessibilityService.dispatchGesture(swipe, gestureResultCallback, null);
-            Log.e(TAG, "Did I dispatch " + swipe + " to " + accessibilityService + "? " + success);
+                boolean success = accessibilityService.dispatchGesture(swipe, gestureResultCallback, null);
+                Log.e(TAG, "Did I dispatch " + swipe + " to " + accessibilityService + "? " + success + " // " + overlayView.isAttachedToWindow());
 
-            //give it a second to actually dispatch
-            handler.postDelayed(() -> {
-                if (studentLockOn) {
-                    if (overlayView.isAttachedToWindow()) {
-                        overlayParams.flags = WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN | WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE;
-                        getWindowManager().updateViewLayout(overlayView, overlayParams);
-                    }
-                }
-            }, 1000);
+            });
+
+//            handler.postDelayed(() -> {
+//                if (studentLockOn) {
+//                    if (overlayView.isAttachedToWindow()) {
+//                        overlayParams.flags = WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE | WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN | WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE;
+//                        getWindowManager().updateViewLayout(overlayView, overlayParams);
+//                    }
+//                }
+//            }, 1000);
+//
+//            boolean success = accessibilityService.dispatchGesture(swipe, gestureResultCallback, null);
+//            Log.e(TAG, "Did I dispatch " + swipe + " to " + accessibilityService + "? " + success);
+//
+//            //give it a second to actually dispatch
+//            handler.postDelayed(() -> {
+//                if (studentLockOn) {
+//                    if (overlayView.isAttachedToWindow()) {
+//                        overlayParams.flags = WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN | WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE;
+//                        getWindowManager().updateViewLayout(overlayView, overlayParams);
+//                    }
+//                }
+//            }, 1000);
 
 
         });
@@ -1451,7 +1474,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
      */
     public void showConfirmPushDialog(boolean isApp, boolean isSavedOnly) {
         //TODO include display a message if errors occur
-
         if (confirmPushDialog == null) {
             confirmPushDialog = new AlertDialog.Builder(this)
                     .setView(confirmPushDialogView)

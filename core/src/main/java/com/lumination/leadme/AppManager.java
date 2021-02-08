@@ -26,11 +26,15 @@ public class AppManager extends BaseAdapter {
     private final LayoutInflater inflater;
     private String defaultBrowserUrl = "";
     protected Drawable app_placeholder;
+    private WithinEmbedPlayer withinPlayer;
 
     private final String TAG = "AppLauncher";
 
+    public final String withinPackage = "com.shakingearthdigital.vrsecardboard";
+
     public AppManager(LeadMeMain main) {
         this.main = main;
+        withinPlayer = new WithinEmbedPlayer(main);
         app_placeholder = main.getDrawable(R.drawable.icon_unknown_browser);
         defaultBrowserUrl = main.getResources().getString(R.string.default_browser_url);
         inflater = LayoutInflater.from(main);
@@ -39,10 +43,15 @@ public class AppManager extends BaseAdapter {
 
         //set up lock spinner
         lockSpinner = main.appPushDialogView.findViewById(R.id.push_spinner);
+        withinLockSpinner = withinPlayer.videoControllerDialogView.findViewById(R.id.within_push_spinner);
         String[] items = {"Lock students", "Unlock students"};
         Integer[] imgs = {R.drawable.controls_lock, R.drawable.controls_unlock};
+
         SpinnerAdapter adapter = new SpinnerAdapter(main, R.layout.row_push_spinner, items, imgs);
         lockSpinner.setAdapter(adapter);
+
+        SpinnerAdapter withinAdapter = new SpinnerAdapter(main, R.layout.row_push_spinner, items, imgs);
+        withinLockSpinner.setAdapter(withinAdapter);
     }
 
 
@@ -175,26 +184,59 @@ public class AppManager extends BaseAdapter {
 
     }
 
-    private Spinner lockSpinner;
+    private Spinner lockSpinner, withinLockSpinner;
 
     /**
      * used by LEADER to launch an app on LEARNER devices
      **/
     public void launchApp(String packageName, String appName, boolean guideToo) {
-        if (guideToo) {
+
+        //detect Within launch
+        if (main.isGuide && packageName.equals(withinPackage)) {
+            Log.w(TAG, "LAUNCHING WITHIN!");
+            withinPlayer.showGuideController();
+            return;
+
+        } else if (guideToo) {
             //launch it locally
             launchLocalApp(packageName, appName, true);
         }
 
         //update lock status
         String lockTag = LeadMeMain.LOCK_TAG;
-        if (lockSpinner.getSelectedItemPosition() == 1) {
+        if (withinLockSpinner.getSelectedItemPosition() == 1) {
             //locked by default, unlocked if selected
             lockTag = LeadMeMain.UNLOCK_TAG;
         }
 
         //send launch request
         main.getDispatcher().requestRemoteAppOpen(LeadMeMain.APP_TAG, packageName, appName, lockTag, main.getNearbyManager().getSelectedPeerIDsOrAll());
+    }
+
+    public WithinEmbedPlayer getWithinPlayer() {
+        return withinPlayer;
+    }
+
+    boolean isStreaming = false;
+    boolean videoInit = false;
+
+    public boolean getIsWithinStreaming() {
+        return isStreaming;
+    }
+
+    public void launchWithin(String title, boolean isStreaming) {
+        this.isStreaming = isStreaming;
+        videoInit = false; //reset
+
+        //update lock status
+        String lockTag = LeadMeMain.LOCK_TAG;
+        if (withinLockSpinner.getSelectedItemPosition() == 1) {
+            //locked by default, unlocked if selected
+            lockTag = LeadMeMain.UNLOCK_TAG;
+        }
+
+        //send launch request
+        main.getDispatcher().requestRemoteAppOpenWithExtra(LeadMeMain.APP_TAG, withinPackage, "Within VR", lockTag, title, isStreaming, main.getNearbyManager().getSelectedPeerIDsOrAll());
     }
 
 
@@ -238,7 +280,11 @@ public class AppManager extends BaseAdapter {
 
             convertView.setOnClickListener(v -> {
                 Log.i(TAG, "Launching " + appName + " from " + packageName);
-                main.showAppPushDialog(appName, appIcon, packageName);
+                if (packageName.equals(withinPackage)) {
+                    withinPlayer.showGuideController();
+                } else {
+                    main.showAppPushDialog(appName, appIcon, packageName);
+                }
             });
 
             convertView.setLongClickable(true);
