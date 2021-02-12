@@ -126,7 +126,7 @@ public class LumiAccessibilityConnector {
 
     public void bringMainToFront() {
         main.getHandler().post(() -> {
-            if (main != null && !main.appHasFocus) {
+            if (main != null && !main.isAppVisibleInForeground()) {
                 main.recallToLeadMe();
             }
         });
@@ -137,6 +137,7 @@ public class LumiAccessibilityConnector {
     AccessibilityNodeInfo lastInfo = null;
 
     public boolean manageAccessibilityEvent(AccessibilityEvent event, AccessibilityNodeInfo rootInActiveWindow) {
+        boolean appInForeground = main.isAppVisibleInForeground();
         if (main == null || !main.getNearbyManager().isConnectedAsFollower()) {
             return false;
         }
@@ -166,14 +167,13 @@ public class LumiAccessibilityConnector {
                 Log.e(TAG, "SOURCE! >>>  " + event.getSource());
             }
 
-
-            if (!main.appHasFocus && event.getSource() != null && event.getSource().getPackageName().toString().contains("shakingearthdigital.vrsecardboard")) {
+            if (!appInForeground && event.getSource() != null && event.getSource().getPackageName().toString().contains(main.getAppManager().withinPackage)) {
                 withinManager.manageWithinAccess(event, rootInActiveWindow);
 
-            } else if (!main.appHasFocus && event.getSource() != null && event.getSource().getPackageName().toString().contains("youtube")) {
+            } else if (!appInForeground && event.getSource() != null && event.getSource().getPackageName().toString().contains(main.getAppManager().youtubePackage)) {
                 ytManager.manageYouTubeAccess(event, rootInActiveWindow);
 
-            } else if (main.appHasFocus && dispatcher.launchAppOnFocus == null
+            } else if (appInForeground && dispatcher.launchAppOnFocus == null
                     && (event.getEventType() == AccessibilityEvent.TYPE_VIEW_FOCUSED && event.getPackageName().toString().equals("com.android.systemui")
                     /* || event.getEventType() == AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED && event.getPackageName().toString().equals("com.android.systemui")*/)) {
                 //likely pulled down notifications while in main app
@@ -181,9 +181,9 @@ public class LumiAccessibilityConnector {
                 //main.recallToLeadMe();
                 main.collapseStatus();
 
-            } else if (main.appHasFocus && event.getEventType() == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED && event.getPackageName().toString().equals("com.lumination.leadme")) {
+            } else if (appInForeground && event.getEventType() == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED && event.getPackageName().toString().equals("com.lumination.leadme")) {
                 //if (showDebugMsg)
-                Log.i(TAG, "User RETURNED TO LEADME! [" + main.appHasFocus + "] " + event.toString());
+                Log.i(TAG, "User RETURNED TO LEADME! [" + appInForeground + "] " + event.toString());
                 //don't need to do anything really, perhaps alert guide?
                 dispatcher.alertGuideStudentOffTask();
                 waitingForStateChange = false; //reset
@@ -204,7 +204,7 @@ public class LumiAccessibilityConnector {
                     return true;
                 }
                 waitingForStateChange = false;
-                if (!main.appHasFocus) {//!main.getAppLaunchAdapter().lastApp.equals(packageName)) {
+                if (!appInForeground) {//!main.getAppLaunchAdapter().lastApp.equals(packageName)) {
                     dispatcher.launchAppOnFocus = new String[2];
                     dispatcher.launchAppOnFocus[0] = main.currentTaskPackageName;
                     dispatcher.launchAppOnFocus[1] = main.currentTaskName;
@@ -328,7 +328,7 @@ public class LumiAccessibilityConnector {
                         if (!success) {
                             if (showDebugMsg)
                                 Log.i(TAG, ">> Third try opening it... " + openNodes.size() + ", " + openButton);
-                            main.getAppManager().launchLocalApp(lastPackageName, lastAppName, true);
+                            main.getAppManager().launchLocalApp(lastPackageName, lastAppName, true, false);
                         }
                         lastAppName = null; //reset, we're done
                         return true; //all done, can exit

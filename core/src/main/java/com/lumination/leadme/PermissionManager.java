@@ -44,13 +44,13 @@ public class PermissionManager {
                 overlayPermissionGranted = true; //all granted
                 waitingForPermission = false; //no longer waiting
 
-                //Log.d(TAG, "Permission granted! " + main.getNearbyManager().isConnectedAsFollower() + ", " + main.getNearbyManager().isConnectedAsGuide());
+                Log.d(TAG, "Overlay Permission GRANTED! ");// + main.getNearbyManager().isConnectedAsFollower() + ", " + main.getNearbyManager().isConnectedAsGuide());
                 main.performNextAction();
             }
 
             @Override
             public void onPermissionDenied(List<String> deniedPermissions) {
-                //Log.d(TAG, "Overlay Permission DENIED!");
+                Log.d(TAG, "Overlay Permission DENIED!");
                 overlayPermissionGranted = false; //not all granted
                 waitingForPermission = false; //no longer waiting
             }
@@ -121,17 +121,17 @@ public class PermissionManager {
     }
 
     public void checkOverlayPermissions() {
-        //Log.d(TAG, "Checking Overlay Permissions. Currently " + overlayPermissionGranted + ", " + rejectedPermissions);
-        waitingForPermission = true;
+        Log.d(TAG, "Checking Overlay Permissions. Currently " + overlayPermissionGranted + ", " + rejectedPermissions);
         if (!isOverlayPermissionGranted()) {
+            waitingForPermission = true;
+            Log.d(TAG, "Checking Overlay Permissions #2 " + waitingForPermission);
             main.closeKeyboard();
             TedPermission.with(main)
                     .setPermissionListener(overlayPermissionListener)
                     .setPermissions(Manifest.permission.SYSTEM_ALERT_WINDOW)
                     .check();
-        }
 
-        if (!isAccessibilityGranted()) {
+        } else if (!isAccessibilityGranted()) {
             requestAccessibilitySettingsOn();
         }
     }
@@ -145,9 +145,9 @@ public class PermissionManager {
         TedPermission.with(main)
                 .setPermissionListener(miscPermissionListener)
                 .setPermissions(Manifest.permission.INTERNET, Manifest.permission.REORDER_TASKS,
+                        Manifest.permission.WAKE_LOCK, Manifest.permission.NFC,
                         Manifest.permission.ACCESS_WIFI_STATE, Manifest.permission.CHANGE_WIFI_STATE,
                         Manifest.permission.BLUETOOTH, Manifest.permission.BLUETOOTH_ADMIN,
-                        Manifest.permission.NFC,
                         Manifest.permission.EXPAND_STATUS_BAR) //only learners/students need a system alert window
                 .check();
     }
@@ -246,7 +246,8 @@ public class PermissionManager {
 
     private boolean successfulPing = false;
 
-    protected boolean isInternetConnectionAvailable(String url) {
+    protected boolean isInternetConnectionAvailable() {
+        String url = "google.com"; //some things don't ping well, so just test this for now
         ConnectivityManager connectivityManager = (ConnectivityManager) main.getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
         boolean connected = activeNetworkInfo != null && activeNetworkInfo.isConnected();
@@ -266,8 +267,7 @@ public class PermissionManager {
 
                 //wait for isReachable to return
                 Thread.sleep(1200);
-
-                connected = connected && successfulPing;
+                connected = successfulPing;
 
             } catch (Exception e) {
                 e.printStackTrace();

@@ -71,10 +71,6 @@ public class FavouritesManager extends BaseAdapter {
         this.webManager = webManager;
         this.favType = favType;
         this.maxLimit = maxLimit;
-//
-//        if (favType != FAVTYPE_APP) {
-//            webYouTubeFavView = webManager.webYouTubeFavView; //keep a reference to this here
-//        }
 
         inflater = LayoutInflater.from(main);
         activeBg = main.getResources().getDrawable(R.drawable.rounded_btn_white, null);
@@ -83,9 +79,6 @@ public class FavouritesManager extends BaseAdapter {
 
         sharedPreferences = main.getSharedPreferences(main.getResources().getString(R.string.preference_file_key), Context.MODE_PRIVATE);
         editor = sharedPreferences.edit();
-
-//        editor.clear();
-//        editor.commit();
 
         switch (favType) {
             case FAVTYPE_APP:
@@ -252,6 +245,11 @@ public class FavouritesManager extends BaseAdapter {
 
         if (icon == null) {
             icon = placeholder;
+        }
+
+        if (url.contains("/embed/")) {
+            url = webManager.cleanYouTubeURLWithoutStart(url);
+            Log.d(TAG, "FAV! " + url);
         }
 
         addToFavourites(url, title, icon);
@@ -677,7 +675,6 @@ public class FavouritesManager extends BaseAdapter {
                 } else {
                     main.showAppPushDialog(appName, appIcon, favPackage);
                 }
-                //main.getAppLaunchAdapter().launchApp(favPackage, appName, false);
             });
 
             convertView.setLongClickable(true);

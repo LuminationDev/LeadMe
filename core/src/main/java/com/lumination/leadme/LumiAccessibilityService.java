@@ -91,7 +91,7 @@ public class LumiAccessibilityService extends AccessibilityService {
     }
 
 
-    private void sendInfoBroadcast(String tagInfo) {
+    public void sendInfoBroadcast(String tagInfo) {
         //Log.w(TAG, "Sending INFO broadcast");
         Intent intent = new Intent();
         intent.setAction(BROADCAST_ACTION);

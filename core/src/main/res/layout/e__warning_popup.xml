@@ -43,7 +43,7 @@
 
         <TextView
             android:id="@+id/warning_comment"
-            android:layout_width="300dp"
+            android:layout_width="fill_parent"
             android:layout_height="wrap_content"
             android:fontFamily="@font/poppins_regular"
             android:gravity="center_horizontal"

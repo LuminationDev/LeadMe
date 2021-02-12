@@ -31,6 +31,7 @@ public class AppManager extends BaseAdapter {
     private final String TAG = "AppLauncher";
 
     public final String withinPackage = "com.shakingearthdigital.vrsecardboard";
+    public final String youtubePackage = "com.google.android.youtube";
 
     public AppManager(LeadMeMain main) {
         this.main = main;
@@ -43,12 +44,13 @@ public class AppManager extends BaseAdapter {
 
         //set up lock spinner
         lockSpinner = main.appPushDialogView.findViewById(R.id.push_spinner);
-        withinLockSpinner = withinPlayer.videoControllerDialogView.findViewById(R.id.within_push_spinner);
+        withinLockSpinner = withinPlayer.videoControllerDialogView.findViewById(R.id.push_spinner);
         String[] items = {"Lock students", "Unlock students"};
         Integer[] imgs = {R.drawable.controls_lock, R.drawable.controls_unlock};
 
         SpinnerAdapter adapter = new SpinnerAdapter(main, R.layout.row_push_spinner, items, imgs);
         lockSpinner.setAdapter(adapter);
+        lockSpinner.setSelection(1); //default to unlocked
 
         SpinnerAdapter withinAdapter = new SpinnerAdapter(main, R.layout.row_push_spinner, items, imgs);
         withinLockSpinner.setAdapter(withinAdapter);
@@ -117,11 +119,15 @@ public class AppManager extends BaseAdapter {
         Log.w(TAG, "Relaunching: " + taskType + ", " + url + ", " + packageName);
         switch (taskType) {
             case "Application":
-                launchLocalApp(packageName, appName, false);
+                launchLocalApp(packageName, appName, false, true);
                 break;
             case "VR Video":
+                if (packageName.equals(main.getAppManager().withinPackage)) {
+                    launchWithin(withinPlayer.foundURL, isStreaming);
+                    break;
+                }
             case "YouTube":
-                main.getWebManager().launchYouTube(url, urlTitle, false);
+                main.getWebManager().launchYouTube(url, urlTitle, false, main.getWebManager().getYouTubeEmbedPlayer().isVROn());
                 break;
             case "Website":
                 main.getWebManager().launchWebsite(url, urlTitle, false);
@@ -132,18 +138,20 @@ public class AppManager extends BaseAdapter {
     /**
      * used by LEARNER to launch an app as requested by LEADER
      **/
-    public void launchLocalApp(String packageName, String appName, boolean updateCurrentTask) {
+    public void launchLocalApp(String packageName, String appName, boolean updateCurrentTask, boolean relaunch) {
         //check overlay status and alert leader if there's an issue
         main.verifyOverlay();
 
         //launch it locally
         String actualAppPackage = packageName;
         Intent intent = main.getPackageManager().getLaunchIntentForPackage(packageName);
+
         if (intent == null) {
 
             if (packageName.toLowerCase().contains("browser")) {
                 //find default browser instead
                 intent = main.getWebManager().getBrowserIntent(defaultBrowserUrl);
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 actualAppPackage = intent.getPackage(); //store the ACTUAL app that is getting launched, not just what was requested
                 Log.d(TAG, "Attempting to launch default browser instead: " + packageName + " // " + actualAppPackage + " // " + defaultBrowserUrl);
 
@@ -158,13 +166,21 @@ public class AppManager extends BaseAdapter {
                 return;
             }
         }
+
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         main.startActivity(intent);
         lastApp = packageName;
+
         if (updateCurrentTask) {
-            main.updateFollowerCurrentTask(actualAppPackage, appName, "Application", "", "");
+            if (relaunch) {
+                main.updateFollowerCurrentTask(actualAppPackage, appName, main.currentTaskType, main.currentTaskURL, main.currentTaskURLTitle);
+            } else {
+                main.updateFollowerCurrentTask(actualAppPackage, appName, "Application", "", "");
+            }
         }
         Log.e(TAG, "Relaunching last: " + appName + ", " + actualAppPackage);
+
+
         main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.LAUNCH_SUCCESS + appName + ":" + main.getNearbyManager().getID() + ":" + actualAppPackage, main.getNearbyManager().getAllPeerIDs());
     }
 
@@ -190,21 +206,14 @@ public class AppManager extends BaseAdapter {
      * used by LEADER to launch an app on LEARNER devices
      **/
     public void launchApp(String packageName, String appName, boolean guideToo) {
-
-        //detect Within launch
-        if (main.isGuide && packageName.equals(withinPackage)) {
-            Log.w(TAG, "LAUNCHING WITHIN!");
-            withinPlayer.showGuideController();
-            return;
-
-        } else if (guideToo) {
+        if (guideToo) {
             //launch it locally
-            launchLocalApp(packageName, appName, true);
+            launchLocalApp(packageName, appName, true, false);
         }
 
         //update lock status
         String lockTag = LeadMeMain.LOCK_TAG;
-        if (withinLockSpinner.getSelectedItemPosition() == 1) {
+        if (lockSpinner.getSelectedItemPosition() == 1) {
             //locked by default, unlocked if selected
             lockTag = LeadMeMain.UNLOCK_TAG;
         }
@@ -224,7 +233,7 @@ public class AppManager extends BaseAdapter {
         return isStreaming;
     }
 
-    public void launchWithin(String title, boolean isStreaming) {
+    public void launchWithin(String url, boolean isStreaming) {
         this.isStreaming = isStreaming;
         videoInit = false; //reset
 
@@ -236,7 +245,7 @@ public class AppManager extends BaseAdapter {
         }
 
         //send launch request
-        main.getDispatcher().requestRemoteAppOpenWithExtra(LeadMeMain.APP_TAG, withinPackage, "Within VR", lockTag, title, isStreaming, main.getNearbyManager().getSelectedPeerIDsOrAll());
+        main.getDispatcher().requestRemoteAppOpenWithExtra(LeadMeMain.APP_TAG, withinPackage, "Within VR", lockTag, url, isStreaming, main.getNearbyManager().getSelectedPeerIDsOrAll());
     }
 
 

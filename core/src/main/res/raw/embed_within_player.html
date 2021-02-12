@@ -1,27 +1,11 @@
 <!DOCTYPE html>
 
 <html style="height:100%">
-    <head>
-        <script>
-	function handleOrientation(event) {
-		Android.showToast("Here! You moved!");          
-	}
-	
-	window.addEventListener("devicemotion", handleOrientation, true);
-	window.addEventListener("deviceorientation", handleOrientation, true);
-    window.addEventListener("MozOrientation", handleOrientation, true);
-	
-	Android.showToast("Here! Loaded!");
-	
-
-        </script>
-    </head>
     <body style="margin: 0; padding: 0; height:100%;">
-        <!-- 1. The <iframe> (and video player) will replace this <div> tag. -->
         <iframe
                 id="player"
                 allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture, gamepad"
-                src="https://www.with.in/experiences/all"
+                src="https://www.with.in/experiences"
                 style="border: 0; margin: 0; padding: 0; width:100%; height:100%;"></iframe>
     </body>
 </html>

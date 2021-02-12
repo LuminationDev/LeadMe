@@ -338,10 +338,11 @@ public class NearbyPeersManager {
                 startDiscovering();
                 break;
             case ADVERTISING:
-                if (isDiscovering()) {
-                    stopDiscovering();
-                }
+//                if (isDiscovering()) {
+//                    stopDiscovering();
+//                }
                 //disconnectFromAllEndpoints();
+                startDiscovering();
                 startAdvertising();
                 break;
             case CONNECTED:
@@ -392,7 +393,7 @@ public class NearbyPeersManager {
                         back_btn.setOnClickListener(v -> disconnectPrompt.hide());
                     }
 
-                    if (main.appHasFocus && main.isReadyToConnect) {
+                    if (main.isAppVisibleInForeground() && main.isReadyToConnect) {
                         if (disconnectPrompt == null) {
                             disconnectPrompt = new AlertDialog.Builder(main)
                                     .setView(everyoneDisconnectedView)

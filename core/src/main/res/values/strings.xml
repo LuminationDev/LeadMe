@@ -90,20 +90,15 @@
     <string name="websites">Websites</string>
     <string name="add">Add</string>
     <string name="videos">Videos</string>
-    <string name="remove">Remove</string>
     <string name="no_favourites_saved">No favourites saved.</string>
-    <string name="clear_all">Clear All</string>
     <string name="clear">Clear</string>
     <string name="preview_unavailable">Preview unavailable</string>
     <string name="website_title">Website title</string>
     <string name="add_to_favourites">Add to favourites</string>
     <string name="website_url">Website URL</string>
     <string name="will_open_in_your_default_browser">Will open in your default browser</string>
-    <string name="youtube_vr_video">YouTube Video</string>
-    <string name="will_automatically_load_in_vr_mode">Will automatically load in YouTube</string>
     <string name="push_to_selected">Push to selected</string>
     <string name="preview_image">Preview image</string>
-    <string name="preview_type_icon">Preview type icon</string>
     <string name="globe_icon">Globe icon</string>
     <string name="waiting_for_learners">Waiting for learners...</string>
     <string name="unlock">Unlock</string>
@@ -111,16 +106,6 @@
     <string name="alerts">Alerts</string>
     <string name="lock">Lock</string>
     <string name="block">Block</string>
-    <string name="currently_streaming">Currently Streaming:</string>
-    <string name="video_title">Video title</string>
-    <string name="more">More</string>
     <string name="new_video">New video</string>
-    <string name="_00_00">00:00</string>
-    <string name="play_from">Play From</string>
-    <string name="mute">Mute</string>
-    <string name="unmute">Unmute</string>
-    <string name="captions">Captions</string>
-    <string name="vr_mode_off">VR off</string>
-    <string name="vr_mode_on">VR on</string>
 
 </resources>

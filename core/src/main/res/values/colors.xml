@@ -7,12 +7,10 @@
     <!-- Marissa added -->
     <color name="transparent">#00FFFFFF</color>
     <color name="gradient_grey">#12000000</color>
-    <color name="error_alert">#E40000</color>
     <color name="selected_blue">#800094D3</color>
     <color name="selected_blue_border">#0094D3</color>
     <color name="leader_bg">#FFF7EB</color>
     <color name="learner_bg">#E9EEFF</color>
-    <color name="learner_bg_old">#F3F0FD</color>
     <color name="leadme_bg_highlight">#F9FAFB</color>
     <!--color name="locked_grey">#28000000</color-->
 

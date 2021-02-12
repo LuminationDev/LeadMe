@@ -315,10 +315,10 @@ public class ConnectedLearnersAdapter extends BaseAdapter {
                         main.getNearbyManager().disconnectStudent(lastClickedID);
                         main.getConnectedLearnersAdapter().removeStudent(lastClickedID);
                         main.getConnectedLearnersAdapter().refresh();
-                        logoutPrompt.hide();
+                        logoutPrompt.dismiss();
                     });
 
-                    back_btn.setOnClickListener(v1 -> logoutPrompt.hide());
+                    back_btn.setOnClickListener(v1 -> logoutPrompt.dismiss());
                 }
 
                 if (logoutPrompt == null) {
@@ -345,10 +345,10 @@ public class ConnectedLearnersAdapter extends BaseAdapter {
                             Log.d(TAG, "Removing student: " + lastClickedID);
                             main.getConnectedLearnersAdapter().removeStudent(lastClickedID);
                             main.getConnectedLearnersAdapter().refresh();
-                            disconnectPrompt.hide();
+                            disconnectPrompt.dismiss();
                         });
 
-                        back_btn.setOnClickListener(v1 -> disconnectPrompt.hide());
+                        back_btn.setOnClickListener(v1 -> disconnectPrompt.dismiss());
                     }
 
                     if (disconnectPrompt == null) {

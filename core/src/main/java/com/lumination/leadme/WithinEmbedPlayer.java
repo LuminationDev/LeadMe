@@ -12,6 +12,7 @@ import android.webkit.WebResourceResponse;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -38,15 +39,17 @@ public class WithinEmbedPlayer {
 
     private String controllerURL = "", controllerTitle = "";
     private AlertDialog videoControlDialog;
-    View videoControllerDialogView;
+    private Button pushBtn;
+    protected View videoControllerDialogView;
     private WebView controllerWebView;
-    private TextView vrModeBtn, captionsBtn, expander;
+    private TextView streamBtn, downloadBtn;
     private String attemptedURL = "";
     private boolean firstPlay = true;
     boolean pageLoaded = false;
 
+    private boolean stream = true;
 
-    LeadMeMain main;
+    private LeadMeMain main;
 
     /**
      * USEFUL LINKS
@@ -57,37 +60,103 @@ public class WithinEmbedPlayer {
 
     public WithinEmbedPlayer(LeadMeMain main) {
         this.main = main;
-        videoControllerDialogView = View.inflate(main, R.layout.e__within_popup, null);
+        videoControllerDialogView = View.inflate(main, R.layout.f__within_popup, null);
+
+        streamBtn = videoControllerDialogView.findViewById(R.id.stream_btn);
+        streamBtn.setOnClickListener(v -> {
+            stream = true;
+            toggleStreamBtn();
+        });
+
+        downloadBtn = videoControllerDialogView.findViewById(R.id.download_btn);
+        downloadBtn.setOnClickListener(v -> {
+            stream = false;
+            toggleStreamBtn();
+        });
+
+        pushBtn = videoControllerDialogView.findViewById(R.id.push_btn);
+        pushBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+            }
+        });
+
         controllerWebView = videoControllerDialogView.findViewById(R.id.within_webview);
         internetUnavailableMsg = videoControllerDialogView.findViewById(R.id.no_internet);
         internetUnavailableMsg.setOnClickListener(v -> loadVideoGuideURL(controllerURL));
 
         controllerWebView.setWebChromeClient(new WebChromeClient());
         controllerWebView.getSettings().setJavaScriptEnabled(true); // enable javascript
-        controllerWebView.getSettings().setJavaScriptCanOpenWindowsAutomatically(true);
         controllerWebView.canGoBack();
         controllerWebView.canGoForward();
-        controllerWebView.getSettings().setDomStorageEnabled(true);
         controllerWebView.addJavascriptInterface(this, "Android");
-//        String ua = controllerWebView.getSettings().getUserAgentString();
-//        Log.w(TAG, "User agent? " +ua+" vs "+System.getProperty("http.agent"));
-//        controllerWebView.getSettings().setUserAgentString(ua);
 
-        controllerWebView.getSettings().setAllowFileAccess(true);
-        controllerWebView.getSettings().setAllowUniversalAccessFromFileURLs(true);
-        controllerWebView.getSettings().setPluginState(WebSettings.PluginState.ON);
-        controllerWebView.getSettings().setAllowContentAccess(true);
-        controllerWebView.getSettings().setLoadsImagesAutomatically(true);
+
+        //TODO work out which of these is needed to show the video preview
+        //controllerWebView.getSettings().setDomStorageEnabled(true);
+        //controllerWebView.getSettings().setJavaScriptCanOpenWindowsAutomatically(true);
+//        controllerWebView.getSettings().setAllowFileAccess(true);
+//        controllerWebView.getSettings().setAllowUniversalAccessFromFileURLs(true);
+//        controllerWebView.getSettings().setPluginState(WebSettings.PluginState.ON);
+//        controllerWebView.getSettings().setAllowContentAccess(true);
+//        controllerWebView.getSettings().setLoadsImagesAutomatically(true);
+
+        //speed it up
+        controllerWebView.getSettings().setRenderPriority(WebSettings.RenderPriority.HIGH);
+        controllerWebView.getSettings().setCacheMode(WebSettings.LOAD_NO_CACHE);
+        controllerWebView.setLayerType(View.LAYER_TYPE_HARDWARE, null);
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
             controllerWebView.getSettings().setAllowFileAccessFromFileURLs(true);
         }
         controllerWebView.getSettings().setJavaScriptCanOpenWindowsAutomatically(true);
 
-
-        //controllerWebView.getSettings().setUserAgentString("");
+        setDesktopMode(controllerWebView, true);
 
         setupGuideVideoControllerWebClient();
         setupGuideVideoControllerButtons();
+    }
+
+    //String newUA = "Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.9.0.4) Gecko/20100101 Firefox/4.0";
+    public void setDesktopMode(WebView webView, boolean enabled) {
+        String newUserAgent = webView.getSettings().getUserAgentString();
+        if (enabled) {
+            try {
+                String ua = webView.getSettings().getUserAgentString();
+                String androidOSString = webView.getSettings().getUserAgentString().substring(ua.indexOf("("), ua.indexOf(")") + 1);
+                newUserAgent = webView.getSettings().getUserAgentString().replace(androidOSString, "(X11; Linux x86_64)");
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        } else {
+            newUserAgent = null;
+        }
+
+        webView.getSettings().setUserAgentString(newUserAgent);
+        webView.reload();
+        // webView.getSettings().setUseWideViewPort(enabled);
+        //webView.getSettings().setLoadWithOverviewMode(enabled);
+//        if(enabled) {
+//            webView.loadUrl(foundURL);
+//        } else {
+//        }
+    }
+
+    private void toggleStreamBtn() {
+        if (stream) {
+            streamBtn.setBackground(main.getResources().getDrawable(R.drawable.bg_passive_right, null));
+            downloadBtn.setBackground(main.getResources().getDrawable(R.drawable.bg_passive_left_white, null));
+            streamBtn.setElevation(2);
+            downloadBtn.setElevation(3);
+
+        } else {
+            streamBtn.setBackground(main.getResources().getDrawable(R.drawable.bg_passive_right_white, null));
+            downloadBtn.setBackground(main.getResources().getDrawable(R.drawable.bg_passive_left, null));
+            streamBtn.setElevation(3);
+            downloadBtn.setElevation(2);
+        }
+
     }
 
     /**
@@ -124,7 +193,7 @@ public class WithinEmbedPlayer {
     private final String urlPrefix = "https://with.in/watch/";
     private final String foundPrefix = "https://cms.with.in/v1/content/";
     private final String foundSuffix = "?platform=webplayer&list=Main-Web";
-    private String foundURL = "";
+    String foundURL = "";
     private String foundTitle = "";
 
     private void setupGuideVideoControllerWebClient() {
@@ -143,6 +212,7 @@ public class WithinEmbedPlayer {
                     foundTitle = url.replace(foundPrefix, "").replace(foundSuffix, "");
                     foundURL = urlPrefix + foundTitle;
                     Log.w(TAG, "EXTRACTED! " + foundURL);
+                    controllerWebView.scrollTo(0, 200);
                 } else if (url.startsWith("https://cms.with.in/v1/category/all?page=")) {
                     view.stopLoading();
                 }
@@ -151,14 +221,13 @@ public class WithinEmbedPlayer {
             public void onPageFinished(WebView view, String url) {
                 firstPlay = true;
                 pageLoaded = true;
-                //stopVideo(); //stop it cleanly
-                Log.d(TAG, "WITHIN GUIDE] onPageFinished: " + url + " (" + attemptedURL + ")");
+                Log.d(TAG, "WITHIN GUIDE] onPageFinished: " + url + " (" + foundURL + ")");
             }
 
             @Override
             public void onReceivedError(WebView view, WebResourceRequest request, WebResourceError error) {
                 super.onReceivedError(view, request, error);
-                Log.d(TAG, "WITHIN GUIDE] Received error: " + error.toString());
+                Log.d(TAG, "WITHIN GUIDE] Received error: " + error.getErrorCode() + ", " + error.getDescription());
             }
 
             @Override
@@ -167,35 +236,24 @@ public class WithinEmbedPlayer {
                 Log.d(TAG, "WITHIN GUIDE] Received HTTP error: " + errorResponse.getReasonPhrase() + ", " + errorResponse.getData());
                 Log.d(TAG, "WITHIN GUIDE] ER " + request.toString() + ", " + request.getMethod() + ", " + request.getRequestHeaders());
             }
-
-//            @Override
-//            public void onReceivedSslError(WebView view, SslErrorHandler handler, SslError error) {
-//                super.onReceivedSslError(view, handler, error);
-//                Log.d(TAG, "WITHIN GUIDE] Received SSL error: " + error.toString());
-//                handler.proceed();
-//            }
         });
     }
 
     private void setupGuideVideoControllerButtons() {
         //set up standard dialog buttons
-        videoControllerDialogView.findViewById(R.id.web_back_btn).setOnClickListener(v -> controllerWebView.goBack());
+        videoControllerDialogView.findViewById(R.id.web_back_btn).setOnClickListener(v -> {
+            controllerWebView.goBack();
+            foundURL = "";
+        });
 
-        videoControllerDialogView.findViewById(R.id.stream_within).setOnClickListener(v -> {
+        videoControllerDialogView.findViewById(R.id.push_btn).setOnClickListener(v -> {
                     if (foundURL.isEmpty()) {
                         showToast("No experience selected!");
                         return;
                     }
-                    main.getAppManager().launchWithin(foundURL, true);
-                }
-        );
-
-        videoControllerDialogView.findViewById(R.id.download_within).setOnClickListener(v -> {
-                    if (foundURL.isEmpty()) {
-                        showToast("No experience selected!");
-                        return;
-                    }
-                    main.getAppManager().launchWithin(foundURL, false);
+                    main.getAppManager().launchWithin(foundURL, stream);
+                    main.updateFollowerCurrentTask(main.getAppManager().withinPackage, "Within VR", "VR Video", foundURL, foundTitle);
+                    //String packageName, String appName, String taskType, String url, String urlTitle)
                 }
         );
 
@@ -214,6 +272,16 @@ public class WithinEmbedPlayer {
                     .setView(videoControllerDialogView)
                     .create();
         }
+
+        //update buttons
+        if (!main.getConnectedLearnersAdapter().someoneIsSelected()) {
+            //if no-one is selected, prompt to push to everyone
+            pushBtn.setText(main.getResources().getString(R.string.push_this_to_everyone));
+        } else {
+            //if someone is selected, prompt to push to selected
+            pushBtn.setText(main.getResources().getString(R.string.push_this_to_selected));
+        }
+
         pageLoaded = false; //reset flag
         loadVideoGuideURL(controllerURL);
         foundURL = ""; //clean this
@@ -227,7 +295,7 @@ public class WithinEmbedPlayer {
     private void loadVideoGuideURL(String url) {
         resetControllerState();
         attemptedURL = url;
-        if (main.getPermissionsManager().isInternetConnectionAvailable(attemptedURL)) {
+        if (main.getPermissionsManager().isInternetConnectionAvailable()) {
             internetUnavailableMsg.setVisibility(View.GONE);
             controllerWebView.setVisibility(View.VISIBLE);
             //controllerWebView.loadUrl("https://get.webgl.org/");

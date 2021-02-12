@@ -22,7 +22,7 @@
           function onYouTubeIframeAPIReady() {
             player = new YT.Player('player', {
               videoId: 'PLACEHOLDER_ID',
-              playerVars: { 'cc_load_policy': 1, 'cc_lang_pref':'en', 'controls': 0, 'modestbranding' : 1, 'rel' : 0 },
+              playerVars: { 'start' : PLACEHOLDER_START, 'cc_load_policy': 1, 'cc_lang_pref':'en', 'controls': 0, 'modestbranding' : 1, 'rel' : 0 },
               events: {
                 'onReady': onPlayerReady,
                 'onStateChange': onPlayerStateChange,
@@ -62,21 +62,21 @@
           var playerCurrentTime;
           function onPlayerStateChange(event) {
             Android.updateState(event.data); //keeps everything in sync
-            if (event.data == YT.PlayerState.ENDED) {
+            if (event.data == YT.PlayerState.UNSTARTED){
+                var playerTotalTime = player.getDuration();
+                Android.setTotalTime(parseInt(playerTotalTime));
+
+            } else if (event.data == YT.PlayerState.ENDED) {
                //let Java know where we got up to so UI can be updated
                Android.setCurrentTime(parseInt(player.getCurrentTime()));
                clearTimeout(mytimer);
                stopVideo();
 
             } else if (event.data == YT.PlayerState.PLAYING){
-                var playerTotalTime = player.getDuration();
-                Android.setTotalTime(parseInt(playerTotalTime));
-
                   mytimer = setInterval(function() {
                     playerCurrentTime = player.getCurrentTime();
-                    var playerTimeDifference = (playerCurrentTime / playerTotalTime) * 100;
-                    Android.setCurrentTime(parseInt(player.getCurrentTime()));
-                    Android.onData(playerTimeDifference);
+                    //var playerTimeDifference = (playerCurrentTime / playerTotalTime) * 100;
+                    Android.setCurrentTime(parseInt(playerCurrentTime));
                   }, 1000);
 			} else {
 			  clearTimeout(mytimer);
@@ -84,7 +84,7 @@
           }
 
           function seekTo(url, time){
-            if(time > playerCurrentTime){
+            if(!player.getCurrentTime() || time > player.getCurrentTime()){
                 player.loadVideoByUrl(url, time);
             } else {
                 player.seekTo(time, true);
@@ -119,6 +119,7 @@
           function stopVideo() {
             player.stopVideo();
           }
+
 
 
 

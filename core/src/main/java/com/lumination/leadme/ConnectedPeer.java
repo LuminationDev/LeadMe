@@ -109,7 +109,7 @@ public class ConnectedPeer {
         String res = "";
 
         if (status == STATUS_ERROR) {
-            res += "• DISCONNECTED FROM GUIDE\n";
+            res += "• Disconnected from guide\n";
         }
         if (!onTask && !hiddenAlerts.contains("onTask")) {
             res += "• May be off task\n";

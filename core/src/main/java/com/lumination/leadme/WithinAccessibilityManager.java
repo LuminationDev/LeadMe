@@ -24,7 +24,6 @@ public class WithinAccessibilityManager {
     private static final int VIEW_PHONE = 1;
     private static final int VIEW_DEFAULT = 0; //vr by default
 
-
     private int currentState = STATE_UNSTARTED;
     private int currentMode = MODE_DEFAULT;
     private int currentView = VIEW_DEFAULT;
@@ -108,7 +107,7 @@ public class WithinAccessibilityManager {
         }
 
         String[] targetPhrases = {"Stream", "Download"};
-        String[] exclusionPhrases = {"YOU HAVEN'T DOWNLOADED"};
+        String[] exclusionPhrases = {"YOU HAVEN'T DOWNLOADED", "Streaming", "Preparing"};
         if (screenContainsPhrases(rootInActiveWindow, targetPhrases, exclusionPhrases)) {
             Log.w(TAG, "[STREAM/DOWNLOAD] Phrases are present! " + currentMode);
             if (currentMode == MODE_DOWNLOAD) {
@@ -130,18 +129,6 @@ public class WithinAccessibilityManager {
                 main.tapBounds(playRect.centerX(), playRect.centerY());
             }
         }
-
-
-        //recursiveCollect(rootInActiveWindow, 0);
-
-//        ArrayList<AccessibilityNodeInfo> menuNodes = connector.collectChildren(event.getSource(), menuPhrases, 0);
-//        if (menuNodes.isEmpty()) {
-//            Log.w(TAG, "WITHIN: No nodes for " + sequence[progress] + "!");
-////            if(progress < sequence.length) {
-////                progress++;
-////                manageWithinAccess(event, rootInActiveWindow);
-////            }
-//        }
     }
 
 

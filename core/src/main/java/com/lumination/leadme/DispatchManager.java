@@ -331,8 +331,9 @@ public class DispatchManager {
                         break;
 
                     } else if (action.startsWith(LeadMeMain.LAUNCH_YT)) {
-                        String[] split = action.split(":::", 3);
-                        main.getWebManager().launchYouTube(split[1], split[2], true);
+                        String[] split = action.split(":::", 4);
+                        main.getWebManager().launchYouTube(split[1], split[2], split[3].equals("true"), true);
+                        Log.w(TAG, action + "||" + split[1] + ", " + split[2] + ", " + split[3] + "|");
                         break;
 
                     } else {
@@ -357,7 +358,7 @@ public class DispatchManager {
         if (launchAppOnFocus != null) {
             final String[] tmp = launchAppOnFocus;
             launchAppOnFocus = null; //reset
-            main.getAppManager().launchLocalApp(tmp[0], tmp[1], true);
+            main.getAppManager().launchLocalApp(tmp[0], tmp[1], true, false);
         }
     }
 
@@ -375,7 +376,6 @@ public class DispatchManager {
 
         Log.d(TAG, "Received in OpenApp!: " + tag + ", " + packageName + ", " + appName + ", " + lockTag + ", " + extra + ", " + streaming + " vs " + main.getAppManager().lastApp);
         if (tag != null && tag.equals(LeadMeMain.APP_TAG)) {
-
             if (lockTag.equals(LeadMeMain.LOCK_TAG)) {
                 //I've been selected to toggle student lock
                 main.blackout(false);
@@ -392,12 +392,13 @@ public class DispatchManager {
                         main.getNearbyManager().getAllPeerIDs());
             }
 
+            boolean appInForeground = main.isAppVisibleInForeground();
             if (!extra.isEmpty()) {
                 main.getAppManager().isStreaming = Boolean.parseBoolean(streaming);
                 Intent appIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(extra));
                 appIntent.setPackage(packageName);
 
-                if (!main.appHasFocus) {
+                if (!appInForeground) {
                     main.appIntentOnFocus = appIntent;
                     main.getLumiAccessibilityConnector().bringMainToFront();
                 } else {
@@ -405,7 +406,7 @@ public class DispatchManager {
                 }
                 Log.d(TAG, "TRYING TO LAUNCH WITHIN APP FOR " + extra + ", " + streaming);
 
-            } else if (!main.appHasFocus) {//!main.getAppLaunchAdapter().lastApp.equals(packageName)) {
+            } else if (!appInForeground) {//!main.getAppLaunchAdapter().lastApp.equals(packageName)) {
                 Log.d(TAG, "NEED FOCUS!");
                 //only needed if it's not what we've already got open
                 //TODO make this more robust, check if it's actually running
@@ -416,7 +417,7 @@ public class DispatchManager {
             } else {
                 Log.d(TAG, "HAVE FOCUS!");
                 launchAppOnFocus = null; //reset
-                main.getHandler().post(() -> main.getAppManager().launchLocalApp(packageName, appName, true));
+                main.getHandler().post(() -> main.getAppManager().launchLocalApp(packageName, appName, true, false));
             }
             return true;
         } else {
