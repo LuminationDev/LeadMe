@@ -3,6 +3,7 @@ package com.lumination.leadme;
 import android.content.Intent;
 import android.graphics.Rect;
 import android.os.Build;
+import android.os.Bundle;
 import android.util.Log;
 import android.view.accessibility.AccessibilityEvent;
 import android.view.accessibility.AccessibilityNodeInfo;
@@ -45,8 +46,8 @@ public class LumiAccessibilityConnector {
         withinManager.manageWithinAccess(event, node);
     }
 
-    public void clearCuedActions() {
-        ytManager.clearCuedActions();
+    public void resetState() {
+        ytManager.resetState();
     }
 
     public void cueYouTubeAction(String actionStr) {
@@ -142,10 +143,12 @@ public class LumiAccessibilityConnector {
             return false;
         }
 
-        if (event == null && lastEvent != null) {
+        if (event == null && rootInActiveWindow == null) { //lastEvent != null) {
             Log.w(TAG, "Revisiting previous event...");
             event = lastEvent;
             rootInActiveWindow = lastInfo;
+            lastInfo = null; //we probably don't want to revisit these too many times
+            lastEvent = null; //we probably don't want to revisit these too many times
 
         } else if (event == null && rootInActiveWindow == null) {
             Log.e(TAG, "No events here to act on");
@@ -163,7 +166,7 @@ public class LumiAccessibilityConnector {
                 if (event != null && event.getSource() != null) {
                     event.getSource().getBoundsInScreen(new Rect());
                 }
-                Log.e(TAG, "SOMETHING! " + event.getPackageName() + ", " + event.getClassName() + ", " + event.getText() + ", " + event.getAction() + ", " + bounds);
+                Log.e(TAG, "SOMETHING! " + AccessibilityEvent.eventTypeToString(event.getEventType()) + ", " + event.getPackageName() + ", " + event.getClassName() + ", " + event.getText() + ", " + event.getAction() + ", " + bounds);
                 Log.e(TAG, "SOURCE! >>>  " + event.getSource());
             }
 
@@ -394,9 +397,15 @@ public class LumiAccessibilityConnector {
                     break;
 
                 case LumiAccessibilityService.EVENT_RECEIVED:
+
                     if (main.getNearbyManager().isConnectedAsFollower() || main.getNearbyManager().isConnectedAsGuide()) {
-                        AccessibilityEvent evt = intent.getParcelableExtra(LumiAccessibilityService.EVENT_OBJ);
-                        AccessibilityNodeInfo root = intent.getParcelableExtra(LumiAccessibilityService.EVENT_ROOT);
+                        Bundle data = intent.getExtras();
+                        Object one = data.getString(LumiAccessibilityService.INFO_TAG);
+                        Object two = data.getParcelable(LumiAccessibilityService.EVENT_OBJ);
+                        Object three = data.getParcelable(LumiAccessibilityService.EVENT_ROOT);
+
+                        AccessibilityEvent evt = (AccessibilityEvent) two;
+                        AccessibilityNodeInfo root = (AccessibilityNodeInfo) three;
                         manageAccessibilityEvent(evt, root);
                     }
                     break;

@@ -96,6 +96,14 @@
                 android:orientation="horizontal"
                 android:showDividers="middle">
 
+                <ImageView
+                    android:id="@+id/padding"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_vertical"
+                    android:src="@drawable/close"
+                    android:visibility="invisible" />
+
                 <EditText
                     android:id="@+id/codeInput1"
                     android:layout_width="@dimen/code_textbox_size"
@@ -191,6 +199,13 @@
                     android:textColorHint="@color/leadme_medium_grey"
                     android:textSize="16sp"
                     android:visibility="visible"></EditText>
+
+                <ImageView
+                    android:id="@+id/clear_code_btn"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_vertical"
+                    android:src="@drawable/close" />
 
 
             </LinearLayout>

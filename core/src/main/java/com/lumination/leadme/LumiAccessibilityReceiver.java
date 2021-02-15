@@ -10,7 +10,7 @@ public class LumiAccessibilityReceiver extends BroadcastReceiver {
 
     @Override
     public void onReceive(Context context, Intent intent) {
-        //Log.d(TAG, "Received event from LumiAccessibilityService! Broadcasting it to LeadMeMain.");
+        //Log.d(TAG, "Received event from LumiAccessibilityService! Broadcasting it to LeadMeMain. "+ intent.getExtras());
         Intent i = new Intent(LumiAccessibilityConnector.PROPAGATE_ACTION);
         i.putExtras(intent.getExtras());
         context.sendBroadcast(i);

@@ -155,6 +155,7 @@ public class WebManager {
 
             //store the title
             pushTitle = title;
+            Log.e(TAG, "CALLBACK] Got a title! " + pushTitle);
 
             //update preview
             previewTitle.setText(title);
@@ -226,11 +227,15 @@ public class WebManager {
 
     private void setupViews() {
         webYouTubeFavView.findViewById(R.id.yt_add_btn).setOnClickListener(v -> {
+            isYouTube = true;
+            Log.w(TAG, "YouTube add! " + isYouTube);
             showWebLaunchDialog(true);
             urlYtFavDialog.hide();
         });
 
         webYouTubeFavView.findViewById(R.id.url_add_btn).setOnClickListener(v -> {
+            isYouTube = false;
+            Log.w(TAG, "URL add! " + isYouTube);
             showWebLaunchDialog(true);
             urlYtFavDialog.hide();
         });
@@ -378,7 +383,7 @@ public class WebManager {
         this.freshPlay = freshPlay;
         if (freshPlay) {
             //also reset the state
-            main.getLumiAccessibilityConnector().clearCuedActions();
+            main.getLumiAccessibilityConnector().resetState();
         }
     }
 
@@ -445,7 +450,7 @@ public class WebManager {
         pushURL = url;
         freshPlay = true;
         lastWasGuideView = false;
-        main.getLumiAccessibilityConnector().clearCuedActions();
+        main.getLumiAccessibilityConnector().resetState();
         new Thread(() -> {
             if (!main.getPermissionsManager().isInternetConnectionAvailable()) {
                 Log.w(TAG, "No internet connection in LaunchWebsite");
@@ -602,10 +607,21 @@ public class WebManager {
 
         pushURL = url;
         controllerURL = url;
-        pushTitle = getYouTubeFavouritesManager().getTitle(url);
+
+        if (isYouTube) {
+            pushTitle = getYouTubeFavouritesManager().getTitle(url);
+            previewDialogView.findViewById(R.id.preview_youtube).setVisibility(View.VISIBLE);
+            previewDialogView.findViewById(R.id.preview_web).setVisibility(View.GONE);
+        } else {
+            pushTitle = getUrlFavouritesManager().getTitle(url);
+            previewDialogView.findViewById(R.id.preview_web).setVisibility(View.VISIBLE);
+            previewDialogView.findViewById(R.id.preview_youtube).setVisibility(View.GONE);
+        }
+
         if (pushTitle == null && !previewTitle.getText().toString().equals("Website title")) {
             pushTitle = previewTitle.getText().toString();
         }
+
 
         //set up preview to appear correctly
         if (adding_to_fav) {
@@ -714,18 +730,13 @@ public class WebManager {
         main.closeKeyboard();
         main.hideSystemUI();
 
-
-        String finalUrl = url;
         new Thread(() -> {
             if (!main.getPermissionsManager().isInternetConnectionAvailable()) {
                 Log.w(TAG, "No internet connection in showPreview");
                 main.getHandler().post(() -> {
-                    //Toast.makeText(main, "Can't display preview, no Internet connection.", Toast.LENGTH_SHORT).show();
                     main.showWarningDialog("No Internet Connection",
                             "Internet based functions are unavailable at this time. " +
                                     "Please check your WiFi connection and try again.");
-//                        main.getDispatcher().alertGuidePermissionGranted(LeadMeMain.STUDENT_NO_INTERNET, false);
-//                        hidePreviewDialog();
                 });
             }
         }).start();
@@ -740,11 +751,22 @@ public class WebManager {
             url = URLUtil.guessUrl(url); //do a bit more checking/auto-fixing
         }
 
+
+        String youTubeId = getYouTubeID(url);
+        if (!youTubeId.isEmpty()) {
+            isYouTube = true;
+        }
+
         //hide preview image and title
         previewProgress.setVisibility(View.VISIBLE);
         previewMessage.setVisibility(View.GONE);
         previewImage.setVisibility(View.GONE);
         previewTitle.setVisibility(View.GONE);
+
+        //reset these
+        previewTitle.setText("");
+        previewMessage.setText("");
+        previewImage.setImageDrawable(null);
 
         Drawable preview = null;
         String title = null;
@@ -760,7 +782,6 @@ public class WebManager {
             //generate correct information
             generatingPreview = true;
             textCrawler.makePreview(linkPreviewCallback, url);
-
         }
 
         if (title != null) {
@@ -776,8 +797,8 @@ public class WebManager {
             previewImage.invalidate(); //refresh
         }
 
-        String youTubeId = getYouTubeID(url);
-        if (youTubeId.length() > 0) {
+        Log.w(TAG, "Is it a youtube preview? " + youTubeId);
+        if (!youTubeId.isEmpty()) {
             hideWebsiteLaunchDialog();
             showYouTubePreview(url);
         } else {
@@ -876,10 +897,16 @@ public class WebManager {
 
     public void launchYouTube(String url, String urlTitle, boolean vrOn, boolean updateTask) {
         Log.w(TAG, "Launching: " + url + ", " + urlTitle);
+        String cleanURL = cleanYouTubeURL(url);
+        if (cleanURL.equals(pushURL)) {
+            Log.e(TAG, "This is what we're already playing - ignoring it!");
+            return;
+        }
+
         freshPlay = true;
-        main.getLumiAccessibilityConnector().clearCuedActions();
+        pushURL = cleanURL;
         pushTitle = urlTitle;
-        pushURL = cleanYouTubeURL(url);
+        main.getLumiAccessibilityConnector().resetState();
 
         new Thread(() -> {
             if (!main.getPermissionsManager().isInternetConnectionAvailable()) {
@@ -906,6 +933,8 @@ public class WebManager {
             Log.e(TAG, "No URL to push!");
             return;
         }
+
+        textCrawler.makePreview(linkPreviewCallback, pushURL);
 
         main.unMuteAudio(); //turn sound back on, in case muted earlier
         Intent appIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(pushURL));
@@ -1000,7 +1029,6 @@ public class WebManager {
     private void buildAndShowSearchDialog() {
         hideWebsiteLaunchDialog();
 
-
         //placeholder URL for testing connection
         String finalUrl = "https://google.com";
         new Thread(() -> {
@@ -1082,6 +1110,8 @@ public class WebManager {
             searchDialog.show();
         }
 
+
+        Log.w(TAG, "Is this from YouTube? " + isYouTube);
         if (isYouTube) {
             //default to YouTube search
             searchSpinner.setSelection(1);
@@ -1089,6 +1119,7 @@ public class WebManager {
             //default to web search
             searchSpinner.setSelection(0);
         }
+
         populateSearch();
     }
 

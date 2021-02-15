@@ -444,6 +444,17 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             readyBtn = loginDialogView.findViewById(R.id.connect_btn);
         }
 
+        loginDialogView.findViewById(R.id.clear_code_btn).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                code1.getText().clear();
+                code2.getText().clear();
+                code3.getText().clear();
+                code4.getText().clear();
+                code1.requestFocus();
+            }
+        });
+
         loginDialogView.findViewById(R.id.close_login_alert_btn).setOnClickListener(v -> {
             if (!codeEntered) {
                 code1.getText().clear();
@@ -762,7 +773,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         //Toast.makeText(this, "LC Resume", Toast.LENGTH_LONG).show();
         Log.w(TAG, "LC Resume // " + getDispatcher().hasDelayedLaunchContent());
         appHasFocus = true;
-        getLumiAccessibilityConnector().clearCuedActions(); //reset
+        getLumiAccessibilityConnector().resetState(); //reset
 
         manageFocus();
 
@@ -810,7 +821,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             accessibilityReceiver = new BroadcastReceiver() {
                 @Override
                 public void onReceive(Context context, Intent intent) {
-                    Log.d(TAG, "Received rebroadcast intent: " + intent);
+                    //Log.d(TAG, "Received rebroadcast intent [2]: " + intent+", "+intent.getExtras());
                     getLumiAccessibilityConnector().triageReceivedIntent(intent);
                 }
             };
@@ -1009,7 +1020,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     public void onCreate(Bundle savedInstanceState) {
         //onCreate can get called when device rotated, keyboard opened/shut, etc
         super.onCreate(savedInstanceState);
-        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         powerManager = (PowerManager) getSystemService(POWER_SERVICE);
         Log.w(TAG, "On create! " + init);
 
@@ -1054,7 +1064,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         accessibilityReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
-                //Log.d(TAG, "Received rebroadcast intent: " + intent);
+                //Log.d(TAG, "Received rebroadcast intent [1]: " + intent+", "+intent.getExtras());
                 getLumiAccessibilityConnector().triageReceivedIntent(intent);
             }
         };
@@ -2117,7 +2127,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
         if (!getWebManager().lastWasGuideView) {
             Log.w(TAG, getWebManager().lastWasGuideView + ", " + getWebManager().launchingVR);
-            getLumiAccessibilityConnector().clearCuedActions(); //reset YouTube if it's happening
+            getLumiAccessibilityConnector().resetState(); //reset YouTube if it's happening
         }
 
         Intent intent = new Intent(this, LeadMeMain.class);
@@ -2190,6 +2200,8 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         if (wakeLock.isHeld()) {
             wakeLock.release(); //release the wakeLock when disconnected
         }
+
+        getLumiAccessibilityConnector().resetState();
 
         cleanUpDialogs();
 

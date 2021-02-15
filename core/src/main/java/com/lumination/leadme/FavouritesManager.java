@@ -247,10 +247,11 @@ public class FavouritesManager extends BaseAdapter {
             icon = placeholder;
         }
 
-        if (url.contains("/embed/")) {
-            url = webManager.cleanYouTubeURLWithoutStart(url);
-            Log.d(TAG, "FAV! " + url);
-        }
+        //if (url.contains("/embed/")) {
+        //do this to keep everything consistent and avoid doubling up URLs
+        url = webManager.cleanYouTubeURLWithoutStart(url);
+        Log.d(TAG, "FAV! " + url);
+        //}
 
         addToFavourites(url, title, icon);
     }
