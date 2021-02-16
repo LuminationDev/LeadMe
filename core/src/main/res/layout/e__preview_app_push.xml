@@ -1,0 +1,187 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="fill_parent"
+    android:layout_height="wrap_content"
+    android:layout_centerInParent="true"
+    android:layout_centerHorizontal="true"
+    android:layout_centerVertical="true"
+    android:background="@drawable/rounded_popup_white"
+    android:gravity="center"
+    android:orientation="vertical"
+    android:padding="20dp"
+    android:showDividers="middle|beginning|end">
+
+
+    <ImageView
+        android:id="@+id/push_app_icon"
+        android:layout_width="@dimen/appicon_size_large"
+        android:layout_height="@dimen/appicon_size_large"
+        android:layout_gravity="center_horizontal"
+        android:layout_margin="10dp"
+        android:layout_weight="1"
+        android:adjustViewBounds="false"
+        android:background="@drawable/rounded_btn_white"
+        android:cropToPadding="false"
+        android:elevation="10dp"
+        android:foregroundGravity="center_horizontal"
+        android:padding="5dp"
+        android:scaleType="fitCenter" />
+
+    <TextView
+        android:id="@+id/push_app_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="5dp"
+        android:ellipsize="end"
+        android:fontFamily="@font/poppins_semibold"
+        android:maxLines="2"
+        android:text="App title"
+        android:textColor="@color/leadme_medium_grey"
+        android:textSize="14sp" />
+
+    <TextView
+        android:id="@+id/push_confirm_txt"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="25dp"
+        android:fontFamily="@font/poppins_semibold"
+        android:gravity="center_horizontal"
+        android:text="Push this app to learners?"
+        android:textColor="@color/leadme_black"
+        android:textSize="16sp" />
+
+    <LinearLayout
+        android:id="@+id/button_view"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="30dp"
+        android:orientation="vertical">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_gravity="center_horizontal"
+            android:orientation="horizontal">
+
+            <androidx.cardview.widget.CardView
+                android:layout_width="45dp"
+                android:layout_height="40dp"
+                android:layout_margin="5dp"
+                android:layout_marginStart="-10dp"
+                app:cardBackgroundColor="@color/leadme_white"
+                app:cardElevation="5dp"
+                app:layout_gravity="center_vertical">
+
+                <ImageView
+                    android:id="@+id/down_arrow"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="start|center_vertical"
+                    android:paddingStart="5dp"
+                    android:src="@drawable/down_arrow" />
+
+                <Spinner
+                    android:id="@+id/push_spinner"
+                    android:layout_width="60dp"
+                    android:layout_height="@dimen/standard_btn_height"
+                    android:layout_marginTop="-10dp"
+                    android:background="@color/leadme_white"
+                    android:dropDownWidth="wrap_content"
+                    android:gravity="top"
+                    android:padding="0dp"
+                    android:popupBackground="@color/leadme_white"
+                    android:spinnerMode="dropdown"
+                    android:theme="@style/MatchSpinnerTheme"
+                    android:translationZ="-10dp"
+                    tools:listitem="@layout/row_push_spinner" />
+            </androidx.cardview.widget.CardView>
+
+            <Button
+                android:id="@+id/new_video"
+                style="?android:attr/borderlessButtonStyle"
+                android:layout_width="@dimen/standard_btn_width"
+                android:layout_height="@dimen/standard_btn_height"
+                android:accessibilityTraversalAfter="@id/back_btn"
+                android:accessibilityTraversalBefore="@id/codeInput4"
+                android:background="@drawable/bg_active"
+                android:clickable="true"
+                android:focusable="true"
+                android:fontFamily="@font/poppins_semibold"
+                android:text="@string/push_to_selected"
+                android:textAllCaps="false"
+                android:textColor="@color/leadme_white"
+                android:textSize="16sp"
+                app:layout_gravity="center_horizontal" />
+
+            <Space
+                android:layout_width="52dp"
+                android:layout_height="match_parent" />
+
+        </LinearLayout>
+
+        <Button
+            android:id="@+id/back_btn"
+            style="?android:attr/borderlessButtonStyle"
+            android:layout_width="@dimen/standard_btn_width"
+            android:layout_height="@dimen/standard_btn_height"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="10dp"
+            android:background="@drawable/bg_passive"
+            android:clickable="true"
+            android:focusable="true"
+            android:fontFamily="@font/poppins_semibold"
+            android:text="@string/back"
+            android:textAllCaps="false"
+            android:textColor="@color/leadme_darkest_grey"
+            android:textSize="16sp"
+            app:layout_gravity="center_horizontal" />
+
+    </LinearLayout>
+
+    <!--LinearLayout
+        android:id="@+id/button_view"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="30dp"
+        android:orientation="vertical">
+
+        <Button
+            android:id="@+id/push_btn"
+            style="?android:attr/borderlessButtonStyle"
+            android:layout_width="@dimen/standard_btn_width"
+            android:layout_height="@dimen/standard_btn_height"
+            android:layout_gravity="center_horizontal"
+            android:accessibilityTraversalAfter="@id/back_btn"
+            android:accessibilityTraversalBefore="@id/codeInput4"
+            android:background="@drawable/bg_active"
+            android:clickable="true"
+            android:fontFamily="@font/poppins_semibold"
+            android:text="@string/push_this_to_selected"
+            android:textAllCaps="false"
+            android:textColor="@color/leadme_white"
+            android:textSize="16sp" />
+
+        <Space
+            android:layout_width="match_parent"
+            android:layout_height="10dp" />
+
+        <Button
+            android:id="@+id/back_btn"
+            style="?android:attr/borderlessButtonStyle"
+            android:layout_width="@dimen/standard_btn_width"
+            android:layout_height="@dimen/standard_btn_height"
+            android:layout_gravity="center_horizontal"
+            android:background="@drawable/bg_passive"
+            android:clickable="true"
+            android:fontFamily="@font/poppins_semibold"
+            android:text="@string/back"
+            android:textAllCaps="false"
+            android:textColor="@color/leadme_black"
+            android:textSize="16sp" />
+
+    </LinearLayout-->
+
+</LinearLayout>
