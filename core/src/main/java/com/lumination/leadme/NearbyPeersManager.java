@@ -25,7 +25,7 @@ import java.util.Set;
 public class NearbyPeersManager {
     String TAG = "NearbyPeersManager";
     LeadMeMain main;
-    NetworkAdapter networkAdapter;
+    public NetworkAdapter networkAdapter;
     ConnectedPeer selectedLeader;
 
     String myID;

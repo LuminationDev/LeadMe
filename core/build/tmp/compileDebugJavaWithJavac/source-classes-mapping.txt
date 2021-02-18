@@ -35,6 +35,9 @@ org/jsoup/safety/Whitelist.java
  org.jsoup.safety.Whitelist$TypedValue
 com/lumination/leadme/linkpreview/Regex.java
  com.lumination.leadme.linkpreview.Regex
+com/lumination/leadme/ScreensharingService.java
+ com.lumination.leadme.ScreensharingService
+ com.lumination.leadme.ScreensharingService$LocalBinder
 org/jsoup/parser/Token.java
  org.jsoup.parser.Token
  org.jsoup.parser.Token$1
@@ -402,6 +405,7 @@ com/lumination/leadme/NetworkAdapter.java
  com.lumination.leadme.NetworkAdapter$3
  com.lumination.leadme.NetworkAdapter$4
  com.lumination.leadme.NetworkAdapter$5
+ com.lumination.leadme.NetworkAdapter$6
  com.lumination.leadme.NetworkAdapter$ServerThread
  com.lumination.leadme.NetworkAdapter$resListener
  com.lumination.leadme.client

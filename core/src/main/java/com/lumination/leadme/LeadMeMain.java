@@ -3,6 +3,7 @@ package com.lumination.leadme;
 
 import android.accessibilityservice.AccessibilityService;
 import android.accessibilityservice.GestureDescription;
+import android.annotation.SuppressLint;
 import android.app.ActivityManager;
 import android.app.AlertDialog;
 import android.content.BroadcastReceiver;
@@ -11,6 +12,10 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.PixelFormat;
 import android.graphics.Point;
@@ -19,13 +24,20 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.hardware.display.DisplayManager;
 import android.media.AudioManager;
+import android.media.Image;
+import android.media.ImageReader;
+import android.media.projection.MediaProjection;
+import android.media.projection.MediaProjectionManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Looper;
 import android.os.Message;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.ActionMode;
 import android.view.Display;
@@ -34,17 +46,21 @@ import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.SurfaceHolder;
+import android.view.SurfaceView;
 import android.view.View;
 import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
+import android.widget.FrameLayout;
 import android.widget.GridView;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.SearchView;
+import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ViewAnimator;
@@ -56,9 +72,18 @@ import androidx.lifecycle.Lifecycle;
 import androidx.lifecycle.LifecycleObserver;
 import androidx.lifecycle.OnLifecycleEvent;
 
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Set;
 import java.util.UUID;
+
+import eu.bolt.screenshotty.ScreenshotManager;
+import eu.bolt.screenshotty.ScreenshotManagerBuilder;
+import eu.bolt.screenshotty.ScreenshotResult;
 
 
 public class LeadMeMain extends FragmentActivity implements Handler.Callback, SensorEventListener, LifecycleObserver {
@@ -209,6 +234,9 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
     private boolean init = false;
 
+    ScreenshotManager screenshotManager;
+    private static final int REQUEST_SCREENSHOT_PERMISSION = 888;
+
     public Handler getHandler() {
         return handler;
     }
@@ -224,6 +252,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
     protected boolean canAskForAccessibility = true;
 
+    @SuppressLint("WrongConstant")
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -248,6 +277,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                 Log.d(TAG, "RETURNED FROM ?? with " + resultCode);
                 break;
         }
+        screenshotManager.onActivityResult(requestCode, resultCode, data);
     }
 
     public boolean handleMessage(Message msg) {
@@ -1339,6 +1369,8 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             autoUpdater.startUpdateChecker();
         }
 
+        screenshotManager = new ScreenshotManagerBuilder(this).withPermissionRequestCode(REQUEST_SCREENSHOT_PERMISSION) //optional, 888 is the default
+                .build();
         //start this
         //getForegroundActivity();
 
@@ -2231,4 +2263,15 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             tasksManager.moveTaskToFront(getTaskId(), ActivityManager.MOVE_TASK_NO_USER_ACTION);
         }
     }
+
+
+    /////////////Screenshots///////////////
+    public void takeScreenShot(){
+        ScreenshotResult screenShotResult = screenshotManager.makeScreenshot();
+        Bitmap bitmap = screenShotResult;
+    }
+    public void handleScreenshot(){
+
+    }
+
 }

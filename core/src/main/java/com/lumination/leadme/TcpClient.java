@@ -148,6 +148,9 @@ public class TcpClient extends Thread {
                 case "PING":
                     Log.d(TAG, "inputRecieved: ping messages are purposely ignored");
                     break;
+                case "IMAGE":
+                    parent.updateParent(inputList.get(1),ID,"IMAGE");
+                    break;
                 default:
                     break;
             }

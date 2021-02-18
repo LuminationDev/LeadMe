@@ -9,6 +9,25 @@
     android:orientation="vertical">
 
 
+    <FrameLayout
+        android:id="@+id/monitor_layout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="gone">
+
+        <Button
+            android:id="@+id/close_monitor_btn"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:text="X" />
+
+        <SurfaceView
+            android:id="@+id/monitor_popup"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+
+    </FrameLayout>
+
     <androidx.cardview.widget.CardView
         android:layout_width="match_parent"
         android:layout_height="50dp"

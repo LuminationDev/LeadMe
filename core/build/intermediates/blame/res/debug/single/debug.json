@@ -288,6 +288,10 @@
         "source": "/Users/jakelund/Documents/LeadMe-master/core/src/main/res/drawable/rounded_popup_highlight.xml"
     },
     {
+        "merged": "/Users/jakelund/Documents/LeadMe-master/core/build/intermediates/res/merged/debug/drawable_icon_cast.xml.flat",
+        "source": "/Users/jakelund/Documents/LeadMe-master/core/src/main/res/drawable/icon_cast.xml"
+    },
+    {
         "merged": "/Users/jakelund/Documents/LeadMe-master/core/build/intermediates/res/merged/debug/mipmap-mdpi_leadme_icon.png.flat",
         "source": "/Users/jakelund/Documents/LeadMe-master/core/src/main/res/mipmap-mdpi/leadme_icon.png"
     },

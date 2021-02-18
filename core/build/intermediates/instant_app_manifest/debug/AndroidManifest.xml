@@ -25,6 +25,11 @@
     <uses-permission android:name="android.permission.EXPAND_STATUS_BAR" />
     <uses-permission android:name="android.permission.ACTION_MANAGE_OVERLAY_PERMISSION" />
 
+    <!-- for screen monitoring service -->
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.ACCESS_MEDIA_LOCATION" />
+
     <!-- for youtube -->
     <uses-permission android:name="android.permission.INTERNET" />
 
@@ -45,6 +50,7 @@
         android:hardwareAccelerated="true"
         android:icon="@mipmap/leadme_icon_round"
         android:label="@string/app_title"
+        android:testOnly="true"
         android:theme="@android:style/Theme.Holo.Light.NoActionBar.Fullscreen"
         android:usesCleartextTraffic="true" >
         <activity

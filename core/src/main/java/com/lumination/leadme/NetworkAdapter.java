@@ -1,6 +1,12 @@
 package com.lumination.leadme;
 
+import android.Manifest;
+import android.app.Activity;
 import android.content.Context;
+import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.ColorSpace;
 import android.net.nsd.NsdManager;
 import android.net.nsd.NsdServiceInfo;
 import android.os.Build;
@@ -11,9 +17,15 @@ import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
 
+import androidx.core.app.ActivityCompat;
+
 import com.google.android.gms.nearby.connection.Payload;
 
 import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
@@ -455,11 +467,21 @@ public class NetworkAdapter {
                 connectionisActive=10;
                 Log.d(TAG, "messageRecievedFromServer: recieved ping and subsequently ignoring it");
                 break;
+            case "MONITOR":
+                if(inputList.get(1).equals("START")){
+                    monitoring=true;
+                    sendScreenShots();
+                }else if(inputList.get(1).equals("STOP")){
+                    monitoring=false;
+                }
+                break;
             default:
                 Log.d(TAG, "messageRecievedFromServer: Invalid message type");
                 break;
         }
     }
+
+
 
     //getter for the serviceinfo, only useful for student to teacher connections
     public NsdServiceInfo getChosenServiceInfo() {
@@ -551,6 +573,7 @@ public class NetworkAdapter {
           if its changed then subsequent run throughs will rectify that. Also acts as a pinging, once name
           is recieved a response will be sent letting the student know they are still connected.
      */
+    boolean imgInProgress=false;
     public void updateParent(String message, int clientID, String type){
         Log.d(TAG, "updateParent: ");
         switch (type){
@@ -617,6 +640,10 @@ public class NetworkAdapter {
                     }
                 });
                 break;
+            case "IMAGE":
+                Log.d(TAG, "updateParent: Image recieved");
+                Bitmap bitmap = decodeBase64(message);
+
             default:
                 Log.d(TAG, "updateParent: invalid type");
                 break;
@@ -664,5 +691,106 @@ public class NetworkAdapter {
 
     }
 
+    /*
+    Screenshots
+     */
+    ServerSocket serverSocket;
+    String folder;
+    String fileToTransfer;
+    Boolean monitoring;
+    int imgcnt=0;
+    int screenshotRate=1000;
+    private static final int REQUEST_EXTERNAL_STORAGE = 1;
+    private String[] PERMISSIONS_STORAGE = {
+            Manifest.permission.READ_EXTERNAL_STORAGE,
+            Manifest.permission.WRITE_EXTERNAL_STORAGE
+    };
+    // check permissions for writing, reading and accessing external storage
+    public void verifyStoragePermissions(Activity activity) { // Check if we have write permission
+        int permissionRead = ActivityCompat.checkSelfPermission(activity,
+                Manifest.permission.READ_EXTERNAL_STORAGE);
+        int permissionWrite = ActivityCompat.checkSelfPermission(activity,
+                Manifest.permission.WRITE_EXTERNAL_STORAGE);
 
+        if (permissionRead != PackageManager.PERMISSION_GRANTED ||
+                permissionWrite != PackageManager.PERMISSION_GRANTED) {
+            // We don't have permission so prompt the user
+            ActivityCompat.requestPermissions(activity, PERMISSIONS_STORAGE,
+                    REQUEST_EXTERNAL_STORAGE);
+        }
+        System.out.println(permissionRead);
+    }
+    public String encodeToBase64(Bitmap image, Bitmap.CompressFormat compressFormat, int quality) {
+        ByteArrayOutputStream byteArrayOS = new ByteArrayOutputStream();
+        image.compress(compressFormat, quality, byteArrayOS);
+        return android.util.Base64.encodeToString(byteArrayOS.toByteArray(), android.util.Base64.DEFAULT);
+    }
+    public Bitmap decodeBase64(String input) {
+        BitmapFactory.Options bfo = new BitmapFactory.Options();
+        bfo.inPreferredConfig = Bitmap.Config.valueOf("ARGB_8888");
+        bfo.inMutable = true;   // this makes a mutable bitmap
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            bfo.inPreferredColorSpace = ColorSpace.get(ColorSpace.Named.SRGB);
+        }
+
+        byte[] decodedBytes = android.util.Base64.decode(input, 0);
+        return BitmapFactory.decodeByteArray(decodedBytes, 0, decodedBytes.length, bfo);
+    }
+    private Bitmap loadImageFromStorage(String path, File image) {
+        Bitmap b = null;
+        try {
+            if(imgcnt > 0) destroyImageFromStorage(path, imgcnt - 1);
+
+            b = BitmapFactory.decodeStream(new FileInputStream(image));
+
+            imgcnt++;
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+        return b;
+    }
+
+    private void destroyImageFromStorage(String path, Integer offset) {
+        try {
+            File image = new File(path, "capturedscreenandroid"+String.valueOf(offset)+".jpg");
+            if(image.exists()) {
+                if(image.delete()) {
+                    System.out.println("Image deleted");
+                } else System.out.println("Image not deleted");
+            }
+        } catch (Error e) {
+            e.printStackTrace();
+        }
+    }
+    public void startMonitoring(int ID){
+        ArrayList<Integer> selected = new ArrayList<>();
+        selected.add(ID);
+        sendToSelectedClients("START","MONITOR",selected);
+    }
+    public void stopMonitoring(int ID){
+        ArrayList<Integer> selected = new ArrayList<>();
+        selected.add(ID);
+        sendToSelectedClients("STOP","MONITOR",selected);
+    }
+    private void sendScreenShots() {
+        new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                String msgReply = null;
+                String path = main.getFilesDir() + File.separator + "LeadMe" + File.separator + folder;
+                File image = new File(path, "capturedscreenandroid" + String.valueOf(imgcnt) + ".jpg");
+                if (image.exists()) {
+                    msgReply = encodeToBase64(loadImageFromStorage(path, image), Bitmap.CompressFormat.JPEG, 70);
+                }
+                if(msgReply!=null){
+                    sendToServer(msgReply,"IMAGE");
+                }else{
+                    Log.d(TAG, "run: image is null");
+                }
+                if(monitoring) {
+                    new Handler(Looper.getMainLooper()).postDelayed(this, screenshotRate);
+                }
+            }
+        }, screenshotRate);
+    }
 }

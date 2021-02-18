@@ -1495,6 +1495,7 @@ drawable ic_mtrl_chip_checked_circle
 drawable ic_mtrl_chip_close_circle
 drawable ic_stat_name
 drawable ic_system_update_white_24dp
+drawable icon_cast
 drawable icon_clear
 drawable icon_fav_add
 drawable icon_fav_remove
@@ -1676,6 +1677,7 @@ id button_view
 id c__leader_main
 id cancel_button
 id captions_btn
+id capture_rate_display
 id center
 id center_horizontal
 id center_vertical
@@ -1694,6 +1696,7 @@ id client_main
 id clip_horizontal
 id clip_vertical
 id close_login_alert_btn
+id close_monitor_btn
 id codeInput1
 id codeInput2
 id codeInput3
@@ -1834,6 +1837,9 @@ id menu_btn
 id message
 id middle
 id mini
+id monitor_btn
+id monitor_layout
+id monitor_popup
 id month_grid
 id month_navigation_bar
 id month_navigation_fragment_toggle
@@ -1938,6 +1944,8 @@ id save_non_transition_alpha
 id save_overlay_view
 id scale
 id screen
+id screen_capture
+id screen_capture_rate
 id scroll
 id scrollIndicatorDown
 id scrollIndicatorUp
