@@ -18,6 +18,7 @@ import com.google.android.gms.nearby.connection.Payload;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.sql.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
@@ -275,9 +276,15 @@ networkAdapter.stopAdvertising();
         p.setDataPosition(0);
         byte[] b = p.marshall();
         String test = null;
+        ArrayList<String> selectedString = new ArrayList<>(endpoints);
+        ArrayList<Integer> selected = new ArrayList<>();
+        Iterator iterator = selectedString.iterator();
+        while(iterator.hasNext()){
+            selected.add(Integer.parseInt((String) iterator.next()));
+        }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             String encoded = Base64.getEncoder().encodeToString(b);
-            networkAdapter.sendToAllClients(encoded,"ACTION");
+            networkAdapter.sendToSelectedClients(encoded,"ACTION",selected);
         }
 
     }

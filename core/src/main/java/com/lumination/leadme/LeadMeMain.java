@@ -2398,6 +2398,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
         if (response != null) {
             drawMyStuff(canvas, response);
+            response.recycle();
         } else canvas.drawColor(Color.BLACK);
 
         holder.unlockCanvasAndPost(canvas);
