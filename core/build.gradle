@@ -40,7 +40,7 @@ dependencies {
     implementation 'com.github.javiersantos:AppUpdater:2.7'
 
     //for screenshots
-    implementation 'eu.bolt:screenshotty:1.0.3'
+    implementation 'eu.bolt:screenshotty:1.0.0'
 }
 
 configurations.all {

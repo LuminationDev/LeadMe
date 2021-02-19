@@ -1,7 +1,7 @@
-#Wed Feb 17 12:23:04 ACDT 2021
-base.0=/Users/jakelund/Documents/LeadMe-master/core/build/intermediates/dex/debug/mergeExtDexDebug/classes.dex
+#Fri Feb 19 14:43:02 ACDT 2021
+base.0=E\:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\build\\intermediates\\dex\\debug\\mergeExtDexDebug\\classes.dex
 path.1=classes.dex
 renamed.1=classes2.dex
 path.0=classes.dex
 renamed.0=classes.dex
-base.1=/Users/jakelund/Documents/LeadMe-master/core/build/intermediates/dex/debug/mergeProjectDexDebug/classes.dex
+base.1=E\:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\build\\intermediates\\dex\\debug\\mergeProjectDexDebug\\classes.dex

@@ -1,10 +1,10 @@
 {
     "logs": [
         {
-            "outputFile": "/Users/jakelund/Documents/LeadMe-master/core/build/intermediates/incremental/mergeDebugResources/merged.dir/values-small-v4/values-small-v4.xml",
+            "outputFile": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\build\\intermediates\\incremental\\mergeDebugResources\\merged.dir\\values-small-v4\\values-small-v4.xml",
             "map": [
                 {
-                    "source": "/Users/jakelund/.gradle/caches/transforms-2/files-2.1/6f39624951e241cce5e8652de814a4b8/material-1.2.1/res/values-small-v4/values-small-v4.xml",
+                    "source": "C:\\Users\\Jake\\.gradle\\caches\\transforms-2\\files-2.1\\6f39624951e241cce5e8652de814a4b8\\material-1.2.1\\res\\values-small-v4\\values-small-v4.xml",
                     "from": {
                         "startLines": "2,3,4,5",
                         "startColumns": "4,4,4,4",

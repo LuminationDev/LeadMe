@@ -1,10 +1,10 @@
 {
     "logs": [
         {
-            "outputFile": "/Users/jakelund/Documents/LeadMe-master/core/build/intermediates/incremental/mergeDebugResources/merged.dir/values-night-v8/values-night-v8.xml",
+            "outputFile": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\build\\intermediates\\incremental\\mergeDebugResources\\merged.dir\\values-night-v8\\values-night-v8.xml",
             "map": [
                 {
-                    "source": "/Users/jakelund/.gradle/caches/transforms-2/files-2.1/2f18b02a23156118a3e215fa80524c2b/appcompat-1.1.0/res/values-night-v8/values-night-v8.xml",
+                    "source": "C:\\Users\\Jake\\.gradle\\caches\\transforms-2\\files-2.1\\2f18b02a23156118a3e215fa80524c2b\\appcompat-1.1.0\\res\\values-night-v8\\values-night-v8.xml",
                     "from": {
                         "startLines": "2,3,4,5,6,7,8,9",
                         "startColumns": "4,4,4,4,4,4,4,4",
@@ -21,7 +21,7 @@
                     }
                 },
                 {
-                    "source": "/Users/jakelund/.gradle/caches/transforms-2/files-2.1/6f39624951e241cce5e8652de814a4b8/material-1.2.1/res/values-night-v8/values-night-v8.xml",
+                    "source": "C:\\Users\\Jake\\.gradle\\caches\\transforms-2\\files-2.1\\6f39624951e241cce5e8652de814a4b8\\material-1.2.1\\res\\values-night-v8\\values-night-v8.xml",
                     "from": {
                         "startLines": "2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24",
                         "startColumns": "4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4",

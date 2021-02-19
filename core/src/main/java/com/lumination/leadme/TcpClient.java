@@ -13,9 +13,12 @@ import java.io.PrintWriter;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.net.SocketException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class TcpClient extends Thread {
     public InetAddress IpAdress;
@@ -108,8 +111,9 @@ public class TcpClient extends Thread {
             public void run() {
                 while(checkIn) {
                     try {
-                        BufferedReader in = new BufferedReader(new InputStreamReader(client.getInputStream()));
-                        String Input = in.readLine();
+                        InputStreamReader inreader=new InputStreamReader(client.getInputStream());
+                        BufferedReader in = new BufferedReader(inreader);
+                        String Input=in.readLine();
                         inputRecieved(Input);
                         if(Input==null){
                             checkIn=false;

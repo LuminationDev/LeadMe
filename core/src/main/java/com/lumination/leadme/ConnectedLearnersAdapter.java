@@ -317,7 +317,7 @@ public class ConnectedLearnersAdapter extends BaseAdapter {
                     monitor_btn.setOnClickListener(v2 -> {
                         logoutPrompt.hide();
 
-                        //main.setupMonitorScreen(lastClickedID);
+                        main.setupMonitorScreen(lastClickedID);
                     });
                     back_btn.setOnClickListener(v1 -> logoutPrompt.hide());
                 }

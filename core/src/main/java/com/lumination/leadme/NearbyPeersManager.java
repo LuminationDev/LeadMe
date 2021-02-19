@@ -1,5 +1,8 @@
 package com.lumination.leadme;
 
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.ColorSpace;
 import android.net.nsd.NsdServiceInfo;
 import android.os.Build;
 import android.os.Handler;
@@ -12,6 +15,7 @@ import androidx.annotation.Nullable;
 
 import com.google.android.gms.nearby.connection.Payload;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -32,6 +36,8 @@ public class NearbyPeersManager {
     boolean discovering;
 
     public String myName;
+
+
 
     public NearbyPeersManager(LeadMeMain main) {
        this.main=main;
@@ -276,6 +282,19 @@ networkAdapter.stopAdvertising();
 
     }
 
+//    public void sendScreenShot(Bitmap bitmap) {
+//        if(networkAdapter!=null){
+//            //networkAdapter.sendToServer(encodeToBase64(bitmap,Bitmap.CompressFormat.JPEG,70),"IMAGE");
+//            Log.d(TAG, "sendScreenShot: "+encodeToBase64(bitmap,Bitmap.CompressFormat.JPEG,70).length());
+//        }else{
+//            Log.d(TAG, "sendScreenShot: networkAdapter is null");
+//        }
+//    }
+    public String encodeToBase64(Bitmap image, Bitmap.CompressFormat compressFormat, int quality) {
+        ByteArrayOutputStream byteArrayOS = new ByteArrayOutputStream();
+        image.compress(compressFormat, quality, byteArrayOS);
+        return android.util.Base64.encodeToString(byteArrayOS.toByteArray(), android.util.Base64.DEFAULT);
+    }
 
 
     /**

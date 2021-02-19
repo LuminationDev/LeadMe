@@ -1,10 +1,10 @@
 {
     "logs": [
         {
-            "outputFile": "/Users/jakelund/Documents/LeadMe-master/core/build/intermediates/incremental/mergeDebugResources/merged.dir/values-v24/values-v24.xml",
+            "outputFile": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\build\\intermediates\\incremental\\mergeDebugResources\\merged.dir\\values-v24\\values-v24.xml",
             "map": [
                 {
-                    "source": "/Users/jakelund/.gradle/caches/transforms-2/files-2.1/2f18b02a23156118a3e215fa80524c2b/appcompat-1.1.0/res/values-v24/values-v24.xml",
+                    "source": "C:\\Users\\Jake\\.gradle\\caches\\transforms-2\\files-2.1\\2f18b02a23156118a3e215fa80524c2b\\appcompat-1.1.0\\res\\values-v24\\values-v24.xml",
                     "from": {
                         "startLines": "2,3",
                         "startColumns": "4,4",

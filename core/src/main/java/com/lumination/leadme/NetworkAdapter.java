@@ -251,7 +251,7 @@ public class NetworkAdapter {
             }
             if (socket != null) {
                 if (socket.isConnected()) {
-                    connectionisActive=10;
+                    connectionisActive=30;
                     Log.d(TAG, "connectToServer: connection successful");
                     Name = nearbyPeersManager.getName();
                     sendToServer(Name,"NAME"); //sends the student name to the teacher for a record
@@ -298,8 +298,8 @@ public class NetworkAdapter {
                 PrintWriter out;
                 try {
                     out = new PrintWriter(socket.getOutputStream(), true);
-                    out.println(type + "," + message);
-                    Log.d(TAG, "sendToServer: message sent");
+                    out.println(type + "," + message.replace("\n", "_").replace("\r", "|"));
+                    Log.d(TAG, "sendToServer: message sent, type: "+type +" message: "+message);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -464,15 +464,22 @@ public class NetworkAdapter {
                 nearbyPeersManager.disconnectFromEndpoint("");
                 break;
             case "PING":
-                connectionisActive=10;
+                connectionisActive=30;
                 Log.d(TAG, "messageRecievedFromServer: recieved ping and subsequently ignoring it");
                 break;
             case "MONITOR":
-                if(inputList.get(1).equals("START")){
-                    monitoring=true;
-                    sendScreenShots();
-                }else if(inputList.get(1).equals("STOP")){
-                    monitoring=false;
+                if(inputList.get(1).contains(":")){
+                    List<String> inputList2 = Arrays.asList(inputList.get(1).split(":"));
+                    if(inputList2.get(0).equals("START")){
+                        main.startScreenshotRunnable(socket.getInetAddress(),Integer.parseInt(inputList2.get(1)));
+                    }
+                    Log.d(TAG, "messageRecievedFromServer: "+inputList.get(1));
+                }else {
+                    if (inputList.get(1).equals("STOP")) {
+                        main.stopScreenshotRunnable();
+                    } else {
+                        main.setScreenshotRate(Integer.parseInt(inputList.get(1)));
+                    }
                 }
                 break;
             default:
@@ -640,12 +647,8 @@ public class NetworkAdapter {
                     }
                 });
                 break;
-            case "IMAGE":
-                Log.d(TAG, "updateParent: Image recieved");
-                Bitmap bitmap = decodeBase64(message);
-
             default:
-                Log.d(TAG, "updateParent: invalid type");
+                Log.d(TAG, "updateParent: invalid type: "+ type +" message: "+message);
                 break;
         }
     }
@@ -720,77 +723,35 @@ public class NetworkAdapter {
         }
         System.out.println(permissionRead);
     }
-    public String encodeToBase64(Bitmap image, Bitmap.CompressFormat compressFormat, int quality) {
-        ByteArrayOutputStream byteArrayOS = new ByteArrayOutputStream();
-        image.compress(compressFormat, quality, byteArrayOS);
-        return android.util.Base64.encodeToString(byteArrayOS.toByteArray(), android.util.Base64.DEFAULT);
-    }
-    public Bitmap decodeBase64(String input) {
-        BitmapFactory.Options bfo = new BitmapFactory.Options();
-        bfo.inPreferredConfig = Bitmap.Config.valueOf("ARGB_8888");
-        bfo.inMutable = true;   // this makes a mutable bitmap
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            bfo.inPreferredColorSpace = ColorSpace.get(ColorSpace.Named.SRGB);
-        }
-
-        byte[] decodedBytes = android.util.Base64.decode(input, 0);
-        return BitmapFactory.decodeByteArray(decodedBytes, 0, decodedBytes.length, bfo);
-    }
-    private Bitmap loadImageFromStorage(String path, File image) {
-        Bitmap b = null;
-        try {
-            if(imgcnt > 0) destroyImageFromStorage(path, imgcnt - 1);
-
-            b = BitmapFactory.decodeStream(new FileInputStream(image));
-
-            imgcnt++;
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        }
-        return b;
-    }
-
-    private void destroyImageFromStorage(String path, Integer offset) {
-        try {
-            File image = new File(path, "capturedscreenandroid"+String.valueOf(offset)+".jpg");
-            if(image.exists()) {
-                if(image.delete()) {
-                    System.out.println("Image deleted");
-                } else System.out.println("Image not deleted");
-            }
-        } catch (Error e) {
-            e.printStackTrace();
-        }
-    }
-    public void startMonitoring(int ID){
+    public void startMonitoring(int ID, int localPort){
         ArrayList<Integer> selected = new ArrayList<>();
         selected.add(ID);
-        sendToSelectedClients("START","MONITOR",selected);
+        sendToSelectedClients("START:"+localPort,"MONITOR",selected);
     }
     public void stopMonitoring(int ID){
         ArrayList<Integer> selected = new ArrayList<>();
         selected.add(ID);
         sendToSelectedClients("STOP","MONITOR",selected);
     }
-    private void sendScreenShots() {
-        new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                String msgReply = null;
-                String path = main.getFilesDir() + File.separator + "LeadMe" + File.separator + folder;
-                File image = new File(path, "capturedscreenandroid" + String.valueOf(imgcnt) + ".jpg");
-                if (image.exists()) {
-                    msgReply = encodeToBase64(loadImageFromStorage(path, image), Bitmap.CompressFormat.JPEG, 70);
-                }
-                if(msgReply!=null){
-                    sendToServer(msgReply,"IMAGE");
-                }else{
-                    Log.d(TAG, "run: image is null");
-                }
-                if(monitoring) {
-                    new Handler(Looper.getMainLooper()).postDelayed(this, screenshotRate);
-                }
-            }
-        }, screenshotRate);
-    }
+//    private void sendScreenShots() {
+//        new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+//            @Override
+//            public void run() {
+//                String msgReply = null;
+//                String path = main.getFilesDir() + File.separator + "LeadMe" + File.separator + folder;
+//                File image = new File(path, "capturedscreenandroid" + String.valueOf(imgcnt) + ".jpg");
+//                if (image.exists()) {
+//                    msgReply = encodeToBase64(loadImageFromStorage(path, image), Bitmap.CompressFormat.JPEG, 70);
+//                }
+//                if(msgReply!=null){
+//                    sendToServer(msgReply,"IMAGE");
+//                }else{
+//                    Log.d(TAG, "run: image is null");
+//                }
+//                if(monitoring) {
+//                    new Handler(Looper.getMainLooper()).postDelayed(this, screenshotRate);
+//                }
+//            }
+//        }, screenshotRate);
+////    }
 }

@@ -13,6 +13,7 @@ import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
@@ -66,6 +67,8 @@ import android.widget.Toast;
 import android.widget.ViewAnimator;
 import android.widget.ViewSwitcher;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.core.content.res.ResourcesCompat;
 import androidx.fragment.app.FragmentActivity;
 import androidx.lifecycle.Lifecycle;
@@ -76,17 +79,27 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import java.net.InetAddress;
+import java.net.SocketException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
 import java.util.Set;
 import java.util.UUID;
 
+import eu.bolt.screenshotty.Screenshot;
+import eu.bolt.screenshotty.ScreenshotBitmap;
 import eu.bolt.screenshotty.ScreenshotManager;
 import eu.bolt.screenshotty.ScreenshotManagerBuilder;
 import eu.bolt.screenshotty.ScreenshotResult;
+import kotlin.Unit;
+import kotlin.jvm.functions.Function1;
 
 
-public class LeadMeMain extends FragmentActivity implements Handler.Callback, SensorEventListener, LifecycleObserver {
+public class LeadMeMain extends FragmentActivity implements Handler.Callback, SensorEventListener, LifecycleObserver,SurfaceHolder.Callback {
 
     //tag for debugging
     static final String TAG = "LeadMe";
@@ -236,6 +249,9 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
     ScreenshotManager screenshotManager;
     private static final int REQUEST_SCREENSHOT_PERMISSION = 888;
+    ScreenshotResult.Subscription subscription;
+    SeekBar seekBar;
+
 
     public Handler getHandler() {
         return handler;
@@ -932,7 +948,9 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     public void onDestroy() {
         super.onDestroy();
         Log.w(TAG, "In onDestroy");
+        subscription.dispose();
         destroyAndReset();
+        screenShot=false;
     }
 
     private void destroyAndReset() {
@@ -1373,6 +1391,27 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                 .build();
         //start this
         //getForegroundActivity();
+        seekBar = (SeekBar) findViewById(R.id.screen_capture_rate);
+        seekBar.setProgress(20); //default value that seems to work with slowish phones
+        seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            int rate;
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress,
+                                          boolean fromUser) {
+                rate = progress;
+                //Toast.makeText(getApplicationContext(),"seekbar progress: " + progress, Toast.LENGTH_SHORT).show();
+            }
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+                //Toast.makeText(getApplicationContext(),"seekbar touch started!", Toast.LENGTH_SHORT).show();
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+                screenshotRate = 1000/rate*10;
+                Toast.makeText(getApplicationContext(), "Capture rate: " + rate+" fps", Toast.LENGTH_SHORT).show();
+            }
+        });
 
     }
 
@@ -1749,6 +1788,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
         ((TextView) optionsScreen.findViewById(R.id.student_name)).setText(name);
         optionsScreen.findViewById(R.id.connected_only_view).setVisibility(View.VISIBLE);
+        optionsScreen.findViewById(R.id.capture_rate_display).setVisibility(View.VISIBLE);
 
         if (isGuide) {
             //display main guide view
@@ -2266,12 +2306,182 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
 
     /////////////Screenshots///////////////
+    FrameLayout monitorLayout;
+    SurfaceView monitorView;
+    public Bitmap response;
+    public Bitmap bitmapToSend=null;
+    Boolean monitorInProgress = false;
+    DatagramSocket datagramSocketin=null;
+
+    boolean screenShot=false;
+    int screenshotRate=200;
+    public void setupMonitorScreen(String peer) {
+        startImageClient(peer);
+    }
+    //client socket for monitoring
+    public void startImageClient(String peer) {
+        //can be refactored out to onCreate?
+        monitorLayout = findViewById(R.id.monitor_layout);
+        monitorView = findViewById(R.id.monitor_popup);
+
+        SurfaceHolder holder = monitorView.getHolder();
+        monitorView.getHolder().addCallback(this);
+        monitorLayout.setVisibility(View.VISIBLE);
+
+        //can be refactored out to onCreate?
+        Button closeButton = findViewById(R.id.close_monitor_btn);
+        closeButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                nearbyManager.networkAdapter.stopMonitoring(Integer.parseInt(peer));
+                monitorLayout.setVisibility(View.GONE);
+                monitorInProgress = false; //break connection loop in clientStream
+                tryDrawing(holder);
+            }
+        });
+
+        while(datagramSocketin==null) {
+            try {
+                datagramSocketin = new DatagramSocket();
+            } catch (SocketException e) {
+                e.printStackTrace();
+            }
+            Log.d(TAG, "datagramsocket: attempting to create socket");
+        }
+        nearbyManager.networkAdapter.startMonitoring(Integer.parseInt(peer),datagramSocketin.getLocalPort());
+        Thread t = new Thread(new Runnable() {
+            @Override
+            public void run() {
+
+                while(monitorInProgress){
+                    byte[] buffer = new byte[65536];
+                    DatagramPacket packet = new DatagramPacket(buffer,buffer.length);
+                    if(datagramSocketin!=null){
+                        try {
+                            datagramSocketin.receive(packet);
+                            Log.d(TAG, "datagram:datagram Recieved!! ");
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                        byte[] buff = packet.getData();
+                        response = BitmapFactory.decodeByteArray(buff, 0, buff.length);
+                        tryDrawing(holder);
+                    }
+                }
+            }
+        });
+        t.start();
+
+        if (monitorLayout.getVisibility() == View.VISIBLE) {
+            monitorInProgress = true;
+        } else {
+            Log.e(TAG, "Monitor layout - no visibility change");
+        }
+    }
+
+    @Override
+    public void surfaceCreated(SurfaceHolder holder) {
+        monitorView.setWillNotDraw(false);
+        tryDrawing(holder);
+    }
+
+    @Override
+    public void surfaceDestroyed(SurfaceHolder holder) {}
+
+    @Override
+    public void surfaceChanged(SurfaceHolder holder, int frmt, int w, int h) {
+        tryDrawing(holder);
+    }
+
+    public void tryDrawing(SurfaceHolder holder) {
+        Canvas canvas = holder.lockCanvas();
+
+        if (response != null) {
+            drawMyStuff(canvas, response);
+        } else canvas.drawColor(Color.BLACK);
+
+        holder.unlockCanvasAndPost(canvas);
+        monitorView.invalidate();
+    }
+
+    private void drawMyStuff(final Canvas canvas, Bitmap bitmap) {
+        Paint paint = new Paint();
+        paint.setFilterBitmap(true);
+        canvas.drawBitmap(bitmap, 0,0, paint);
+    }
     public void takeScreenShot(){
-        ScreenshotResult screenShotResult = screenshotManager.makeScreenshot();
-        Bitmap bitmap = screenShotResult;
+        runOnUiThread(() -> {
+            ScreenshotResult screenShotResult = screenshotManager.makeScreenshot();
+            subscription = screenShotResult.observe(onSuccess -> {
+                handleScreenshot(onSuccess);
+                return null;
+            }, onError -> {
+                screenshotFailed(onError);
+                return null;
+            });
+        });
+        
     }
-    public void handleScreenshot(){
-
+    public void handleScreenshot(Screenshot screenshot){
+        ScreenshotBitmap sbitmap = (ScreenshotBitmap) screenshot;
+        Bitmap bitmap = sbitmap.getBitmap();
+        bitmapToSend=bitmap;
+        //nearbyManager.sendScreenShot(bitmap);
     }
+    public void screenshotFailed(Throwable error){
+        Log.d(TAG, "screenshotFailed: "+error);
+    }
+    public void startScreenshotRunnable(int rate,InetAddress ip,int Port){
+        screenshotRate=rate;
+        startScreenshotRunnable(ip,Port);
+    }
+    DatagramSocket datagramSocketout=null;
+    public void startScreenshotRunnable(InetAddress ip,int Port){
+        while (datagramSocketout==null) {
+            try {
+                datagramSocketout = new DatagramSocket();
+            } catch (SocketException e) {
+                e.printStackTrace();
+            }
+        }
+        screenShot=true;
+        Thread t = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                while (!Thread.currentThread().isInterrupted() &&screenShot) {
+                        takeScreenShot();
+                    if(bitmapToSend!=null) {
+                        ByteArrayOutputStream stream = new ByteArrayOutputStream();
+                        bitmapToSend.compress(Bitmap.CompressFormat.JPEG, 0, stream);
+                        bitmapToSend.recycle();
+                        bitmapToSend=null;
+                        byte[] byteArray = stream.toByteArray();
+                        DatagramPacket packet = new DatagramPacket(byteArray, 0, byteArray.length, ip, Port);
+                        Log.d(TAG, "packet: "+packet.getLength());
 
+                        try {
+                            datagramSocketout.send(packet);
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+
+                    }
+                    try {
+                        Thread.sleep(screenshotRate);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                        Log.d(TAG, "Thread: thread wouldn't sleep");
+                    }
+                }
+
+            }
+        });
+        t.start();
+    }
+    public void stopScreenshotRunnable(){
+        screenShot=false;
+    }
+    public void setScreenshotRate(int rate){
+        screenshotRate=rate;
+    }
 }
