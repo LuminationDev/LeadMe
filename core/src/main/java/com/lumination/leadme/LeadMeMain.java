@@ -889,11 +889,12 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                 appToast = null;
             }
 
-            //if there's an app to launch, do it
-            if (getNearbyManager().isConnectedAsGuide()) {
+            //if we're the guide or we're disconnected, then we're done here
+            if (!getNearbyManager().isConnectedAsFollower()) {//getNearbyManager().isConnectedAsGuide()) {
                 return;
             }
 
+            //if there's an app to launch, do it
             //if we've got no delayed content, we're properly returning to LeadMe
             if (!getDispatcher().hasDelayedLaunchContent()) {
                 //if we're in lock mode and we should be in something other than LeadMe, relaunch it
@@ -924,7 +925,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                 appIntentOnFocus = null;
                 getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG,
                         LeadMeMain.LAUNCH_SUCCESS + currentTaskName + ":" + getNearbyManager().getID() + ":" + getAppManager().lastApp, getNearbyManager().getAllPeerIDs());
-
             }
 
         }
@@ -2207,6 +2207,10 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
         //reset views
         showConnectedStudents(false);
+
+        //clear launch on focus apps
+        appIntentOnFocus = null;
+        getDispatcher().launchAppOnFocus = null;
 
         if (overlayView != null) {
             overlayView.setVisibility(View.INVISIBLE);

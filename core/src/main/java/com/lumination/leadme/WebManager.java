@@ -757,6 +757,12 @@ public class WebManager {
             isYouTube = true;
         }
 
+        if (url.contains("with.in/watch/")) {
+            Log.w(TAG, "This is a Within VR video!");
+            main.getAppManager().getWithinPlayer().showController(url);
+            return;
+        }
+
         //hide preview image and title
         previewProgress.setVisibility(View.VISIBLE);
         previewMessage.setVisibility(View.GONE);

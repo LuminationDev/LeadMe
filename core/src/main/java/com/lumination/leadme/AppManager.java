@@ -44,7 +44,7 @@ public class AppManager extends BaseAdapter {
 
         //set up lock spinner
         lockSpinner = main.appPushDialogView.findViewById(R.id.push_spinner);
-        withinLockSpinner = withinPlayer.videoControllerDialogView.findViewById(R.id.push_spinner);
+        withinLockSpinner = withinPlayer.getLockSpinner();
         String[] items = {"Lock students", "Unlock students"};
         Integer[] imgs = {R.drawable.controls_lock, R.drawable.controls_unlock};
 
@@ -123,7 +123,7 @@ public class AppManager extends BaseAdapter {
                 break;
             case "VR Video":
                 if (packageName.equals(main.getAppManager().withinPackage)) {
-                    launchWithin(withinPlayer.foundURL, isStreaming);
+                    launchWithin(withinPlayer.foundURL, isStreaming, isVR);
                     break;
                 }
             case "YouTube":
@@ -146,6 +146,7 @@ public class AppManager extends BaseAdapter {
         String actualAppPackage = packageName;
         Intent intent = main.getPackageManager().getLaunchIntentForPackage(packageName);
 
+
         if (intent == null) {
 
             if (packageName.toLowerCase().contains("browser")) {
@@ -159,12 +160,20 @@ public class AppManager extends BaseAdapter {
                 //overlay to allow capture of accessibility events
             } else if (main.autoInstallApps) {
                 autoInstall(packageName, appName);
+                return;
+
             } else {
                 main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.AUTO_INSTALL_FAILED + appName + ":" + main.getNearbyManager().getID(), main.getNearbyManager().getSelectedPeerIDsOrAll());
                 Toast toast = Toast.makeText(main, "Sorry, the app '" + appName + "' doesn't exist on this device!", Toast.LENGTH_SHORT);
                 toast.show();
                 return;
             }
+        }
+
+        if (packageName.equals(withinPackage)) {
+            //intent = new Intent(Intent.ACTION_VIEW, withinURI);
+            intent.setData(withinURI);
+            //intent.setPackage(packageName);
         }
 
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
@@ -178,7 +187,7 @@ public class AppManager extends BaseAdapter {
                 main.updateFollowerCurrentTask(actualAppPackage, appName, "Application", "", "");
             }
         }
-        Log.e(TAG, "Relaunching last: " + appName + ", " + actualAppPackage);
+        Log.w(TAG, "Launching: " + appName + ", " + actualAppPackage);
 
 
         main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.LAUNCH_SUCCESS + appName + ":" + main.getNearbyManager().getID() + ":" + actualAppPackage, main.getNearbyManager().getAllPeerIDs());
@@ -227,14 +236,21 @@ public class AppManager extends BaseAdapter {
     }
 
     boolean isStreaming = false;
+    boolean isVR = true;
+    Uri withinURI = null;
     boolean videoInit = false;
 
     public boolean getIsWithinStreaming() {
         return isStreaming;
     }
 
-    public void launchWithin(String url, boolean isStreaming) {
+    public boolean getIsWithinVRMode() {
+        return isVR;
+    }
+
+    public void launchWithin(String url, boolean isStreaming, boolean isVR) {
         this.isStreaming = isStreaming;
+        this.isVR = isVR;
         videoInit = false; //reset
 
         //update lock status
@@ -290,7 +306,7 @@ public class AppManager extends BaseAdapter {
             convertView.setOnClickListener(v -> {
                 Log.i(TAG, "Launching " + appName + " from " + packageName);
                 if (packageName.equals(withinPackage)) {
-                    withinPlayer.showGuideController();
+                    withinPlayer.showWithin(); //showGuideController();
                 } else {
                     main.showAppPushDialog(appName, appIcon, packageName);
                 }

@@ -107,6 +107,10 @@ public class TextCrawler {
 //                url = "";
 //            }
 
+            if (urlStrings == null || urlStrings.isEmpty()) {
+                return null;
+            }
+
             String url = urlStrings.get(0);
 
             sourceContent.setFinalUrl(url);

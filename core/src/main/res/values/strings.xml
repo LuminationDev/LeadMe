@@ -107,5 +107,13 @@
     <string name="lock">Lock</string>
     <string name="block">Block</string>
     <string name="new_video">New video</string>
+    <string name="download">Download</string>
+    <string name="re_push">Re-push</string>
+
+    <string name="playback_settings_title">Playback Settings</string>
+    <string name="playback_controls_title">Playback Controls</string>
+
+    <string name="vr_mode_on">VR mode ON</string>
+    <string name="vr_mode_off">VR mode OFF</string>
 
 </resources>

@@ -39,14 +39,3 @@ dependencies {
     //for auto-updates
     implementation 'com.github.javiersantos:AppUpdater:2.7'
 }
-
-configurations.all {
-    resolutionStrategy.eachDependency { DependencyResolveDetails details ->
-        def requested = details.requested
-        if (requested.group == "androidx") {
-            if (!requested.name.startsWith("multidex")) {
-                details.useVersion "${targetSdk}.+"
-            }
-        }
-    }
-}

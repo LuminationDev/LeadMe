@@ -159,6 +159,10 @@ public class LumiAccessibilityConnector {
             lastInfo = rootInActiveWindow;
         }
 
+        if (event == null) {
+            return false;
+        }
+
         try {
             //if (event.getEventType() != AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED) {
             if (event.getEventType() == AccessibilityEvent.TYPE_VIEW_CLICKED || event.getEventType() == AccessibilityEvent.TYPE_VIEW_FOCUSED) {

@@ -1,6 +1,5 @@
 package com.lumination.leadme;
 
-import android.content.Intent;
 import android.net.Uri;
 import android.os.Parcel;
 import android.util.Log;
@@ -393,20 +392,19 @@ public class DispatchManager {
             }
 
             boolean appInForeground = main.isAppVisibleInForeground();
-            if (!extra.isEmpty()) {
-                main.getAppManager().isStreaming = Boolean.parseBoolean(streaming);
-                Intent appIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(extra));
-                appIntent.setPackage(packageName);
-
-                if (!appInForeground) {
-                    main.appIntentOnFocus = appIntent;
-                    main.getLumiAccessibilityConnector().bringMainToFront();
+            if (packageName.equals(main.getAppManager().withinPackage)) {
+                if (!extra.isEmpty()) {
+                    // save all the info for a Within launch
+                    main.getAppManager().isStreaming = Boolean.parseBoolean(streaming);
+                    main.getAppManager().withinURI = Uri.parse(extra);
+                    Log.d(TAG, "Setting streaming status and URL for WITHIN VR " + extra + ", " + streaming + " (" + appInForeground + ")");
                 } else {
-                    main.startActivity(appIntent);
+                    //no URL was specified, so clear any previous info
+                    main.getAppManager().withinURI = null;
                 }
-                Log.d(TAG, "TRYING TO LAUNCH WITHIN APP FOR " + extra + ", " + streaming);
+            }
 
-            } else if (!appInForeground) {//!main.getAppLaunchAdapter().lastApp.equals(packageName)) {
+            if (!appInForeground) {//!main.getAppLaunchAdapter().lastApp.equals(packageName)) {
                 Log.d(TAG, "NEED FOCUS!");
                 //only needed if it's not what we've already got open
                 //TODO make this more robust, check if it's actually running

@@ -854,6 +854,10 @@ public class NearbyPeersManager {
 
     private void connectedToEndpoint(Endpoint endpoint) {
         Log.d(TAG, String.format("connectedToEndpoint(endpoint=%s)", endpoint));
+        if (endpoint == null) {
+            Log.e(TAG, "Error! Endpoint is null (likely connection was not properly established)");
+            return;
+        }
         mEstablishedConnections.put(endpoint.getId(), endpoint);
         onEndpointConnected(endpoint);
     }

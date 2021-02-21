@@ -232,7 +232,6 @@ public class FavouritesManager extends BaseAdapter {
 
     };
 
-
     public void addCurrentPreviewToFavourites() {
         //update local/working variables
         String url = webManager.getPushURL();
@@ -306,7 +305,7 @@ public class FavouritesManager extends BaseAdapter {
 
 
     //content is URL or packageName
-    private void addToFavourites(String content, String title, Drawable icon) {
+    public void addToFavourites(String content, String title, Drawable icon) {
         if (contentList.contains(content)) {
             return; //it's already there!
         }
@@ -672,7 +671,7 @@ public class FavouritesManager extends BaseAdapter {
             convertView.setOnClickListener(v -> {
                 favAdding = false;
                 if (favPackage.equals(main.getAppManager().withinPackage)) {
-                    main.getAppManager().getWithinPlayer().showGuideController();
+                    main.getAppManager().getWithinPlayer().showWithin(); //.showGuideController();
                 } else {
                     main.showAppPushDialog(appName, appIcon, favPackage);
                 }
