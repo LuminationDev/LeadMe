@@ -19,6 +19,7 @@ import com.google.android.gms.nearby.connection.Payload;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
@@ -242,7 +243,7 @@ public class NetworkAdapter {
             }
             if (socket != null) {
                 if (socket.isConnected()) {
-                    connectionisActive=30;
+                    connectionisActive=20;
                     Log.d(TAG, "connectToServer: connection successful");
                     Name = nearbyPeersManager.getName();
                     sendToServer(Name,"NAME"); //sends the student name to the teacher for a record
@@ -328,6 +329,13 @@ public class NetworkAdapter {
         }else if(connectionisActive==0){
             main.runOnUiThread(() -> {
                 main.setUIDisconnected();
+                first = true;
+                try {
+                    socket.close();
+                    socket=null;
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
                 connectionisActive--;
             });
         }
@@ -385,14 +393,18 @@ public class NetworkAdapter {
                         BufferedReader in;
                         String input;
                         try {
-                            in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+                            InputStreamReader inStream = new InputStreamReader(socket.getInputStream());
+                            in = new BufferedReader(inStream);
                             input = in.readLine();
-                            if(input!=null) {
-                                if (input.length() > 0) {
-                                    Log.d(TAG, "run: server said: " + input);
-                                    netAdapt.messageRecievedFromServer(input);
+//                            if(inStream.read()==-1){
+//                                Log.d(TAG, "Disconnected: The teacher has disconnected");
+//                            }else {
+                                if (input != null) {
+                                    if (input.length() > 0) {
+                                        Log.d(TAG, "run: server said: " + input);
+                                        netAdapt.messageRecievedFromServer(input);
+                                    }
                                 }
-                            }
                         } catch (IOException e) {
                             e.printStackTrace();
                         }
@@ -421,6 +433,7 @@ public class NetworkAdapter {
     ACTION: used for controlling the client with different actions, app launches, etc
     PING: used to let the client know it is still recieving data from the server and helps keep the connection alive
      */
+   boolean first =true;
     public void messageRecievedFromServer(String input){
         List<String> inputList = Arrays.asList(input.split(","));
         switch(inputList.get(0)){
@@ -455,7 +468,12 @@ public class NetworkAdapter {
                 nearbyPeersManager.disconnectFromEndpoint("");
                 break;
             case "PING":
-                connectionisActive=30;
+                connectionisActive=20;
+                if(first) {
+                    main.closeWaitingDialog(true);
+                    first=false;
+                }
+                pingName=false;
                 Log.d(TAG, "messageRecievedFromServer: recieved ping and subsequently ignoring it");
                 break;
             case "MONITOR":

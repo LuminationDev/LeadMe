@@ -32,6 +32,7 @@ public class TcpClient extends Thread {
     NetworkAdapter parent;
 
     TcpClient tcp;
+    boolean runAgain=true;
 
     public TcpClient(Socket clientSocket, NetworkAdapter netContext, int clientID) {
 
@@ -50,10 +51,8 @@ public class TcpClient extends Thread {
         tcp=this;
 
 
-        new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                boolean runAgain=true;
+        while(!tcp.isInterrupted() && runAgain){
+
                     if(client.isConnected()) {
                         inputHandler();//checks if any input
                         checkConnection();
@@ -73,15 +72,26 @@ public class TcpClient extends Thread {
                             Log.d(TAG, "run: checking for messages");
                         }
                         if(runAgain) {
-                            new Handler(Looper.getMainLooper()).postDelayed(this, 1000);
+//                            new Handler(Looper.getMainLooper()).postDelayed(this, 1000);
                         }else{
                             Log.d(TAG, "run: the runnable has been interrupted");
                         }
                     }
+            try{
+                tcp.sleep(1000);
             }
-        }, 1000);
-
-    }
+            catch(final Exception e){
+                e.printStackTrace();
+                if(e instanceof InterruptedException) {
+                    // just in case this Runnable is actually called directly,
+                    // rather than in a new thread, don't want to swallow the
+                    // flag:
+                    tcp.interrupt();
+                }
+                return;
+            }
+            }
+        }
 
     private void checkConnection() {
         Thread thread = new Thread() {//no network ops on main thread
@@ -93,6 +103,8 @@ public class TcpClient extends Thread {
             if (out.checkError()){
                 System.out.println("ERROR writing data to socket student has disconnected");
                 parent.updateParent(Name,ID,"LOST");
+                tcp.interrupt();
+                runAgain=false;
             }
         } catch (IOException e) {
             Log.d(TAG, "checkConnection: failed");

@@ -9,7 +9,7 @@ MERGED from [com.github.javiersantos:AppUpdater:2.7] C:\Users\Jake\.gradle\cache
 MERGED from [com.google.android.material:material:1.2.1] C:\Users\Jake\.gradle\caches\transforms-2\files-2.1\6f39624951e241cce5e8652de814a4b8\material-1.2.1\AndroidManifest.xml:17:1-24:12
 MERGED from [com.google.android.gms:play-services-nearby:17.0.0] C:\Users\Jake\.gradle\caches\transforms-2\files-2.1\327974c2f6f9aa35bd67062bcf1bbe8a\jetified-play-services-nearby-17.0.0\AndroidManifest.xml:2:1-11:12
 MERGED from [gun0912.ted:tedpermission:2.2.3] C:\Users\Jake\.gradle\caches\transforms-2\files-2.1\3bee6913c1c6c89b1f710ec49f88227f\jetified-tedpermission-2.2.3\AndroidManifest.xml:2:1-17:12
-MERGED from [eu.bolt:screenshotty:1.0.3] C:\Users\Jake\.gradle\caches\transforms-2\files-2.1\2aa8c49cb651b6d8a1eac0ed70b52018\jetified-screenshotty-1.0.3\AndroidManifest.xml:2:1-11:12
+MERGED from [eu.bolt:screenshotty:1.0.0] C:\Users\Jake\.gradle\caches\transforms-2\files-2.1\15dd0ce2fb76ee42ced52b12d7b34b1f\jetified-screenshotty-1.0.0\AndroidManifest.xml:2:1-11:12
 MERGED from [androidx.legacy:legacy-support-core-ui:1.0.0] C:\Users\Jake\.gradle\caches\transforms-2\files-2.1\03d5f34ba39951d25b67dfdaf457339e\legacy-support-core-ui-1.0.0\AndroidManifest.xml:17:1-22:12
 MERGED from [androidx.appcompat:appcompat:1.1.0] C:\Users\Jake\.gradle\caches\transforms-2\files-2.1\2f18b02a23156118a3e215fa80524c2b\appcompat-1.1.0\AndroidManifest.xml:17:1-24:12
 MERGED from [androidx.coordinatorlayout:coordinatorlayout:1.1.0] C:\Users\Jake\.gradle\caches\transforms-2\files-2.1\27deb2dcde56786575420bb4eaff0393\coordinatorlayout-1.1.0\AndroidManifest.xml:17:1-24:12
@@ -244,8 +244,8 @@ MERGED from [com.google.android.gms:play-services-nearby:17.0.0] C:\Users\Jake\.
 MERGED from [com.google.android.gms:play-services-nearby:17.0.0] C:\Users\Jake\.gradle\caches\transforms-2\files-2.1\327974c2f6f9aa35bd67062bcf1bbe8a\jetified-play-services-nearby-17.0.0\AndroidManifest.xml:5:5-44
 MERGED from [gun0912.ted:tedpermission:2.2.3] C:\Users\Jake\.gradle\caches\transforms-2\files-2.1\3bee6913c1c6c89b1f710ec49f88227f\jetified-tedpermission-2.2.3\AndroidManifest.xml:5:5-7:41
 MERGED from [gun0912.ted:tedpermission:2.2.3] C:\Users\Jake\.gradle\caches\transforms-2\files-2.1\3bee6913c1c6c89b1f710ec49f88227f\jetified-tedpermission-2.2.3\AndroidManifest.xml:5:5-7:41
-MERGED from [eu.bolt:screenshotty:1.0.3] C:\Users\Jake\.gradle\caches\transforms-2\files-2.1\2aa8c49cb651b6d8a1eac0ed70b52018\jetified-screenshotty-1.0.3\AndroidManifest.xml:7:5-9:41
-MERGED from [eu.bolt:screenshotty:1.0.3] C:\Users\Jake\.gradle\caches\transforms-2\files-2.1\2aa8c49cb651b6d8a1eac0ed70b52018\jetified-screenshotty-1.0.3\AndroidManifest.xml:7:5-9:41
+MERGED from [eu.bolt:screenshotty:1.0.0] C:\Users\Jake\.gradle\caches\transforms-2\files-2.1\15dd0ce2fb76ee42ced52b12d7b34b1f\jetified-screenshotty-1.0.0\AndroidManifest.xml:7:5-9:41
+MERGED from [eu.bolt:screenshotty:1.0.0] C:\Users\Jake\.gradle\caches\transforms-2\files-2.1\15dd0ce2fb76ee42ced52b12d7b34b1f\jetified-screenshotty-1.0.0\AndroidManifest.xml:7:5-9:41
 MERGED from [androidx.legacy:legacy-support-core-ui:1.0.0] C:\Users\Jake\.gradle\caches\transforms-2\files-2.1\03d5f34ba39951d25b67dfdaf457339e\legacy-support-core-ui-1.0.0\AndroidManifest.xml:20:5-44
 MERGED from [androidx.legacy:legacy-support-core-ui:1.0.0] C:\Users\Jake\.gradle\caches\transforms-2\files-2.1\03d5f34ba39951d25b67dfdaf457339e\legacy-support-core-ui-1.0.0\AndroidManifest.xml:20:5-44
 MERGED from [androidx.appcompat:appcompat:1.1.0] C:\Users\Jake\.gradle\caches\transforms-2\files-2.1\2f18b02a23156118a3e215fa80524c2b\appcompat-1.1.0\AndroidManifest.xml:20:5-22:41

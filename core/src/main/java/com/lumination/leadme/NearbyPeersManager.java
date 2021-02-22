@@ -12,6 +12,7 @@ import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.collection.ArraySet;
 
 import com.google.android.gms.nearby.connection.Payload;
 
@@ -111,7 +112,7 @@ public class NearbyPeersManager {
     }
 
     public boolean isConnectedAsGuide() {
-       return main.isGuide && networkAdapter.clientThreadList.size()>0;//TODO maybe replace this with current clients once implemented
+       return main.isGuide && networkAdapter.currentClients.size()>0;//TODO maybe replace this with current clients once implemented
     }
 
     /**
@@ -193,80 +194,29 @@ networkAdapter.stopAdvertising();
 
     public Set<String> getSelectedPeerIDs() {
 
-        Set<String> something = new Set<String>() {
-            @Override
-            public int size() {
-                return 0;
+        Set<String> endpoints = new ArraySet<>();
+        //if connected as guide, send message to specific peers
+        if (isConnectedAsGuide()) {
+            for (ConnectedPeer thisPeer : main.getConnectedLearnersAdapter().mData) {
+                if (thisPeer.isSelected()) {
+                    Log.d(TAG, "Adding " + thisPeer.getDisplayName());
+                    endpoints.add(thisPeer.getID());
+                }
             }
+            return endpoints;
 
-            @Override
-            public boolean isEmpty() {
-                return false;
-            }
-
-            @Override
-            public boolean contains(@Nullable Object o) {
-                return false;
-            }
-
-            @NonNull
-            @Override
-            public Iterator<String> iterator() {
-                return null;
-            }
-
-            @NonNull
-            @Override
-            public Object[] toArray() {
-                return new Object[0];
-            }
-
-            @NonNull
-            @Override
-            public <T> T[] toArray(@NonNull T[] a) {
-                return null;
-            }
-
-            @Override
-            public boolean add(String s) {
-                return false;
-            }
-
-            @Override
-            public boolean remove(@Nullable Object o) {
-                return false;
-            }
-
-            @Override
-            public boolean containsAll(@NonNull Collection<?> c) {
-                return false;
-            }
-
-            @Override
-            public boolean addAll(@NonNull Collection<? extends String> c) {
-                return false;
-            }
-
-            @Override
-            public boolean retainAll(@NonNull Collection<?> c) {
-                return false;
-            }
-
-            @Override
-            public boolean removeAll(@NonNull Collection<?> c) {
-                return false;
-            }
-
-            @Override
-            public void clear() {
-
-            }
-        };
-        return something;
+            //if connected as follower, send message back to guide
+        }
+        return endpoints;
     }
 
     public Set<String> getAllPeerIDs() {
-        Set<String> something = new HashSet(networkAdapter.currentClients);
+        Set<String> something = new HashSet();
+        Iterator it = networkAdapter.currentClients.iterator();
+        while(it.hasNext()){
+            client id = (client) it.next();
+            something.add(String.valueOf(id.ID));
+        }
         return something;
     }
 
@@ -280,7 +230,9 @@ networkAdapter.stopAdvertising();
         ArrayList<Integer> selected = new ArrayList<>();
         Iterator iterator = selectedString.iterator();
         while(iterator.hasNext()){
-            selected.add(Integer.parseInt((String) iterator.next()));
+            String peer = (String) iterator.next();
+            Log.d(TAG, "sendToSelected: "+peer);
+            selected.add(Integer.parseInt(peer));
         }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             String encoded = Base64.getEncoder().encodeToString(b);

@@ -16,6 +16,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.ColorSpace;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.PixelFormat;
@@ -38,6 +39,7 @@ import android.os.Looper;
 import android.os.Message;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Base64;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.ActionMode;
@@ -75,13 +77,24 @@ import androidx.lifecycle.Lifecycle;
 import androidx.lifecycle.LifecycleObserver;
 import androidx.lifecycle.OnLifecycleEvent;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.net.SocketAddress;
 import java.net.SocketException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
@@ -2311,7 +2324,8 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     public Bitmap response;
     public Bitmap bitmapToSend=null;
     Boolean monitorInProgress = false;
-    DatagramSocket datagramSocketin=null;
+    ServerSocket serverSocket =null;
+    Socket socket = null;
 
     boolean screenShot=false;
     int screenshotRate=200;
@@ -2340,33 +2354,54 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             }
         });
 
-        while(datagramSocketin==null) {
+        while(serverSocket==null) {
             try {
-                datagramSocketin = new DatagramSocket();
-            } catch (SocketException e) {
+                serverSocket = new ServerSocket(0);
+            } catch (IOException e) {
                 e.printStackTrace();
             }
-            Log.d(TAG, "datagramsocket: attempting to create socket");
+            Log.d(TAG, "ServerSocket: attempting to create socket");
         }
-        nearbyManager.networkAdapter.startMonitoring(Integer.parseInt(peer),datagramSocketin.getLocalPort());
+        nearbyManager.networkAdapter.startMonitoring(Integer.parseInt(peer),serverSocket.getLocalPort());
         Thread t = new Thread(new Runnable() {
             @Override
             public void run() {
-
+                try {
+                   socket=serverSocket.accept();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    monitorInProgress=false;
+                    return;
+                }
                 while(monitorInProgress){
-                    byte[] buffer = new byte[65536];
-                    DatagramPacket packet = new DatagramPacket(buffer,buffer.length);
-                    if(datagramSocketin!=null){
+                    byte[] buffer = new byte[0];
+                    Bitmap bmap = null;
+                    try {
+                        InputStreamReader inreader=new InputStreamReader(socket.getInputStream());
+                        BufferedReader in = new BufferedReader(inreader);
+                        String Input="";
+                        String line="";
                         try {
-                            datagramSocketin.receive(packet);
-                            Log.d(TAG, "datagram:datagram Recieved!! ");
+                            line = "\n"+in.readLine();
                         } catch (IOException e) {
                             e.printStackTrace();
                         }
-                        byte[] buff = packet.getData();
-                        response = BitmapFactory.decodeByteArray(buff, 0, buff.length);
-                        tryDrawing(holder);
+                        while(line.length()>0){
+//                        for(int i=0; i<53; i++){
+                            Input += line;//"\n"+in.readLine();
+                            line=in.readLine();
+                       }
+                        Log.d(TAG, "run: "+Input);
+                        //bmap =decodeBase64(in.readLine());
+                        Log.d(TAG, "Packet Recieved!! ");
+                    } catch (IOException e) {
+                        e.printStackTrace();
                     }
+                    if(bmap!=null) {
+                        response = bmap;
+                    }
+//                    response = BitmapFactory.decodeByteArray(buffer, 0, buffer.length);
+                    tryDrawing(holder);
                 }
             }
         });
@@ -2378,8 +2413,23 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             Log.e(TAG, "Monitor layout - no visibility change");
         }
     }
+    public Bitmap decodeBase64(String input) {
+        BitmapFactory.Options bfo = new BitmapFactory.Options();
+        bfo.inPreferredConfig = Bitmap.Config.valueOf("ARGB_8888");
+        bfo.inMutable = true;   // this makes a mutable bitmap
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            bfo.inPreferredColorSpace = ColorSpace.get(ColorSpace.Named.SRGB);
+        }
 
-    @Override
+        byte[] decodedBytes = Base64.decode(input, 0);
+        return BitmapFactory.decodeByteArray(decodedBytes, 0, decodedBytes.length, bfo);
+    }
+    public String encodeToBase64(Bitmap image, Bitmap.CompressFormat compressFormat, int quality) {
+        ByteArrayOutputStream byteArrayOS = new ByteArrayOutputStream();
+        image.compress(compressFormat, quality, byteArrayOS);
+        return Base64.encodeToString(byteArrayOS.toByteArray(), Base64.DEFAULT);
+    }
+        @Override
     public void surfaceCreated(SurfaceHolder holder) {
         monitorView.setWillNotDraw(false);
         tryDrawing(holder);
@@ -2411,6 +2461,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         canvas.drawBitmap(bitmap, 0,0, paint);
     }
     public void takeScreenShot(){
+        Log.d(TAG, "takeScreenShot: ");
         runOnUiThread(() -> {
             ScreenshotResult screenShotResult = screenshotManager.makeScreenshot();
             subscription = screenShotResult.observe(onSuccess -> {
@@ -2436,42 +2487,49 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         screenshotRate=rate;
         startScreenshotRunnable(ip,Port);
     }
-    DatagramSocket datagramSocketout=null;
+    //DatagramSocket datagramSocketout=null;
     public void startScreenshotRunnable(InetAddress ip,int Port){
-        while (datagramSocketout==null) {
-            try {
-                datagramSocketout = new DatagramSocket();
-            } catch (SocketException e) {
-                e.printStackTrace();
-            }
-        }
+//        while (datagramSocketout==null) {
+//            try {
+//                datagramSocketout = new DatagramSocket();
+//            } catch (SocketException e) {
+//                e.printStackTrace();
+//            }
+//        }
         screenShot=true;
         Thread t = new Thread(new Runnable() {
             @Override
             public void run() {
+                try {
+                    socket = new Socket(ip, Port);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    Log.d(TAG, "startScreenShot: socket not connected");
+                    return;
+                }
                 while (!Thread.currentThread().isInterrupted() &&screenShot) {
-                        takeScreenShot();
-                    if(bitmapToSend!=null) {
-                        ByteArrayOutputStream stream = new ByteArrayOutputStream();
-                        bitmapToSend.compress(Bitmap.CompressFormat.JPEG, 0, stream);
-                        bitmapToSend.recycle();
-                        bitmapToSend=null;
-                        byte[] byteArray = stream.toByteArray();
-                        DatagramPacket packet = new DatagramPacket(byteArray, 0, byteArray.length, ip, Port);
-                        Log.d(TAG, "packet: "+packet.getLength());
-
+                    takeScreenShot();
+                    if (bitmapToSend != null) {
+//                        ByteArrayOutputStream stream = new ByteArrayOutputStream();
+//                        bitmapToSend.compress(Bitmap.CompressFormat.JPEG, 0, stream);
+//                        bitmapToSend.recycle();
+//                        bitmapToSend=null;
+//                        byte[] byteArray = stream.toByteArray();
+                        String output = encodeToBase64(bitmapToSend, Bitmap.CompressFormat.JPEG, 70);
+                        Log.d(TAG, "run: sending "+output);
                         try {
-                            datagramSocketout.send(packet);
+                            PrintWriter out = new PrintWriter(new BufferedWriter(new OutputStreamWriter(socket.getOutputStream())), true);
+                            out.println(output);
+                            Log.d(TAG, "run: image sent");
                         } catch (IOException e) {
                             e.printStackTrace();
                         }
-
-                    }
-                    try {
-                        Thread.sleep(screenshotRate);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                        Log.d(TAG, "Thread: thread wouldn't sleep");
+                        try {
+                            Thread.sleep(screenshotRate);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                            Log.d(TAG, "Thread: thread wouldn't sleep");
+                        }
                     }
                 }
 

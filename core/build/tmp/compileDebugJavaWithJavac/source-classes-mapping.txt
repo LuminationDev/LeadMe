@@ -252,7 +252,6 @@ com/lumination/leadme/TcpClient.java
  com.lumination.leadme.TcpClient$1
  com.lumination.leadme.TcpClient$2
  com.lumination.leadme.TcpClient$3
- com.lumination.leadme.TcpClient$4
 org/jsoup/internal/StringUtil.java
  org.jsoup.internal.StringUtil
 org/jsoup/nodes/Attributes.java
@@ -375,7 +374,6 @@ com/lumination/leadme/LeadMeMain.java
 com/lumination/leadme/NearbyPeersManager.java
  com.lumination.leadme.NearbyPeersManager
  com.lumination.leadme.NearbyPeersManager$1
- com.lumination.leadme.NearbyPeersManager$2
  com.lumination.leadme.NearbyPeersManager$Endpoint
 org/jsoup/UnsupportedMimeTypeException.java
  org.jsoup.UnsupportedMimeTypeException
