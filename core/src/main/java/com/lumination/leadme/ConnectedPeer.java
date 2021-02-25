@@ -112,7 +112,7 @@ public class ConnectedPeer {
             res += "• DISCONNECTED FROM GUIDE\n";
         }
         if (!onTask && !hiddenAlerts.contains("onTask")) {
-            res += "• May be off task\n";
+            res += "• Might be off task\n";
         }
         if (!lastAppLaunchSucceeded && !hiddenAlerts.contains("launchSuccess")) {
             res += "• Last app (" + lastApp + ") did not launch\n";

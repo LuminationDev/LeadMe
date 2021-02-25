@@ -7,12 +7,12 @@ org/jsoup/select/StructuralEvaluator.java
  org.jsoup.select.StructuralEvaluator$Parent
  org.jsoup.select.StructuralEvaluator$PreviousSibling
  org.jsoup.select.StructuralEvaluator$Root
-com/lumination/leadme/StudentAlertsAdapter.java
- com.lumination.leadme.StudentAlertsAdapter
 org/jsoup/nodes/Attribute.java
  org.jsoup.nodes.Attribute
 org/jsoup/parser/CharacterReader.java
  org.jsoup.parser.CharacterReader
+org/jsoup/parser/Tokeniser.java
+ org.jsoup.parser.Tokeniser
 org/jsoup/nodes/LeafNode.java
  org.jsoup.nodes.LeafNode
 org/jsoup/nodes/DataNode.java
@@ -69,15 +69,17 @@ org/jsoup/SerializationException.java
  org.jsoup.SerializationException
 org/jsoup/parser/Parser.java
  org.jsoup.parser.Parser
+org/jsoup/helper/DataUtil.java
+ org.jsoup.helper.DataUtil
+ org.jsoup.helper.DataUtil$BomCharset
 com/lumination/leadme/linkpreview/LinkPreviewCallback.java
  com.lumination.leadme.linkpreview.LinkPreviewCallback
 com/lumination/leadme/LumiAccessibilityService.java
  com.lumination.leadme.LumiAccessibilityService
-org/jsoup/helper/DataUtil.java
- org.jsoup.helper.DataUtil
- org.jsoup.helper.DataUtil$BomCharset
 org/jsoup/internal/ConstrainableInputStream.java
  org.jsoup.internal.ConstrainableInputStream
+org/jsoup/UncheckedIOException.java
+ org.jsoup.UncheckedIOException
 com/lumination/leadme/FavouritesManager.java
  com.lumination.leadme.FavouritesManager
  com.lumination.leadme.FavouritesManager$1
@@ -86,14 +88,12 @@ com/lumination/leadme/YouTubeEmbedPlayer.java
  com.lumination.leadme.YouTubeEmbedPlayer
  com.lumination.leadme.YouTubeEmbedPlayer$1
  com.lumination.leadme.YouTubeEmbedPlayer$2
-org/jsoup/UncheckedIOException.java
- org.jsoup.UncheckedIOException
 org/jsoup/parser/ParseErrorList.java
  org.jsoup.parser.ParseErrorList
 org/jsoup/parser/TokenQueue.java
  org.jsoup.parser.TokenQueue
-com/lumination/leadme/ConnectedLearnersAdapter.java
- com.lumination.leadme.ConnectedLearnersAdapter
+com/lumination/leadme/LumiAccessibilityConnector.java
+ com.lumination.leadme.LumiAccessibilityConnector
 org/jsoup/nodes/Element.java
  org.jsoup.nodes.Element
  org.jsoup.nodes.Element$1
@@ -247,13 +247,14 @@ org/jsoup/nodes/Document.java
  org.jsoup.nodes.Document$OutputSettings
  org.jsoup.nodes.Document$OutputSettings$Syntax
  org.jsoup.nodes.Document$QuirksMode
+org/jsoup/internal/StringUtil.java
+ org.jsoup.internal.StringUtil
 com/lumination/leadme/TcpClient.java
  com.lumination.leadme.TcpClient
  com.lumination.leadme.TcpClient$1
  com.lumination.leadme.TcpClient$2
  com.lumination.leadme.TcpClient$3
-org/jsoup/internal/StringUtil.java
- org.jsoup.internal.StringUtil
+ com.lumination.leadme.TcpClient$4
 org/jsoup/nodes/Attributes.java
  org.jsoup.nodes.Attributes
  org.jsoup.nodes.Attributes$1
@@ -297,10 +298,10 @@ com/lumination/leadme/AutoUpdater.java
  com.lumination.leadme.AutoUpdater
 com/lumination/leadme/linkpreview/BaseImagePickingStrategy.java
  com.lumination.leadme.linkpreview.BaseImagePickingStrategy
-com/lumination/leadme/linkpreview/DowloadImageCallback.java
- com.lumination.leadme.linkpreview.DowloadImageCallback
 com/lumination/leadme/LumiAccessibilityReceiver.java
  com.lumination.leadme.LumiAccessibilityReceiver
+com/lumination/leadme/linkpreview/DowloadImageCallback.java
+ com.lumination.leadme.linkpreview.DowloadImageCallback
 org/jsoup/nodes/Comment.java
  org.jsoup.nodes.Comment
 org/jsoup/HttpStatusException.java
@@ -350,6 +351,8 @@ com/lumination/leadme/WebManager.java
  com.lumination.leadme.WebManager$7$1
 org/jsoup/parser/ParseSettings.java
  org.jsoup.parser.ParseSettings
+org/jsoup/parser/HtmlTreeBuilder.java
+ org.jsoup.parser.HtmlTreeBuilder
 org/jsoup/helper/HttpConnection.java
  org.jsoup.helper.HttpConnection
  org.jsoup.helper.HttpConnection$1
@@ -357,26 +360,14 @@ org/jsoup/helper/HttpConnection.java
  org.jsoup.helper.HttpConnection$KeyVal
  org.jsoup.helper.HttpConnection$Request
  org.jsoup.helper.HttpConnection$Response
-org/jsoup/parser/HtmlTreeBuilder.java
- org.jsoup.parser.HtmlTreeBuilder
-com/lumination/leadme/LeadMeMain.java
- com.lumination.leadme.LeadMeMain
- com.lumination.leadme.LeadMeMain$1
- com.lumination.leadme.LeadMeMain$10
- com.lumination.leadme.LeadMeMain$2
- com.lumination.leadme.LeadMeMain$3
- com.lumination.leadme.LeadMeMain$4
- com.lumination.leadme.LeadMeMain$5
- com.lumination.leadme.LeadMeMain$6
- com.lumination.leadme.LeadMeMain$7
- com.lumination.leadme.LeadMeMain$8
- com.lumination.leadme.LeadMeMain$9
+org/jsoup/parser/package-info.java
+ org.jsoup.parser.package-info
+org/jsoup/UnsupportedMimeTypeException.java
+ org.jsoup.UnsupportedMimeTypeException
 com/lumination/leadme/NearbyPeersManager.java
  com.lumination.leadme.NearbyPeersManager
  com.lumination.leadme.NearbyPeersManager$1
  com.lumination.leadme.NearbyPeersManager$Endpoint
-org/jsoup/UnsupportedMimeTypeException.java
- org.jsoup.UnsupportedMimeTypeException
 org/jsoup/parser/Tag.java
  org.jsoup.parser.Tag
 org/jsoup/internal/Normalizer.java
@@ -396,6 +387,8 @@ com/lumination/leadme/linkpreview/ImagePickingStrategy.java
  com.lumination.leadme.linkpreview.ImagePickingStrategy
 org/jsoup/nodes/CDataNode.java
  org.jsoup.nodes.CDataNode
+org/jsoup/select/QueryParser.java
+ org.jsoup.select.QueryParser
 com/lumination/leadme/LeaderSelectAdapter.java
  com.lumination.leadme.LeaderSelectAdapter
 com/lumination/leadme/NetworkAdapter.java
@@ -410,11 +403,20 @@ com/lumination/leadme/NetworkAdapter.java
  com.lumination.leadme.client
  com.lumination.leadme.msg
  com.lumination.leadme.studentThread
-org/jsoup/select/QueryParser.java
- org.jsoup.select.QueryParser
-org/jsoup/parser/package-info.java
- org.jsoup.parser.package-info
-org/jsoup/parser/Tokeniser.java
- org.jsoup.parser.Tokeniser
-com/lumination/leadme/LumiAccessibilityConnector.java
- com.lumination.leadme.LumiAccessibilityConnector
+com/lumination/leadme/ConnectedLearnersAdapter.java
+ com.lumination.leadme.ConnectedLearnersAdapter
+com/lumination/leadme/StudentAlertsAdapter.java
+ com.lumination.leadme.StudentAlertsAdapter
+com/lumination/leadme/LeadMeMain.java
+ com.lumination.leadme.LeadMeMain
+ com.lumination.leadme.LeadMeMain$1
+ com.lumination.leadme.LeadMeMain$10
+ com.lumination.leadme.LeadMeMain$2
+ com.lumination.leadme.LeadMeMain$3
+ com.lumination.leadme.LeadMeMain$4
+ com.lumination.leadme.LeadMeMain$5
+ com.lumination.leadme.LeadMeMain$6
+ com.lumination.leadme.LeadMeMain$7
+ com.lumination.leadme.LeadMeMain$8
+ com.lumination.leadme.LeadMeMain$9
+ com.lumination.leadme.LeadMeMain$ImageAvailableListener

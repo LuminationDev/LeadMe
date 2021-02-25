@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     package="com.lumination.leadme"
     android:versionCode="1"
     android:versionName="1.0">
@@ -26,6 +27,7 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.ACCESS_MEDIA_LOCATION" />
 
+
     <!-- for youtube -->
     <uses-permission android:name="android.permission.INTERNET" />
 
@@ -39,12 +41,14 @@
 
     <!-- hardware acceleration needed for YouTube playback in WebView -->
     <application
+        tools:replace="android:label"
         android:clearTaskOnLaunch="true"
         android:icon="@mipmap/leadme_icon_round"
         android:label="@string/app_title"
         android:theme="@android:style/Theme.Holo.Light.NoActionBar.Fullscreen"
         android:hardwareAccelerated="true"
-        android:usesCleartextTraffic="true">
+        android:usesCleartextTraffic="true"
+        android:largeHeap="true">
 
         <activity
             android:name="com.lumination.leadme.LeadMeMain"

@@ -306,11 +306,13 @@ public class DispatchManager {
                         break;
 
                     } else if (action.startsWith(LeadMeMain.LAUNCH_URL)) {
+                        Log.d(TAG, "readAction: Launch URL");
                         String[] split = action.split(":::", 3);
                         main.getWebManager().launchWebsite(split[1], split[2], true);
                         break;
 
                     } else if (action.startsWith(LeadMeMain.LAUNCH_YT)) {
+                        Log.d(TAG, "readAction: Launch YT");
                         String[] split = action.split(":::", 3);
                         main.getWebManager().launchYouTube(split[1], split[2], true);
                         break;

@@ -149,13 +149,19 @@ public class NearbyPeersManager {
         if(main.isGuide){
             disconnectStudent(endpointId);
         }else {
-            try {
-                networkAdapter.socket.close();
-                main.setUIDisconnected();
-            } catch (IOException e) {
-                Log.d(TAG, "disconnectFromEndpoint: unable to close socket");
-                e.printStackTrace();
-            }
+//            try {
+                main.runOnUiThread(() -> {
+                    ArrayList<ConnectedPeer> temp = new ArrayList<>();
+                    main.getLeaderSelectAdapter().setLeaderList(temp);
+                    main.showLeaderWaitMsg(true);
+                    networkAdapter.startDiscovery();
+                    main.setUIDisconnected();
+                });
+                //networkAdapter.socket.close();
+//            } catch (IOException e) {
+//                Log.d(TAG, "disconnectFromEndpoint: unable to close socket");
+//                e.printStackTrace();
+//            }
         }
     }
 
@@ -206,6 +212,8 @@ networkAdapter.stopAdvertising();
             return endpoints;
 
             //if connected as follower, send message back to guide
+        }else{
+            endpoints.add("-1");
         }
         return endpoints;
     }
@@ -217,6 +225,9 @@ networkAdapter.stopAdvertising();
             client id = (client) it.next();
             something.add(String.valueOf(id.ID));
         }
+        if(!main.isGuide){
+            something.add("-1");
+        }
         return something;
     }
 
@@ -227,33 +238,27 @@ networkAdapter.stopAdvertising();
         byte[] b = p.marshall();
         String test = null;
         ArrayList<String> selectedString = new ArrayList<>(endpoints);
-        ArrayList<Integer> selected = new ArrayList<>();
-        Iterator iterator = selectedString.iterator();
-        while(iterator.hasNext()){
-            String peer = (String) iterator.next();
-            Log.d(TAG, "sendToSelected: "+peer);
-            selected.add(Integer.parseInt(peer));
-        }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            String encoded = Base64.getEncoder().encodeToString(b);
-            networkAdapter.sendToSelectedClients(encoded,"ACTION",selected);
+        if(selectedString.get(0).equals("-1") && !main.isGuide){
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                String encoded = Base64.getEncoder().encodeToString(b);
+                networkAdapter.sendToServer(encoded, "ACTION");
+            }
+        }else {
+            ArrayList<Integer> selected = new ArrayList<>();
+            Iterator iterator = selectedString.iterator();
+            while (iterator.hasNext()) {
+                String peer = (String) iterator.next();
+                Log.d(TAG, "sendToSelected: " + peer);
+                selected.add(Integer.parseInt(peer));
+            }
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                String encoded = Base64.getEncoder().encodeToString(b);
+                networkAdapter.sendToSelectedClients(encoded, "ACTION", selected);
+            }
         }
 
     }
 
-//    public void sendScreenShot(Bitmap bitmap) {
-//        if(networkAdapter!=null){
-//            //networkAdapter.sendToServer(encodeToBase64(bitmap,Bitmap.CompressFormat.JPEG,70),"IMAGE");
-//            Log.d(TAG, "sendScreenShot: "+encodeToBase64(bitmap,Bitmap.CompressFormat.JPEG,70).length());
-//        }else{
-//            Log.d(TAG, "sendScreenShot: networkAdapter is null");
-//        }
-//    }
-    public String encodeToBase64(Bitmap image, Bitmap.CompressFormat compressFormat, int quality) {
-        ByteArrayOutputStream byteArrayOS = new ByteArrayOutputStream();
-        image.compress(compressFormat, quality, byteArrayOS);
-        return android.util.Base64.encodeToString(byteArrayOS.toByteArray(), android.util.Base64.DEFAULT);
-    }
 
 
     /**

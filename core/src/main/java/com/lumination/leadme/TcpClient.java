@@ -50,15 +50,19 @@ public class TcpClient extends Thread {
         client=clientSocket;
         tcp=this;
 
+        Thread t = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                while(!tcp.isInterrupted() && runAgain){
 
-        while(!tcp.isInterrupted() && runAgain){
-
-                    if(client.isConnected()) {
+                    if(client.isConnected() && !client.isClosed()) {
                         inputHandler();//checks if any input
                         checkConnection();
                         Iterator<client> iterator = parent.currentClients.iterator();
-                        while(iterator.hasNext()){
-                            client Client = iterator.next();
+                        //while(iterator.hasNext()){
+                        for(int i=0; i<parent.currentClients.size(); i++){
+                            //client Client = iterator.next();
+                            client Client = parent.currentClients.get(i);
                             if(ID==Client.ID){
                                 while(Client.messageQueue.size()>0){
                                     if(Client.messageQueue.get(0).type.equals("DISCONNECT")){
@@ -67,6 +71,11 @@ public class TcpClient extends Thread {
                                     Log.d(TAG, "sending: "+Client.messageQueue.get(0).message+" "+Client.messageQueue.get(0).type);
                                     sendToClient(Client.messageQueue.get(0).message,Client.messageQueue.get(0).type);
                                     Client.messageQueue.remove(0);
+                                    try {
+                                        Thread.currentThread().sleep(500);
+                                    } catch (InterruptedException e) {
+                                        e.printStackTrace();
+                                    }
                                 }
                             }
                             Log.d(TAG, "run: checking for messages");
@@ -77,20 +86,24 @@ public class TcpClient extends Thread {
                             Log.d(TAG, "run: the runnable has been interrupted");
                         }
                     }
-            try{
-                tcp.sleep(1000);
-            }
-            catch(final Exception e){
-                e.printStackTrace();
-                if(e instanceof InterruptedException) {
-                    // just in case this Runnable is actually called directly,
-                    // rather than in a new thread, don't want to swallow the
-                    // flag:
-                    tcp.interrupt();
+                    try{
+                        tcp.sleep(1000);
+                    }
+                    catch(final Exception e){
+                        e.printStackTrace();
+                        if(e instanceof InterruptedException) {
+                            // just in case this Runnable is actually called directly,
+                            // rather than in a new thread, don't want to swallow the
+                            // flag:
+                            tcp.interrupt();
+                        }
+                        return;
+                    }
                 }
-                return;
             }
-            }
+        });
+        t.start();
+
         }
 
     private void checkConnection() {
@@ -99,7 +112,7 @@ public class TcpClient extends Thread {
             public void run() {
         try {
             PrintWriter out = new PrintWriter(client.getOutputStream(), true);
-            out.println("PING,connection check"); //set to be ignored at the client end, tcp will tell us if they have disconnected
+            out.println("PING,"+ID); //set to be ignored at the client end, tcp will tell us if they have disconnected
             if (out.checkError()){
                 System.out.println("ERROR writing data to socket student has disconnected");
                 parent.updateParent(Name,ID,"LOST");
@@ -175,7 +188,7 @@ public class TcpClient extends Thread {
 
     private void inputActionHandler(String action) {
         //not sure why student would send action but implemented anyway
-        Log.d(TAG, "inputActionHandler: Action recieved");
+        Log.d(TAG, "inputActionHandler: Action recieved: "+action);
         parent.updateParent(action,ID,"ACTION");
     }
 

@@ -346,6 +346,9 @@ public class ConnectedLearnersAdapter extends BaseAdapter {
                             Log.d(TAG, "Removing student: " + lastClickedID);
                             main.getConnectedLearnersAdapter().removeStudent(lastClickedID);
                             main.getConnectedLearnersAdapter().refresh();
+                            ArrayList<Integer> selected = new ArrayList<>();
+                            selected.add(Integer.valueOf(lastClickedID));
+                            main.getNearbyManager().networkAdapter.sendToSelectedClients("","DISCONNECT",selected);
                             disconnectPrompt.hide();
                         });
 

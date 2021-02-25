@@ -413,8 +413,10 @@ public class WebManager {
 
         //push the right instruction to the receivers
         if (isYouTube) {
+            Log.d(TAG, "pushYouTubeOrWeb: pushed yt");
             main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.LAUNCH_YT + url + ":::" + urlTitle, selectedPeers);
         } else {
+            Log.d(TAG, "pushYouTubeOrWeb: pushed website");
             main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.LAUNCH_URL + url + ":::" + urlTitle, selectedPeers);
         }
     }

@@ -1,566 +1,566 @@
 [
     {
-        "merged": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\build\\intermediates\\res\\merged\\debug\\mipmap-anydpi-v26_leadme_icon.xml.flat",
-        "source": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\src\\main\\res\\mipmap-anydpi-v26\\leadme_icon.xml"
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/drawable_shadow_gradient.xml.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/drawable/shadow_gradient.xml"
     },
     {
-        "merged": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\build\\intermediates\\res\\merged\\debug\\layout_d__options_menu.xml.flat",
-        "source": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\src\\main\\res\\layout\\d__options_menu.xml"
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/mipmap-mdpi_leadme_icon_round.png.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/mipmap-mdpi/leadme_icon_round.png"
     },
     {
-        "merged": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\build\\intermediates\\res\\merged\\debug\\drawable_icon_cast.xml.flat",
-        "source": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\src\\main\\res\\drawable\\icon_cast.xml"
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/drawable_controls_lock.xml.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/drawable/controls_lock.xml"
     },
     {
-        "merged": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\build\\intermediates\\res\\merged\\debug\\layout_b__login_popup.xml.flat",
-        "source": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\src\\main\\res\\layout\\b__login_popup.xml"
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/drawable_lumi_video_progress.xml.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/drawable/lumi_video_progress.xml"
     },
     {
-        "merged": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\build\\intermediates\\res\\merged\\debug\\drawable_controls_block.xml.flat",
-        "source": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\src\\main\\res\\drawable\\controls_block.xml"
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/layout_e__preview_url_push.xml.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/layout/e__preview_url_push.xml"
     },
     {
-        "merged": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\build\\intermediates\\res\\merged\\debug\\drawable_alert_offtask_learner.xml.flat",
-        "source": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\src\\main\\res\\drawable\\alert_offtask_learner.xml"
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/font_poppins_regular.ttf.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/font/poppins_regular.ttf"
     },
     {
-        "merged": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\build\\intermediates\\res\\merged\\debug\\layout_e__waiting_to_connect.xml.flat",
-        "source": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\src\\main\\res\\layout\\e__waiting_to_connect.xml"
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/drawable_bg_passive_left.xml.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/drawable/bg_passive_left.xml"
     },
     {
-        "merged": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\build\\intermediates\\res\\merged\\debug\\font_poppins_semibold.ttf.flat",
-        "source": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\src\\main\\res\\font\\poppins_semibold.ttf"
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/mipmap-xxxhdpi_leadme_icon.png.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/mipmap-xxxhdpi/leadme_icon.png"
     },
     {
-        "merged": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\build\\intermediates\\res\\merged\\debug\\drawable_push_everybody.xml.flat",
-        "source": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\src\\main\\res\\drawable\\push_everybody.xml"
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/drawable_icon_paste_from_clipboard.xml.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/drawable/icon_paste_from_clipboard.xml"
     },
     {
-        "merged": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\build\\intermediates\\res\\merged\\debug\\mipmap-xxxhdpi_lumination_logo_reverse.png.flat",
-        "source": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\src\\main\\res\\mipmap-xxxhdpi\\lumination_logo_reverse.png"
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/drawable_bg_active_left.xml.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/drawable/bg_active_left.xml"
     },
     {
-        "merged": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\build\\intermediates\\res\\merged\\debug\\layout_c__leader_main.xml.flat",
-        "source": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\src\\main\\res\\layout\\c__leader_main.xml"
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/mipmap-mdpi_leadme_icon_foreground.png.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/mipmap-mdpi/leadme_icon_foreground.png"
     },
     {
-        "merged": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\build\\intermediates\\res\\merged\\debug\\mipmap-mdpi_leadme_icon_foreground.png.flat",
-        "source": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\src\\main\\res\\mipmap-mdpi\\leadme_icon_foreground.png"
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/drawable_vid_captions.xml.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/drawable/vid_captions.xml"
     },
     {
-        "merged": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\build\\intermediates\\res\\merged\\debug\\drawable_alert_blocked.xml.flat",
-        "source": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\src\\main\\res\\drawable\\alert_blocked.xml"
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/drawable_rounded_popup_highlight.xml.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/drawable/rounded_popup_highlight.xml"
     },
     {
-        "merged": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\build\\intermediates\\res\\merged\\debug\\drawable_vid_captions_disabled.xml.flat",
-        "source": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\src\\main\\res\\drawable\\vid_captions_disabled.xml"
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/layout_e__disconnected_student_popup.xml.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/layout/e__disconnected_student_popup.xml"
     },
     {
-        "merged": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\build\\intermediates\\res\\merged\\debug\\layout_row_follower.xml.flat",
-        "source": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\src\\main\\res\\layout\\row_follower.xml"
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/drawable_divider_lock_row.xml.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/drawable/divider_lock_row.xml"
     },
     {
-        "merged": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\build\\intermediates\\res\\merged\\debug\\layout_d__app_list.xml.flat",
-        "source": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\src\\main\\res\\layout\\d__app_list.xml"
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/drawable_alert_locked.xml.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/drawable/alert_locked.xml"
     },
     {
-        "merged": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\build\\intermediates\\res\\merged\\debug\\drawable_shake_right.xml.flat",
-        "source": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\src\\main\\res\\drawable\\shake_right.xml"
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/drawable_placeholder_broken_img.xml.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/drawable/placeholder_broken_img.xml"
     },
     {
-        "merged": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\build\\intermediates\\res\\merged\\debug\\drawable_follow_leader.xml.flat",
-        "source": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\src\\main\\res\\drawable\\follow_leader.xml"
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/drawable_circle_btn.xml.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/drawable/circle_btn.xml"
     },
     {
-        "merged": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\build\\intermediates\\res\\merged\\debug\\drawable_vid_fastforward.xml.flat",
-        "source": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\src\\main\\res\\drawable\\vid_fastforward.xml"
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/layout_e__confirm_popup.xml.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/layout/e__confirm_popup.xml"
     },
     {
-        "merged": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\build\\intermediates\\res\\merged\\debug\\drawable_rounded_popup_white.xml.flat",
-        "source": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\src\\main\\res\\drawable\\rounded_popup_white.xml"
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/layout_row_push_spinner.xml.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/layout/row_push_spinner.xml"
     },
     {
-        "merged": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\build\\intermediates\\res\\merged\\debug\\drawable_rounded_popup_highlight.xml.flat",
-        "source": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\src\\main\\res\\drawable\\rounded_popup_highlight.xml"
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/drawable_vid_unmute.xml.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/drawable/vid_unmute.xml"
     },
     {
-        "merged": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\build\\intermediates\\res\\merged\\debug\\mipmap-hdpi_leadme_icon_round.png.flat",
-        "source": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\src\\main\\res\\mipmap-hdpi\\leadme_icon_round.png"
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/layout_e__logout_student_popup.xml.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/layout/e__logout_student_popup.xml"
     },
     {
-        "merged": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\build\\intermediates\\res\\merged\\debug\\drawable_search_yt.xml.flat",
-        "source": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\src\\main\\res\\drawable\\search_yt.xml"
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/layout_c__leader_main.xml.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/layout/c__leader_main.xml"
     },
     {
-        "merged": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\build\\intermediates\\res\\merged\\debug\\drawable_arrow_icon.xml.flat",
-        "source": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\src\\main\\res\\drawable\\arrow_icon.xml"
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/drawable_down_arrow.xml.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/drawable/down_arrow.xml"
     },
     {
-        "merged": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\build\\intermediates\\res\\merged\\debug\\drawable_alert_downloading.xml.flat",
-        "source": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\src\\main\\res\\drawable\\alert_downloading.xml"
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/raw_embed_player.html.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/raw/embed_player.html"
     },
     {
-        "merged": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\build\\intermediates\\res\\merged\\debug\\mipmap-mdpi_leadme_icon.png.flat",
-        "source": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\src\\main\\res\\mipmap-mdpi\\leadme_icon.png"
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/drawable_vid_captions_disabled.xml.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/drawable/vid_captions_disabled.xml"
     },
     {
-        "merged": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\build\\intermediates\\res\\merged\\debug\\font_poppins.xml.flat",
-        "source": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\src\\main\\res\\font\\poppins.xml"
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/drawable_alert_offtask_learner.xml.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/drawable/alert_offtask_learner.xml"
     },
     {
-        "merged": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\build\\intermediates\\res\\merged\\debug\\layout_d__enter_url.xml.flat",
-        "source": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\src\\main\\res\\layout\\d__enter_url.xml"
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/drawable_push_everybody.xml.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/drawable/push_everybody.xml"
     },
     {
-        "merged": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\build\\intermediates\\res\\merged\\debug\\drawable_icon_clear.xml.flat",
-        "source": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\src\\main\\res\\drawable\\icon_clear.xml"
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/menu_main_menu.xml.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/menu/main_menu.xml"
     },
     {
-        "merged": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\build\\intermediates\\res\\merged\\debug\\mipmap-xhdpi_leadme_icon.png.flat",
-        "source": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\src\\main\\res\\mipmap-xhdpi\\leadme_icon.png"
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/drawable_menu_icon.xml.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/drawable/menu_icon.xml"
     },
     {
-        "merged": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\build\\intermediates\\res\\merged\\debug\\xml_accessibility_service_config.xml.flat",
-        "source": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\src\\main\\res\\xml\\accessibility_service_config.xml"
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/drawable_alert_error.xml.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/drawable/alert_error.xml"
     },
     {
-        "merged": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\build\\intermediates\\res\\merged\\debug\\drawable_divider_lock_row.xml.flat",
-        "source": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\src\\main\\res\\drawable\\divider_lock_row.xml"
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/layout_a__viewswitcher.xml.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/layout/a__viewswitcher.xml"
     },
     {
-        "merged": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\build\\intermediates\\res\\merged\\debug\\layout_row_fav_url.xml.flat",
-        "source": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\src\\main\\res\\layout\\row_fav_url.xml"
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/layout_d__app_list.xml.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/layout/d__app_list.xml"
     },
     {
-        "merged": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\build\\intermediates\\res\\merged\\debug\\layout_b__start_learner.xml.flat",
-        "source": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\src\\main\\res\\layout\\b__start_learner.xml"
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/drawable_bg_control_buttons.xml.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/drawable/bg_control_buttons.xml"
     },
     {
-        "merged": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\build\\intermediates\\res\\merged\\debug\\drawable_icon_paste_from_clipboard.xml.flat",
-        "source": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\src\\main\\res\\drawable\\icon_paste_from_clipboard.xml"
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/drawable_bg_active.xml.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/drawable/bg_active.xml"
     },
     {
-        "merged": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\build\\intermediates\\res\\merged\\debug\\drawable_controls_lock.xml.flat",
-        "source": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\src\\main\\res\\drawable\\controls_lock.xml"
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/drawable_search_yt.xml.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/drawable/search_yt.xml"
     },
     {
-        "merged": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\build\\intermediates\\res\\merged\\debug\\mipmap-mdpi_leadme_icon_round.png.flat",
-        "source": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\src\\main\\res\\mipmap-mdpi\\leadme_icon_round.png"
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/mipmap-xhdpi_leadme_icon_round.png.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/mipmap-xhdpi/leadme_icon_round.png"
     },
     {
-        "merged": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\build\\intermediates\\res\\merged\\debug\\mipmap-xxhdpi_leadme_icon_foreground.png.flat",
-        "source": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\src\\main\\res\\mipmap-xxhdpi\\leadme_icon_foreground.png"
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/drawable_bg_passive.xml.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/drawable/bg_passive.xml"
     },
     {
-        "merged": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\build\\intermediates\\res\\merged\\debug\\drawable_dusk_background.xml.flat",
-        "source": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\src\\main\\res\\drawable\\dusk_background.xml"
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/layout_b__start_leader.xml.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/layout/b__start_leader.xml"
     },
     {
-        "merged": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\build\\intermediates\\res\\merged\\debug\\menu_main_menu.xml.flat",
-        "source": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\src\\main\\res\\menu\\main_menu.xml"
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/drawable_bg_white_roundeduppercorners.xml.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/drawable/bg_white_roundeduppercorners.xml"
     },
     {
-        "merged": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\build\\intermediates\\res\\merged\\debug\\drawable_bg_active_right.xml.flat",
-        "source": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\src\\main\\res\\drawable\\bg_active_right.xml"
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/layout_c__learner_main.xml.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/layout/c__learner_main.xml"
     },
     {
-        "merged": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\build\\intermediates\\res\\merged\\debug\\drawable_icon_fav_star_uncheck.xml.flat",
-        "source": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\src\\main\\res\\drawable\\icon_fav_star_uncheck.xml"
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/drawable_alert_warning.xml.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/drawable/alert_warning.xml"
     },
     {
-        "merged": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\build\\intermediates\\res\\merged\\debug\\drawable_vid_captions.xml.flat",
-        "source": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\src\\main\\res\\drawable\\vid_captions.xml"
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/layout_d__options_menu.xml.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/layout/d__options_menu.xml"
     },
     {
-        "merged": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\build\\intermediates\\res\\merged\\debug\\layout_e__warning_popup.xml.flat",
-        "source": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\src\\main\\res\\layout\\e__warning_popup.xml"
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/drawable_video_bg_highlight.xml.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/drawable/video_bg_highlight.xml"
     },
     {
-        "merged": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\build\\intermediates\\res\\merged\\debug\\font_poppins_regular.ttf.flat",
-        "source": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\src\\main\\res\\font\\poppins_regular.ttf"
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/mipmap-xxxhdpi_lumination_logo_reverse.png.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/mipmap-xxxhdpi/lumination_logo_reverse.png"
     },
     {
-        "merged": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\build\\intermediates\\res\\merged\\debug\\mipmap-xxxhdpi_leadme_icon.png.flat",
-        "source": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\src\\main\\res\\mipmap-xxxhdpi\\leadme_icon.png"
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/layout_e__fav_clear_confirmation_popup.xml.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/layout/e__fav_clear_confirmation_popup.xml"
     },
     {
-        "merged": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\build\\intermediates\\res\\merged\\debug\\drawable_bg_passive_left_white.xml.flat",
-        "source": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\src\\main\\res\\drawable\\bg_passive_left_white.xml"
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/drawable_vid_fastforward.xml.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/drawable/vid_fastforward.xml"
     },
     {
-        "merged": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\build\\intermediates\\res\\merged\\debug\\layout_e__preview_url_push.xml.flat",
-        "source": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\src\\main\\res\\layout\\e__preview_url_push.xml"
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/drawable_shake_right.xml.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/drawable/shake_right.xml"
     },
     {
-        "merged": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\build\\intermediates\\res\\merged\\debug\\drawable_rounded_btn_highlight.xml.flat",
-        "source": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\src\\main\\res\\drawable\\rounded_btn_highlight.xml"
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/layout_a__splash_screen.xml.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/layout/a__splash_screen.xml"
     },
     {
-        "merged": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\build\\intermediates\\res\\merged\\debug\\drawable_bg_active.xml.flat",
-        "source": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\src\\main\\res\\drawable\\bg_active.xml"
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/layout_d__url_yt_favourites.xml.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/layout/d__url_yt_favourites.xml"
     },
     {
-        "merged": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\build\\intermediates\\res\\merged\\debug\\raw_embed_player.html.flat",
-        "source": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\src\\main\\res\\raw\\embed_player.html"
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/layout_row_follower.xml.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/layout/row_follower.xml"
     },
     {
-        "merged": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\build\\intermediates\\res\\merged\\debug\\drawable_clear_favourites.xml.flat",
-        "source": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\src\\main\\res\\drawable\\clear_favourites.xml"
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/drawable_icon_fav_remove.xml.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/drawable/icon_fav_remove.xml"
     },
     {
-        "merged": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\build\\intermediates\\res\\merged\\debug\\drawable_bg_passive_right_white.xml.flat",
-        "source": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\src\\main\\res\\drawable\\bg_passive_right_white.xml"
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/mipmap-xxxhdpi_leadme_icon_foreground.png.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/mipmap-xxxhdpi/leadme_icon_foreground.png"
     },
     {
-        "merged": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\build\\intermediates\\res\\merged\\debug\\layout_b__start_leader.xml.flat",
-        "source": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\src\\main\\res\\layout\\b__start_leader.xml"
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/mipmap-hdpi_leadme_icon_round.png.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/mipmap-hdpi/leadme_icon_round.png"
     },
     {
-        "merged": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\build\\intermediates\\res\\merged\\debug\\layout_e__logout_student_popup.xml.flat",
-        "source": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\src\\main\\res\\layout\\e__logout_student_popup.xml"
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/drawable_search_google.xml.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/drawable/search_google.xml"
     },
     {
-        "merged": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\build\\intermediates\\res\\merged\\debug\\drawable_close.xml.flat",
-        "source": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\src\\main\\res\\drawable\\close.xml"
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/drawable_task_vr_icon_disabled.xml.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/drawable/task_vr_icon_disabled.xml"
     },
     {
-        "merged": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\build\\intermediates\\res\\merged\\debug\\mipmap-xhdpi_leadme_icon_round.png.flat",
-        "source": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\src\\main\\res\\mipmap-xhdpi\\leadme_icon_round.png"
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/drawable_search_icon.xml.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/drawable/search_icon.xml"
     },
     {
-        "merged": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\build\\intermediates\\res\\merged\\debug\\drawable_vid_playfrom.xml.flat",
-        "source": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\src\\main\\res\\drawable\\vid_playfrom.xml"
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/layout_e__warning_popup.xml.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/layout/e__warning_popup.xml"
     },
     {
-        "merged": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\build\\intermediates\\res\\merged\\debug\\layout_row_leader.xml.flat",
-        "source": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\src\\main\\res\\layout\\row_leader.xml"
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/drawable_icon_unknown_browser.xml.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/drawable/icon_unknown_browser.xml"
     },
     {
-        "merged": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\build\\intermediates\\res\\merged\\debug\\layout_row_apps.xml.flat",
-        "source": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\src\\main\\res\\layout\\row_apps.xml"
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/drawable_wifi_connected_icon.xml.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/drawable/wifi_connected_icon.xml"
     },
     {
-        "merged": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\build\\intermediates\\res\\merged\\debug\\drawable_search_icon.xml.flat",
-        "source": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\src\\main\\res\\drawable\\search_icon.xml"
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/drawable_core_select.xml.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/drawable/core_select.xml"
     },
     {
-        "merged": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\build\\intermediates\\res\\merged\\debug\\layout_e__disconnected_student_popup.xml.flat",
-        "source": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\src\\main\\res\\layout\\e__disconnected_student_popup.xml"
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/drawable_core_app_icon.xml.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/drawable/core_app_icon.xml"
     },
     {
-        "merged": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\build\\intermediates\\res\\merged\\debug\\layout_e__edit_favourites.xml.flat",
-        "source": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\src\\main\\res\\layout\\e__edit_favourites.xml"
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/drawable_shake_left.xml.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/drawable/shake_left.xml"
     },
     {
-        "merged": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\build\\intermediates\\res\\merged\\debug\\drawable_alert_locked.xml.flat",
-        "source": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\src\\main\\res\\drawable\\alert_locked.xml"
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/drawable_vid_less.xml.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/drawable/vid_less.xml"
     },
     {
-        "merged": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\build\\intermediates\\res\\merged\\debug\\drawable_search_google.xml.flat",
-        "source": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\src\\main\\res\\drawable\\search_google.xml"
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/drawable_add_favourite.xml.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/drawable/add_favourite.xml"
     },
     {
-        "merged": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\build\\intermediates\\res\\merged\\debug\\drawable_core_app_icon.xml.flat",
-        "source": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\src\\main\\res\\drawable\\core_app_icon.xml"
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/drawable_leadme_icon.xml.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/drawable/leadme_icon.xml"
     },
     {
-        "merged": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\build\\intermediates\\res\\merged\\debug\\mipmap-xhdpi_leadme_icon_foreground.png.flat",
-        "source": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\src\\main\\res\\mipmap-xhdpi\\leadme_icon_foreground.png"
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/drawable_bg_passive_right_white.xml.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/drawable/bg_passive_right_white.xml"
     },
     {
-        "merged": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\build\\intermediates\\res\\merged\\debug\\layout_a__splash_screen.xml.flat",
-        "source": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\src\\main\\res\\layout\\a__splash_screen.xml"
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/drawable_alert_downloading.xml.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/drawable/alert_downloading.xml"
     },
     {
-        "merged": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\build\\intermediates\\res\\merged\\debug\\drawable_core_select.xml.flat",
-        "source": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\src\\main\\res\\drawable\\core_select.xml"
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/drawable_rounded_btn_white.xml.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/drawable/rounded_btn_white.xml"
     },
     {
-        "merged": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\build\\intermediates\\res\\merged\\debug\\layout_e__preview_url_search.xml.flat",
-        "source": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\src\\main\\res\\layout\\e__preview_url_search.xml"
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/drawable_bg_highlight_roundeduppercorners.xml.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/drawable/bg_highlight_roundeduppercorners.xml"
     },
     {
-        "merged": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\build\\intermediates\\res\\merged\\debug\\drawable_icon_fav_star_check.xml.flat",
-        "source": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\src\\main\\res\\drawable\\icon_fav_star_check.xml"
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/drawable_arrow_icon.xml.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/drawable/arrow_icon.xml"
     },
     {
-        "merged": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\build\\intermediates\\res\\merged\\debug\\drawable_alert_warning.xml.flat",
-        "source": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\src\\main\\res\\drawable\\alert_warning.xml"
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/layout_e__waiting_to_connect.xml.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/layout/e__waiting_to_connect.xml"
     },
     {
-        "merged": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\build\\intermediates\\res\\merged\\debug\\drawable_vid_less.xml.flat",
-        "source": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\src\\main\\res\\drawable\\vid_less.xml"
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/layout_e__preview_app_push.xml.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/layout/e__preview_app_push.xml"
     },
     {
-        "merged": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\build\\intermediates\\res\\merged\\debug\\layout_e__currently_streaming_popup.xml.flat",
-        "source": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\src\\main\\res\\layout\\e__currently_streaming_popup.xml"
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/layout_e__edit_favourites.xml.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/layout/e__edit_favourites.xml"
     },
     {
-        "merged": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\build\\intermediates\\res\\merged\\debug\\drawable_shake_left.xml.flat",
-        "source": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\src\\main\\res\\drawable\\shake_left.xml"
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/layout_a__viewanimator.xml.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/layout/a__viewanimator.xml"
     },
     {
-        "merged": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\build\\intermediates\\res\\merged\\debug\\layout_transparent_overlay.xml.flat",
-        "source": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\src\\main\\res\\layout\\transparent_overlay.xml"
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/layout_row_leader.xml.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/layout/row_leader.xml"
     },
     {
-        "merged": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\build\\intermediates\\res\\merged\\debug\\drawable_controls_unlock.xml.flat",
-        "source": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\src\\main\\res\\drawable\\controls_unlock.xml"
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/layout_e__recall_confirm_popup.xml.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/layout/e__recall_confirm_popup.xml"
     },
     {
-        "merged": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\build\\intermediates\\res\\merged\\debug\\drawable_leadme_icon.xml.flat",
-        "source": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\src\\main\\res\\drawable\\leadme_icon.xml"
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/drawable_icon_restart.xml.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/drawable/icon_restart.xml"
     },
     {
-        "merged": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\build\\intermediates\\res\\merged\\debug\\layout_e__all_disconnected_popup.xml.flat",
-        "source": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\src\\main\\res\\layout\\e__all_disconnected_popup.xml"
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/drawable_vid_playfrom.xml.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/drawable/vid_playfrom.xml"
     },
     {
-        "merged": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\build\\intermediates\\res\\merged\\debug\\layout_e__recall_confirm_popup.xml.flat",
-        "source": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\src\\main\\res\\layout\\e__recall_confirm_popup.xml"
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/layout_row_search_spinner.xml.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/layout/row_search_spinner.xml"
     },
     {
-        "merged": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\build\\intermediates\\res\\merged\\debug\\drawable_web_no_preview.xml.flat",
-        "source": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\src\\main\\res\\drawable\\web_no_preview.xml"
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/drawable_controls_unlock.xml.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/drawable/controls_unlock.xml"
     },
     {
-        "merged": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\build\\intermediates\\res\\merged\\debug\\drawable_add_favourite.xml.flat",
-        "source": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\src\\main\\res\\drawable\\add_favourite.xml"
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/drawable_student_select_border.xml.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/drawable/student_select_border.xml"
     },
     {
-        "merged": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\build\\intermediates\\res\\merged\\debug\\mipmap-hdpi_leadme_icon.png.flat",
-        "source": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\src\\main\\res\\mipmap-hdpi\\leadme_icon.png"
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/drawable_task_vr_icon.xml.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/drawable/task_vr_icon.xml"
     },
     {
-        "merged": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\build\\intermediates\\res\\merged\\debug\\drawable_circle_btn.xml.flat",
-        "source": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\src\\main\\res\\drawable\\circle_btn.xml"
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/layout_row_fav_app.xml.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/layout/row_fav_app.xml"
     },
     {
-        "merged": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\build\\intermediates\\res\\merged\\debug\\drawable_divider_horizontal.xml.flat",
-        "source": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\src\\main\\res\\drawable\\divider_horizontal.xml"
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/drawable_follow_leader.xml.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/drawable/follow_leader.xml"
     },
     {
-        "merged": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\build\\intermediates\\res\\merged\\debug\\mipmap-xxxhdpi_leadme_icon_foreground.png.flat",
-        "source": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\src\\main\\res\\mipmap-xxxhdpi\\leadme_icon_foreground.png"
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/mipmap-xhdpi_leadme_icon.png.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/mipmap-xhdpi/leadme_icon.png"
     },
     {
-        "merged": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\build\\intermediates\\res\\merged\\debug\\mipmap-xxhdpi_leadme_icon.png.flat",
-        "source": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\src\\main\\res\\mipmap-xxhdpi\\leadme_icon.png"
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/drawable_rounded_popup_white.xml.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/drawable/rounded_popup_white.xml"
     },
     {
-        "merged": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\build\\intermediates\\res\\merged\\debug\\mipmap-anydpi-v26_leadme_icon_round.xml.flat",
-        "source": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\src\\main\\res\\mipmap-anydpi-v26\\leadme_icon_round.xml"
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/layout_row_fav_url.xml.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/layout/row_fav_url.xml"
     },
     {
-        "merged": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\build\\intermediates\\res\\merged\\debug\\layout_d__alerts_list.xml.flat",
-        "source": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\src\\main\\res\\layout\\d__alerts_list.xml"
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/drawable_bg_active_right_leader.xml.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/drawable/bg_active_right_leader.xml"
     },
     {
-        "merged": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\build\\intermediates\\res\\merged\\debug\\drawable_connected_student.xml.flat",
-        "source": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\src\\main\\res\\drawable\\connected_student.xml"
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/drawable_bg_active_left_learner.xml.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/drawable/bg_active_left_learner.xml"
     },
     {
-        "merged": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\build\\intermediates\\res\\merged\\debug\\drawable_lumi_video_progress.xml.flat",
-        "source": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\src\\main\\res\\drawable\\lumi_video_progress.xml"
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/layout_row_apps.xml.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/layout/row_apps.xml"
     },
     {
-        "merged": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\build\\intermediates\\res\\merged\\debug\\drawable_task_website_icon.xml.flat",
-        "source": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\src\\main\\res\\drawable\\task_website_icon.xml"
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/drawable_web_no_preview.xml.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/drawable/web_no_preview.xml"
     },
     {
-        "merged": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\build\\intermediates\\res\\merged\\debug\\mipmap-xxhdpi_leadme_icon_round.png.flat",
-        "source": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\src\\main\\res\\mipmap-xxhdpi\\leadme_icon_round.png"
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/mipmap-xhdpi_leadme_icon_foreground.png.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/mipmap-xhdpi/leadme_icon_foreground.png"
     },
     {
-        "merged": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\build\\intermediates\\res\\merged\\debug\\drawable_bg_passive.xml.flat",
-        "source": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\src\\main\\res\\drawable\\bg_passive.xml"
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/drawable_icon_fav_star_check.xml.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/drawable/icon_fav_star_check.xml"
     },
     {
-        "merged": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\build\\intermediates\\res\\merged\\debug\\layout_c__learner_main.xml.flat",
-        "source": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\src\\main\\res\\layout\\c__learner_main.xml"
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/drawable_vid_pause.xml.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/drawable/vid_pause.xml"
     },
     {
-        "merged": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\build\\intermediates\\res\\merged\\debug\\drawable_task_vr_icon_disabled.xml.flat",
-        "source": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\src\\main\\res\\drawable\\task_vr_icon_disabled.xml"
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/drawable_icon_clear.xml.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/drawable/icon_clear.xml"
     },
     {
-        "merged": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\build\\intermediates\\res\\merged\\debug\\drawable_vid_unmute.xml.flat",
-        "source": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\src\\main\\res\\drawable\\vid_unmute.xml"
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/font_poppins.xml.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/font/poppins.xml"
     },
     {
-        "merged": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\build\\intermediates\\res\\merged\\debug\\drawable_vid_mute.xml.flat",
-        "source": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\src\\main\\res\\drawable\\vid_mute.xml"
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/drawable_vid_play.xml.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/drawable/vid_play.xml"
     },
     {
-        "merged": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\build\\intermediates\\res\\merged\\debug\\drawable_alert_error.xml.flat",
-        "source": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\src\\main\\res\\drawable\\alert_error.xml"
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/layout_d__enter_url.xml.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/layout/d__enter_url.xml"
     },
     {
-        "merged": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\build\\intermediates\\res\\merged\\debug\\layout_a__viewswitcher.xml.flat",
-        "source": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\src\\main\\res\\layout\\a__viewswitcher.xml"
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/drawable_close.xml.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/drawable/close.xml"
     },
     {
-        "merged": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\build\\intermediates\\res\\merged\\debug\\drawable_bg_active_left_learner.xml.flat",
-        "source": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\src\\main\\res\\drawable\\bg_active_left_learner.xml"
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/drawable_clear_favourites.xml.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/drawable/clear_favourites.xml"
     },
     {
-        "merged": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\build\\intermediates\\res\\merged\\debug\\drawable_wifi_connected_icon.xml.flat",
-        "source": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\src\\main\\res\\drawable\\wifi_connected_icon.xml"
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/mipmap-xxxhdpi_leadme_icon_round.png.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/mipmap-xxxhdpi/leadme_icon_round.png"
     },
     {
-        "merged": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\build\\intermediates\\res\\merged\\debug\\drawable_bg_passive_left.xml.flat",
-        "source": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\src\\main\\res\\drawable\\bg_passive_left.xml"
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/drawable_divider_horizontal.xml.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/drawable/divider_horizontal.xml"
     },
     {
-        "merged": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\build\\intermediates\\res\\merged\\debug\\drawable_icon_unknown_browser.xml.flat",
-        "source": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\src\\main\\res\\drawable\\icon_unknown_browser.xml"
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/xml_accessibility_service_config.xml.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/xml/accessibility_service_config.xml"
     },
     {
-        "merged": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\build\\intermediates\\res\\merged\\debug\\drawable_placeholder_broken_img.xml.flat",
-        "source": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\src\\main\\res\\drawable\\placeholder_broken_img.xml"
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/mipmap-xxhdpi_leadme_icon.png.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/mipmap-xxhdpi/leadme_icon.png"
     },
     {
-        "merged": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\build\\intermediates\\res\\merged\\debug\\drawable_vid_play.xml.flat",
-        "source": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\src\\main\\res\\drawable\\vid_play.xml"
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/mipmap-xxhdpi_leadme_icon_foreground.png.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/mipmap-xxhdpi/leadme_icon_foreground.png"
     },
     {
-        "merged": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\build\\intermediates\\res\\merged\\debug\\drawable_vid_pause.xml.flat",
-        "source": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\src\\main\\res\\drawable\\vid_pause.xml"
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/drawable_vid_mute.xml.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/drawable/vid_mute.xml"
     },
     {
-        "merged": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\build\\intermediates\\res\\merged\\debug\\mipmap-xxxhdpi_leadme_icon_round.png.flat",
-        "source": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\src\\main\\res\\mipmap-xxxhdpi\\leadme_icon_round.png"
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/drawable_star_checkbox.xml.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/drawable/star_checkbox.xml"
     },
     {
-        "merged": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\build\\intermediates\\res\\merged\\debug\\drawable_video_bg_highlight.xml.flat",
-        "source": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\src\\main\\res\\drawable\\video_bg_highlight.xml"
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/mipmap-anydpi-v26_leadme_icon_round.xml.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/mipmap-anydpi-v26/leadme_icon_round.xml"
     },
     {
-        "merged": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\build\\intermediates\\res\\merged\\debug\\drawable_icon_fav_remove.xml.flat",
-        "source": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\src\\main\\res\\drawable\\icon_fav_remove.xml"
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/drawable_connected_student.xml.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/drawable/connected_student.xml"
     },
     {
-        "merged": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\build\\intermediates\\res\\merged\\debug\\drawable_core_yt_icon.xml.flat",
-        "source": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\src\\main\\res\\drawable\\core_yt_icon.xml"
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/mipmap-hdpi_leadme_icon.png.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/mipmap-hdpi/leadme_icon.png"
     },
     {
-        "merged": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\build\\intermediates\\res\\merged\\debug\\layout_row_student_alert.xml.flat",
-        "source": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\src\\main\\res\\layout\\row_student_alert.xml"
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/layout_b__login_popup.xml.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/layout/b__login_popup.xml"
     },
     {
-        "merged": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\build\\intermediates\\res\\merged\\debug\\drawable_hollow_dot.xml.flat",
-        "source": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\src\\main\\res\\drawable\\hollow_dot.xml"
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/mipmap-hdpi_leadme_icon_foreground.png.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/mipmap-hdpi/leadme_icon_foreground.png"
     },
     {
-        "merged": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\build\\intermediates\\res\\merged\\debug\\drawable_bg_passive_right.xml.flat",
-        "source": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\src\\main\\res\\drawable\\bg_passive_right.xml"
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/drawable_core_yt_icon.xml.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/drawable/core_yt_icon.xml"
     },
     {
-        "merged": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\build\\intermediates\\res\\merged\\debug\\layout_a__viewanimator.xml.flat",
-        "source": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\src\\main\\res\\layout\\a__viewanimator.xml"
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/drawable_icon_cast.xml.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/drawable/icon_cast.xml"
     },
     {
-        "merged": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\build\\intermediates\\res\\merged\\debug\\drawable_rounded_btn_white.xml.flat",
-        "source": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\src\\main\\res\\drawable\\rounded_btn_white.xml"
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/drawable_icon_fav_star_uncheck.xml.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/drawable/icon_fav_star_uncheck.xml"
     },
     {
-        "merged": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\build\\intermediates\\res\\merged\\debug\\layout_e__preview_app_push.xml.flat",
-        "source": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\src\\main\\res\\layout\\e__preview_app_push.xml"
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/drawable_leadme_reverse.xml.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/drawable/leadme_reverse.xml"
     },
     {
-        "merged": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\build\\intermediates\\res\\merged\\debug\\drawable_star_checkbox.xml.flat",
-        "source": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\src\\main\\res\\drawable\\star_checkbox.xml"
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/layout_e__all_disconnected_popup.xml.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/layout/e__all_disconnected_popup.xml"
     },
     {
-        "merged": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\build\\intermediates\\res\\merged\\debug\\layout_e__confirm_popup.xml.flat",
-        "source": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\src\\main\\res\\layout\\e__confirm_popup.xml"
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/drawable_controls_block.xml.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/drawable/controls_block.xml"
     },
     {
-        "merged": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\build\\intermediates\\res\\merged\\debug\\drawable_down_arrow.xml.flat",
-        "source": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\src\\main\\res\\drawable\\down_arrow.xml"
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/drawable_alert_blocked.xml.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/drawable/alert_blocked.xml"
     },
     {
-        "merged": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\build\\intermediates\\res\\merged\\debug\\layout_row_push_spinner.xml.flat",
-        "source": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\src\\main\\res\\layout\\row_push_spinner.xml"
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/layout_e__preview_url_search.xml.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/layout/e__preview_url_search.xml"
     },
     {
-        "merged": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\build\\intermediates\\res\\merged\\debug\\drawable_menu_icon.xml.flat",
-        "source": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\src\\main\\res\\drawable\\menu_icon.xml"
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/layout_transparent_overlay.xml.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/layout/transparent_overlay.xml"
     },
     {
-        "merged": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\build\\intermediates\\res\\merged\\debug\\drawable_bg_control_buttons.xml.flat",
-        "source": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\src\\main\\res\\drawable\\bg_control_buttons.xml"
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/drawable_dusk_background.xml.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/drawable/dusk_background.xml"
     },
     {
-        "merged": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\build\\intermediates\\res\\merged\\debug\\mipmap-hdpi_leadme_icon_foreground.png.flat",
-        "source": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\src\\main\\res\\mipmap-hdpi\\leadme_icon_foreground.png"
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/layout_e__currently_streaming_popup.xml.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/layout/e__currently_streaming_popup.xml"
     },
     {
-        "merged": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\build\\intermediates\\res\\merged\\debug\\drawable_bg_white_roundeduppercorners.xml.flat",
-        "source": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\src\\main\\res\\drawable\\bg_white_roundeduppercorners.xml"
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/layout_row_student_alert.xml.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/layout/row_student_alert.xml"
     },
     {
-        "merged": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\build\\intermediates\\res\\merged\\debug\\layout_row_fav_app.xml.flat",
-        "source": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\src\\main\\res\\layout\\row_fav_app.xml"
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/mipmap-anydpi-v26_leadme_icon.xml.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/mipmap-anydpi-v26/leadme_icon.xml"
     },
     {
-        "merged": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\build\\intermediates\\res\\merged\\debug\\drawable_task_vr_icon.xml.flat",
-        "source": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\src\\main\\res\\drawable\\task_vr_icon.xml"
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/drawable_core_url_icon.xml.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/drawable/core_url_icon.xml"
     },
     {
-        "merged": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\build\\intermediates\\res\\merged\\debug\\drawable_icon_fav_add.xml.flat",
-        "source": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\src\\main\\res\\drawable\\icon_fav_add.xml"
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/drawable_icon_fav_add.xml.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/drawable/icon_fav_add.xml"
     },
     {
-        "merged": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\build\\intermediates\\res\\merged\\debug\\drawable_bg_active_left.xml.flat",
-        "source": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\src\\main\\res\\drawable\\bg_active_left.xml"
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/layout_b__start_learner.xml.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/layout/b__start_learner.xml"
     },
     {
-        "merged": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\build\\intermediates\\res\\merged\\debug\\layout_d__url_yt_favourites.xml.flat",
-        "source": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\src\\main\\res\\layout\\d__url_yt_favourites.xml"
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/mipmap-xxhdpi_leadme_icon_round.png.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/mipmap-xxhdpi/leadme_icon_round.png"
     },
     {
-        "merged": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\build\\intermediates\\res\\merged\\debug\\drawable_core_url_icon.xml.flat",
-        "source": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\src\\main\\res\\drawable\\core_url_icon.xml"
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/drawable_bg_active_right.xml.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/drawable/bg_active_right.xml"
     },
     {
-        "merged": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\build\\intermediates\\res\\merged\\debug\\drawable_student_select_border.xml.flat",
-        "source": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\src\\main\\res\\drawable\\student_select_border.xml"
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/drawable_rounded_btn_highlight.xml.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/drawable/rounded_btn_highlight.xml"
     },
     {
-        "merged": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\build\\intermediates\\res\\merged\\debug\\drawable_bg_highlight_roundeduppercorners.xml.flat",
-        "source": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\src\\main\\res\\drawable\\bg_highlight_roundeduppercorners.xml"
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/font_poppins_semibold.ttf.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/font/poppins_semibold.ttf"
     },
     {
-        "merged": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\build\\intermediates\\res\\merged\\debug\\drawable_leadme_reverse.xml.flat",
-        "source": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\src\\main\\res\\drawable\\leadme_reverse.xml"
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/mipmap-mdpi_leadme_icon.png.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/mipmap-mdpi/leadme_icon.png"
     },
     {
-        "merged": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\build\\intermediates\\res\\merged\\debug\\layout_e__fav_clear_confirmation_popup.xml.flat",
-        "source": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\src\\main\\res\\layout\\e__fav_clear_confirmation_popup.xml"
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/drawable_bg_passive_left_white.xml.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/drawable/bg_passive_left_white.xml"
     },
     {
-        "merged": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\build\\intermediates\\res\\merged\\debug\\drawable_shadow_gradient.xml.flat",
-        "source": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\src\\main\\res\\drawable\\shadow_gradient.xml"
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/drawable_bg_passive_right.xml.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/drawable/bg_passive_right.xml"
     },
     {
-        "merged": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\build\\intermediates\\res\\merged\\debug\\drawable_vid_rewind.xml.flat",
-        "source": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\src\\main\\res\\drawable\\vid_rewind.xml"
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/drawable_hollow_dot.xml.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/drawable/hollow_dot.xml"
     },
     {
-        "merged": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\build\\intermediates\\res\\merged\\debug\\layout_row_search_spinner.xml.flat",
-        "source": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\src\\main\\res\\layout\\row_search_spinner.xml"
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/drawable_vid_rewind.xml.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/drawable/vid_rewind.xml"
     },
     {
-        "merged": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\build\\intermediates\\res\\merged\\debug\\drawable_vid_more.xml.flat",
-        "source": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\src\\main\\res\\drawable\\vid_more.xml"
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/drawable_vid_more.xml.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/drawable/vid_more.xml"
     },
     {
-        "merged": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\build\\intermediates\\res\\merged\\debug\\drawable_bg_active_right_leader.xml.flat",
-        "source": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\src\\main\\res\\drawable\\bg_active_right_leader.xml"
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/layout_d__alerts_list.xml.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/layout/d__alerts_list.xml"
     },
     {
-        "merged": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\build\\intermediates\\res\\merged\\debug\\drawable_icon_restart.xml.flat",
-        "source": "E:\\jake\\Documents\\GitHub-Branch\\LeadMe\\core\\src\\main\\res\\drawable\\icon_restart.xml"
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/drawable_task_website_icon.xml.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/drawable/task_website_icon.xml"
     }
 ]

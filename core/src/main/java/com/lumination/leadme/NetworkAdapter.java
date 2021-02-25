@@ -86,6 +86,7 @@ public class NetworkAdapter {
 
 
 
+
     public NetworkAdapter(Context context, LeadMeMain main, NearbyPeersManager nearbyPeersManager) {
         closeSocket=false;
         Name = nearbyPeersManager.getName();
@@ -94,7 +95,9 @@ public class NetworkAdapter {
         this.nearbyPeersManager = nearbyPeersManager;
         this.main=main;
         mNsdManager = (NsdManager) context.getSystemService(Context.NSD_SERVICE);
+        //
         startServer();
+        //main.startServer();
     }
 
     /*
@@ -252,6 +255,7 @@ public class NetworkAdapter {
                         main.findViewById(R.id.client_main).setVisibility(View.VISIBLE);
                         List<String> inputList = Arrays.asList(serviceInfo.getServiceName().split("#"));
                         main.setLeaderName(inputList.get(0));
+                        //main.startServer();
                     });
                 }
             }
@@ -266,6 +270,26 @@ public class NetworkAdapter {
         }else if(socket.isConnected()){
             if(socket.getInetAddress().equals(serviceInfo.getHost()) && socket.getPort()==serviceInfo.getPort()) {
                 Log.d(TAG, "connectToServer: socket already connected");
+                try {
+                    socket = new Socket(serviceInfo.getHost(), serviceInfo.getPort());
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                if (socket != null) {
+                    if (socket.isConnected()) {
+                        connectionisActive=20;
+                        Log.d(TAG, "connectToServer: connection successful");
+                        Name = nearbyPeersManager.getName();
+                        sendToServer(Name,"NAME"); //sends the student name to the teacher for a record
+
+                        main.runOnUiThread(() -> {
+                            main.findViewById(R.id.client_main).setVisibility(View.VISIBLE);
+                            List<String> inputList = Arrays.asList(serviceInfo.getServiceName().split("#"));
+                            main.setLeaderName(inputList.get(0));
+                            //main.startServer();
+                        });
+                    }
+                }
             }else{
                 Log.d(TAG, "connectToServer: connected to : "+socket.getInetAddress()+":"+socket.getPort());
                 Log.d(TAG, "connectToServer: connecting to :"+ serviceInfo.getHost()+":"+serviceInfo.getPort());
@@ -284,20 +308,24 @@ public class NetworkAdapter {
     Sends message from student to Teacher
      */
     public void sendToServer(String message, String type){
-        Thread thread = new Thread() {//no network on main thread
-            @Override
-            public void run() {
-                PrintWriter out;
-                try {
-                    out = new PrintWriter(socket.getOutputStream(), true);
-                    out.println(type + "," + message.replace("\n", "_").replace("\r", "|"));
-                    Log.d(TAG, "sendToServer: message sent, type: "+type +" message: "+message);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+        if(socket!=null) {
+            if(socket.isConnected()) {
+                Thread thread = new Thread() {//no network on main thread
+                    @Override
+                    public void run() {
+                        PrintWriter out;
+                        try {
+                            out = new PrintWriter(socket.getOutputStream(), true);
+                            out.println(type + "," + message.replace("\n", "_").replace("\r", "|"));
+                            Log.d(TAG, "sendToServer: message sent, type: " + type + " message: " + message);
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                };
+                thread.start();
             }
-        };
-        thread.start();
+        }
     }
 
     public void removeClient(int id){
@@ -390,12 +418,13 @@ public class NetworkAdapter {
 
                 while (allowInput) {
                     if(socket!=null) {
-                        BufferedReader in;
-                        String input;
-                        try {
-                            InputStreamReader inStream = new InputStreamReader(socket.getInputStream());
-                            in = new BufferedReader(inStream);
-                            input = in.readLine();
+                        if (!socket.isClosed()) {
+                            BufferedReader in;
+                            String input;
+                            try {
+                                InputStreamReader inStream = new InputStreamReader(socket.getInputStream());
+                                in = new BufferedReader(inStream);
+                                input = in.readLine();
 //                            if(inStream.read()==-1){
 //                                Log.d(TAG, "Disconnected: The teacher has disconnected");
 //                            }else {
@@ -405,8 +434,9 @@ public class NetworkAdapter {
                                         netAdapt.messageRecievedFromServer(input);
                                     }
                                 }
-                        } catch (IOException e) {
-                            e.printStackTrace();
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
                         }
                     }
                 }
@@ -465,14 +495,16 @@ public class NetworkAdapter {
 
                 break;
             case "DISCONNECT":
-                nearbyPeersManager.disconnectFromEndpoint("");
+
+                    nearbyPeersManager.disconnectFromEndpoint("");
+
                 break;
             case "PING":
+                nearbyPeersManager.myID=inputList.get(1);
                 connectionisActive=20;
-                if(first) {
-                    main.closeWaitingDialog(true);
-                    first=false;
-                }
+                    if(main.waitingDialog.isShowing()) {
+                        main.closeWaitingDialog(true);
+                    }
                 pingName=false;
                 Log.d(TAG, "messageRecievedFromServer: recieved ping and subsequently ignoring it");
                 break;
@@ -480,11 +512,20 @@ public class NetworkAdapter {
                 if(inputList.get(1).contains(":")){
                     List<String> inputList2 = Arrays.asList(inputList.get(1).split(":"));
                     if(inputList2.get(0).equals("START")){
-                        main.startScreenshotRunnable(socket.getInetAddress(),Integer.parseInt(inputList2.get(1)));
+                        main.runOnUiThread(() -> {
+                            main.startServer();
+                            //main.monitorInProgress=true;
+                            //main.takeScreenshots=true;
+                            //main.startImageClient(String.valueOf(clientID));
+                                main.startScreenshotRunnable(socket.getInetAddress(), Integer.parseInt(inputList2.get(1)));
+
+                        });
                     }
                     Log.d(TAG, "messageRecievedFromServer: "+inputList.get(1));
                 }else {
                     if (inputList.get(1).equals("STOP")) {
+                        main.takeScreenshots=false;
+                        main.stopServer();
                         main.stopScreenshotRunnable();
                     } else {
                         main.setScreenshotRate(Integer.parseInt(inputList.get(1)));
@@ -521,9 +562,9 @@ public class NetworkAdapter {
                 mServerSocket = new ServerSocket(0);
                 localport = mServerSocket.getLocalPort();
 
-                while (!Thread.currentThread().isInterrupted()) {
-                    Log.d(TAG, "ServerSocket Created, awaiting connection");
-                    while(allowConnections) {
+                //while (!Thread.currentThread().isInterrupted()) {
+                    while(true) {
+                        Log.d(TAG, "ServerSocket Created, awaiting connection");
                         Socket clientSocket =null;
                         try {
                             clientSocket = mServerSocket.accept();//blocks the thread until client is accepted
@@ -534,7 +575,9 @@ public class NetworkAdapter {
                             }
                             throw new RuntimeException("Error creating client", e);
                         }
-                        Thread client = new Thread(new TcpClient(clientSocket,netAdapt,clientID)); //new thread for every client
+                        Log.d(TAG, "run: client connected");
+                        TcpClient tcp = new TcpClient(clientSocket,netAdapt,clientID);
+                        Thread client = new Thread(tcp); //new thread for every client
                         studentThread st = new studentThread();
                         st.t=client;
                         st.ID=clientID;
@@ -543,7 +586,7 @@ public class NetworkAdapter {
                         clientThreadList.get(clientThreadList.size()-1).t.start();
                         Log.d(TAG, "Connected.");
                     }
-                }
+                //}
             } catch (IOException e) {
                 Log.e(TAG, "Error creating ServerSocket: ", e);
                 e.printStackTrace();
@@ -565,6 +608,7 @@ public class NetworkAdapter {
         serviceInfo.setServiceType(SERVICE_TYPE);
 
         mNsdManager.registerService(serviceInfo, NsdManager.PROTOCOL_DNS_SD, mRegistrationListener);
+        //startServer();
 
     }
     //only stops the service from being discoverable and should not drop current connections
@@ -656,6 +700,23 @@ public class NetworkAdapter {
                     }
                 });
                 break;
+            case "ACTION":
+                byte[] bytes = new byte[0];
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    bytes = Base64.getDecoder().decode(message);
+                }else {
+                    bytes=android.util.Base64.decode(message,android.util.Base64.DEFAULT);
+                }
+                //extract the parcel and package it into a payload to integrate with the pre existing functions
+                Parcel p = Parcel.obtain();
+                p.unmarshall(bytes,0,bytes.length);
+                p.setDataPosition(0);
+                Log.d(TAG, "messageRecievedFromServer: "+p.readString());
+                Payload payload = fromBytes(bytes);
+                main.runOnUiThread(() -> {
+                    main.handlePayload(payload.asBytes());
+                });
+                break;
             default:
                 Log.d(TAG, "updateParent: invalid type: "+ type +" message: "+message);
                 break;
@@ -690,48 +751,7 @@ public class NetworkAdapter {
         }
 
     }
-    public void sendToAllClients(String message, String type){
-        Log.d(TAG, "sendToAllClients: ");
-        msg Msg = new msg();
-        Msg.message =message;
-        Msg.type=type;
-        Iterator iterator = currentClients.iterator();
-        while(iterator.hasNext()){
-            client Client = (client) iterator.next();
-            Client.messageQueue.add(Msg);
-        }
 
-    }
-
-    /*
-    Screenshots
-     */
-    ServerSocket serverSocket;
-    String folder;
-    String fileToTransfer;
-    Boolean monitoring;
-    int imgcnt=0;
-    int screenshotRate=1000;
-    private static final int REQUEST_EXTERNAL_STORAGE = 1;
-    private String[] PERMISSIONS_STORAGE = {
-            Manifest.permission.READ_EXTERNAL_STORAGE,
-            Manifest.permission.WRITE_EXTERNAL_STORAGE
-    };
-    // check permissions for writing, reading and accessing external storage
-    public void verifyStoragePermissions(Activity activity) { // Check if we have write permission
-        int permissionRead = ActivityCompat.checkSelfPermission(activity,
-                Manifest.permission.READ_EXTERNAL_STORAGE);
-        int permissionWrite = ActivityCompat.checkSelfPermission(activity,
-                Manifest.permission.WRITE_EXTERNAL_STORAGE);
-
-        if (permissionRead != PackageManager.PERMISSION_GRANTED ||
-                permissionWrite != PackageManager.PERMISSION_GRANTED) {
-            // We don't have permission so prompt the user
-            ActivityCompat.requestPermissions(activity, PERMISSIONS_STORAGE,
-                    REQUEST_EXTERNAL_STORAGE);
-        }
-        System.out.println(permissionRead);
-    }
     public void startMonitoring(int ID, int localPort){
         ArrayList<Integer> selected = new ArrayList<>();
         selected.add(ID);

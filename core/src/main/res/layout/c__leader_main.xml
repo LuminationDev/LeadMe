@@ -136,7 +136,8 @@
 
         <Space
             android:layout_width="15dp"
-            android:layout_height="wrap_content" />
+            android:layout_height="wrap_content"
+            android:visibility="gone" />
 
         <Button
             android:id="@+id/yt_core_btn"
@@ -154,6 +155,7 @@
             android:textAllCaps="false"
             android:textColor="@color/leadme_black"
             android:textSize="12sp"
+            android:visibility="gone"
             app:layout_gravity="center_horizontal|top" />
 
         <Space
@@ -248,7 +250,8 @@
                     android:layout_margin="10dp"
                     android:layout_marginTop="10dp"
                     android:layout_weight="0"
-                    android:background="@drawable/search_icon" />
+                    android:background="@drawable/search_icon"
+                    tools:visibility="visible" />
 
             </LinearLayout>
 

@@ -111,9 +111,8 @@ public class StudentAlertsAdapter extends BaseAdapter {
             } else {
                 maxAlertIcon.setImageDrawable(main.getResources().getDrawable(R.drawable.alert_warning, null));
             }
-
-            alertList.setText(peer.getAlertsList());
         }
+        //refresh();
         return convertView;
     }
 

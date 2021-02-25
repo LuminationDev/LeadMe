@@ -77,10 +77,14 @@ import androidx.lifecycle.Lifecycle;
 import androidx.lifecycle.LifecycleObserver;
 import androidx.lifecycle.OnLifecycleEvent;
 
+import com.veer.hiddenshot.HiddenShot;
+
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.ByteArrayOutputStream;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -261,9 +265,25 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     private boolean init = false;
 
     ScreenshotManager screenshotManager;
-    private static final int REQUEST_SCREENSHOT_PERMISSION = 888;
-    ScreenshotResult.Subscription subscription;
+    private static final int REQUEST_SCREENSHOT_PERMISSION = 1234;
+
     SeekBar seekBar;
+    //added-------
+    static final String MONITOR_STUDENT_TAG = "LumiMonitor";
+    static final String RECEIVE_IP_ADDRESS_TAG = "LumiReceiveIpAddress";
+    static final String SEND_IP_ADDRESS_TAG = "LumiSendIpAddress";
+    static final String DESTROY_SERVER_TAG = "LumiDestroyServer";
+    static final String SEND_TO_GUIDE = "Guide";
+    static final String SEND_TO_PEERS = "Peers";
+    static public int CAPTURE_RATE = 200;
+    public final int SCREEN_CAPTURE = 999;
+    //added---------------------
+//    LocalServer server;
+    String ipAddress;
+    Intent screen_share_intent = null;
+    private MediaProjectionManager projectionManager = null;
+    private int displayWidth,displayHeight,imagesProduced=0;
+    ImageReader imageReader;
 
 
     public Handler getHandler() {
@@ -302,6 +322,32 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             case 99:
                 Log.d(TAG, "RETURNED RESULT FROM YOUTUBE! " + resultCode + ", " + data);
                 break;
+            //added------------
+            case SCREEN_CAPTURE:
+                    MediaProjection mediaProjection = projectionManager.getMediaProjection(resultCode, data);
+                    if (mediaProjection != null) {
+
+                        DisplayMetrics metrics = getResources().getDisplayMetrics();
+                        int density = metrics.densityDpi;
+                        int flags = DisplayManager.VIRTUAL_DISPLAY_FLAG_OWN_CONTENT_ONLY
+                                | DisplayManager.VIRTUAL_DISPLAY_FLAG_PUBLIC;
+
+                        Point size = new Point();
+                        size.y = metrics.heightPixels;
+                        size.x = metrics.widthPixels;
+                        displayHeight = size.y;
+                        displayWidth = size.x;
+
+                        imageReader = ImageReader.newInstance(size.x, size.y, PixelFormat.RGBA_8888, 2);
+
+                        mediaProjection.createVirtualDisplay("screencap",
+                                size.x, size.y, density,
+                                flags, imageReader.getSurface(), null, handler);
+                        imageReader.setOnImageAvailableListener(new ImageAvailableListener(), handler);
+
+                }
+                break;
+            //added------------
             default:
                 Log.d(TAG, "RETURNED FROM ?? with " + resultCode);
                 break;
@@ -961,7 +1007,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     public void onDestroy() {
         super.onDestroy();
         Log.w(TAG, "In onDestroy");
-        subscription.dispose();
+        //subscription.dispose();
         destroyAndReset();
         screenShot=false;
     }
@@ -1169,6 +1215,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
         Button searchBtn = mainLeader.findViewById(R.id.search_btn);
         SearchView searchView = mainLeader.findViewById(R.id.search_bar);
+    searchBtn.setVisibility(View.INVISIBLE);
         searchBtn.setOnClickListener(v -> {
             //TODO enable this when search function implemented
 //            if(searchView.getVisibility() == View.GONE){
@@ -1659,7 +1706,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         }
     }
 
-    private AlertDialog waitingDialog = null;
+    public AlertDialog waitingDialog = null;
 
     private void showWaitingForConnectDialog() {
         if (waitingDialog == null) {
@@ -2329,9 +2376,125 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
     boolean screenShot=false;
     int screenshotRate=200;
+    public void startServer() {
+            projectionManager = (MediaProjectionManager)
+                    getSystemService(Context.MEDIA_PROJECTION_SERVICE);
+
+
+        //create an instance of a server
+        //createServer(this, true, "Monitoring", null);
+
+        //start service class
+
+            screen_share_intent = new Intent(context, ScreensharingService.class);
+            startService(screen_share_intent);
+
+
+            //start screen capturing
+            projectionManager = (MediaProjectionManager)
+                    getSystemService(Context.MEDIA_PROJECTION_SERVICE);
+            startActivityForResult(projectionManager.createScreenCaptureIntent(), SCREEN_CAPTURE);
+            
+
+
+        //send IP address to guide
+        //Log.d(RECEIVE_IP_ADDRESS_TAG, ipAddress);
+        //getDispatcher().sendIpAddress(ipAddress, SEND_TO_GUIDE);
+    }
+    public void stopServer() {
+        stopService(screen_share_intent);
+        ipAddress = null;
+        imagesProduced = 0;
+    }
+    public boolean takeScreenshots=false;
+        private class ImageAvailableListener implements ImageReader.OnImageAvailableListener {
+        @Override
+        public void onImageAvailable(ImageReader reader) {
+            Log.d(TAG, "onImageAvailable: image avilable");
+
+                Bitmap bitmap = null;
+                ByteArrayOutputStream stream = null;
+                Log.d(TAG, "onImageAvailable: ");
+                try (Image image = imageReader.acquireLatestImage()) {
+                    //if (takeScreenshots) {
+                        Log.d(TAG, "onImageAvailable: image acquired");
+                        //sleep allows control over how many screenshots are taken
+                        //old/less powerful phones need this otherwise there is heavy lag (etc for >20 screen shots a second)
+                        //newer phones can have this disabled for a faster display
+                        if (screenshotRate > 0) Thread.sleep(screenshotRate);
+
+                        if (image != null) {
+                            Log.d(TAG, "onImageAvailable: image exists");
+                            Image.Plane[] planes = image.getPlanes();
+                            ByteBuffer buffer = planes[0].getBuffer();
+                            int pixelStride = planes[0].getPixelStride();
+                            int rowStride = planes[0].getRowStride();
+                            int rowPadding = rowStride - pixelStride * displayWidth;
+
+                            stream = new ByteArrayOutputStream();
+
+                            // create bitmap
+                            bitmap = Bitmap.createBitmap(displayWidth + rowPadding / pixelStride,
+                                    displayHeight, Bitmap.Config.ARGB_8888);
+                            bitmap.copyPixelsFromBuffer(buffer);
+                            bitmapToSend = bitmap;
+                            imagesProduced++;
+                        }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                } finally {
+                    if (stream != null) {
+                        try {
+                            stream.close();
+                        } catch (IOException ioe) {
+                            ioe.printStackTrace();
+                        }
+                    }
+                }
+            }
+    }
+
+
     public void setupMonitorScreen(String peer) {
         startImageClient(peer);
     }
+    Runnable imageRunnable = new Runnable() {
+        @Override
+        public void run() {
+            try {
+                socket=serverSocket.accept();
+            } catch (IOException e) {
+                e.printStackTrace();
+                monitorInProgress=false;
+                return;
+            }
+            SurfaceHolder holder = monitorView.getHolder();
+            while(monitorInProgress && !Thread.currentThread().isInterrupted()) {
+                byte[] buffer = null;
+                Bitmap bmap = null;
+                try {
+                    DataInputStream in = new DataInputStream(socket.getInputStream());
+                    int length = in.readInt();
+                    Log.d(TAG, "run: image recieved of size "+length);
+                    if(length>10000 && length<300000) {
+                        buffer = new byte[length];
+                        in.readFully(buffer,0,length);
+                        Log.d(TAG, "Packet Recieved!! ");
+                    }else if(length<0 || length>500000){
+                        Thread.currentThread().interrupt();
+                        imageSocket=new Thread(imageRunnable);
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                if(buffer!=null) {
+                    response = BitmapFactory.decodeByteArray(buffer, 0, buffer.length);
+                    tryDrawing(holder);
+                }
+            }
+        }
+    };
+    Thread imageSocket;
     //client socket for monitoring
     public void startImageClient(String peer) {
         //can be refactored out to onCreate?
@@ -2350,7 +2513,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                 nearbyManager.networkAdapter.stopMonitoring(Integer.parseInt(peer));
                 monitorLayout.setVisibility(View.GONE);
                 monitorInProgress = false; //break connection loop in clientStream
-                tryDrawing(holder);
+//                tryDrawing(holder);
             }
         });
 
@@ -2363,71 +2526,19 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             Log.d(TAG, "ServerSocket: attempting to create socket");
         }
         nearbyManager.networkAdapter.startMonitoring(Integer.parseInt(peer),serverSocket.getLocalPort());
-        Thread t = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                   socket=serverSocket.accept();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                    monitorInProgress=false;
-                    return;
-                }
-                while(monitorInProgress){
-                    byte[] buffer = new byte[0];
-                    Bitmap bmap = null;
-                    try {
-                        InputStreamReader inreader=new InputStreamReader(socket.getInputStream());
-                        BufferedReader in = new BufferedReader(inreader);
-                        String Input="";
-                        String line="";
-                        try {
-                            line = "\n"+in.readLine();
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
-                        while(line.length()>0){
-//                        for(int i=0; i<53; i++){
-                            Input += line;//"\n"+in.readLine();
-                            line=in.readLine();
-                       }
-                        Log.d(TAG, "run: "+Input);
-                        //bmap =decodeBase64(in.readLine());
-                        Log.d(TAG, "Packet Recieved!! ");
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                    if(bmap!=null) {
-                        response = bmap;
-                    }
-//                    response = BitmapFactory.decodeByteArray(buffer, 0, buffer.length);
-                    tryDrawing(holder);
-                }
-            }
-        });
-        t.start();
-
         if (monitorLayout.getVisibility() == View.VISIBLE) {
             monitorInProgress = true;
         } else {
             Log.e(TAG, "Monitor layout - no visibility change");
         }
-    }
-    public Bitmap decodeBase64(String input) {
-        BitmapFactory.Options bfo = new BitmapFactory.Options();
-        bfo.inPreferredConfig = Bitmap.Config.valueOf("ARGB_8888");
-        bfo.inMutable = true;   // this makes a mutable bitmap
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            bfo.inPreferredColorSpace = ColorSpace.get(ColorSpace.Named.SRGB);
+        if(imageSocket!=null) {
+            if (imageSocket.isAlive()) {
+                imageSocket.interrupt();
+            }
         }
+        imageSocket = new Thread(imageRunnable);
+        imageSocket.start();
 
-        byte[] decodedBytes = Base64.decode(input, 0);
-        return BitmapFactory.decodeByteArray(decodedBytes, 0, decodedBytes.length, bfo);
-    }
-    public String encodeToBase64(Bitmap image, Bitmap.CompressFormat compressFormat, int quality) {
-        ByteArrayOutputStream byteArrayOS = new ByteArrayOutputStream();
-        image.compress(compressFormat, quality, byteArrayOS);
-        return Base64.encodeToString(byteArrayOS.toByteArray(), Base64.DEFAULT);
     }
         @Override
     public void surfaceCreated(SurfaceHolder holder) {
@@ -2460,42 +2571,8 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         paint.setFilterBitmap(true);
         canvas.drawBitmap(bitmap, 0,0, paint);
     }
-    public void takeScreenShot(){
-        Log.d(TAG, "takeScreenShot: ");
-        runOnUiThread(() -> {
-            ScreenshotResult screenShotResult = screenshotManager.makeScreenshot();
-            subscription = screenShotResult.observe(onSuccess -> {
-                handleScreenshot(onSuccess);
-                return null;
-            }, onError -> {
-                screenshotFailed(onError);
-                return null;
-            });
-        });
-        
-    }
-    public void handleScreenshot(Screenshot screenshot){
-        ScreenshotBitmap sbitmap = (ScreenshotBitmap) screenshot;
-        Bitmap bitmap = sbitmap.getBitmap();
-        bitmapToSend=bitmap;
-        //nearbyManager.sendScreenShot(bitmap);
-    }
-    public void screenshotFailed(Throwable error){
-        Log.d(TAG, "screenshotFailed: "+error);
-    }
-    public void startScreenshotRunnable(int rate,InetAddress ip,int Port){
-        screenshotRate=rate;
-        startScreenshotRunnable(ip,Port);
-    }
-    //DatagramSocket datagramSocketout=null;
     public void startScreenshotRunnable(InetAddress ip,int Port){
-//        while (datagramSocketout==null) {
-//            try {
-//                datagramSocketout = new DatagramSocket();
-//            } catch (SocketException e) {
-//                e.printStackTrace();
-//            }
-//        }
+
         screenShot=true;
         Thread t = new Thread(new Runnable() {
             @Override
@@ -2508,19 +2585,22 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                     return;
                 }
                 while (!Thread.currentThread().isInterrupted() &&screenShot) {
-                    takeScreenShot();
+                    if(!screenShot){
+                        Thread.currentThread().interrupt();
+                    }
                     if (bitmapToSend != null) {
-//                        ByteArrayOutputStream stream = new ByteArrayOutputStream();
-//                        bitmapToSend.compress(Bitmap.CompressFormat.JPEG, 0, stream);
-//                        bitmapToSend.recycle();
-//                        bitmapToSend=null;
-//                        byte[] byteArray = stream.toByteArray();
-                        String output = encodeToBase64(bitmapToSend, Bitmap.CompressFormat.JPEG, 70);
-                        Log.d(TAG, "run: sending "+output);
+                        ByteArrayOutputStream stream = new ByteArrayOutputStream();
+                        bitmapToSend.compress(Bitmap.CompressFormat.JPEG, 50, stream);
+                        if(stream.toByteArray().length>300000){
+                            bitmapToSend.compress(Bitmap.CompressFormat.JPEG, 0, stream);
+                        }
+                        bitmapToSend=null;
+                        byte[] byteArray = stream.toByteArray();
                         try {
-                            PrintWriter out = new PrintWriter(new BufferedWriter(new OutputStreamWriter(socket.getOutputStream())), true);
-                            out.println(output);
-                            Log.d(TAG, "run: image sent");
+                            DataOutputStream out = new DataOutputStream(socket.getOutputStream());
+                            out.writeInt(byteArray.length);
+                            out.write(byteArray,0,byteArray.length);
+                            Log.d(TAG, "run: image sent of size "+byteArray.length);
                         } catch (IOException e) {
                             e.printStackTrace();
                         }

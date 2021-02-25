@@ -6,189 +6,195 @@
 6
 7    <uses-sdk
 8        android:minSdkVersion="24"
-8-->E:\jake\Documents\GitHub-Branch\LeadMe\core\src\main\AndroidManifest.xml
+8-->/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/AndroidManifest.xml
 9        android:targetSdkVersion="29" />
-9-->E:\jake\Documents\GitHub-Branch\LeadMe\core\src\main\AndroidManifest.xml
+9-->/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/AndroidManifest.xml
 10
 11    <!-- for nearby connections -->
 12    <uses-permission android:name="android.permission.BLUETOOTH" />
-12-->E:\jake\Documents\GitHub-Branch\LeadMe\core\src\main\AndroidManifest.xml:8:5-68
-12-->E:\jake\Documents\GitHub-Branch\LeadMe\core\src\main\AndroidManifest.xml:8:22-65
+12-->/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/AndroidManifest.xml:9:5-68
+12-->/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/AndroidManifest.xml:9:22-65
 13    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
-13-->E:\jake\Documents\GitHub-Branch\LeadMe\core\src\main\AndroidManifest.xml:9:5-74
-13-->E:\jake\Documents\GitHub-Branch\LeadMe\core\src\main\AndroidManifest.xml:9:22-71
+13-->/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/AndroidManifest.xml:10:5-74
+13-->/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/AndroidManifest.xml:10:22-71
 14    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
-14-->E:\jake\Documents\GitHub-Branch\LeadMe\core\src\main\AndroidManifest.xml:10:5-76
-14-->E:\jake\Documents\GitHub-Branch\LeadMe\core\src\main\AndroidManifest.xml:10:22-73
+14-->/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/AndroidManifest.xml:11:5-76
+14-->/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/AndroidManifest.xml:11:22-73
 15    <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
-15-->E:\jake\Documents\GitHub-Branch\LeadMe\core\src\main\AndroidManifest.xml:11:5-76
-15-->E:\jake\Documents\GitHub-Branch\LeadMe\core\src\main\AndroidManifest.xml:11:22-73
+15-->/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/AndroidManifest.xml:12:5-76
+15-->/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/AndroidManifest.xml:12:22-73
 16    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
-16-->E:\jake\Documents\GitHub-Branch\LeadMe\core\src\main\AndroidManifest.xml:12:5-81
-16-->E:\jake\Documents\GitHub-Branch\LeadMe\core\src\main\AndroidManifest.xml:12:22-78
+16-->/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/AndroidManifest.xml:13:5-81
+16-->/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/AndroidManifest.xml:13:22-78
 17    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
-17-->E:\jake\Documents\GitHub-Branch\LeadMe\core\src\main\AndroidManifest.xml:13:5-79
-17-->E:\jake\Documents\GitHub-Branch\LeadMe\core\src\main\AndroidManifest.xml:13:22-76
+17-->/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/AndroidManifest.xml:14:5-79
+17-->/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/AndroidManifest.xml:14:22-76
 18    <uses-permission android:name="android.permission.NFC" />
-18-->E:\jake\Documents\GitHub-Branch\LeadMe\core\src\main\AndroidManifest.xml:14:5-62
-18-->E:\jake\Documents\GitHub-Branch\LeadMe\core\src\main\AndroidManifest.xml:14:22-59
+18-->/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/AndroidManifest.xml:15:5-62
+18-->/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/AndroidManifest.xml:15:22-59
 19
 20    <!-- needed for core activity management functions -->
 21    <uses-permission android:name="android.permission.REORDER_TASKS" />
-21-->E:\jake\Documents\GitHub-Branch\LeadMe\core\src\main\AndroidManifest.xml:17:5-72
-21-->E:\jake\Documents\GitHub-Branch\LeadMe\core\src\main\AndroidManifest.xml:17:22-69
+21-->/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/AndroidManifest.xml:18:5-72
+21-->/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/AndroidManifest.xml:18:22-69
 22    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
-22-->E:\jake\Documents\GitHub-Branch\LeadMe\core\src\main\AndroidManifest.xml:18:5-81
-22-->E:\jake\Documents\GitHub-Branch\LeadMe\core\src\main\AndroidManifest.xml:18:22-78
+22-->/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/AndroidManifest.xml:19:5-81
+22-->/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/AndroidManifest.xml:19:22-78
 23    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
-23-->E:\jake\Documents\GitHub-Branch\LeadMe\core\src\main\AndroidManifest.xml:19:5-78
-23-->E:\jake\Documents\GitHub-Branch\LeadMe\core\src\main\AndroidManifest.xml:19:22-75
+23-->/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/AndroidManifest.xml:20:5-78
+23-->/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/AndroidManifest.xml:20:22-75
 24    <uses-permission android:name="android.permission.EXPAND_STATUS_BAR" />
-24-->E:\jake\Documents\GitHub-Branch\LeadMe\core\src\main\AndroidManifest.xml:20:5-76
-24-->E:\jake\Documents\GitHub-Branch\LeadMe\core\src\main\AndroidManifest.xml:20:22-73
+24-->/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/AndroidManifest.xml:21:5-76
+24-->/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/AndroidManifest.xml:21:22-73
 25    <uses-permission android:name="android.permission.ACTION_MANAGE_OVERLAY_PERMISSION" />
-25-->E:\jake\Documents\GitHub-Branch\LeadMe\core\src\main\AndroidManifest.xml:22:5-91
-25-->E:\jake\Documents\GitHub-Branch\LeadMe\core\src\main\AndroidManifest.xml:22:22-88
+25-->/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/AndroidManifest.xml:23:5-91
+25-->/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/AndroidManifest.xml:23:22-88
 26
 27    <!-- for screen monitoring service -->
 28    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
-28-->E:\jake\Documents\GitHub-Branch\LeadMe\core\src\main\AndroidManifest.xml:25:5-79
-28-->E:\jake\Documents\GitHub-Branch\LeadMe\core\src\main\AndroidManifest.xml:25:22-77
+28-->/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/AndroidManifest.xml:26:5-79
+28-->/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/AndroidManifest.xml:26:22-77
 29    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
-29-->E:\jake\Documents\GitHub-Branch\LeadMe\core\src\main\AndroidManifest.xml:26:5-77
-29-->E:\jake\Documents\GitHub-Branch\LeadMe\core\src\main\AndroidManifest.xml:26:22-74
+29-->/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/AndroidManifest.xml:27:5-77
+29-->/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/AndroidManifest.xml:27:22-74
 30    <uses-permission android:name="android.permission.ACCESS_MEDIA_LOCATION" />
-30-->E:\jake\Documents\GitHub-Branch\LeadMe\core\src\main\AndroidManifest.xml:27:5-80
-30-->E:\jake\Documents\GitHub-Branch\LeadMe\core\src\main\AndroidManifest.xml:27:22-77
+30-->/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/AndroidManifest.xml:28:5-80
+30-->/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/AndroidManifest.xml:28:22-77
 31
 32    <!-- for youtube -->
 33    <uses-permission android:name="android.permission.INTERNET" />
-33-->E:\jake\Documents\GitHub-Branch\LeadMe\core\src\main\AndroidManifest.xml:30:5-67
-33-->E:\jake\Documents\GitHub-Branch\LeadMe\core\src\main\AndroidManifest.xml:30:22-64
+33-->/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/AndroidManifest.xml:32:5-67
+33-->/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/AndroidManifest.xml:32:22-64
 34
 35    <!-- Google Play filtering -->
 36    <uses-feature
-36-->E:\jake\Documents\GitHub-Branch\LeadMe\core\src\main\AndroidManifest.xml:33:5-35:35
+36-->/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/AndroidManifest.xml:35:5-37:35
 37        android:name="android.hardware.wifi.direct"
-37-->E:\jake\Documents\GitHub-Branch\LeadMe\core\src\main\AndroidManifest.xml:34:9-52
+37-->/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/AndroidManifest.xml:36:9-52
 38        android:required="true" />
-38-->E:\jake\Documents\GitHub-Branch\LeadMe\core\src\main\AndroidManifest.xml:35:9-32
+38-->/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/AndroidManifest.xml:37:9-32
 39    <uses-feature
-39-->E:\jake\Documents\GitHub-Branch\LeadMe\core\src\main\AndroidManifest.xml:36:5-38:35
+39-->/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/AndroidManifest.xml:38:5-40:35
 40        android:name="android.hardware.nfc"
-40-->E:\jake\Documents\GitHub-Branch\LeadMe\core\src\main\AndroidManifest.xml:37:9-44
+40-->/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/AndroidManifest.xml:39:9-44
 41        android:required="true" />
-41-->E:\jake\Documents\GitHub-Branch\LeadMe\core\src\main\AndroidManifest.xml:38:9-32
+41-->/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/AndroidManifest.xml:40:9-32
 42
 43    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" /> <!-- hardware acceleration needed for YouTube playback in WebView -->
-43-->[com.github.javiersantos:AppUpdater:2.7] C:\Users\Jake\.gradle\caches\transforms-2\files-2.1\98ff5ab0ce2e7a747c137473366e6eb0\jetified-AppUpdater-2.7\AndroidManifest.xml:12:5-79
-43-->[com.github.javiersantos:AppUpdater:2.7] C:\Users\Jake\.gradle\caches\transforms-2\files-2.1\98ff5ab0ce2e7a747c137473366e6eb0\jetified-AppUpdater-2.7\AndroidManifest.xml:12:22-76
+43-->[com.github.javiersantos:AppUpdater:2.7] /Users/jakelund/.gradle/caches/transforms-2/files-2.1/9f947d76738111cd19b713ae5fdec102/jetified-AppUpdater-2.7/AndroidManifest.xml:12:5-79
+43-->[com.github.javiersantos:AppUpdater:2.7] /Users/jakelund/.gradle/caches/transforms-2/files-2.1/9f947d76738111cd19b713ae5fdec102/jetified-AppUpdater-2.7/AndroidManifest.xml:12:22-76
 44    <application
-44-->E:\jake\Documents\GitHub-Branch\LeadMe\core\src\main\AndroidManifest.xml:41:5-82:19
-45        android:appComponentFactory="androidx.core.app.CoreComponentFactory"
-45-->[androidx.core:core:1.2.0] C:\Users\Jake\.gradle\caches\transforms-2\files-2.1\9681d2e846b823c9e9c0cee1b88b6e52\core-1.2.0\AndroidManifest.xml:24:18-86
-46        android:clearTaskOnLaunch="true"
-46-->E:\jake\Documents\GitHub-Branch\LeadMe\core\src\main\AndroidManifest.xml:42:9-41
-47        android:debuggable="true"
-48        android:extractNativeLibs="false"
-49        android:hardwareAccelerated="true"
-49-->E:\jake\Documents\GitHub-Branch\LeadMe\core\src\main\AndroidManifest.xml:46:9-43
-50        android:icon="@mipmap/leadme_icon_round"
-50-->E:\jake\Documents\GitHub-Branch\LeadMe\core\src\main\AndroidManifest.xml:43:9-49
-51        android:label="@string/app_title"
-51-->E:\jake\Documents\GitHub-Branch\LeadMe\core\src\main\AndroidManifest.xml:44:9-42
-52        android:testOnly="true"
-53        android:theme="@android:style/Theme.Holo.Light.NoActionBar.Fullscreen"
-53-->E:\jake\Documents\GitHub-Branch\LeadMe\core\src\main\AndroidManifest.xml:45:9-79
-54        android:usesCleartextTraffic="true" >
-54-->E:\jake\Documents\GitHub-Branch\LeadMe\core\src\main\AndroidManifest.xml:47:9-44
-55        <activity
-55-->E:\jake\Documents\GitHub-Branch\LeadMe\core\src\main\AndroidManifest.xml:49:9-59:20
-56            android:name="com.lumination.leadme.LeadMeMain"
-56-->E:\jake\Documents\GitHub-Branch\LeadMe\core\src\main\AndroidManifest.xml:50:13-60
-57            android:label="@string/app_title"
-57-->E:\jake\Documents\GitHub-Branch\LeadMe\core\src\main\AndroidManifest.xml:52:13-46
-58            android:launchMode="singleTask"
-58-->E:\jake\Documents\GitHub-Branch\LeadMe\core\src\main\AndroidManifest.xml:54:13-44
-59            android:screenOrientation="portrait"
-59-->E:\jake\Documents\GitHub-Branch\LeadMe\core\src\main\AndroidManifest.xml:51:13-49
-60            android:windowSoftInputMode="adjustPan" >
-60-->E:\jake\Documents\GitHub-Branch\LeadMe\core\src\main\AndroidManifest.xml:53:13-52
-61            <intent-filter>
-61-->E:\jake\Documents\GitHub-Branch\LeadMe\core\src\main\AndroidManifest.xml:55:13-58:29
-62                <action android:name="android.intent.action.MAIN" />
-62-->E:\jake\Documents\GitHub-Branch\LeadMe\core\src\main\AndroidManifest.xml:56:17-69
-62-->E:\jake\Documents\GitHub-Branch\LeadMe\core\src\main\AndroidManifest.xml:56:25-66
-63
-64                <category android:name="android.intent.category.LAUNCHER" />
-64-->E:\jake\Documents\GitHub-Branch\LeadMe\core\src\main\AndroidManifest.xml:57:17-77
-64-->E:\jake\Documents\GitHub-Branch\LeadMe\core\src\main\AndroidManifest.xml:57:27-74
-65            </intent-filter>
-66        </activity>
-67
-68        <receiver android:name="com.lumination.leadme.LumiAccessibilityReceiver" >
-68-->E:\jake\Documents\GitHub-Branch\LeadMe\core\src\main\AndroidManifest.xml:61:9-65:20
-68-->E:\jake\Documents\GitHub-Branch\LeadMe\core\src\main\AndroidManifest.xml:61:19-60
-69            <intent-filter>
-69-->E:\jake\Documents\GitHub-Branch\LeadMe\core\src\main\AndroidManifest.xml:62:13-64:29
-70                <action android:name="com.lumination.leadme.BROADCAST_ACTION" />
-70-->E:\jake\Documents\GitHub-Branch\LeadMe\core\src\main\AndroidManifest.xml:63:17-81
-70-->E:\jake\Documents\GitHub-Branch\LeadMe\core\src\main\AndroidManifest.xml:63:25-78
-71            </intent-filter>
-72        </receiver>
-73
-74        <service
-74-->E:\jake\Documents\GitHub-Branch\LeadMe\core\src\main\AndroidManifest.xml:67:9-80:19
-75            android:name="com.lumination.leadme.LumiAccessibilityService"
-75-->E:\jake\Documents\GitHub-Branch\LeadMe\core\src\main\AndroidManifest.xml:68:13-74
-76            android:configChanges="orientation"
-76-->E:\jake\Documents\GitHub-Branch\LeadMe\core\src\main\AndroidManifest.xml:70:13-48
-77            android:label="@string/app_title_with_brand"
-77-->E:\jake\Documents\GitHub-Branch\LeadMe\core\src\main\AndroidManifest.xml:69:13-57
-78            android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE"
-78-->E:\jake\Documents\GitHub-Branch\LeadMe\core\src\main\AndroidManifest.xml:72:13-79
-79            android:stopWithTask="true" >
-79-->E:\jake\Documents\GitHub-Branch\LeadMe\core\src\main\AndroidManifest.xml:71:13-40
-80            <intent-filter>
-80-->E:\jake\Documents\GitHub-Branch\LeadMe\core\src\main\AndroidManifest.xml:73:13-75:29
-81                <action android:name="android.accessibilityservice.AccessibilityService" />
-81-->E:\jake\Documents\GitHub-Branch\LeadMe\core\src\main\AndroidManifest.xml:74:17-92
-81-->E:\jake\Documents\GitHub-Branch\LeadMe\core\src\main\AndroidManifest.xml:74:25-89
-82            </intent-filter>
-83
-84            <meta-data
-84-->E:\jake\Documents\GitHub-Branch\LeadMe\core\src\main\AndroidManifest.xml:77:13-79:72
-85                android:name="android.accessibilityservice"
-85-->E:\jake\Documents\GitHub-Branch\LeadMe\core\src\main\AndroidManifest.xml:78:17-60
-86                android:resource="@xml/accessibility_service_config" />
-86-->E:\jake\Documents\GitHub-Branch\LeadMe\core\src\main\AndroidManifest.xml:79:17-69
-87        </service>
-88
-89        <activity
-89-->[gun0912.ted:tedpermission:2.2.3] C:\Users\Jake\.gradle\caches\transforms-2\files-2.1\3bee6913c1c6c89b1f710ec49f88227f\jetified-tedpermission-2.2.3\AndroidManifest.xml:10:9-14:67
-90            android:name="com.gun0912.tedpermission.TedPermissionActivity"
-90-->[gun0912.ted:tedpermission:2.2.3] C:\Users\Jake\.gradle\caches\transforms-2\files-2.1\3bee6913c1c6c89b1f710ec49f88227f\jetified-tedpermission-2.2.3\AndroidManifest.xml:11:13-75
-91            android:configChanges="mcc|mnc|locale|keyboard|keyboardHidden|screenLayout|fontScale|uiMode|orientation|screenSize|layoutDirection"
-91-->[gun0912.ted:tedpermission:2.2.3] C:\Users\Jake\.gradle\caches\transforms-2\files-2.1\3bee6913c1c6c89b1f710ec49f88227f\jetified-tedpermission-2.2.3\AndroidManifest.xml:12:13-144
-92            android:screenOrientation="unspecified"
-92-->[gun0912.ted:tedpermission:2.2.3] C:\Users\Jake\.gradle\caches\transforms-2\files-2.1\3bee6913c1c6c89b1f710ec49f88227f\jetified-tedpermission-2.2.3\AndroidManifest.xml:13:13-52
-93            android:theme="@style/Theme.Transparent.Permission" />
-93-->[gun0912.ted:tedpermission:2.2.3] C:\Users\Jake\.gradle\caches\transforms-2\files-2.1\3bee6913c1c6c89b1f710ec49f88227f\jetified-tedpermission-2.2.3\AndroidManifest.xml:14:13-64
-94        <activity
-94-->[com.google.android.gms:play-services-base:17.0.0] C:\Users\Jake\.gradle\caches\transforms-2\files-2.1\890df28573fa2f554ccd20a952326cb6\jetified-play-services-base-17.0.0\AndroidManifest.xml:23:9-26:75
-95            android:name="com.google.android.gms.common.api.GoogleApiActivity"
-95-->[com.google.android.gms:play-services-base:17.0.0] C:\Users\Jake\.gradle\caches\transforms-2\files-2.1\890df28573fa2f554ccd20a952326cb6\jetified-play-services-base-17.0.0\AndroidManifest.xml:24:13-79
-96            android:exported="false"
-96-->[com.google.android.gms:play-services-base:17.0.0] C:\Users\Jake\.gradle\caches\transforms-2\files-2.1\890df28573fa2f554ccd20a952326cb6\jetified-play-services-base-17.0.0\AndroidManifest.xml:25:13-37
-97            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
-97-->[com.google.android.gms:play-services-base:17.0.0] C:\Users\Jake\.gradle\caches\transforms-2\files-2.1\890df28573fa2f554ccd20a952326cb6\jetified-play-services-base-17.0.0\AndroidManifest.xml:26:13-72
-98
-99        <meta-data
-99-->[com.google.android.gms:play-services-basement:17.0.0] C:\Users\Jake\.gradle\caches\transforms-2\files-2.1\836d05db771df2adb0d373944a13c627\jetified-play-services-basement-17.0.0\AndroidManifest.xml:23:9-25:69
-100            android:name="com.google.android.gms.version"
-100-->[com.google.android.gms:play-services-basement:17.0.0] C:\Users\Jake\.gradle\caches\transforms-2\files-2.1\836d05db771df2adb0d373944a13c627\jetified-play-services-basement-17.0.0\AndroidManifest.xml:24:13-58
-101            android:value="@integer/google_play_services_version" />
-101-->[com.google.android.gms:play-services-basement:17.0.0] C:\Users\Jake\.gradle\caches\transforms-2\files-2.1\836d05db771df2adb0d373944a13c627\jetified-play-services-basement-17.0.0\AndroidManifest.xml:25:13-66
-102    </application>
-103
-104</manifest>
+44-->/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/AndroidManifest.xml:43:5-86:19
+45        android:allowBackup="true"
+45-->[com.github.karanvs:hiddenshot:v1.2] /Users/jakelund/.gradle/caches/transforms-2/files-2.1/c8fd1c65ea463c9d21b8fb6bb5ffdd82/jetified-hiddenshot-v1.2/AndroidManifest.xml:12:9-35
+46        android:appComponentFactory="androidx.core.app.CoreComponentFactory"
+46-->[androidx.core:core:1.2.0] /Users/jakelund/.gradle/caches/transforms-2/files-2.1/9681d2e846b823c9e9c0cee1b88b6e52/core-1.2.0/AndroidManifest.xml:24:18-86
+47        android:clearTaskOnLaunch="true"
+47-->/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/AndroidManifest.xml:45:9-41
+48        android:debuggable="true"
+49        android:extractNativeLibs="false"
+50        android:hardwareAccelerated="true"
+50-->/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/AndroidManifest.xml:49:9-43
+51        android:icon="@mipmap/leadme_icon_round"
+51-->/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/AndroidManifest.xml:46:9-49
+52        android:label="@string/app_title"
+52-->/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/AndroidManifest.xml:47:9-42
+53        android:largeHeap="true"
+53-->/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/AndroidManifest.xml:51:9-33
+54        android:supportsRtl="true"
+54-->[com.github.karanvs:hiddenshot:v1.2] /Users/jakelund/.gradle/caches/transforms-2/files-2.1/c8fd1c65ea463c9d21b8fb6bb5ffdd82/jetified-hiddenshot-v1.2/AndroidManifest.xml:14:9-35
+55        android:testOnly="true"
+56        android:theme="@android:style/Theme.Holo.Light.NoActionBar.Fullscreen"
+56-->/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/AndroidManifest.xml:48:9-79
+57        android:usesCleartextTraffic="true" >
+57-->/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/AndroidManifest.xml:50:9-44
+58        <activity
+58-->/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/AndroidManifest.xml:53:9-63:20
+59            android:name="com.lumination.leadme.LeadMeMain"
+59-->/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/AndroidManifest.xml:54:13-60
+60            android:label="@string/app_title"
+60-->/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/AndroidManifest.xml:56:13-46
+61            android:launchMode="singleTask"
+61-->/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/AndroidManifest.xml:58:13-44
+62            android:screenOrientation="portrait"
+62-->/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/AndroidManifest.xml:55:13-49
+63            android:windowSoftInputMode="adjustPan" >
+63-->/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/AndroidManifest.xml:57:13-52
+64            <intent-filter>
+64-->/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/AndroidManifest.xml:59:13-62:29
+65                <action android:name="android.intent.action.MAIN" />
+65-->/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/AndroidManifest.xml:60:17-69
+65-->/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/AndroidManifest.xml:60:25-66
+66
+67                <category android:name="android.intent.category.LAUNCHER" />
+67-->/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/AndroidManifest.xml:61:17-77
+67-->/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/AndroidManifest.xml:61:27-74
+68            </intent-filter>
+69        </activity>
+70
+71        <receiver android:name="com.lumination.leadme.LumiAccessibilityReceiver" >
+71-->/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/AndroidManifest.xml:65:9-69:20
+71-->/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/AndroidManifest.xml:65:19-60
+72            <intent-filter>
+72-->/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/AndroidManifest.xml:66:13-68:29
+73                <action android:name="com.lumination.leadme.BROADCAST_ACTION" />
+73-->/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/AndroidManifest.xml:67:17-81
+73-->/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/AndroidManifest.xml:67:25-78
+74            </intent-filter>
+75        </receiver>
+76
+77        <service
+77-->/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/AndroidManifest.xml:71:9-84:19
+78            android:name="com.lumination.leadme.LumiAccessibilityService"
+78-->/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/AndroidManifest.xml:72:13-74
+79            android:configChanges="orientation"
+79-->/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/AndroidManifest.xml:74:13-48
+80            android:label="@string/app_title_with_brand"
+80-->/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/AndroidManifest.xml:73:13-57
+81            android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE"
+81-->/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/AndroidManifest.xml:76:13-79
+82            android:stopWithTask="true" >
+82-->/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/AndroidManifest.xml:75:13-40
+83            <intent-filter>
+83-->/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/AndroidManifest.xml:77:13-79:29
+84                <action android:name="android.accessibilityservice.AccessibilityService" />
+84-->/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/AndroidManifest.xml:78:17-92
+84-->/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/AndroidManifest.xml:78:25-89
+85            </intent-filter>
+86
+87            <meta-data
+87-->/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/AndroidManifest.xml:81:13-83:72
+88                android:name="android.accessibilityservice"
+88-->/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/AndroidManifest.xml:82:17-60
+89                android:resource="@xml/accessibility_service_config" />
+89-->/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/AndroidManifest.xml:83:17-69
+90        </service>
+91
+92        <activity
+92-->[gun0912.ted:tedpermission:2.2.3] /Users/jakelund/.gradle/caches/transforms-2/files-2.1/185117ac6c987915e960ac481ecf3ea8/jetified-tedpermission-2.2.3/AndroidManifest.xml:10:9-14:67
+93            android:name="com.gun0912.tedpermission.TedPermissionActivity"
+93-->[gun0912.ted:tedpermission:2.2.3] /Users/jakelund/.gradle/caches/transforms-2/files-2.1/185117ac6c987915e960ac481ecf3ea8/jetified-tedpermission-2.2.3/AndroidManifest.xml:11:13-75
+94            android:configChanges="mcc|mnc|locale|keyboard|keyboardHidden|screenLayout|fontScale|uiMode|orientation|screenSize|layoutDirection"
+94-->[gun0912.ted:tedpermission:2.2.3] /Users/jakelund/.gradle/caches/transforms-2/files-2.1/185117ac6c987915e960ac481ecf3ea8/jetified-tedpermission-2.2.3/AndroidManifest.xml:12:13-144
+95            android:screenOrientation="unspecified"
+95-->[gun0912.ted:tedpermission:2.2.3] /Users/jakelund/.gradle/caches/transforms-2/files-2.1/185117ac6c987915e960ac481ecf3ea8/jetified-tedpermission-2.2.3/AndroidManifest.xml:13:13-52
+96            android:theme="@style/Theme.Transparent.Permission" />
+96-->[gun0912.ted:tedpermission:2.2.3] /Users/jakelund/.gradle/caches/transforms-2/files-2.1/185117ac6c987915e960ac481ecf3ea8/jetified-tedpermission-2.2.3/AndroidManifest.xml:14:13-64
+97        <activity
+97-->[com.google.android.gms:play-services-base:17.0.0] /Users/jakelund/.gradle/caches/transforms-2/files-2.1/890df28573fa2f554ccd20a952326cb6/jetified-play-services-base-17.0.0/AndroidManifest.xml:23:9-26:75
+98            android:name="com.google.android.gms.common.api.GoogleApiActivity"
+98-->[com.google.android.gms:play-services-base:17.0.0] /Users/jakelund/.gradle/caches/transforms-2/files-2.1/890df28573fa2f554ccd20a952326cb6/jetified-play-services-base-17.0.0/AndroidManifest.xml:24:13-79
+99            android:exported="false"
+99-->[com.google.android.gms:play-services-base:17.0.0] /Users/jakelund/.gradle/caches/transforms-2/files-2.1/890df28573fa2f554ccd20a952326cb6/jetified-play-services-base-17.0.0/AndroidManifest.xml:25:13-37
+100            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
+100-->[com.google.android.gms:play-services-base:17.0.0] /Users/jakelund/.gradle/caches/transforms-2/files-2.1/890df28573fa2f554ccd20a952326cb6/jetified-play-services-base-17.0.0/AndroidManifest.xml:26:13-72
+101
+102        <meta-data
+102-->[com.google.android.gms:play-services-basement:17.0.0] /Users/jakelund/.gradle/caches/transforms-2/files-2.1/836d05db771df2adb0d373944a13c627/jetified-play-services-basement-17.0.0/AndroidManifest.xml:23:9-25:69
+103            android:name="com.google.android.gms.version"
+103-->[com.google.android.gms:play-services-basement:17.0.0] /Users/jakelund/.gradle/caches/transforms-2/files-2.1/836d05db771df2adb0d373944a13c627/jetified-play-services-basement-17.0.0/AndroidManifest.xml:24:13-58
+104            android:value="@integer/google_play_services_version" />
+104-->[com.google.android.gms:play-services-basement:17.0.0] /Users/jakelund/.gradle/caches/transforms-2/files-2.1/836d05db771df2adb0d373944a13c627/jetified-play-services-basement-17.0.0/AndroidManifest.xml:25:13-66
+105    </application>
+106
+107</manifest>
