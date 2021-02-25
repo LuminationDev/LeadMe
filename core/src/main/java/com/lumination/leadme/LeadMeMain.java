@@ -1,11 +1,13 @@
 
 package com.lumination.leadme;
 
+import android.Manifest;
 import android.accessibilityservice.AccessibilityService;
 import android.accessibilityservice.GestureDescription;
 import android.annotation.SuppressLint;
 import android.app.ActivityManager;
 import android.app.AlertDialog;
+import android.app.Notification;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -71,6 +73,7 @@ import android.widget.ViewSwitcher;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.app.ActivityCompat;
 import androidx.core.content.res.ResourcesCompat;
 import androidx.fragment.app.FragmentActivity;
 import androidx.lifecycle.Lifecycle;
@@ -100,6 +103,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketAddress;
 import java.net.SocketException;
+import java.net.URISyntaxException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -324,7 +328,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                 break;
             //added------------
             case SCREEN_CAPTURE:
-                    MediaProjection mediaProjection = projectionManager.getMediaProjection(resultCode, data);
+                MediaProjection mediaProjection = projectionManager.getMediaProjection(resultCode, data);
                     if (mediaProjection != null) {
 
                         DisplayMetrics metrics = getResources().getDisplayMetrics();
@@ -2387,7 +2391,11 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         //start service class
 
             screen_share_intent = new Intent(context, ScreensharingService.class);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            startForegroundService(screen_share_intent);
+        }else {
             startService(screen_share_intent);
+        }
 
 
             //start screen capturing

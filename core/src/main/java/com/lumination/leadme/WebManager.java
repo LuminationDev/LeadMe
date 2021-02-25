@@ -338,7 +338,7 @@ public class WebManager {
             hidePreviewDialog();
             main.showConfirmPushDialog(false, adding_to_fav);
 
-            if (!adding_to_fav) {
+            if (!adding_to_fav && isYouTube) {
                 main.getHandler().postDelayed(() -> {
                     //main.hideConfirmPushDialog();
                     youTubeEmbedPlayer.showVideoController(controllerURL);

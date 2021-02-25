@@ -58,11 +58,9 @@ public class StudentAlertsAdapter extends BaseAdapter {
 
     public void refresh() {
         if (mData.size() == 0) {
-            main.setAlertsBtnVisibility(View.GONE);
             no_alerts_view.setVisibility(View.VISIBLE);
             list_view.setVisibility(View.GONE);
         } else {
-            main.setAlertsBtnVisibility(View.VISIBLE);
             no_alerts_view.setVisibility(View.GONE);
             list_view.setVisibility(View.VISIBLE);
         }
@@ -105,12 +103,13 @@ public class StudentAlertsAdapter extends BaseAdapter {
         final ConnectedPeer peer = mData.get(position);
         if (peer != null) {
             studentName.setText(peer.getDisplayName());
-
             if (peer.getStatus() == ConnectedPeer.STATUS_ERROR) {
                 maxAlertIcon.setImageDrawable(main.getResources().getDrawable(R.drawable.alert_error, null));
             } else {
                 maxAlertIcon.setImageDrawable(main.getResources().getDrawable(R.drawable.alert_warning, null));
             }
+
+            alertList.setText(peer.getAlertsList());
         }
         //refresh();
         return convertView;

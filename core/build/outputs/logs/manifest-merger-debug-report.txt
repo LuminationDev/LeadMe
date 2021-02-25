@@ -1,9 +1,9 @@
 -- Merging decision tree log ---
 manifest
-ADDED from /Users/jakelund/Documents/GitHub/LeadMe/core/src/main/AndroidManifest.xml:2:1-87:12
-INJECTED from /Users/jakelund/Documents/GitHub/LeadMe/core/src/main/AndroidManifest.xml:2:1-87:12
-INJECTED from /Users/jakelund/Documents/GitHub/LeadMe/core/src/main/AndroidManifest.xml:2:1-87:12
-INJECTED from /Users/jakelund/Documents/GitHub/LeadMe/core/src/main/AndroidManifest.xml:2:1-87:12
+ADDED from /Users/jakelund/Documents/GitHub/LeadMe/core/src/main/AndroidManifest.xml:2:1-92:12
+INJECTED from /Users/jakelund/Documents/GitHub/LeadMe/core/src/main/AndroidManifest.xml:2:1-92:12
+INJECTED from /Users/jakelund/Documents/GitHub/LeadMe/core/src/main/AndroidManifest.xml:2:1-92:12
+INJECTED from /Users/jakelund/Documents/GitHub/LeadMe/core/src/main/AndroidManifest.xml:2:1-92:12
 MERGED from [androidx.gridlayout:gridlayout:1.0.0] /Users/jakelund/.gradle/caches/transforms-2/files-2.1/d4b62a485a137c7944f590514e8e9be1/gridlayout-1.0.0/AndroidManifest.xml:17:1-22:12
 MERGED from [com.github.javiersantos:AppUpdater:2.7] /Users/jakelund/.gradle/caches/transforms-2/files-2.1/9f947d76738111cd19b713ae5fdec102/jetified-AppUpdater-2.7/AndroidManifest.xml:2:1-14:12
 MERGED from [com.google.android.material:material:1.2.1] /Users/jakelund/.gradle/caches/transforms-2/files-2.1/6f39624951e241cce5e8652de814a4b8/material-1.2.1/AndroidManifest.xml:17:1-24:12
@@ -48,9 +48,9 @@ MERGED from [androidx.lifecycle:lifecycle-livedata:2.0.0] /Users/jakelund/.gradl
 MERGED from [androidx.lifecycle:lifecycle-livedata-core:2.0.0] /Users/jakelund/.gradle/caches/transforms-2/files-2.1/50032dedbb3514d401d465bb7eb09f6b/lifecycle-livedata-core-2.0.0/AndroidManifest.xml:17:1-22:12
 MERGED from [androidx.arch.core:core-runtime:2.0.0] /Users/jakelund/.gradle/caches/transforms-2/files-2.1/2b329feea076cb4cd7d5f22c373fed52/core-runtime-2.0.0/AndroidManifest.xml:17:1-22:12
 MERGED from [androidx.annotation:annotation-experimental:1.0.0] /Users/jakelund/.gradle/caches/transforms-2/files-2.1/b7afd3f69a3f611b2d2911d7c53b172d/jetified-annotation-experimental-1.0.0/AndroidManifest.xml:17:1-24:12
-INJECTED from /Users/jakelund/Documents/GitHub/LeadMe/core/src/main/AndroidManifest.xml:2:1-87:12
-INJECTED from /Users/jakelund/Documents/GitHub/LeadMe/core/src/main/AndroidManifest.xml:2:1-87:12
-INJECTED from /Users/jakelund/Documents/GitHub/LeadMe/core/src/main/AndroidManifest.xml:2:1-87:12
+INJECTED from /Users/jakelund/Documents/GitHub/LeadMe/core/src/main/AndroidManifest.xml:2:1-92:12
+INJECTED from /Users/jakelund/Documents/GitHub/LeadMe/core/src/main/AndroidManifest.xml:2:1-92:12
+INJECTED from /Users/jakelund/Documents/GitHub/LeadMe/core/src/main/AndroidManifest.xml:2:1-92:12
 	package
 		ADDED from /Users/jakelund/Documents/GitHub/LeadMe/core/src/main/AndroidManifest.xml:4:5-36
 		INJECTED from /Users/jakelund/Documents/GitHub/LeadMe/core/src/main/AndroidManifest.xml
@@ -146,7 +146,7 @@ ADDED from /Users/jakelund/Documents/GitHub/LeadMe/core/src/main/AndroidManifest
 	android:name
 		ADDED from /Users/jakelund/Documents/GitHub/LeadMe/core/src/main/AndroidManifest.xml:39:9-44
 application
-ADDED from /Users/jakelund/Documents/GitHub/LeadMe/core/src/main/AndroidManifest.xml:43:5-86:19
+ADDED from /Users/jakelund/Documents/GitHub/LeadMe/core/src/main/AndroidManifest.xml:43:5-91:19
 MERGED from [com.google.android.material:material:1.2.1] /Users/jakelund/.gradle/caches/transforms-2/files-2.1/6f39624951e241cce5e8652de814a4b8/material-1.2.1/AndroidManifest.xml:22:5-20
 MERGED from [com.google.android.material:material:1.2.1] /Users/jakelund/.gradle/caches/transforms-2/files-2.1/6f39624951e241cce5e8652de814a4b8/material-1.2.1/AndroidManifest.xml:22:5-20
 MERGED from [com.google.android.gms:play-services-nearby:17.0.0] /Users/jakelund/.gradle/caches/transforms-2/files-2.1/327974c2f6f9aa35bd67062bcf1bbe8a/jetified-play-services-nearby-17.0.0/AndroidManifest.xml:9:5-20
@@ -220,30 +220,38 @@ action#com.lumination.leadme.BROADCAST_ACTION
 ADDED from /Users/jakelund/Documents/GitHub/LeadMe/core/src/main/AndroidManifest.xml:67:17-81
 	android:name
 		ADDED from /Users/jakelund/Documents/GitHub/LeadMe/core/src/main/AndroidManifest.xml:67:25-78
+service#com.lumination.leadme.ScreensharingService
+ADDED from /Users/jakelund/Documents/GitHub/LeadMe/core/src/main/AndroidManifest.xml:70:9-74:19
+	android:enabled
+		ADDED from /Users/jakelund/Documents/GitHub/LeadMe/core/src/main/AndroidManifest.xml:71:13-35
+	android:foregroundServiceType
+		ADDED from /Users/jakelund/Documents/GitHub/LeadMe/core/src/main/AndroidManifest.xml:73:13-60
+	android:name
+		ADDED from /Users/jakelund/Documents/GitHub/LeadMe/core/src/main/AndroidManifest.xml:72:13-49
 service#com.lumination.leadme.LumiAccessibilityService
-ADDED from /Users/jakelund/Documents/GitHub/LeadMe/core/src/main/AndroidManifest.xml:71:9-84:19
+ADDED from /Users/jakelund/Documents/GitHub/LeadMe/core/src/main/AndroidManifest.xml:75:9-89:19
 	android:label
-		ADDED from /Users/jakelund/Documents/GitHub/LeadMe/core/src/main/AndroidManifest.xml:73:13-57
+		ADDED from /Users/jakelund/Documents/GitHub/LeadMe/core/src/main/AndroidManifest.xml:77:13-57
 	android:permission
-		ADDED from /Users/jakelund/Documents/GitHub/LeadMe/core/src/main/AndroidManifest.xml:76:13-79
+		ADDED from /Users/jakelund/Documents/GitHub/LeadMe/core/src/main/AndroidManifest.xml:80:13-79
 	android:configChanges
-		ADDED from /Users/jakelund/Documents/GitHub/LeadMe/core/src/main/AndroidManifest.xml:74:13-48
+		ADDED from /Users/jakelund/Documents/GitHub/LeadMe/core/src/main/AndroidManifest.xml:78:13-48
 	android:stopWithTask
-		ADDED from /Users/jakelund/Documents/GitHub/LeadMe/core/src/main/AndroidManifest.xml:75:13-40
+		ADDED from /Users/jakelund/Documents/GitHub/LeadMe/core/src/main/AndroidManifest.xml:79:13-40
 	android:name
-		ADDED from /Users/jakelund/Documents/GitHub/LeadMe/core/src/main/AndroidManifest.xml:72:13-74
+		ADDED from /Users/jakelund/Documents/GitHub/LeadMe/core/src/main/AndroidManifest.xml:76:13-74
 intent-filter#action:name:android.accessibilityservice.AccessibilityService
-ADDED from /Users/jakelund/Documents/GitHub/LeadMe/core/src/main/AndroidManifest.xml:77:13-79:29
+ADDED from /Users/jakelund/Documents/GitHub/LeadMe/core/src/main/AndroidManifest.xml:82:13-84:29
 action#android.accessibilityservice.AccessibilityService
-ADDED from /Users/jakelund/Documents/GitHub/LeadMe/core/src/main/AndroidManifest.xml:78:17-92
+ADDED from /Users/jakelund/Documents/GitHub/LeadMe/core/src/main/AndroidManifest.xml:83:17-92
 	android:name
-		ADDED from /Users/jakelund/Documents/GitHub/LeadMe/core/src/main/AndroidManifest.xml:78:25-89
+		ADDED from /Users/jakelund/Documents/GitHub/LeadMe/core/src/main/AndroidManifest.xml:83:25-89
 meta-data#android.accessibilityservice
-ADDED from /Users/jakelund/Documents/GitHub/LeadMe/core/src/main/AndroidManifest.xml:81:13-83:72
+ADDED from /Users/jakelund/Documents/GitHub/LeadMe/core/src/main/AndroidManifest.xml:86:13-88:72
 	android:resource
-		ADDED from /Users/jakelund/Documents/GitHub/LeadMe/core/src/main/AndroidManifest.xml:83:17-69
+		ADDED from /Users/jakelund/Documents/GitHub/LeadMe/core/src/main/AndroidManifest.xml:88:17-69
 	android:name
-		ADDED from /Users/jakelund/Documents/GitHub/LeadMe/core/src/main/AndroidManifest.xml:82:17-60
+		ADDED from /Users/jakelund/Documents/GitHub/LeadMe/core/src/main/AndroidManifest.xml:87:17-60
 uses-sdk
 INJECTED from /Users/jakelund/Documents/GitHub/LeadMe/core/src/main/AndroidManifest.xml reason: use-sdk injection requested
 INJECTED from /Users/jakelund/Documents/GitHub/LeadMe/core/src/main/AndroidManifest.xml

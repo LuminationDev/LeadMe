@@ -11,8 +11,8 @@ org/jsoup/nodes/Attribute.java
  org.jsoup.nodes.Attribute
 org/jsoup/parser/CharacterReader.java
  org.jsoup.parser.CharacterReader
-org/jsoup/parser/Tokeniser.java
- org.jsoup.parser.Tokeniser
+com/lumination/leadme/StudentAlertsAdapter.java
+ com.lumination.leadme.StudentAlertsAdapter
 org/jsoup/nodes/LeafNode.java
  org.jsoup.nodes.LeafNode
 org/jsoup/nodes/DataNode.java
@@ -92,8 +92,8 @@ org/jsoup/parser/ParseErrorList.java
  org.jsoup.parser.ParseErrorList
 org/jsoup/parser/TokenQueue.java
  org.jsoup.parser.TokenQueue
-com/lumination/leadme/LumiAccessibilityConnector.java
- com.lumination.leadme.LumiAccessibilityConnector
+com/lumination/leadme/ConnectedLearnersAdapter.java
+ com.lumination.leadme.ConnectedLearnersAdapter
 org/jsoup/nodes/Element.java
  org.jsoup.nodes.Element
  org.jsoup.nodes.Element$1
@@ -360,8 +360,19 @@ org/jsoup/helper/HttpConnection.java
  org.jsoup.helper.HttpConnection$KeyVal
  org.jsoup.helper.HttpConnection$Request
  org.jsoup.helper.HttpConnection$Response
-org/jsoup/parser/package-info.java
- org.jsoup.parser.package-info
+com/lumination/leadme/LeadMeMain.java
+ com.lumination.leadme.LeadMeMain
+ com.lumination.leadme.LeadMeMain$1
+ com.lumination.leadme.LeadMeMain$10
+ com.lumination.leadme.LeadMeMain$2
+ com.lumination.leadme.LeadMeMain$3
+ com.lumination.leadme.LeadMeMain$4
+ com.lumination.leadme.LeadMeMain$5
+ com.lumination.leadme.LeadMeMain$6
+ com.lumination.leadme.LeadMeMain$7
+ com.lumination.leadme.LeadMeMain$8
+ com.lumination.leadme.LeadMeMain$9
+ com.lumination.leadme.LeadMeMain$ImageAvailableListener
 org/jsoup/UnsupportedMimeTypeException.java
  org.jsoup.UnsupportedMimeTypeException
 com/lumination/leadme/NearbyPeersManager.java
@@ -403,20 +414,9 @@ com/lumination/leadme/NetworkAdapter.java
  com.lumination.leadme.client
  com.lumination.leadme.msg
  com.lumination.leadme.studentThread
-com/lumination/leadme/ConnectedLearnersAdapter.java
- com.lumination.leadme.ConnectedLearnersAdapter
-com/lumination/leadme/StudentAlertsAdapter.java
- com.lumination.leadme.StudentAlertsAdapter
-com/lumination/leadme/LeadMeMain.java
- com.lumination.leadme.LeadMeMain
- com.lumination.leadme.LeadMeMain$1
- com.lumination.leadme.LeadMeMain$10
- com.lumination.leadme.LeadMeMain$2
- com.lumination.leadme.LeadMeMain$3
- com.lumination.leadme.LeadMeMain$4
- com.lumination.leadme.LeadMeMain$5
- com.lumination.leadme.LeadMeMain$6
- com.lumination.leadme.LeadMeMain$7
- com.lumination.leadme.LeadMeMain$8
- com.lumination.leadme.LeadMeMain$9
- com.lumination.leadme.LeadMeMain$ImageAvailableListener
+org/jsoup/parser/package-info.java
+ org.jsoup.parser.package-info
+org/jsoup/parser/Tokeniser.java
+ org.jsoup.parser.Tokeniser
+com/lumination/leadme/LumiAccessibilityConnector.java
+ com.lumination.leadme.LumiAccessibilityConnector

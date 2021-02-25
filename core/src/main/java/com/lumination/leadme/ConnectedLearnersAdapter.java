@@ -43,6 +43,11 @@ public class ConnectedLearnersAdapter extends BaseAdapter {
                 peersWithWarnings.add(peer);
             }
         }
+        if (peersWithWarnings.isEmpty()) {
+            main.setAlertsBtnVisibility(View.INVISIBLE);
+        } else {
+            main.setAlertsBtnVisibility(View.VISIBLE);
+        }
         alertsAdapter.setData(peersWithWarnings);
         alertsAdapter.notifyDataSetChanged();
     }
@@ -194,6 +199,7 @@ public class ConnectedLearnersAdapter extends BaseAdapter {
         }
 
         notifyDataSetChanged();
+        main.getConnectedLearnersAdapter().refreshAlertsView();
     }
 
     //standard status update

@@ -247,6 +247,7 @@ public class NetworkAdapter {
             if (socket != null) {
                 if (socket.isConnected()) {
                     connectionisActive=20;
+                    allowInput=true;
                     Log.d(TAG, "connectToServer: connection successful");
                     Name = nearbyPeersManager.getName();
                     sendToServer(Name,"NAME"); //sends the student name to the teacher for a record
@@ -418,7 +419,7 @@ public class NetworkAdapter {
 
                 while (allowInput) {
                     if(socket!=null) {
-                        if (!socket.isClosed()) {
+                        if (!socket.isClosed() && !socket.isInputShutdown()) {
                             BufferedReader in;
                             String input;
                             try {
@@ -437,6 +438,12 @@ public class NetworkAdapter {
                             } catch (IOException e) {
                                 e.printStackTrace();
                             }
+                        }else{
+                            socket=new Socket();
+                            allowInput=false;
+                            main.runOnUiThread(() -> {
+                                main.setUIDisconnected();
+                            });
                         }
                     }
                 }
@@ -501,7 +508,7 @@ public class NetworkAdapter {
                 break;
             case "PING":
                 nearbyPeersManager.myID=inputList.get(1);
-                connectionisActive=20;
+                connectionisActive=5;
                     if(main.waitingDialog.isShowing()) {
                         main.closeWaitingDialog(true);
                     }

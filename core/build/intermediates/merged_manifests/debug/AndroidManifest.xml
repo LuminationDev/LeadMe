@@ -52,7 +52,6 @@
         android:label="@string/app_title"
         android:largeHeap="true"
         android:supportsRtl="true"
-        android:testOnly="true"
         android:theme="@android:style/Theme.Holo.Light.NoActionBar.Fullscreen"
         android:usesCleartextTraffic="true" >
         <activity
@@ -74,6 +73,11 @@
             </intent-filter>
         </receiver>
 
+        <service
+            android:name="com.lumination.leadme.ScreensharingService"
+            android:enabled="true"
+            android:foregroundServiceType="mediaProjection" >
+        </service>
         <service
             android:name="com.lumination.leadme.LumiAccessibilityService"
             android:configChanges="orientation"
