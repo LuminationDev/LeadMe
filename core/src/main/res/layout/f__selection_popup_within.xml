@@ -138,6 +138,7 @@
             android:layout_height="@dimen/standard_btn_height"
             android:layout_gravity="center_horizontal"
             android:layout_marginTop="10dp"
+            android:layout_marginBottom="15dp"
             android:background="@drawable/bg_passive"
             android:clickable="true"
             android:focusable="true"

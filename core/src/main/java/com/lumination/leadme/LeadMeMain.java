@@ -1938,13 +1938,13 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
             switch (status) {
                 case ConnectedPeer.STATUS_LOCK:
-                    statusMsg += "FOLLOW mode.";
+                    statusMsg += "LOCK mode.";
                     break;
                 case ConnectedPeer.STATUS_BLACKOUT:
                     statusMsg += "BLOCKED mode.";
                     break;
                 case ConnectedPeer.STATUS_UNLOCK:
-                    statusMsg += "FREE PLAY mode.";
+                    statusMsg += "UNLOCK mode.";
                     break;
                 default:
                     Log.e(TAG, "Invalid status: " + status);

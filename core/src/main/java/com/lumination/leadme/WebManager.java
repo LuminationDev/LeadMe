@@ -609,10 +609,12 @@ public class WebManager {
         controllerURL = url;
 
         if (isYouTube) {
+            lockSpinner.setSelection(0); //default to locked
             pushTitle = getYouTubeFavouritesManager().getTitle(url);
             previewDialogView.findViewById(R.id.preview_youtube).setVisibility(View.VISIBLE);
             previewDialogView.findViewById(R.id.preview_web).setVisibility(View.GONE);
         } else {
+            lockSpinner.setSelection(1); //default to unlocked
             pushTitle = getUrlFavouritesManager().getTitle(url);
             previewDialogView.findViewById(R.id.preview_web).setVisibility(View.VISIBLE);
             previewDialogView.findViewById(R.id.preview_youtube).setVisibility(View.GONE);

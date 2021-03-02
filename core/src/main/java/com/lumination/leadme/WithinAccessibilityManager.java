@@ -85,43 +85,39 @@ public class WithinAccessibilityManager {
     // Rect(590, 3637 - 766, 2214) //RIGHT label
 
     //WHOLE SCREEN: Rect(0, 0 - 1080, 2214)
+    //Rect(313, 2880 - 451, 2142) and Rect(599, 2744 - 796, 2142)
+    //actual center is Y = 1310
 
     //2236 diff T
     //603 diff B
 
+    //REDMI         Rect(3787 - 2214) and Rect(3787 - 2214)         // ATTEMPTING TAP! 401, 1473 // 1510 // 1573
+    //Lineage       Rect(3227 - 2142) and Rect(3227 - 2142)         // ATTEMPTING TAP! 382, 985  // 1330 // 1085 (base - 800)
+
     private void extractTapLocations(AccessibilityNodeInfo rootInActiveWindow) {
-        List<AccessibilityNodeInfo> playNodes = rootInActiveWindow.findAccessibilityNodeInfosByText("Play");
-        List<AccessibilityNodeInfo> streamNodes = rootInActiveWindow.findAccessibilityNodeInfosByText("Stream");
+        ArrayList<AccessibilityNodeInfo> playNodes = new ArrayList<>();
+        playNodes.addAll(rootInActiveWindow.findAccessibilityNodeInfosByText("Play"));
+        playNodes.addAll(rootInActiveWindow.findAccessibilityNodeInfosByText("Stream"));
+
+        ArrayList<AccessibilityNodeInfo> downloadNodes = new ArrayList<>();
+        downloadNodes.addAll(rootInActiveWindow.findAccessibilityNodeInfosByText("Download"));
+        downloadNodes.addAll(rootInActiveWindow.findAccessibilityNodeInfosByText("Delete"));
+        Log.e(TAG, "Searching for tap locations! " + playNodes.size() + ", " + downloadNodes.size());
+
         if (!playNodes.isEmpty()) {
-            List<AccessibilityNodeInfo> deleteNodes = rootInActiveWindow.findAccessibilityNodeInfosByText("Delete");
-            Log.w(TAG, "[1] Found " + playNodes.size() + " and " + deleteNodes.size());
             playNodes.get(0).getBoundsInScreen(leftRect);
-            deleteNodes.get(0).getBoundsInScreen(rightRect);
+            downloadNodes.get(0).getBoundsInScreen(rightRect);
+            Log.w(TAG, "[1] Found " + leftRect + " and " + rightRect);
 
             // this view is a whole screen length below the main view, so compensate by subtracting rect.bottom
             // then compensate for us finding the LABEL but not the CLICKABLE IMAGE and move it another 200
-            leftRect.top -= (leftRect.bottom + 200);
-            rightRect.top -= (rightRect.bottom + 200);
-            leftRect.bottom = leftRect.top + 200;
-            rightRect.bottom = rightRect.top + 200;
+            leftRect.top = leftRect.bottom - 780;
+            leftRect.bottom = leftRect.top + 100;
+            rightRect.top = leftRect.top; //same height
+            rightRect.bottom = leftRect.bottom; //same height
 
             initTapLocations = true;
             return;
-
-        } else if (!streamNodes.isEmpty()) {
-            List<AccessibilityNodeInfo> downloadNodes = rootInActiveWindow.findAccessibilityNodeInfosByText("Download");
-            Log.w(TAG, "[2] Found " + streamNodes.size() + " and " + downloadNodes.size());
-            streamNodes.get(0).getBoundsInScreen(leftRect);
-            downloadNodes.get(0).getBoundsInScreen(rightRect);
-
-            // this view is a whole screen length below the main view, so compensate by subtracting rect.bottom
-            // then compensate for us finding the LABEL but not the CLICKABLE IMAGE and move it another 200
-            leftRect.top -= (leftRect.bottom + 200);
-            rightRect.top -= (rightRect.bottom + 200);
-            leftRect.bottom = leftRect.top + 200;
-            rightRect.bottom = rightRect.top + 200;
-
-            initTapLocations = true;
         }
     }
 
@@ -129,13 +125,11 @@ public class WithinAccessibilityManager {
 
     public void manageWithinAccess(AccessibilityEvent event, AccessibilityNodeInfo rootInActiveWindow) {
 
-        if (event != null && event.getEventType() == AccessibilityEvent.TYPE_VIEW_CLICKED) {
+        if (event != null) {//&& event.getEventType() == AccessibilityEvent.TYPE_VIEW_CLICKED) {
             Log.e(TAG, "WITHIN] " + event.getSource() + ", " + rootInActiveWindow);
         } else {
             Log.d(TAG, "WITHIN] " + event + ", " + rootInActiveWindow);
         }
-
-        Log.d(TAG, "Current state is: " + currentState);
 
         if (main.getAppManager().getIsWithinStreaming()) {
             currentMode = MODE_STREAM;
@@ -162,9 +156,31 @@ public class WithinAccessibilityManager {
         }
 
         List<AccessibilityNodeInfo> collectedInfo = rootInActiveWindow.findAccessibilityNodeInfosByText(":");
-        Log.e(TAG, "Got " + collectedInfo.size() + " with : in them");
+        List<AccessibilityNodeInfo> collectedInfo2 = new ArrayList<>();
+
+        if (event != null && event.getSource() != null) {
+            event.getSource().findAccessibilityNodeInfosByText(":");
+        }
+
+        Log.e(TAG, "Got " + collectedInfo.size() + " or " + collectedInfo2.size() + " with : in them");
+        int firstTime = -1;
         for (AccessibilityNodeInfo info : collectedInfo) {
             Log.e(TAG, "\t" + info.getText() + " // " + info.getContentDescription());
+            int tmp = -1;
+            try {
+                tmp = Integer.parseInt(info.getText().toString().replace(":", ""));
+                if (tmp > -1 && tmp == firstTime) {
+                    //the video is finished!
+                    Log.w(TAG, "The video is done!");
+                    main.recallToLeadMe();
+                } else if (tmp > -1) {
+                    Log.w(TAG, "Got a time! " + tmp + " vs " + firstTime);
+                    firstTime = tmp;
+                }
+            } catch (Exception e) {
+                //not the time string we're looking for
+                continue;
+            }
         }
 
         //check for this first, before checking for stream/download
