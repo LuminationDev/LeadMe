@@ -35,11 +35,14 @@ import android.media.Image;
 import android.media.ImageReader;
 import android.media.projection.MediaProjection;
 import android.media.projection.MediaProjectionManager;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
+import android.os.PowerManager;
+import android.provider.Settings;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Base64;
@@ -322,6 +325,16 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             case ACCESSIBILITY_ON:
                 Log.d(TAG, "Returning from ACCESS ON with " + resultCode + " (" + isGuide + ")");
                 permissionManager.waitingForPermission = false;
+                if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                    Intent intent = new Intent();
+                    String packageName = getPackageName();
+                    PowerManager pm = (PowerManager) getSystemService(POWER_SERVICE);
+                    if (!pm.isIgnoringBatteryOptimizations(packageName)) {
+                        intent.setAction(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS);
+                        intent.setData(Uri.parse("package:" + packageName));
+                        startActivity(intent);
+                    }
+                }
                 break;
             case BLUETOOTH_ON:
                 Log.d(TAG, "Returning from BLUETOOTH ON with " + resultCode);
@@ -1102,6 +1115,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         super.onCreate(savedInstanceState);
 
 
+
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         Log.w(TAG, "On create! " + init);
 
@@ -1482,6 +1496,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                 Toast.makeText(getApplicationContext(), "Capture rate: " + rate+" fps", Toast.LENGTH_SHORT).show();
             }
         });
+
 
     }
 

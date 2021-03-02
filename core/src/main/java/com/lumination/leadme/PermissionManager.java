@@ -9,6 +9,8 @@ import android.content.pm.PackageManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
+import android.os.Build;
+import android.os.PowerManager;
 import android.provider.Settings;
 import android.util.Log;
 import android.widget.Toast;
@@ -150,6 +152,7 @@ public class PermissionManager {
                         Manifest.permission.NFC,
                         Manifest.permission.EXPAND_STATUS_BAR) //only learners/students need a system alert window
                 .check();
+
     }
 
 
@@ -233,6 +236,7 @@ public class PermissionManager {
                 needsRecall = true;
                 waitingForPermission = false;
                 main.getDispatcher().alertGuidePermissionGranted(LeadMeMain.STUDENT_NO_ACCESSIBILITY, true);
+
                 return true;
             }
         }
