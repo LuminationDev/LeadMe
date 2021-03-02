@@ -17,6 +17,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.Executor;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -33,6 +37,66 @@ public class TcpClient extends Thread {
 
     TcpClient tcp;
     boolean runAgain=true;
+    boolean checkIn = true;
+    ScheduledExecutorService scheduledExecutor = new ScheduledThreadPoolExecutor(3);
+    Runnable tcpRunner = () -> {
+            if (client.isConnected() && !client.isClosed()) {
+                for (int i = 0; i < parent.currentClients.size(); i++) {
+                    client Client = parent.currentClients.get(i);
+                    if (ID == Client.ID) {
+                        while (Client.messageQueue.size() > 0) {
+                            Log.d(TAG, "sending: " + Client.messageQueue.get(0).message + " " + Client.messageQueue.get(0).type);
+                            sendToClient(Client.messageQueue.get(0).message, Client.messageQueue.get(0).type);
+                            parent.currentClients.get(i).messageQueue.remove(0);
+                            try {
+                                Thread.currentThread().sleep(500);
+                            } catch (InterruptedException e) {
+                                e.printStackTrace();
+                            }
+
+                        }
+                    }
+                }
+                Log.d(TAG, "run: checking for messages");
+            }
+    };
+    Runnable ConnectionCheck = () -> {
+        try {
+            PrintWriter out = new PrintWriter(client.getOutputStream(), true);
+            out.println("PING,"+ID); //set to be ignored at the client end, tcp will tell us if they have disconnected
+            if (out.checkError()){
+                System.out.println("ERROR writing data to socket student has disconnected");
+                parent.executorService.submit(new Runnable() {
+                                                  @Override
+                                                  public void run() {
+                                                      parent.updateParent(Name, ID, "LOST");
+                                                  }
+                                              });
+
+                scheduledExecutor.shutdown();
+                runAgain=false;
+            }
+        } catch (IOException e) {
+            Log.d(TAG, "checkConnection: failed");
+            e.printStackTrace();
+        }
+    };
+    Runnable inputRun = () -> {
+        while(checkIn) {
+            try {
+                InputStreamReader inreader = new InputStreamReader(client.getInputStream());
+                BufferedReader in = new BufferedReader(inreader);
+                String Input = in.readLine();
+                inputRecieved(Input);
+                if (Input == null) {
+                    checkIn = false;
+                }
+            } catch (IOException e) {
+                checkIn = false;
+                e.printStackTrace();
+            }
+        }
+    };
 
     public TcpClient(Socket clientSocket, NetworkAdapter netContext, int clientID) {
 
@@ -47,112 +111,16 @@ public class TcpClient extends Thread {
         }
         ID = clientID;
         parent = netContext;
-        client=clientSocket;
-        tcp=this;
+        client = clientSocket;
+        tcp = this;
 
-        Thread t = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                while(!tcp.isInterrupted() && runAgain){
+        scheduledExecutor.scheduleAtFixedRate(tcpRunner,0,1500, TimeUnit.MILLISECONDS);
 
-                    if(client.isConnected() && !client.isClosed()) {
-                        inputHandler();//checks if any input
-                        checkConnection();
-                        Iterator<client> iterator = parent.currentClients.iterator();
-                        //while(iterator.hasNext()){
-                        for(int i=0; i<parent.currentClients.size(); i++){
-                            //client Client = iterator.next();
-                            client Client = parent.currentClients.get(i);
-                            if(ID==Client.ID){
-                                while(Client.messageQueue.size()>0){
-                                    if(Client.messageQueue.get(0).type.equals("DISCONNECT")){
-                                        runAgain=false;
-                                    }
-                                    Log.d(TAG, "sending: "+Client.messageQueue.get(0).message+" "+Client.messageQueue.get(0).type);
-                                    sendToClient(Client.messageQueue.get(0).message,Client.messageQueue.get(0).type);
-                                    Client.messageQueue.remove(0);
-                                    try {
-                                        Thread.currentThread().sleep(500);
-                                    } catch (InterruptedException e) {
-                                        e.printStackTrace();
-                                    }
-                                }
-                            }
-                            Log.d(TAG, "run: checking for messages");
-                        }
-                        if(runAgain) {
-//                            new Handler(Looper.getMainLooper()).postDelayed(this, 1000);
-                        }else{
-                            Log.d(TAG, "run: the runnable has been interrupted");
-                        }
-                    }
-                    try{
-                        tcp.sleep(1000);
-                    }
-                    catch(final Exception e){
-                        e.printStackTrace();
-                        if(e instanceof InterruptedException) {
-                            // just in case this Runnable is actually called directly,
-                            // rather than in a new thread, don't want to swallow the
-                            // flag:
-                            tcp.interrupt();
-                        }
-                        return;
-                    }
-                }
-            }
-        });
-        t.start();
+        scheduledExecutor.scheduleAtFixedRate(ConnectionCheck,300,1000, TimeUnit.MILLISECONDS);
 
-        }
-
-    private void checkConnection() {
-        Thread thread = new Thread() {//no network ops on main thread
-            @Override
-            public void run() {
-        try {
-            PrintWriter out = new PrintWriter(client.getOutputStream(), true);
-            out.println("PING,"+ID); //set to be ignored at the client end, tcp will tell us if they have disconnected
-            if (out.checkError()){
-                System.out.println("ERROR writing data to socket student has disconnected");
-                parent.updateParent(Name,ID,"LOST");
-                tcp.interrupt();
-                runAgain=false;
-            }
-        } catch (IOException e) {
-            Log.d(TAG, "checkConnection: failed");
-            e.printStackTrace();
-        }
-            }
-        };
-        thread.start();
+        //new Thread(inputRun).start();
+        scheduledExecutor.scheduleAtFixedRate(inputRun,0,1000, TimeUnit.MILLISECONDS);
     }
-
-    boolean checkIn = true;
-    public void inputHandler() {
-        //new thread as input hangs waiting for a response
-        Thread thread = new Thread() {//no network ops on main thread
-            @Override
-            public void run() {
-                while(checkIn) {
-                    try {
-                        InputStreamReader inreader=new InputStreamReader(client.getInputStream());
-                        BufferedReader in = new BufferedReader(inreader);
-                        String Input=in.readLine();
-                        inputRecieved(Input);
-                        if(Input==null){
-                            checkIn=false;
-                        }
-                    } catch (IOException e) {
-                        checkIn=false;
-                        e.printStackTrace();
-                    }
-                }
-            }
-        };
-        thread.start();
-    }
-
     private void inputRecieved(String input) {
         if(input==null || !input.contains(",")){
             return;
@@ -178,7 +146,12 @@ public class TcpClient extends Thread {
                     Log.d(TAG, "inputRecieved: ping messages are purposely ignored");
                     break;
                 case "IMAGE":
-                    parent.updateParent(inputList.get(1),ID,"IMAGE");
+                    parent.executorService.submit(new Runnable() {
+                        @Override
+                        public void run() {
+                            parent.updateParent(inputList.get(1),ID,"IMAGE");
+                        }
+                    });
                     break;
                 default:
                     break;
@@ -189,50 +162,68 @@ public class TcpClient extends Thread {
     private void inputActionHandler(String action) {
         //not sure why student would send action but implemented anyway
         Log.d(TAG, "inputActionHandler: Action recieved: "+action);
-        parent.updateParent(action,ID,"ACTION");
+        parent.executorService.submit(new Runnable() {
+            @Override
+            public void run() {
+                parent.updateParent(action,ID,"ACTION");
+            }
+        });
+
     }
 
     //updates parent with name
     public void setLocalName(String name){
         Name=name;
-        parent.updateParent(name+":"+IpAdress.toString(),ID,"NAME");
+        parent.executorService.submit(new Runnable() {
+            @Override
+            public void run() {
+                parent.updateParent(name+":"+IpAdress.toString(),ID,"NAME");
+            }
+        });
+
     }
+
     void sendToClient(String message, String type){
         Log.d(TAG, "sendToClient: "+message+" Type: "+type);
 
        // simply sends message to the client attached to this process
-        Thread thread = new Thread() {
+        scheduledExecutor.schedule(new Runnable() {
             @Override
             public void run() {
                 try {
                     PrintWriter out =   new PrintWriter(
-                                        new BufferedWriter(
-                                        new OutputStreamWriter(client.getOutputStream())), true);
+                            new BufferedWriter(
+                                    new OutputStreamWriter(client.getOutputStream())), true);
                     out.println(type + "," + message);
                     out.flush();
                 } catch (IOException e) {
                     Log.d(TAG, "sendToClient: failed to write message to client, checking if there is a connection");
-                    checkConnection();
+                    //checkConnection();
                     e.printStackTrace();
                 }
+                if(type=="DISCONNECT"){
+                    try {
+                        client.close();
+                        runAgain=false;
+                        checkIn=false;
+                        scheduledExecutor.shutdown();
+                        Log.d(TAG, "sendToClient: client socket closed and student disconnected");
+                        parent.executorService.submit(new Runnable() {
+                            @Override
+                            public void run() {
+                                parent.updateParent("disconnect complete",ID,"DISCONNECT");
+                            }
+                        });
+
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                    return;
+                }
             }
-        };
-        thread.start();
-        try {
-            thread.join(); //output stream shouldn't hang so thread can be joined
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+        },0L,TimeUnit.MILLISECONDS);
+
         //executed after sending message so the student is notified that it is being forcefully disconnected.
-        if(type=="DISCONNECT"){
-            try {
-                client.close();
-                Log.d(TAG, "sendToClient: client socket closed and student disconnected");
-                parent.updateParent("disconnect complete",ID,"DISCONNECT");
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            return;
-        }
+
     }
 }

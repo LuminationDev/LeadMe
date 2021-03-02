@@ -24,11 +24,17 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 import static com.google.android.gms.nearby.connection.Payload.fromBytes;
 
@@ -84,7 +90,8 @@ public class NetworkAdapter {
     public ArrayList<client> currentClients = new ArrayList<>();
     public ArrayList<NsdServiceInfo> discoveredLeaders= new ArrayList<>();
 
-
+    public ExecutorService executorService = Executors.newFixedThreadPool(1);
+    ScheduledExecutorService scheduledExecutor = new ScheduledThreadPoolExecutor(1);
 
 
     public NetworkAdapter(Context context, LeadMeMain main, NearbyPeersManager nearbyPeersManager) {
@@ -303,6 +310,25 @@ public class NetworkAdapter {
         }else {
             Log.d(TAG, "connectToServer: not really sure how we ended up here");
         }
+        scheduledExecutor.shutdown();
+        scheduledExecutor = new ScheduledThreadPoolExecutor(1);
+        scheduledExecutor.scheduleAtFixedRate(new Runnable() {
+            @Override
+            public void run() {
+                if(socket!=null) {
+                    if (socket.isConnected()) {
+                        checkConnection();
+                    }
+                }
+                if(socket!=null && pingName) {
+                    if (socket.isConnected()) {
+                        Log.d(TAG, "run: pinging parent");
+                        Name = nearbyPeersManager.getName();
+                        sendToServer(Name, "NAME");
+                    }
+                }
+            }
+        }, 0,8000, TimeUnit.MILLISECONDS);
     }
 
     /*
@@ -311,7 +337,8 @@ public class NetworkAdapter {
     public void sendToServer(String message, String type){
         if(socket!=null) {
             if(socket.isConnected()) {
-                Thread thread = new Thread() {//no network on main thread
+//                Thread thread = new Thread() {//no network on main thread
+                executorService.submit(new Runnable() {
                     @Override
                     public void run() {
                         PrintWriter out;
@@ -322,9 +349,19 @@ public class NetworkAdapter {
                         } catch (IOException e) {
                             e.printStackTrace();
                         }
+                        try {
+                            Thread.currentThread().sleep(100);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
                     }
-                };
-                thread.start();
+                });
+//                @Override
+//                    public void run() {
+//
+//                    }
+//                };
+//                thread.start();
             }
         }
     }
@@ -353,18 +390,19 @@ public class NetworkAdapter {
     }
 
     private void checkConnection() {
+        Log.d(TAG, "checkConnection: checking connection");
         if(connectionisActive>0){
             connectionisActive--;
         }else if(connectionisActive==0){
             main.runOnUiThread(() -> {
-                main.setUIDisconnected();
-                first = true;
                 try {
                     socket.close();
-                    socket=null;
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
+                socket=null;
+                Log.d(TAG, "checkConnection: connection timed out");
+                main.setUIDisconnected();
                 connectionisActive--;
             });
         }
@@ -381,36 +419,7 @@ public class NetworkAdapter {
 
             //Updates parent with the name, this acts as a ping mechanism.
         //on the fly name changes are supported, client is identified by assigned ID
-        new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                if(socket!=null) {
-                    if (socket.isConnected()) {
-                        checkConnection();
-                    }
-                }
-                if(socket!=null && pingName) {
-                    if (socket.isConnected()) {
-                        Log.d(TAG, "run: pinging parent");
-                        Name = nearbyPeersManager.getName();
-                        sendToServer(Name, "NAME");
-                    }
-                }
-                if(!closeSocket) { //todo solution is a bit of a hack some improvement could be added here
-                    new Handler(Looper.getMainLooper()).postDelayed(this, 8000);
-                }else{
-                    if(socket!=null){
-                        if (socket.isConnected()) {
-                            try {
-                                socket.close();
-                            } catch (IOException e) {
-                                e.printStackTrace();
-                            }
-                        }
-                    }
-                }
-            }
-        }, 8000);
+
 
         //new Thread so server messages can be read from a while loop without impacting the UI
         Thread thread = new Thread() {
@@ -421,11 +430,19 @@ public class NetworkAdapter {
                     if(socket!=null) {
                         if (!socket.isClosed() && !socket.isInputShutdown()) {
                             BufferedReader in;
-                            String input;
+                            String input="";
                             try {
                                 InputStreamReader inStream = new InputStreamReader(socket.getInputStream());
                                 in = new BufferedReader(inStream);
-                                input = in.readLine();
+                                try {
+                                    input = in.readLine();
+                                } catch (SocketException e) {
+                                    if(socket!=null) {
+                                        socket.close();
+                                    }
+                                    e.printStackTrace();
+                                    return;
+                                }
 //                            if(inStream.read()==-1){
 //                                Log.d(TAG, "Disconnected: The teacher has disconnected");
 //                            }else {
@@ -439,8 +456,7 @@ public class NetworkAdapter {
                                 e.printStackTrace();
                             }
                         }else{
-                            socket=new Socket();
-                            allowInput=false;
+                            socket=null;
                             main.runOnUiThread(() -> {
                                 main.setUIDisconnected();
                             });
@@ -470,7 +486,6 @@ public class NetworkAdapter {
     ACTION: used for controlling the client with different actions, app launches, etc
     PING: used to let the client know it is still recieving data from the server and helps keep the connection alive
      */
-   boolean first =true;
     public void messageRecievedFromServer(String input){
         List<String> inputList = Arrays.asList(input.split(","));
         switch(inputList.get(0)){
@@ -502,13 +517,18 @@ public class NetworkAdapter {
 
                 break;
             case "DISCONNECT":
-
-                    nearbyPeersManager.disconnectFromEndpoint("");
+                try {
+                    socket.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                socket=null;
+                nearbyPeersManager.disconnectFromEndpoint("");
 
                 break;
             case "PING":
                 nearbyPeersManager.myID=inputList.get(1);
-                connectionisActive=5;
+                connectionisActive=3;
                     if(main.waitingDialog.isShowing()) {
                         main.closeWaitingDialog(true);
                     }
@@ -769,25 +789,4 @@ public class NetworkAdapter {
         selected.add(ID);
         sendToSelectedClients("STOP","MONITOR",selected);
     }
-//    private void sendScreenShots() {
-//        new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
-//            @Override
-//            public void run() {
-//                String msgReply = null;
-//                String path = main.getFilesDir() + File.separator + "LeadMe" + File.separator + folder;
-//                File image = new File(path, "capturedscreenandroid" + String.valueOf(imgcnt) + ".jpg");
-//                if (image.exists()) {
-//                    msgReply = encodeToBase64(loadImageFromStorage(path, image), Bitmap.CompressFormat.JPEG, 70);
-//                }
-//                if(msgReply!=null){
-//                    sendToServer(msgReply,"IMAGE");
-//                }else{
-//                    Log.d(TAG, "run: image is null");
-//                }
-//                if(monitoring) {
-//                    new Handler(Looper.getMainLooper()).postDelayed(this, screenshotRate);
-//                }
-//            }
-//        }, screenshotRate);
-////    }
 }

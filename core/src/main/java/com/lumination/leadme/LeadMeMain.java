@@ -14,6 +14,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
@@ -110,6 +111,9 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadPoolExecutor;
 
 import eu.bolt.screenshotty.Screenshot;
 import eu.bolt.screenshotty.ScreenshotBitmap;
@@ -288,6 +292,8 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     private MediaProjectionManager projectionManager = null;
     private int displayWidth,displayHeight,imagesProduced=0;
     ImageReader imageReader;
+
+
 
 
     public Handler getHandler() {
@@ -2497,6 +2503,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                 }
                 if(buffer!=null) {
                     response = BitmapFactory.decodeByteArray(buffer, 0, buffer.length);
+//                    monitorView.getHolder().setFixedSize(response.getWidth(),response.getHeight());
                     tryDrawing(holder);
                 }
             }
@@ -2511,6 +2518,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
         SurfaceHolder holder = monitorView.getHolder();
         monitorView.getHolder().addCallback(this);
+        monitorView.getHolder().setFixedSize(1080, 1920);
         monitorLayout.setVisibility(View.VISIBLE);
 
         //can be refactored out to onCreate?

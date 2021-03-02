@@ -155,8 +155,10 @@ public class ConnectedLearnersAdapter extends BaseAdapter {
 
     public void appLaunchSuccess(String id, String lastApp) {
         ConnectedPeer thisPeer = getMatchingPeer(id);
-        thisPeer.setLastLaunchedApp(lastApp);
-        thisPeer.setWarning(LeadMeMain.APP_TAG, true);
+        if(thisPeer!=null) {
+            thisPeer.setLastLaunchedApp(lastApp);
+            thisPeer.setWarning(LeadMeMain.APP_TAG, true);
+        }
     }
 
     //helper to manage updating a warning status

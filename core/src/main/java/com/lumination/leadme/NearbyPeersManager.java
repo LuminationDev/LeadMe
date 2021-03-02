@@ -30,7 +30,7 @@ import java.util.Set;
 
 public class NearbyPeersManager {
     String TAG = "NearbyPeersManager";
-    LeadMeMain main;
+    public LeadMeMain main;
     public NetworkAdapter networkAdapter;
     ConnectedPeer selectedLeader;
 

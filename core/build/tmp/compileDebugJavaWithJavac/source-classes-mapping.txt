@@ -255,6 +255,8 @@ com/lumination/leadme/TcpClient.java
  com.lumination.leadme.TcpClient$2
  com.lumination.leadme.TcpClient$3
  com.lumination.leadme.TcpClient$4
+ com.lumination.leadme.TcpClient$5
+ com.lumination.leadme.TcpClient$5$1
 org/jsoup/nodes/Attributes.java
  org.jsoup.nodes.Attributes
  org.jsoup.nodes.Attributes$1
