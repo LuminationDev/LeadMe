@@ -10,6 +10,7 @@ import android.app.AlertDialog;
 import android.app.Notification;
 import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
@@ -325,16 +326,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             case ACCESSIBILITY_ON:
                 Log.d(TAG, "Returning from ACCESS ON with " + resultCode + " (" + isGuide + ")");
                 permissionManager.waitingForPermission = false;
-                if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                    Intent intent = new Intent();
-                    String packageName = getPackageName();
-                    PowerManager pm = (PowerManager) getSystemService(POWER_SERVICE);
-                    if (!pm.isIgnoringBatteryOptimizations(packageName)) {
-                        intent.setAction(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS);
-                        intent.setData(Uri.parse("package:" + packageName));
-                        startActivity(intent);
-                    }
-                }
+                //permissionManager.requestBatteryOptimisation();
                 break;
             case BLUETOOTH_ON:
                 Log.d(TAG, "Returning from BLUETOOTH ON with " + resultCode);

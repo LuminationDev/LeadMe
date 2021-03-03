@@ -2,8 +2,10 @@ package com.lumination.leadme;
 
 import android.Manifest;
 import android.app.ActivityManager;
+import android.app.AlertDialog;
 import android.content.ComponentName;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.ConnectivityManager;
@@ -173,12 +175,46 @@ public class PermissionManager {
         main.canAskForAccessibility = true;
         Toast toast = Toast.makeText(main, "Please turn on Accessibility for " + app_title, Toast.LENGTH_SHORT);
         toast.show();
+        requestBatteryOptimisation();
+        new AlertDialog.Builder(main)
+                .setTitle("Enable Accessibility Settings")
+                .setMessage("In order for LeadMe to be able to perform:\n • Auto installing apps from the Play Store\n • Control youtube videos\n Accessibility settings will need to be turned on, would you like to grant LeadMe this permission?")
+                .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        Intent intent = new Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS);
+                        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_NO_HISTORY | Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS);
+                        main.startActivityForResult(intent, main.ACCESSIBILITY_ON);
 
-        Intent intent = new Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS);
-        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_NO_HISTORY | Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS);
-        main.startActivityForResult(intent, main.ACCESSIBILITY_ON);
+                    }
+                })
+                .setNegativeButton("No", null)
+                .setIcon(android.R.drawable.ic_dialog_alert)
+                .show();
 
         pingForAccess();
+    }
+    public void requestBatteryOptimisation(){
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            Intent intent = new Intent();
+            String packageName = main.getPackageName();
+            PowerManager pm = (PowerManager) main.getSystemService(main.POWER_SERVICE);
+            if (!pm.isIgnoringBatteryOptimizations(packageName)) {
+                new AlertDialog.Builder(main)
+                        .setTitle("Disable Battery Optimisation")
+                        .setMessage("In order for LeadMe to continue to run while the screen is off you will need to allow it permission to run in the background. Would you like to grant this permission?")
+                        .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int which) {
+                                intent.setAction(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS); //may be flagged by the playstore as a dangerous permission
+                                intent.setData(Uri.parse("package:" + packageName));
+                                //intent.setAction(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS);
+                                main.startActivity(intent);
+                            }
+                        })
+                        .setNegativeButton("No", null)
+                        .setIcon(android.R.drawable.ic_dialog_alert)
+                        .show();
+            }
+        }
     }
 
     private void pingForAccess() {
