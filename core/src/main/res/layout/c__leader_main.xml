@@ -1,0 +1,438 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/c__leader_main"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:background="@color/leadme_light_grey"
+    android:orientation="vertical">
+
+
+    <FrameLayout
+        android:id="@+id/monitor_layout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="gone">
+
+        <Button
+            android:id="@+id/close_monitor_btn"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:text="X" />
+
+        <SurfaceView
+            android:id="@+id/monitor_popup"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+
+    </FrameLayout>
+
+    <androidx.cardview.widget.CardView
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:layout_marginBottom="10dp"
+        android:background="@color/leadme_white"
+        app:cardBackgroundColor="@color/leadme_white"
+        app:cardElevation="10dp">
+
+        <ImageView
+            android:id="@+id/leadme_icon"
+            android:layout_width="60dp"
+            android:layout_height="match_parent"
+            android:layout_marginStart="5dp"
+            android:layout_marginEnd="10dp"
+            android:contentDescription="@string/logo_txt"
+            android:foregroundGravity="center"
+            android:minWidth="3dp"
+            android:padding="10dp"
+            android:src="@drawable/leadme_icon" />
+
+        <TextView
+            android:id="@+id/leader_title"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:fontFamily="@font/poppins_semibold"
+            android:gravity="center_horizontal|center_vertical"
+            android:text="@string/leadme_learning"
+            android:textColor="@color/leadme_black"
+            android:textSize="18sp" />
+
+        <ImageView
+            android:id="@+id/menu_btn"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:layout_gravity="center_vertical|end"
+            android:layout_marginEnd="15dp"
+            android:adjustViewBounds="true"
+            android:background="#00FFFFFF"
+            android:clickable="true"
+            android:focusable="true"
+            android:contentDescription="@string/logo_txt"
+            android:foregroundGravity="top|left"
+            android:scaleType="fitCenter"
+            android:src="@drawable/menu_icon"
+            android:visibility="visible"
+            tools:visibility="visible" />
+
+    </androidx.cardview.widget.CardView>
+
+
+    <LinearLayout
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:clipToPadding="false"
+        android:foregroundGravity="center_horizontal"
+        android:gravity="center_horizontal"
+        android:orientation="horizontal"
+        android:paddingStart="20dp"
+        android:paddingEnd="20dp">
+
+        <Button
+            android:id="@+id/app_core_btn"
+            style="@style/EmptyStyle"
+            android:layout_width="@dimen/pushbtn_size"
+            android:layout_height="@dimen/pushbtn_size"
+            android:layout_marginTop="15dp"
+            android:layout_marginBottom="25dp"
+            android:background="@drawable/circle_btn"
+            android:drawableTop="@drawable/core_app_icon"
+            android:drawablePadding="-10dp"
+            android:elevation="15dp"
+            android:fontFamily="@font/poppins_semibold"
+            android:includeFontPadding="false"
+            android:paddingTop="13dp"
+            android:singleLine="true"
+            android:text="@string/app"
+            android:textAllCaps="false"
+            android:textColor="@color/leadme_black"
+            android:textSize="12sp"
+            app:layout_gravity="center_horizontal|top" />
+
+        <Space
+            android:layout_width="15dp"
+            android:layout_height="wrap_content" />
+
+        <Button
+            android:id="@+id/url_core_btn"
+            style="@style/EmptyStyle"
+            android:layout_width="@dimen/pushbtn_size"
+            android:layout_height="@dimen/pushbtn_size"
+            android:layout_marginTop="15dp"
+            android:layout_marginBottom="25dp"
+            android:background="@drawable/circle_btn"
+            android:drawableTop="@drawable/core_url_icon"
+            android:drawablePadding="-4dp"
+            android:elevation="15dp"
+            android:fontFamily="@font/poppins_semibold"
+            android:paddingTop="10dp"
+            android:text="@string/url"
+            android:textAllCaps="false"
+            android:textColor="@color/leadme_black"
+            android:textSize="12sp"
+            app:layout_gravity="center_horizontal|top" />
+
+        <Space
+            android:layout_width="15dp"
+            android:layout_height="wrap_content"
+            android:visibility="gone" />
+
+        <Button
+            android:id="@+id/yt_core_btn"
+            style="@style/EmptyStyle"
+            android:layout_width="@dimen/pushbtn_size"
+            android:layout_height="@dimen/pushbtn_size"
+            android:layout_marginTop="15dp"
+            android:layout_marginBottom="25dp"
+            android:background="@drawable/circle_btn"
+            android:drawableTop="@drawable/core_yt_icon"
+            android:elevation="15dp"
+            android:fontFamily="@font/poppins_semibold"
+            android:paddingTop="13dp"
+            android:text="@string/yt_vr"
+            android:textAllCaps="false"
+            android:textColor="@color/leadme_black"
+            android:textSize="12sp"
+            android:visibility="gone"
+            app:layout_gravity="center_horizontal|top" />
+
+        <Space
+            android:layout_width="15dp"
+            android:layout_height="wrap_content" />
+
+        <Button
+            android:id="@+id/toggle_all_btn"
+            style="@style/EmptyStyle"
+            android:layout_width="@dimen/pushbtn_size"
+            android:layout_height="@dimen/pushbtn_size"
+            android:layout_marginTop="15dp"
+            android:layout_marginBottom="25dp"
+            android:background="@drawable/circle_btn"
+            android:drawableTop="@drawable/core_select"
+            android:drawablePadding="-4dp"
+            android:elevation="15dp"
+            android:fontFamily="@font/poppins_semibold"
+            android:paddingTop="13dp"
+            android:text="@string/select"
+            android:textAllCaps="false"
+            android:textColor="@color/leadme_black"
+            android:textSize="12sp"
+            app:layout_gravity="center_horizontal|top" />
+
+    </LinearLayout>
+
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="fill_parent"
+        android:background="@color/leadme_light_grey"
+        android:orientation="vertical">
+
+        <LinearLayout
+            android:id="@+id/top_bar"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentTop="true"
+            android:orientation="vertical">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="5dp"
+                android:background="@drawable/bg_white_roundeduppercorners">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="bottom|clip_horizontal"
+                    android:layout_weight="1"
+                    android:fontFamily="@font/poppins_semibold"
+                    android:gravity="center_vertical"
+                    android:paddingStart="25dp"
+                    android:paddingTop="30dp"
+                    android:paddingEnd="25dp"
+                    android:paddingBottom="10dp"
+                    android:text="@string/label_students"
+                    android:textColor="@color/leadme_black"
+                    android:textSize="16sp" />
+
+                <Space
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1" />
+
+                <Button
+                    android:id="@+id/alerts_button"
+                    style="@style/Widget.AppCompat.Button.Borderless"
+                    android:layout_width="wrap_content"
+                    android:layout_height="40dp"
+                    android:layout_gravity="top"
+                    android:layout_marginTop="10dp"
+                    android:background="@color/leadme_light_grey"
+                    android:drawableStart="@drawable/alert_offtask_learner"
+                    android:drawablePadding="8dp"
+                    android:fontFamily="@font/poppins_semibold"
+                    android:includeFontPadding="false"
+                    android:paddingStart="10dp"
+                    android:paddingEnd="10dp"
+                    android:text="@string/alerts"
+                    android:textAllCaps="false"
+                    android:textSize="14sp"
+                    android:visibility="visible" />
+
+                <Button
+                    android:id="@+id/search_btn"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:layout_gravity="top"
+                    android:layout_margin="10dp"
+                    android:layout_marginTop="10dp"
+                    android:layout_weight="0"
+                    android:background="@drawable/search_icon"
+                    tools:visibility="visible" />
+
+            </LinearLayout>
+
+            <SearchView
+                android:id="@+id/search_bar"
+                android:layout_width="match_parent"
+                android:layout_height="60dp"
+                android:background="@color/leadme_white"
+                android:clickable="true"
+                android:closeIcon="@drawable/close"
+                android:focusable="true"
+                android:iconifiedByDefault="false"
+                android:inputType="textPersonName"
+                android:paddingStart="15dp"
+                android:paddingTop="15dp"
+                android:paddingEnd="15dp"
+                android:paddingBottom="20dp"
+                android:queryHint="Type a student name here..."
+                android:searchIcon="@null"
+                android:theme="@style/LeadMeStyle"
+                android:visibility="gone" />
+
+        </LinearLayout>
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_above="@id/lock_action_bar"
+            android:layout_below="@id/top_bar"
+            android:background="@color/leadme_white"
+            android:paddingTop="20dp">
+
+            <TextView
+                android:id="@+id/no_students_connected"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginTop="60dp"
+                android:fontFamily="@font/poppins_regular"
+                android:text="@string/waiting_for_learners"
+                android:textColor="@color/leadme_medium_grey"
+                android:textSize="14sp" />
+
+            <GridView
+                android:id="@+id/studentListView"
+                android:layout_width="match_parent"
+                android:layout_height="fill_parent"
+                android:layout_gravity="center_horizontal"
+                android:background="@color/leadme_white"
+                android:clipToPadding="false"
+                android:foregroundGravity="center_horizontal"
+                android:gravity="center_horizontal"
+                android:numColumns="3"
+                android:verticalSpacing="15dp"
+                android:visibility="gone"
+                tools:listitem="@layout/row_follower">
+
+            </GridView>
+        </FrameLayout>
+
+
+        <LinearLayout
+            android:id="@+id/lock_action_bar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:background="@color/leadme_white"
+            android:elevation="10dp"
+            android:foregroundGravity="fill_horizontal"
+            android:paddingStart="5dp"
+            android:paddingEnd="5dp">
+
+            <LinearLayout
+                android:id="@+id/unlock_selected_btn"
+                style="@style/EmptyStyle"
+                android:layout_width="wrap_content"
+                android:layout_height="58dp"
+                android:layout_marginStart="10dp"
+                android:layout_marginTop="10dp"
+                android:layout_marginEnd="10dp"
+                android:layout_marginBottom="10dp"
+                android:layout_weight="1"
+                android:background="@drawable/rounded_btn_white"
+                android:elevation="5dp"
+                android:gravity="center_horizontal"
+                android:orientation="horizontal">
+
+                <ImageView
+                    android:id="@+id/unlock_icon"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:src="@drawable/controls_unlock" />
+
+                <TextView
+                    android:id="@+id/unlock_text"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:layout_marginStart="10dp"
+                    android:fontFamily="@font/poppins_semibold"
+                    android:includeFontPadding="false"
+                    android:text="@string/unlock"
+                    android:textColor="@color/light"
+                    android:textSize="14sp" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/lock_selected_btn"
+                style="@style/EmptyStyle"
+                android:layout_width="wrap_content"
+                android:layout_height="58dp"
+                android:layout_marginStart="10dp"
+                android:layout_marginTop="10dp"
+                android:layout_marginEnd="10dp"
+                android:layout_marginBottom="10dp"
+                android:layout_weight="1"
+                android:background="@drawable/rounded_btn_white"
+                android:elevation="5dp"
+                android:gravity="center_horizontal"
+                android:orientation="horizontal">
+
+                <ImageView
+                    android:id="@+id/lock_icon"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:layout_marginStart="5dp"
+                    android:src="@drawable/controls_lock" />
+
+                <TextView
+                    android:id="@+id/lock_text"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:layout_marginStart="10dp"
+                    android:fontFamily="@font/poppins_semibold"
+                    android:includeFontPadding="false"
+                    android:text="@string/lock"
+                    android:textColor="@color/light"
+                    android:textSize="14sp" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/block_selected_btn"
+                style="@style/EmptyStyle"
+                android:layout_width="wrap_content"
+                android:layout_height="58dp"
+                android:layout_marginStart="10dp"
+                android:layout_marginTop="10dp"
+                android:layout_marginEnd="10dp"
+                android:layout_marginBottom="10dp"
+                android:layout_weight="1"
+                android:background="@drawable/rounded_btn_white"
+                android:elevation="5dp"
+                android:gravity="center_horizontal"
+                android:orientation="horizontal">
+
+                <ImageView
+                    android:id="@+id/block_icon"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:layout_marginStart="5dp"
+                    android:src="@drawable/controls_block" />
+
+                <TextView
+                    android:id="@+id/block_text"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:layout_marginStart="10dp"
+                    android:fontFamily="@font/poppins_semibold"
+                    android:includeFontPadding="false"
+                    android:text="@string/block"
+                    android:textColor="@color/light"
+                    android:textSize="14sp" />
+            </LinearLayout>
+        </LinearLayout>
+
+    </RelativeLayout>
+
+
+</LinearLayout>

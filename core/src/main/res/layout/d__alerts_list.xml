@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="fill_parent"
+    android:layout_height="wrap_content"
+    android:layout_centerInParent="true"
+    android:layout_centerHorizontal="true"
+    android:layout_centerVertical="true"
+    android:background="@drawable/rounded_popup_white"
+    android:gravity="center"
+    android:orientation="vertical"
+    android:paddingTop="20dp"
+    android:paddingBottom="30dp"
+    android:showDividers="middle|beginning|end">
+
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginBottom="20dp"
+        android:foregroundGravity="center_horizontal"
+        android:gravity="center_horizontal"
+        android:orientation="horizontal">
+
+        <Space
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1" />
+
+        <TextView
+            android:id="@+id/alerts_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal|center_vertical"
+            android:layout_marginStart="105dp"
+            android:drawableLeft="@drawable/alert_offtask_learner"
+            android:drawablePadding="10dp"
+            android:fontFamily="@font/poppins_semibold"
+            android:foregroundGravity="center_horizontal"
+            android:gravity="center_horizontal"
+            android:text="Alerts"
+            android:textColor="@color/leadme_black"
+            android:textSize="20dp" />
+
+        <Space
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1" />
+
+        <TextView
+            android:id="@+id/clear_alerts_btn"
+            android:layout_width="82dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:layout_marginEnd="20dp"
+            android:drawableEnd="@drawable/icon_clear"
+            android:drawablePadding="5dp"
+            android:fontFamily="@font/poppins_semibold"
+            android:foregroundGravity="center_vertical"
+            android:text="@string/clear_all"
+            android:textColor="@color/leadme_darkest_grey"
+            android:textSize="12sp" />
+
+    </LinearLayout>
+
+    <ListView
+        android:id="@+id/current_alerts_list"
+        android:layout_width="fill_parent"
+        android:layout_height="315dp"
+        android:layout_marginStart="20dp"
+        android:layout_marginEnd="20dp"
+        android:background="@color/leadme_light_grey"
+        android:fontFamily="@font/poppins_regular"
+        android:gravity="center"
+        android:isScrollContainer="true"
+        android:padding="10dp"
+        android:scrollbarAlwaysDrawHorizontalTrack="false"
+        android:scrollbarStyle="insideInset"
+        android:scrollbars="vertical"
+        android:textColor="@color/leadme_light_grey"
+        android:visibility="gone"
+        tools:listitem="@layout/row_student_alert">
+
+    </ListView>
+
+    <TextView
+        android:id="@+id/no_alerts_message"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="20dp"
+        android:layout_marginEnd="20dp"
+        android:background="@drawable/rounded_btn_highlight"
+        android:fontFamily="@font/poppins_semibold"
+        android:gravity="center"
+        android:padding="30dp"
+        android:text="No current alerts"
+        android:textAlignment="center"
+        android:textSize="14sp" />
+
+    <Button
+        android:id="@+id/confirm_btn"
+        style="?android:attr/borderlessButtonStyle"
+        android:layout_width="@dimen/standard_btn_width"
+        android:layout_height="@dimen/standard_btn_height"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="25dp"
+        android:accessibilityTraversalAfter="@id/back_btn"
+        android:accessibilityTraversalBefore="@id/codeInput4"
+        android:background="@drawable/bg_active"
+        android:clickable="true"
+        android:fontFamily="@font/poppins_semibold"
+        android:text="@string/ok"
+        android:textAllCaps="false"
+        android:textColor="@color/leadme_white"
+        android:textSize="16sp" />
+
+</LinearLayout>

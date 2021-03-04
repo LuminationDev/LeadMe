@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="fill_parent"
+    android:layout_height="wrap_content"
+    android:layout_gravity="center_horizontal"
+    android:layout_marginStart="25dp"
+    android:layout_marginEnd="25dp"
+    app:cardBackgroundColor="@android:color/transparent">
+
+    <LinearLayout
+        android:id="@+id/inner_view"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:layout_gravity="center|center_horizontal"
+        android:layout_margin="5dp"
+        android:background="@drawable/rounded_btn_white"
+        android:elevation="3dp"
+        android:foregroundGravity="center_horizontal"
+        android:gravity="center|center_horizontal"
+        android:outlineSpotShadowColor="@color/leadme_darkest_grey"
+        android:requiresFadingEdge="vertical">
+
+        <ImageView
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:layout_gravity="start|center_vertical"
+            android:layout_marginStart="10dp"
+            android:background="@color/accent"
+            android:foregroundGravity="center_vertical"
+            android:src="@drawable/hollow_dot" />
+
+        <TextView
+            android:id="@+id/leader_name"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="40dp"
+            android:layout_marginEnd="10dp"
+            android:fontFamily="@font/poppins_semibold"
+            android:paddingTop="15dp"
+            android:paddingBottom="15dp"
+            android:text="@string/textview"
+            android:textColor="@color/leadme_black"
+            android:textSize="18sp" />
+    </LinearLayout>
+
+</LinearLayout>

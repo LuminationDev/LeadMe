@@ -1,0 +1,8 @@
+<svg width="26" height="26" viewBox="0 0 26 26" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <rect x="3" y="1" width="20" height="20" rx="3" fill="#8A62F1" stroke="#8A62F1"
+        stroke-width="2" />
+    <path fill-rule="evenodd" clip-rule="evenodd" d="M26 26H0V24H26V26Z" fill="#8A62F1" />
+    <path
+        d="M14.4473 14.138H10.5553L9.91127 16H7.85327L11.3673 6.214H13.6493L17.1633 16H15.0913L14.4473 14.138ZM13.9153 12.57L12.5013 8.48201L11.0873 12.57H13.9153Z"
+        fill="white" />
+</svg>
