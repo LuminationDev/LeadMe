@@ -3,6 +3,8 @@ package com.lumination.leadme.linkpreview;
 import android.os.AsyncTask;
 import android.util.Log;
 
+import com.lumination.leadme.WebManager;
+
 import org.jsoup.Connection;
 import org.jsoup.HttpStatusException;
 import org.jsoup.Jsoup;
@@ -30,10 +32,13 @@ public class TextCrawler {
 
     private LinkPreviewCallback callback;
     private AsyncTask getCodeTask;
+    private WebManager web;
+    private String lastUrl;
 
     private UrlExtractionStrategy urlExtractionStrategy;
 
-    public TextCrawler() {
+    public TextCrawler(WebManager web) {
+        this.web=web;
     }
 
     public void makePreview(LinkPreviewCallback callback, String url) {
@@ -42,6 +47,7 @@ public class TextCrawler {
     }
 
     public void makePreview(LinkPreviewCallback callback, String url, ImagePickingStrategy imagePickingStrategy) {
+        lastUrl=url;
         this.callback = callback;
         cancel();
         getCodeTask = createPreviewGenerator(imagePickingStrategy).execute(url);
@@ -151,7 +157,11 @@ public class TextCrawler {
 
                     } catch (Throwable t) {
                         t.printStackTrace();
-
+                        if(t instanceof UnknownHostException){
+                            sourceContent.setSuccess(false);
+                            sourceContent.setUrl(url);
+                            return null;
+                        }
                         if (t instanceof UnsupportedMimeTypeException) {
                             final String mimeType = ((UnsupportedMimeTypeException) t).getMimeType();
                             if (mimeType != null && mimeType.startsWith("image")) {
@@ -179,7 +189,7 @@ public class TextCrawler {
             sourceContent.setDescription("");
         }
 
-        protected Document getDocument() throws IOException {
+        protected Document getDocument() throws UnknownHostException {
             Connection conn = null;
             Document doc = null;
             try {
@@ -201,8 +211,8 @@ public class TextCrawler {
 
             } catch (UnknownHostException e) {
                 Log.e(TAG, "Unknown Host Error (probably a bad URL): " + e.getMessage());
-                //e.printStackTrace();
-                return null;
+                throw e;
+                //return null;
 
             } catch (Exception e) {
                 Log.e(TAG, "OTHER Error: " + e.getMessage());

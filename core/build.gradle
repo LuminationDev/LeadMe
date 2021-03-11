@@ -29,6 +29,8 @@ dependencies {
 
     //for nearby connections
     implementation 'com.google.android.gms:play-services-nearby:17.0.0'
+    implementation 'androidx.constraintlayout:constraintlayout:2.0.4'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.1.0'
 
     //for permissions manager
     implementation 'gun0912.ted:tedpermission:2.2.3'
@@ -38,7 +40,6 @@ dependencies {
 
     //for auto-updates
     implementation 'com.github.javiersantos:AppUpdater:2.7'
-
 
     //for screenshots
     implementation 'eu.bolt:screenshotty:1.0.3'

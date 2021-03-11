@@ -38,15 +38,22 @@
                     android:layout_width="wrap_content"
                     android:layout_height="35dp"
                     android:layout_gravity="center_horizontal"
-                    android:layout_marginStart="35dp"
-                    android:layout_marginTop="10dp"
                     android:layout_weight="1"
                     android:fontFamily="@font/poppins_semibold"
-                    android:gravity="center"
+                    android:gravity="center|left"
                     android:includeFontPadding="false"
                     android:text="Please enter URL"
                     android:textColor="@color/leadme_black"
                     android:textSize="18sp" />
+
+                <TextView
+                    android:id="@+id/textView3"
+                    android:layout_width="wrap_content"
+                    android:layout_height="35dp"
+                    android:layout_weight="1"
+                    android:fontFamily="@font/poppins_semibold"
+                    android:gravity="center|right"
+                    android:text="Search Web" />
 
                 <ImageView
                     android:id="@+id/url_search_btn"
@@ -54,6 +61,7 @@
                     android:layout_height="35dp"
                     android:layout_gravity="end"
                     android:src="@drawable/search_icon" />
+
             </LinearLayout>
 
             <EditText

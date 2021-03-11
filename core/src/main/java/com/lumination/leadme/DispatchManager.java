@@ -1,5 +1,6 @@
 package com.lumination.leadme;
 
+import android.net.Uri;
 import android.os.Parcel;
 import android.util.Log;
 import android.view.WindowManager;
@@ -21,10 +22,6 @@ public class DispatchManager {
 
     protected void disableInteraction(final int status) {
         final boolean interactionBlocked = (status == ConnectedPeer.STATUS_BLACKOUT || status == ConnectedPeer.STATUS_LOCK);
-        Log.d(TAG, "Is interaction blocked? " + interactionBlocked + ", follower="
-                + main.getNearbyManager().isConnectedAsFollower() + ", guide=" + main.isGuide + ", permission="
-                + main.getPermissionsManager().isOverlayPermissionGranted() + ", view=" + main.overlayView);
-
         main.setStudentLock(status);
         Runnable myRunnable = () -> {
             //we never want to block someone if they're disconnected from the guide
@@ -40,7 +37,11 @@ public class DispatchManager {
                 Log.d(TAG, "NOT BLOCKING!");
                 main.overlayParams.flags = main.CORE_FLAGS + WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE;
             }
-            main.getWindowManager().updateViewLayout(main.overlayView, main.overlayParams);
+            if (main.overlayView.isAttachedToWindow()) {
+                main.getWindowManager().updateViewLayout(main.overlayView, main.overlayParams);
+            } else {
+                Log.e(TAG, "ERROR: Overlay not attached to window yet! Might need to accept permission first");
+            }
         };
 
         main.runOnUiThread(myRunnable);
@@ -54,6 +55,20 @@ public class DispatchManager {
         }
     }
 
+    public void requestRemoteAppOpenWithExtra(String tag, String packageName, String appName, String lockTag, String extra, boolean streaming, Set<String> selectedPeerIDs) {
+        Parcel p = Parcel.obtain();
+        byte[] bytes;
+        p.writeString(tag);
+        p.writeString(packageName);
+        p.writeString(appName);
+        p.writeString(lockTag);
+        p.writeString(extra);
+        p.writeString(streaming + "");
+        bytes = p.marshall();
+        p.recycle();
+        writeMessageToSelected(bytes, selectedPeerIDs);
+    }
+
     public void requestRemoteAppOpen(String tag, String packageName, String appName, String lockTag, Set<String> selectedPeerIDs) {
         Parcel p = Parcel.obtain();
         byte[] bytes;
@@ -61,9 +76,10 @@ public class DispatchManager {
         p.writeString(packageName);
         p.writeString(appName);
         p.writeString(lockTag);
+        p.writeString("");
+        p.writeString("");
         bytes = p.marshall();
         p.recycle();
-
         writeMessageToSelected(bytes, selectedPeerIDs);
     }
 
@@ -188,14 +204,17 @@ public class DispatchManager {
                         break;
 
                     } else if (action.startsWith(LeadMeMain.VID_MUTE_TAG)) {
+                        Log.d(TAG, "GOT MUTE");
                         main.muteAudio();
 
                     } else if (action.startsWith(LeadMeMain.VID_UNMUTE_TAG)) {
+                        Log.d(TAG, "GOT UNMUTE");
                         main.unMuteAudio();
 
-                    } else if (action.startsWith(LeadMeMain.VID_CAPTIONS_TAG)) {
-                        boolean areCaptionsOn = action.endsWith("true");
-                        //TODO
+                    } else if (action.startsWith(LeadMeMain.VID_ACTION_TAG)) {
+                        Log.d(TAG, "GOT SOMETHING VID RELATED");
+                        String[] split = action.split(":");
+                        main.getLumiAccessibilityConnector().cueYouTubeAction(split[1]);
 
                     } else if (action.startsWith(LeadMeMain.LOGOUT_TAG)) {
                         String id = action.split(":")[1];
@@ -228,7 +247,7 @@ public class DispatchManager {
                         break;
                     } else if (action.startsWith(LeadMeMain.STUDENT_NO_OVERLAY)) {
                         String[] split = action.split(":");
-                        Log.i(TAG, "STUDENT HAS OVERLAY? " + split[1].equals("OK"));
+                        //Log.i(TAG, "STUDENT HAS OVERLAY? " + split[1].equals("OK"));
                         //main.getConnectedLearnersAdapter().updateStatus(split[2], ConnectedPeer.STATUS_ERROR, split[1]);
                         if (split[1].equalsIgnoreCase("OK")) {
                             //clear previous flag
@@ -240,13 +259,13 @@ public class DispatchManager {
 
                     } else if (action.startsWith(LeadMeMain.STUDENT_OFF_TASK_ALERT)) {
                         String[] split = action.split(":");
-                        Log.i(TAG, "STUDENT OFF TASK? " + split[1]);
+                        //Log.i(TAG, "STUDENT OFF TASK? " + split[1]);
                         main.getConnectedLearnersAdapter().updateStatus(split[1], ConnectedPeer.STATUS_WARNING, LeadMeMain.STUDENT_OFF_TASK_ALERT);
                         break;
 
                     } else if (action.startsWith(LeadMeMain.STUDENT_NO_INTERNET)) {
                         String[] split = action.split(":");
-                        Log.i(TAG, "STUDENT HAS INTERNET? " + split[1].equals("OK"));
+                        //Log.i(TAG, "STUDENT HAS INTERNET? " + split[1].equals("OK"));
                         //main.getConnectedLearnersAdapter().updateStatus(split[2], ConnectedPeer.STATUS_ERROR, split[1]);
                         if (split[1].equalsIgnoreCase("OK")) {
                             //clear previous flag
@@ -258,7 +277,7 @@ public class DispatchManager {
 
                     } else if (action.startsWith(LeadMeMain.STUDENT_NO_ACCESSIBILITY)) {
                         String[] split = action.split(":");
-                        Log.i(TAG, "STUDENT HAS ACCESS? " + split[1].equals("OK"));
+                        //Log.i(TAG, "STUDENT HAS ACCESS? " + split[1].equals("OK"));
                         //main.getConnectedLearnersAdapter().updateStatus(split[2], ConnectedPeer.STATUS_ERROR, split[1]);
                         if (split[1].equalsIgnoreCase("OK")) {
                             //clear previous flag
@@ -270,7 +289,7 @@ public class DispatchManager {
 
                     } else if (action.startsWith(LeadMeMain.AUTO_INSTALL_FAILED)) {
                         String[] split = action.split(":");
-                        Log.i(TAG, "FAILED " + split[2]);
+                        //Log.i(TAG, "FAILED " + split[2]);
                         //main.getConnectedLearnersAdapter().updateStatus(split[2], ConnectedPeer.STATUS_WARNING, LeadMeMain.AUTO_INSTALL_FAILED);
                         main.getConnectedLearnersAdapter().appLaunchFail(split[2], split[1]);
 
@@ -284,7 +303,7 @@ public class DispatchManager {
                         break;
 
                     } else if (action.startsWith(LeadMeMain.LAUNCH_SUCCESS)) {
-                        Log.i(TAG, "SUCCEEDED - " + action);
+                        //Log.i(TAG, "SUCCEEDED - " + action);
                         String[] split = action.split(":");
                         main.getConnectedLearnersAdapter().updateStatus(split[2], ConnectedPeer.STATUS_SUCCESS, LeadMeMain.STUDENT_OFF_TASK_ALERT);
 
@@ -298,23 +317,23 @@ public class DispatchManager {
                             main.getConnectedLearnersAdapter().updateStatus(split[2], ConnectedPeer.STATUS_BLACKOUT);
 
                         } else {
-                            Log.d(TAG, "Updating icon to " + split[3]);
+                            //Log.d(TAG, "Updating icon to " + split[3]);
                             main.getConnectedLearnersAdapter().appLaunchSuccess(split[2], split[1]);
                             //main.getConnectedLearnersAdapter().updateStatus(split[2], ConnectedPeer.STATUS_SUCCESS);
                             main.getConnectedLearnersAdapter().updateIcon(split[2], main.getAppManager().getAppIcon(split[3]));
+
                         }
                         break;
 
                     } else if (action.startsWith(LeadMeMain.LAUNCH_URL)) {
-                        Log.d(TAG, "readAction: Launch URL");
                         String[] split = action.split(":::", 3);
                         main.getWebManager().launchWebsite(split[1], split[2], true);
                         break;
 
                     } else if (action.startsWith(LeadMeMain.LAUNCH_YT)) {
-                        Log.d(TAG, "readAction: Launch YT");
-                        String[] split = action.split(":::", 3);
-                        main.getWebManager().launchYouTube(split[1], split[2], true);
+                        String[] split = action.split(":::", 4);
+                        main.getWebManager().launchYouTube(split[1], split[2], split[3].equals("true"), true);
+                        Log.w(TAG, action + "||" + split[1] + ", " + split[2] + ", " + split[3] + "|");
                         break;
 
                     } else {
@@ -339,7 +358,7 @@ public class DispatchManager {
         if (launchAppOnFocus != null) {
             final String[] tmp = launchAppOnFocus;
             launchAppOnFocus = null; //reset
-            main.getAppManager().launchLocalApp(tmp[0], tmp[1], true);
+            main.getAppManager().launchLocalApp(tmp[0], tmp[1], true, false);
         }
     }
 
@@ -351,11 +370,12 @@ public class DispatchManager {
         final String packageName = p.readString();
         final String appName = p.readString();
         final String lockTag = p.readString();
+        final String extra = p.readString();
+        final String streaming = p.readString();
         p.recycle();
 
-        Log.d(TAG, "Received in OpenApp!: " + tag + ", " + packageName + ", " + appName + ", " + lockTag + " vs " + main.getAppManager().lastApp);
+        Log.d(TAG, "Received in OpenApp!: " + tag + ", " + packageName + ", " + appName + ", " + lockTag + ", " + extra + ", " + streaming + " vs " + main.getAppManager().lastApp);
         if (tag != null && tag.equals(LeadMeMain.APP_TAG)) {
-
             if (lockTag.equals(LeadMeMain.LOCK_TAG)) {
                 //I've been selected to toggle student lock
                 main.blackout(false);
@@ -372,7 +392,20 @@ public class DispatchManager {
                         main.getNearbyManager().getAllPeerIDs());
             }
 
-            if (!main.appHasFocus) {//!main.getAppLaunchAdapter().lastApp.equals(packageName)) {
+            boolean appInForeground = main.isAppVisibleInForeground();
+            if (packageName.equals(main.getAppManager().withinPackage)) {
+                if (!extra.isEmpty()) {
+                    // save all the info for a Within launch
+                    main.getAppManager().isStreaming = Boolean.parseBoolean(streaming);
+                    main.getAppManager().withinURI = Uri.parse(extra);
+                    Log.d(TAG, "Setting streaming status and URL for WITHIN VR " + extra + ", " + streaming + " (" + appInForeground + ")");
+                } else {
+                    //no URL was specified, so clear any previous info
+                    main.getAppManager().withinURI = null;
+                }
+            }
+
+            if (!appInForeground) {//!main.getAppLaunchAdapter().lastApp.equals(packageName)) {
                 Log.d(TAG, "NEED FOCUS!");
                 //only needed if it's not what we've already got open
                 //TODO make this more robust, check if it's actually running
@@ -383,7 +416,7 @@ public class DispatchManager {
             } else {
                 Log.d(TAG, "HAVE FOCUS!");
                 launchAppOnFocus = null; //reset
-                main.getHandler().post(() -> main.getAppManager().launchLocalApp(packageName, appName, true));
+                main.getHandler().post(() -> main.getAppManager().launchLocalApp(packageName, appName, true, false));
             }
             return true;
         } else {

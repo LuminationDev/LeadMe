@@ -133,6 +133,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     //tag for debugging
     static final String TAG = "LeadMe";
     Drawable leadmeIcon;
+    protected PowerManager powerManager;
 
     final private String teacherCode = "1234";
     protected String leadMeAppName = "";
@@ -151,10 +152,11 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     static final String LOCK_TAG = "LumiLock";
     static final String UNLOCK_TAG = "LumiUnlock";
     static final String BLACKOUT_TAG = "LumiBlackout";
+    static final String APP_LOCK_TAG = "LumiWakeLock";
 
     static final String VID_MUTE_TAG = "LumiVidMute";
     static final String VID_UNMUTE_TAG = "LumiVidUnmute";
-    static final String VID_CAPTIONS_TAG = "LumiVidCaptions";
+    static final String VID_ACTION_TAG = "LumiVid:";
 
     static final String AUTO_INSTALL = "LumiAutoInstall";
 
@@ -235,7 +237,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     private GridView connectedStudentsView;
 
     public Context context;
-    private ActivityManager activityManager;
+    public ActivityManager activityManager;
     private PermissionManager permissionManager;
     private NearbyPeersManager nearbyManager;
     private WebManager webManager;
@@ -326,7 +328,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             case ACCESSIBILITY_ON:
                 Log.d(TAG, "Returning from ACCESS ON with " + resultCode + " (" + isGuide + ")");
                 permissionManager.waitingForPermission = false;
-                //permissionManager.requestBatteryOptimisation();
+                permissionManager.requestBatteryOptimisation();
                 break;
             case BLUETOOTH_ON:
                 Log.d(TAG, "Returning from BLUETOOTH ON with " + resultCode);
@@ -787,8 +789,9 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         //Toast.makeText(this, "LC Pause", Toast.LENGTH_LONG).show();
         Log.w(TAG, "LC Pause");
         appHasFocus = false;
-
+        Log.d(TAG, "onLifecyclePause: "+overlayInitialised+" "+permissionManager.isOverlayPermissionGranted());
         if (!overlayInitialised && permissionManager.isOverlayPermissionGranted()) {
+            Log.d(TAG, "onLifecyclePause: 1");
             initialiseOverlayView();
         }
 
@@ -800,6 +803,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
         //update status and visibilities for overlay
         if (!getNearbyManager().isConnectedAsFollower()) {
+            Log.d(TAG, "onLifecyclePause: this");
             overlayView.setVisibility(View.INVISIBLE);
 
         } else if (studentLockOn) {
@@ -813,57 +817,77 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
     }
 
-    private static AccessibilityService accessibilityService;
+    private static LumiAccessibilityService accessibilityService;
 
     // callback invoked either when the gesture has been completed or cancelled
     AccessibilityService.GestureResultCallback gestureResultCallback = new AccessibilityService.GestureResultCallback() {
         @Override
         public void onCompleted(GestureDescription gestureDescription) {
             super.onCompleted(gestureDescription);
+
+            //reset overlay
+            if (overlayView.isAttachedToWindow()) {
+                overlayParams.flags = WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN | WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE;
+                getWindowManager().updateViewLayout(overlayView, overlayParams);
+//                scheduledExecutor.shutdownNow();
+//                scheduledExecutor = new ScheduledThreadPoolExecutor(1);
+//                scheduledExecutor.schedule(overlayBack,100, TimeUnit.MILLISECONDS);
+            }
+
             Log.d(TAG, "gesture completed");
+            //activate the event once the tap completes
+            getLumiAccessibilityConnector().manageAccessibilityEvent(null, null);
         }
 
         @Override
         public void onCancelled(GestureDescription gestureDescription) {
             super.onCancelled(gestureDescription);
+
+            //reset overlay
+            if (overlayView.isAttachedToWindow()) {
+                overlayParams.flags = WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN | WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE;
+                getWindowManager().updateViewLayout(overlayView, overlayParams);
+//                scheduledExecutor.shutdownNow();
+//                scheduledExecutor = new ScheduledThreadPoolExecutor(1);
+//                scheduledExecutor.schedule(overlayBack,100, TimeUnit.MILLISECONDS);
+            }
+
             Log.d(TAG, "gesture cancelled");
+            //activate the event once the tap completes
+            getLumiAccessibilityConnector().manageAccessibilityEvent(null, null);
         }
     };
 
-    public static void setAccessibilityService(AccessibilityService service) {
+    public static void setAccessibilityService(LumiAccessibilityService service) {
         accessibilityService = service;
     }
 
     public void tapBounds(int x, int y) {
-        Log.e(TAG, "ATTEMPTING TAP!");
+        Log.e(TAG, "ATTEMPTING TAP! " + x + ", " + y);
         if (accessibilityService == null) {
             return;
         }
         runOnUiThread(() -> {
             Path swipePath = new Path();
+            swipePath.setLastPoint(x,y);
             swipePath.moveTo(x, y);
 //            swipePath.lineTo(x + 200, y);
 //            swipePath.lineTo(x - 200, y);
             GestureDescription.Builder gestureBuilder = new GestureDescription.Builder();
-            gestureBuilder.addStroke(new GestureDescription.StrokeDescription(swipePath, 0, 50));
+            gestureBuilder.addStroke(new GestureDescription.StrokeDescription(swipePath, 0, 200)); //50 was too short for Within
             GestureDescription swipe = gestureBuilder.build();
 
-
-            if (studentLockOn) {
-                overlayParams.flags = WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE | WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN | WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE;
-            }
-
-            boolean success = accessibilityService.dispatchGesture(swipe, gestureResultCallback, null);
-            Log.e(TAG, "Did I dispatch " + swipe + " to " + accessibilityService + "? " + success);
-
-            //give it a second to actually dispatch
-            handler.postDelayed(() -> {
-                if (studentLockOn) {
-                    overlayParams.flags = WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN | WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE;
+            handler.postAtFrontOfQueue(() -> {
+                //change overlay so taps can temporarily pass through
+                if (overlayView.isAttachedToWindow()) {
+                    overlayParams.flags = WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE | WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN | WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE;
+                    getWindowManager().updateViewLayout(overlayView, overlayParams);
                 }
-            }, 1000);
 
+                boolean success = accessibilityService.dispatchGesture(swipe, gestureResultCallback, null);
+                Log.e(TAG, "Did I dispatch " + swipe + " to " + accessibilityService + "? " + success + " // " + overlayView.isAttachedToWindow());
 
+            });
         });
     }
 
@@ -873,6 +897,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         //Toast.makeText(this, "LC Resume", Toast.LENGTH_LONG).show();
         Log.w(TAG, "LC Resume // " + getDispatcher().hasDelayedLaunchContent());
         appHasFocus = true;
+        getLumiAccessibilityConnector().resetState(); //reset
 
         manageFocus();
 
@@ -949,7 +974,14 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         //Toast.makeText(this, "LC Stop", Toast.LENGTH_LONG).show();
         Log.w(TAG, "LC Stop");
         appHasFocus = false;
-        manageFocus();
+        if (!permissionManager.waitingForPermission
+                        && currentTaskPackageName != null && currentTaskPackageName.equals(leadMePackageName)
+                        && getNearbyManager().isConnectedAsFollower()) {
+                dispatcher.alertGuideStudentOffTask();
+                recallToLeadMe();
+            } else {
+                manageFocus();
+            }
     }
 
     @OnLifecycleEvent(Lifecycle.Event.ON_DESTROY)
@@ -1030,7 +1062,9 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     private void destroyAndReset() {
         destroying = true;
         init = false;
-
+//        if (wakeLock.isHeld()) {
+//                wakeLock.release(); //release this when the app is destroyed
+//            }
         //getLumiAccessibilityService().disableSelf(); //manually turn off the Accessibility Service
 
         if (accessibilityReceiver != null) {
@@ -1105,7 +1139,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     public void onCreate(Bundle savedInstanceState) {
         //onCreate can get called when device rotated, keyboard opened/shut, etc
         super.onCreate(savedInstanceState);
-
+        powerManager = (PowerManager) getSystemService(POWER_SERVICE);
 
 
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
@@ -1514,7 +1548,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
     private void initialiseOverlayView() {
         if (overlayInitialised || !permissionManager.isOverlayPermissionGranted()) {
-            Log.d(TAG, "Not initialising right now - " + overlayInitialised + ", " + permissionManager.isOverlayPermissionGranted());
+         //   Log.d(TAG, "Not initialising right now - " + overlayInitialised + ", " + permissionManager.isOverlayPermissionGranted());
             return; //already done OR don't have permission
         }
 
@@ -1836,8 +1870,12 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
     boolean loginAttemptInAction = false;
 
+   // protected PowerManager.WakeLock wakeLock;
+
     void loginAction() {
         Log.w(TAG, "LOGGING IN " + nearbyManager.getName());
+     //   wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, TAG + ":" + APP_LOCK_TAG);
+      //  wakeLock.acquire(); //this is to keep the device alive while logged in to LeadMe
         loginAttemptInAction = true;
         //if all permissions are already granted, just continue
         if (leaderLearnerSwitcher.getDisplayedChild() == SWITCH_LEADER_INDEX) {
@@ -1958,9 +1996,10 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         overlayView.setFitsSystemWindows(false); // allow us to draw over status bar, navigation bar
     }
 
+    public boolean isMuted = false;
 
     public void muteAudio() {
-
+        isMuted = true;
         AudioManager mAudioManager = (AudioManager) getSystemService(AUDIO_SERVICE);
         mAudioManager.adjustVolume(AudioManager.ADJUST_MUTE, AudioManager.FLAG_ALLOW_RINGER_MODES);
         //mAudioManager.adjustStreamVolume(AudioManager.STREAM_MUSIC, AudioManager.ADJUST_MUTE, 0);
@@ -1968,6 +2007,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     }
 
     public void unMuteAudio() {
+        isMuted = false;
         AudioManager mAudioManager = (AudioManager) getSystemService(AUDIO_SERVICE);
         mAudioManager.adjustVolume(AudioManager.ADJUST_UNMUTE, AudioManager.FLAG_ALLOW_RINGER_MODES);
         //mAudioManager.adjustStreamVolume(AudioManager.STREAM_MUSIC, AudioManager.ADJUST_UNMUTE, 0);
@@ -2026,13 +2066,13 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
             switch (status) {
                 case ConnectedPeer.STATUS_LOCK:
-                    statusMsg += "FOLLOW mode.";
+                    statusMsg += "LOCK mode.";
                     break;
                 case ConnectedPeer.STATUS_BLACKOUT:
                     statusMsg += "BLOCKED mode.";
                     break;
                 case ConnectedPeer.STATUS_UNLOCK:
-                    statusMsg += "FREE PLAY mode.";
+                    statusMsg += "UNLOCK mode.";
                     break;
                 default:
                     Log.e(TAG, "Invalid status: " + status);
@@ -2047,19 +2087,22 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             return;
         }
 
-        switch (status) {
-            case ConnectedPeer.STATUS_LOCK:
-            case ConnectedPeer.STATUS_BLACKOUT:
-                overlayView.setVisibility(View.VISIBLE);
-                break;
-            case ConnectedPeer.STATUS_UNLOCK:
-                overlayView.setVisibility(View.INVISIBLE);
-                break;
-            default:
-                Log.e(TAG, "Invalid status: " + status);
+        if (!leadmeAnimator.isShown()) {
+            switch (status) {
+                case ConnectedPeer.STATUS_LOCK:
+                case ConnectedPeer.STATUS_BLACKOUT:
+                    overlayView.setVisibility(View.VISIBLE);
+                    break;
+                case ConnectedPeer.STATUS_UNLOCK:
+                    overlayView.setVisibility(View.INVISIBLE);
+                    break;
+                default:
+                    Log.e(TAG, "Invalid status: " + status);
+            }
         }
 
     }
+
 
     public void updateFollowerCurrentTaskToLeadMe() {
         updateFollowerCurrentTask(leadMePackageName, leadMeAppName, "Application", "", "");
@@ -2287,6 +2330,10 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     public void setUIDisconnected() {
         //reset state
         isReadyToConnect = false; //need to press button first
+//        if (wakeLock.isHeld()) {
+//            wakeLock.release(); //release the wakeLock when disconnected
+//        }
+        getLumiAccessibilityConnector().resetState();
 
         cleanUpDialogs();
 
@@ -2380,6 +2427,18 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             tasksManager.moveTaskToFront(getTaskId(), ActivityManager.MOVE_TASK_NO_USER_ACTION);
         }
     }
+    public boolean isAppVisibleInForeground() {
+        boolean screenOn = false;
+        DisplayManager dm = (DisplayManager) context.getSystemService(Context.DISPLAY_SERVICE);
+        for (Display display : dm.getDisplays()) {
+            if (display.getState() == Display.STATE_ON) {
+                screenOn = true;
+                break;
+            }
+        }
+        return appHasFocus && screenOn && (!init || leadmeAnimator.isShown());
+    }
+
 
 
     /////////////Screenshots///////////////

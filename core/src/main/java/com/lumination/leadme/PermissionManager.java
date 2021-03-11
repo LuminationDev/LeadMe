@@ -2,10 +2,8 @@ package com.lumination.leadme;
 
 import android.Manifest;
 import android.app.ActivityManager;
-import android.app.AlertDialog;
 import android.content.ComponentName;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.ConnectivityManager;
@@ -48,13 +46,13 @@ public class PermissionManager {
                 overlayPermissionGranted = true; //all granted
                 waitingForPermission = false; //no longer waiting
 
-                //Log.d(TAG, "Permission granted! " + main.getNearbyManager().isConnectedAsFollower() + ", " + main.getNearbyManager().isConnectedAsGuide());
+                Log.d(TAG, "Overlay Permission GRANTED! ");// + main.getNearbyManager().isConnectedAsFollower() + ", " + main.getNearbyManager().isConnectedAsGuide());
                 main.performNextAction();
             }
 
             @Override
             public void onPermissionDenied(List<String> deniedPermissions) {
-                //Log.d(TAG, "Overlay Permission DENIED!");
+                Log.d(TAG, "Overlay Permission DENIED!");
                 overlayPermissionGranted = false; //not all granted
                 waitingForPermission = false; //no longer waiting
             }
@@ -125,17 +123,17 @@ public class PermissionManager {
     }
 
     public void checkOverlayPermissions() {
-        //Log.d(TAG, "Checking Overlay Permissions. Currently " + overlayPermissionGranted + ", " + rejectedPermissions);
-        waitingForPermission = true;
+        Log.d(TAG, "Checking Overlay Permissions. Currently " + overlayPermissionGranted + ", " + rejectedPermissions);
         if (!isOverlayPermissionGranted()) {
+            waitingForPermission = true;
+            Log.d(TAG, "Checking Overlay Permissions #2 " + waitingForPermission);
             main.closeKeyboard();
             TedPermission.with(main)
                     .setPermissionListener(overlayPermissionListener)
                     .setPermissions(Manifest.permission.SYSTEM_ALERT_WINDOW)
                     .check();
-        }
 
-        if (!isAccessibilityGranted()) {
+        } else if (!isAccessibilityGranted()) {
             requestAccessibilitySettingsOn();
         }
     }
@@ -149,12 +147,11 @@ public class PermissionManager {
         TedPermission.with(main)
                 .setPermissionListener(miscPermissionListener)
                 .setPermissions(Manifest.permission.INTERNET, Manifest.permission.REORDER_TASKS,
+                        Manifest.permission.NFC,
                         Manifest.permission.ACCESS_WIFI_STATE, Manifest.permission.CHANGE_WIFI_STATE,
                         Manifest.permission.BLUETOOTH, Manifest.permission.BLUETOOTH_ADMIN,
-                        Manifest.permission.NFC,
                         Manifest.permission.EXPAND_STATUS_BAR) //only learners/students need a system alert window
                 .check();
-
     }
 
 
@@ -175,46 +172,12 @@ public class PermissionManager {
         main.canAskForAccessibility = true;
         Toast toast = Toast.makeText(main, "Please turn on Accessibility for " + app_title, Toast.LENGTH_SHORT);
         toast.show();
-        requestBatteryOptimisation();
-        new AlertDialog.Builder(main)
-                .setTitle("Enable Accessibility Settings")
-                .setMessage("In order for LeadMe to be able to perform:\n • Auto installing apps from the Play Store\n • Control youtube videos\n Accessibility settings will need to be turned on, would you like to grant LeadMe this permission?")
-                .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int which) {
-                        Intent intent = new Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS);
-                        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_NO_HISTORY | Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS);
-                        main.startActivityForResult(intent, main.ACCESSIBILITY_ON);
 
-                    }
-                })
-                .setNegativeButton("No", null)
-                .setIcon(android.R.drawable.ic_dialog_alert)
-                .show();
+        Intent intent = new Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_NO_HISTORY | Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS);
+        main.startActivityForResult(intent, main.ACCESSIBILITY_ON);
 
         pingForAccess();
-    }
-    public void requestBatteryOptimisation(){
-        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            Intent intent = new Intent();
-            String packageName = main.getPackageName();
-            PowerManager pm = (PowerManager) main.getSystemService(main.POWER_SERVICE);
-            if (!pm.isIgnoringBatteryOptimizations(packageName)) {
-                new AlertDialog.Builder(main)
-                        .setTitle("Disable Battery Optimisation")
-                        .setMessage("In order for LeadMe to continue to run while the screen is off you will need to allow it permission to run in the background. Would you like to grant this permission?")
-                        .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog, int which) {
-                                intent.setAction(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS); //may be flagged by the playstore as a dangerous permission
-                                intent.setData(Uri.parse("package:" + packageName));
-                                //intent.setAction(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS);
-                                main.startActivity(intent);
-                            }
-                        })
-                        .setNegativeButton("No", null)
-                        .setIcon(android.R.drawable.ic_dialog_alert)
-                        .show();
-            }
-        }
     }
 
     private void pingForAccess() {
@@ -272,7 +235,6 @@ public class PermissionManager {
                 needsRecall = true;
                 waitingForPermission = false;
                 main.getDispatcher().alertGuidePermissionGranted(LeadMeMain.STUDENT_NO_ACCESSIBILITY, true);
-
                 return true;
             }
         }
@@ -286,7 +248,8 @@ public class PermissionManager {
 
     private boolean successfulPing = false;
 
-    protected boolean isInternetConnectionAvailable(String url) {
+    protected boolean isInternetConnectionAvailable() {
+        String url = "google.com"; //some things don't ping well, so just test this for now
         ConnectivityManager connectivityManager = (ConnectivityManager) main.getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
         boolean connected = activeNetworkInfo != null && activeNetworkInfo.isConnected();
@@ -306,8 +269,7 @@ public class PermissionManager {
 
                 //wait for isReachable to return
                 Thread.sleep(1200);
-
-                connected = connected && successfulPing;
+                connected = successfulPing;
 
             } catch (Exception e) {
                 e.printStackTrace();
@@ -315,6 +277,18 @@ public class PermissionManager {
             }
         }
         return connected;
+    }
+    public void requestBatteryOptimisation(){
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            Intent intent = new Intent();
+            String packageName = main.getPackageName();
+            PowerManager pm = (PowerManager) main.getSystemService(main.POWER_SERVICE);
+            if (!pm.isIgnoringBatteryOptimizations(packageName)) {
+                intent.setAction(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS);
+                intent.setData(Uri.parse("package:" + packageName));
+                main.startActivity(intent);
+            }
+        }
     }
 
 }

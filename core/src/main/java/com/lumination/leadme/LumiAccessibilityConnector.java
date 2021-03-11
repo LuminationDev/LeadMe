@@ -3,15 +3,15 @@ package com.lumination.leadme;
 import android.content.Intent;
 import android.graphics.Rect;
 import android.os.Build;
+import android.os.Bundle;
 import android.util.Log;
 import android.view.accessibility.AccessibilityEvent;
 import android.view.accessibility.AccessibilityNodeInfo;
 
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.util.Set;
 
 public class LumiAccessibilityConnector {
 
@@ -25,404 +25,171 @@ public class LumiAccessibilityConnector {
     //handler for executing on the main thread
     //private static final Handler mainHandler = new Handler(Looper.getMainLooper());
     private DispatchManager dispatcher;
+    private static boolean waitingForStateChange = false;
+
+
+    YouTubeAccessibilityManager ytManager;
+    WithinAccessibilityManager withinManager;
 
     public LumiAccessibilityConnector(LeadMeMain main) {
+        Log.d(TAG, "LumiAccessibilityConnector: ");
         this.main = main;
         dispatcher = main.getDispatcher();
+        ytManager = new YouTubeAccessibilityManager(main, this);
+        withinManager = new WithinAccessibilityManager(main, this);
     }
 
-
-    public void prepareToInstall(String packageName, String appName) {
-        lastAppName = appName;
-        lastPackageName = packageName;
-        Log.d(TAG, "PREPARING TO INSTALL " + lastAppName);
+    public void manageYouTubeAccess(AccessibilityEvent event, AccessibilityNodeInfo node) {
+        ytManager.manageYouTubeAccess(event, node);
     }
 
-    private static boolean waitingForStateChange = false;
-    private static final String modeVR = "Enter virtual reality mode";
-    private static final String modeFS = "Full screen";
-    private static final String moreOptions = "More options";
-    private static final String watchVR = "Watch in VR";
+    public void manageWithinAccess(AccessibilityEvent event, AccessibilityNodeInfo node) {
+        withinManager.manageWithinAccess(event, node);
+    }
 
-    //these are not case sensitive, and will return partial matches
-    private static String[] keyYouTubePhrases = {
-            "Play video",  //also "Pause video"
-            modeVR,
-            "More options",
-            "Watch in VR",
-            "Continue",
-            "Dismiss",
-            "Skip trial",
-            "Skip ad",
-            "Skip ads",
-            "No Thanks",
-            "Cancel auto",
-            "Autoplay is on",
-            //"Move device to explore video",
-            "Enter fullscreen",
-            //"Exit fullscreen"
-            //"More options"
-            //"Action menu"
-    };
+    public void resetState() {
+        Log.d(TAG, "resetState: ");
+        ytManager.resetState();
+    }
 
-    private int[] getWordyMatches(String str, String regex) {
-        Pattern pattern = Pattern.compile(regex);
-        Matcher matcher = pattern.matcher(str);
-
-        int[] vals = new int[6]; //max we'll need
-        int val_count = 0;
-        while (matcher.find()) {
-            vals[val_count] = Integer.parseInt(matcher.group(0));
-            val_count++;
+    public void cueYouTubeAction(String actionStr) {
+        Log.d(TAG, "cueYouTubeAction: ");
+        if (main.getNearbyManager().isConnectedAsGuide()) {
+            return; //guides manage YT their own way
         }
-        if (val_count == 0) {
-            return new int[0];
-        }
-        return Arrays.copyOfRange(vals, 0, val_count);
+        //delegate to the right manager
+        ytManager.cueYouTubeAction(actionStr);
     }
 
-    private boolean hasExactMatch(String str, String regex) {
-        Pattern pattern = Pattern.compile(regex);
-        Matcher matcher = pattern.matcher(str);
-        boolean foundMatch = matcher.find();
-        String match = "";
-        if (foundMatch) {
-            match = matcher.group(0);
-        }
-        //if there's a match and the match is the same length as the input string
-        //we must have an exact match
-        return foundMatch && (match.length() == str.length()); //matcher.find();
-    }
-
-    private String durationRegex = "\\d{0,2}:?\\d{1,2}:\\d{2}(?:\\s)*/(?:\\s)*\\d{0,2}:?\\d{1,2}:\\d{2}";
-    private String wordyDurationRegex = "(\\d{1,3})(?= hour| second| minute)";
-    //"(\\d{1,3} hour(s)* )?(\\d{1,3} minute(s)* )?\\d{1,3} second(s)* of (\\d{1,3} hour(s)* )?(\\d{1,3} minute(s)* )?\\d{1,3} second(s)*";
-
-    private ArrayList<AccessibilityNodeInfo> collectChildren(AccessibilityNodeInfo nodeInfo, String phrase, int level) {
+    ArrayList<AccessibilityNodeInfo> collectChildren(AccessibilityNodeInfo nodeInfo, String phrase, int level) {
+        Log.d(TAG, "collectChildren: ");
         String[] tmp = {phrase};
         return collectChildren(nodeInfo, tmp, level);
     }
 
-    private ArrayList<AccessibilityNodeInfo> collectChildren(AccessibilityNodeInfo nodeInfo, String[] phrases, int level) {
-        ArrayList<AccessibilityNodeInfo> infoArrayList = new ArrayList<>();
+    //recursively search for child nodes of the given parent that contain
+    //any of the specified phrases in their text or content description
+    ArrayList<AccessibilityNodeInfo> collectChildren(AccessibilityNodeInfo nodeInfo, String[] phrases, int level) {
+        Log.d(TAG, "collectChildren: ");
+        //Log.e(TAG, "SEEKING: " + Arrays.toString(phrases));
+        Set<AccessibilityNodeInfo> infoArrayList = new HashSet<>();
         if (nodeInfo == null) {
-            return infoArrayList;
+            return new ArrayList<>();
         }
 
-        for (int i = 0; i < nodeInfo.getChildCount(); i++) {
-            AccessibilityNodeInfo v1 = nodeInfo.getChild(i);
-            if (v1 == null) {
-                continue;
+        //do the standard search for each phrase
+        for (String phrase : phrases) {
+            List<AccessibilityNodeInfo> list = nodeInfo.findAccessibilityNodeInfosByText(phrase);
+            if (!list.isEmpty()) {
+                infoArrayList.addAll(list);
             }
-            if (v1.getChildCount() > 0)
-                infoArrayList.addAll(collectChildren(v1, phrases, (level + 1)));
-
-            if (v1.getText() == null && v1.getContentDescription() == null) {
-                continue; //nothing useful here, move to the next
-            }
-
-            String testForDur = "" + v1.getText();
-            String testForDurDesc = "" + v1.getContentDescription();
-            String searchStr = testForDur + " // " + testForDurDesc;
-            Log.d(TAG, level + " || " + searchStr + " || " + v1.isFocused() + ", " + v1.isEnabled() + ", " + v1.isClickable());
-
-            for (String phrase : phrases) {
-                if (searchStr.contains(phrase)) {
-                    Log.d(TAG, "\tContains " + phrase + "!");
-                    infoArrayList.add(v1); //contains at least one desired phrase, collect it
-                    break;
-                }
-            }
-
-            //we want elapsed time, not remaining time
-            if (hasExactMatch(testForDur, durationRegex) || (!testForDurDesc.contains("remaining") && getWordyMatches(testForDurDesc, wordyDurationRegex).length > 0)) {
-                Log.d(TAG, "\tContains time info! " + testForDur + " // " + testForDurDesc);
-                //infoArrayList.add(v1);
-                break;
-            }
-
         }
-        return infoArrayList;
+
+
+        ArrayList<AccessibilityNodeInfo> finalList = new ArrayList<>();
+        //do some filtering
+        for (AccessibilityNodeInfo info : infoArrayList) {
+            String searchStr = info.getText() + " // " + info.getContentDescription();
+            if (!searchStr.contains("You can skip ad in 0s") && !searchStr.contains("Ad · 0:00") && !searchStr.contains("Download")) {
+                Log.d(TAG, level + " || " + searchStr);
+                finalList.add(info);
+            }
+        }
+
+        return finalList;
     }
 
-    private void clickNode(AccessibilityNodeInfo thisNode) {
+
+    //click a given node, ideally using performClick but with a secondary attempt via accessibility gesture
+    boolean accessibilityClickNode(AccessibilityNodeInfo thisNode) {
+        Log.w(TAG, "CLICKNODE: " + thisNode.getText() + ", " + thisNode.getContentDescription());
         boolean success = thisNode.performAction(AccessibilityNodeInfo.ACTION_CLICK);
+        if ((thisNode.getText() != null && thisNode.getText().equals("back"))
+                || thisNode.getContentDescription() != null && thisNode.getContentDescription().equals("back")) {
+            Log.d(TAG, "Clicking BACK again!");
+            //when exiting VR mode, back needs to be clicked TWICE
+            //once to activate, once to actually go back
+            success |= thisNode.performAction(AccessibilityNodeInfo.ACTION_CLICK);
+        }
         if (!success) {
-            Rect bounds = new Rect();
-            thisNode.getBoundsInScreen(bounds);
-            Log.e(TAG, "CLICK FAILED FOR " + thisNode.getText() + " // " + thisNode.getContentDescription() + "! Trying something new. " + bounds);
-            main.tapBounds(bounds.centerX(), bounds.centerY());
+//            Rect bounds = new Rect();
+//            thisNode.getBoundsInScreen(bounds);
+//            main.tapBounds(bounds.centerX(), bounds.centerY());
+            Log.e(TAG, "CLICK FAILED FOR " + thisNode.getText() + " // " + thisNode.getContentDescription());// + "! Also trying a manual tap at this location: " + bounds);
+            return false;
         } else {
             Log.e(TAG, "CLICK SUCCESS FOR " + thisNode.getText() + " // " + thisNode.getContentDescription() + "!");
+            return true;
         }
     }
 
-    private void manageYouTubeAccess(AccessibilityEvent event, AccessibilityNodeInfo rootInActiveWindow) {
-        Log.d(TAG, "----");
-        if (main.getWebManager().isFreshPlay() &&
-                (main.getWebManager().getLaunchTitle() == null || rootInActiveWindow.findAccessibilityNodeInfosByText(main.getWebManager().getLaunchTitle()).size() == 0)) {
-            Log.d(TAG, "Give the newest video time to load! " + main.getWebManager().getLaunchTitle());
-            ArrayList<AccessibilityNodeInfo> pauseNodes = collectChildren(rootInActiveWindow, "back", 0);
-            for (AccessibilityNodeInfo thisInfo : pauseNodes) {
-                clickNode(thisInfo);
-                Log.d(TAG, "EXIT LAST MODE!");
-            }
-            //return;
-        } else if (main.getWebManager().isFreshPlay()) {
-            //requesting to play this video again, so hit replay
-            ArrayList<AccessibilityNodeInfo> pauseNodes = collectChildren(rootInActiveWindow, "Replay", 0);
-            for (AccessibilityNodeInfo thisInfo : pauseNodes) {
-                clickNode(thisInfo);
-                Log.d(TAG, "REPLAYING VIDEO!");
-            }
-        } else if (!main.getWebManager().isFreshPlay()) {
-            //we've finished this video
-//            ArrayList<AccessibilityNodeInfo> pauseNodes = collectChildren(rootInActiveWindow, "Replay", 0);
-//            if (pauseNodes.size() > 0) {
-//                //then return to LeadMe
-//                main.updateFollowerCurrentTaskToLeadMe();
-//                main.recallToLeadMe();
-//                return;
-//            }
-        }
-
-        String[] testNodes = {"Move device to explore video", "Cancel"};
-        ArrayList<AccessibilityNodeInfo> moveDeviceNodes = collectChildren(rootInActiveWindow, testNodes, 0);
-        if (moveDeviceNodes.size() >= 2) { //need at least one of each
-            Log.e(TAG, "MOVE DEVICE! Focus issue");
-            for (AccessibilityNodeInfo thisNode : moveDeviceNodes) {
-                String testStr = thisNode.getText() + " " + thisNode.getContentDescription();
-                if (!(testStr.contains("Video player") && main.getWebManager().getLaunchTitle() != null)) {
-                    clickNode(thisNode);
-                }
-            }
-        }
-
-
-        ArrayList<AccessibilityNodeInfo> foundNodes = collectChildren(rootInActiveWindow, keyYouTubePhrases, 0);
-        Log.d(TAG, "GOT " + foundNodes.size() + " found nodes!!");
-
-        if (foundNodes.size() > 0) {
-            main.getWebManager().setFreshPlay(false);
-            for (AccessibilityNodeInfo node : foundNodes) {
-                String testStr = "" + node.getText();
-                String testStrDesc = "" + node.getContentDescription();
-
-                boolean videoFinished = calculateVideoElapsedTime(testStr, testStrDesc);
-
-                //if the video is not finished yet, we know this is in progress
-                //so it's not a fresh launch
-                if (!videoFinished) {
-                    main.getWebManager().setFreshPlay(false); //time has now elapsed
-                }
-
-                if (main.getWebManager().isFreshPlay()) {
-                    ArrayList<AccessibilityNodeInfo> exitNodes = collectChildren(rootInActiveWindow, "Replay video", 0);
-                    for (AccessibilityNodeInfo thisInfo : exitNodes) {
-                        clickNode(thisInfo);
-                        Log.d(TAG, "REPLAYING VID!");
-                    }
-                } else if (videoFinished) {
-                    //if the video is done, attempt to pause it
-                    ArrayList<AccessibilityNodeInfo> exitNodes = collectChildren(rootInActiveWindow, "back", 0);
-                    for (AccessibilityNodeInfo thisInfo : exitNodes) {
-                        clickNode(thisInfo);
-                        Log.d(TAG, "EXITING VR!");
-                    }
-
-                    ArrayList<AccessibilityNodeInfo> pauseNodes = collectChildren(rootInActiveWindow, "Pause", 0);
-                    for (AccessibilityNodeInfo thisInfo : pauseNodes) {
-                        clickNode(thisInfo);
-                        Log.d(TAG, "PAUSING VIDEO!");
-                    }
-                    //then return to LeadMe
-                    main.updateFollowerCurrentTaskToLeadMe();
-                    main.recallToLeadMe();
-                    return; //return here so we don't press play!
-
-                } else {
-                    clickNode(node);
-                }
-            }
-            return;
-        }
-
-        //click all the buttons!
-        //Log.d(TAG, "Clicking all the buttons! " + foundNodes.size());
-        for (
-                AccessibilityNodeInfo accessibilityNodeInfo : foundNodes) {
-            //if(accessibilityNodeInfo.getClassName() != null && accessibilityNodeInfo.getText() != null) {
-            if (accessibilityNodeInfo.getText() != null
-                    && accessibilityNodeInfo.getText().toString().equals("You can skip ad in 0s")) {
-                continue; //we don't need to click this one
-            }
-
-            Log.d(TAG, "VR MODE: " + main.getWebManager().enteredVR + ", " + main.getWebManager().launchingVR + " // " + accessibilityNodeInfo.getContentDescription() + " vs " + modeVR);
-
-            //manage VR mode
-            if (main.getWebManager().launchingVR && accessibilityNodeInfo.getContentDescription() != null && accessibilityNodeInfo.getContentDescription().toString().equals(modeVR)) {
-                main.getWebManager().enteredVR = true;
-                clickNode(accessibilityNodeInfo); //do click, we want VR mode on
-                Log.w(TAG, "Clicked 'Enter VR mode' " + main.getWebManager().enteredVR);
-                continue;
-
-            } else if (!main.getWebManager().launchingVR && accessibilityNodeInfo.getContentDescription() != null
-                    && accessibilityNodeInfo.getContentDescription().toString().equals(modeVR)) {
-                main.getWebManager().enteredVR = true;
-                continue; //don't click, we don't want to enter VR mode
-
-            } else if (!main.getWebManager().enteredVR && accessibilityNodeInfo.getContentDescription() != null && accessibilityNodeInfo.getContentDescription().toString().equals(modeFS)) {
-                //modeFS
-                clickNode(accessibilityNodeInfo); //do click, we want VR mode on
-                Log.w(TAG, "Clicked 'Full Screen");
-                continue;
-            }
-
-            //manage everything else
-            Log.w(TAG, "Clicked " + accessibilityNodeInfo.getText() + " // " + accessibilityNodeInfo.getContentDescription());
-            clickNode(accessibilityNodeInfo);
-
-            try {
-                Thread.sleep(500);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-            return;
-        }
-
-//        //nothing else interesting happened, but we should be entering VR mode
-//        if (!main.getWebManager().enteredVR && main.getWebManager().launchingVR && event.getEventType() == AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED) {
-//            Log.d(TAG, "TAP: " + main.getWebManager().enteredVR + ", " + main.getWebManager().launchingVR + ", " + rootInActiveWindow.getChildCount());
-//            main.tapScreenMiddle();
-//
-//        }
-
+    public void gestureTapNode(AccessibilityNodeInfo thisNode) {
+        Rect bounds = new Rect();
+        thisNode.getBoundsInScreen(bounds);
+        main.tapBounds(bounds.centerX(), bounds.centerY());
     }
 
 
     public void bringMainToFront() {
+        Log.d(TAG, "bringMainToFront: ");
         main.getHandler().post(() -> {
-            if (main != null && !main.appHasFocus) {
+            if (main != null && !main.isAppVisibleInForeground()) {
                 main.recallToLeadMe();
             }
         });
     }
 
-    private boolean calculateVideoElapsedTime(String text, String contentDesc) {
-        int[] wordyMatches = getWordyMatches(contentDesc, wordyDurationRegex);
-        int totalDurationA = 0;
-        int totalDurationB = 0;
-
-        Log.d(TAG, "GOT NOW -- " + wordyMatches.length + " for " + contentDesc + " (or this " + text + ")");
-        if (wordyMatches.length == 6) {
-            totalDurationA = (wordyMatches[0] * 60 * 60) +    //hours
-                    (wordyMatches[1] * 60) +         //minutes
-                    wordyMatches[2];                //seconds
-
-            totalDurationB = (wordyMatches[3] * 60 * 60) +    //hours
-                    (wordyMatches[4] * 60) +         //minutes
-                    wordyMatches[5];                //seconds
-
-        } else if (wordyMatches.length == 4) {
-            totalDurationA = (wordyMatches[0] * 60) +         //minutes
-                    wordyMatches[1];                //seconds
-
-            totalDurationB = (wordyMatches[2] * 60) +         //minutes
-                    wordyMatches[3];                //seconds
-
-        } else if (text.contains("/") && hasExactMatch(text, durationRegex)) {
-            String[] durSplit = text.split("/");
-            String[] timeA = durSplit[0].split(":");
-            String[] timeB = durSplit[1].split(":");
-
-            if (timeA.length == 3) { //includes hours
-                totalDurationA = (Integer.parseInt(timeA[0]) * 60 * 60) +    //hours
-                        (Integer.parseInt(timeA[1]) * 60) +         //minutes
-                        Integer.parseInt(timeA[2]);                 //seconds
-
-                totalDurationB = (Integer.parseInt(timeB[0]) * 60 * 60) +    //hours
-                        (Integer.parseInt(timeB[1]) * 60) +         //minutes
-                        Integer.parseInt(timeB[2]);                 //seconds
-
-            } else if (timeA.length == 2) { //includes minutes
-                totalDurationA = (Integer.parseInt(timeA[0]) * 60) +         //minutes
-                        Integer.parseInt(timeA[1]);                 //seconds
-
-                totalDurationB = (Integer.parseInt(timeB[0]) * 60) +         //minutes
-                        Integer.parseInt(timeB[1]);                 //seconds
-            }
-        }
-
-        boolean videoFinished = false;
-        if (totalDurationA > 0) {
-            int threshold = 1; //how many seconds to the end do we count as finished
-            videoFinished = totalDurationA > 0 && totalDurationA >= (totalDurationB - threshold);
-        }
-
-        Log.d(TAG, "ELAPSED TIME: " + totalDurationA + "s of " + totalDurationB + "s (" + videoFinished + ", " + main.getWebManager().isFreshPlay() + ")");
-        return videoFinished;
-
-    }
-
     boolean showDebugMsg = false;
-
-    private AccessibilityEvent lastEvent = null;
-    private AccessibilityNodeInfo lastInfo = null;
+    AccessibilityEvent lastEvent = null;
+    AccessibilityNodeInfo lastInfo = null;
 
     public boolean manageAccessibilityEvent(AccessibilityEvent event, AccessibilityNodeInfo rootInActiveWindow) {
 
-        if (main == null) {
+        //TODO I believe this does the random tap, in here somewhere
+        //Log.d(TAG, "manageAccessibilityEvent: ");
+        boolean appInForeground = main.isAppVisibleInForeground();
+        if (main == null || !main.getNearbyManager().isConnectedAsFollower()) {
             return false;
         }
 
-        if (main.getNearbyManager().isConnectedAsGuide()) {
-            //check details for video controller
-//            Log.w(TAG, "GUIDE]] Managing received AccessibilityEvent: " + event);
-//            if(event != null && event.getSource() != null && event.getSource().getPackageName().toString().contains("youtube"))
-//            {
-//                manageYouTubeAccess(event, rootInActiveWindow);
-//            }
-            return true;
-        }
+        if (event == null && rootInActiveWindow == null) { //lastEvent != null) {
+            Log.w(TAG, "Revisiting previous event..."+lastEvent+" "+lastInfo);
+            event = lastEvent;
+            rootInActiveWindow = lastInfo;
+            lastInfo = null; //we probably don't want to revisit these too many times
+            lastEvent = null; //we probably don't want to revisit these too many times
 
+        } else if (event == null && rootInActiveWindow == null) {
+            Log.e(TAG, "No events here to act on");
+            return false;
 
-        if (event == null && rootInActiveWindow == null) {
-            if (lastEvent != null && lastInfo != null) {
-                event = lastEvent;
-                rootInActiveWindow = lastInfo;
-
-            } else {
-                return false; //nothing we can do!
-            }
         } else {
             lastEvent = event;
             lastInfo = rootInActiveWindow;
         }
 
-        //after this point is for client-specific behaviours only
-        if (main.isGuide || !main.getNearbyManager().isConnectedAsFollower()) {
+        if (event == null) {
             return false;
         }
 
         try {
-            if (event.getEventType() != AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED) {
-                //if (event.getEventType() == AccessibilityEvent.TYPE_VIEW_CLICKED || event.getEventType() == AccessibilityEvent.TYPE_VIEW_FOCUSED) {
-                Log.e(TAG, "SOMETHING! " + event.getPackageName() + ", " + event.getClassName() + ", " + event.getText() + ", " + event.getAction());
-                Log.e(TAG, "SOURCE! >>>  " + event.getSource());
-
-                if (event.getText().contains("back") && main.getWebManager().launchingVR) {
-                    main.getWebManager().enteredVR = false; //reset this
+            //if (event.getEventType() != AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED) {
+            if (event.getEventType() == AccessibilityEvent.TYPE_VIEW_CLICKED || event.getEventType() == AccessibilityEvent.TYPE_VIEW_FOCUSED) {
+                Rect bounds = new Rect();
+                if (event != null && event.getSource() != null) {
+                    event.getSource().getBoundsInScreen(new Rect());
                 }
-
+                Log.e(TAG, "SOMETHING! " + AccessibilityEvent.eventTypeToString(event.getEventType()) + ", " + event.getPackageName() + ", " + event.getClassName() + ", " + event.getText() + ", " + event.getAction() + ", " + bounds);
+                Log.e(TAG, "SOURCE! >>>  " + event.getSource());
             }
 
-            //if (showDebugMsg)
-            //Log.w(TAG, "Managing received AccessibilityEvent: " + main.appHasFocus + ", " + main.getWebManager().launchingVR + " >>> " + event);
+            if (!appInForeground && event.getSource() != null && event.getSource().getPackageName().toString().contains(main.getAppManager().withinPackage)) {
+                withinManager.manageWithinAccess(event, rootInActiveWindow);
 
-            if (!main.appHasFocus && event.getSource() != null && event.getSource().getPackageName().toString().contains("youtube")) {
-                manageYouTubeAccess(event, rootInActiveWindow);
+            } else if (!appInForeground && event.getSource() != null && event.getSource().getPackageName().toString().contains(main.getAppManager().youtubePackage)) {
+                ytManager.manageYouTubeAccess(event, rootInActiveWindow);
 
-            } else if (main.appHasFocus && dispatcher.launchAppOnFocus == null
+            } else if (appInForeground && dispatcher.launchAppOnFocus == null
                     && (event.getEventType() == AccessibilityEvent.TYPE_VIEW_FOCUSED && event.getPackageName().toString().equals("com.android.systemui")
                     /* || event.getEventType() == AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED && event.getPackageName().toString().equals("com.android.systemui")*/)) {
                 //likely pulled down notifications while in main app
@@ -430,9 +197,9 @@ public class LumiAccessibilityConnector {
                 //main.recallToLeadMe();
                 main.collapseStatus();
 
-            } else if (main.appHasFocus && event.getEventType() == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED && event.getPackageName().toString().equals("com.lumination.leadme")) {
+            } else if (appInForeground && event.getEventType() == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED && event.getPackageName().toString().equals("com.lumination.leadme")) {
                 //if (showDebugMsg)
-                Log.i(TAG, "User RETURNED TO LEADME! [" + main.appHasFocus + "] " + event.toString());
+                Log.i(TAG, "User RETURNED TO LEADME! [" + appInForeground + "] " + event.toString());
                 //don't need to do anything really, perhaps alert guide?
                 dispatcher.alertGuideStudentOffTask();
                 waitingForStateChange = false; //reset
@@ -453,7 +220,7 @@ public class LumiAccessibilityConnector {
                     return true;
                 }
                 waitingForStateChange = false;
-                if (!main.appHasFocus) {//!main.getAppLaunchAdapter().lastApp.equals(packageName)) {
+                if (!appInForeground) {//!main.getAppLaunchAdapter().lastApp.equals(packageName)) {
                     dispatcher.launchAppOnFocus = new String[2];
                     dispatcher.launchAppOnFocus[0] = main.currentTaskPackageName;
                     dispatcher.launchAppOnFocus[1] = main.currentTaskName;
@@ -499,6 +266,9 @@ public class LumiAccessibilityConnector {
                 if (nodeInfo == null) {
                     return false;
                 }
+
+                //TODO this hasn't been tested since some pretty major updates were made
+                //needs thorough testing before release
 
                 List<AccessibilityNodeInfo> installNodes = nodeInfo.findAccessibilityNodeInfosByText("Install");
                 List<AccessibilityNodeInfo> acceptNodes = nodeInfo.findAccessibilityNodeInfosByText("ACCEPT"); //is this case sensitive?
@@ -574,7 +344,7 @@ public class LumiAccessibilityConnector {
                         if (!success) {
                             if (showDebugMsg)
                                 Log.i(TAG, ">> Third try opening it... " + openNodes.size() + ", " + openButton);
-                            main.getAppManager().launchLocalApp(lastPackageName, lastAppName, true);
+                            main.getAppManager().launchLocalApp(lastPackageName, lastAppName, true, false);
                         }
                         lastAppName = null; //reset, we're done
                         return true; //all done, can exit
@@ -605,12 +375,25 @@ public class LumiAccessibilityConnector {
             e.printStackTrace();
         }
 
+        try {
+            Thread.sleep(200); //make sure we don't end up with endless looping
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
         return false;
     }
 
-    protected void triageReceivedIntent(Intent intent) {
-        //Log.i(TAG, "Triaging the intent! " + intent + ", " + intent.getStringExtra(LumiAccessibilityService.INFO_TAG) + ", have main? " + main + ", " + main.getLifecycle().getCurrentState());
+    public void prepareToInstall(String packageName, String appName) {
+        Log.d(TAG, "prepareToInstall: ");
+        lastAppName = appName;
+        lastPackageName = packageName;
+        Log.d(TAG, "PREPARING TO INSTALL " + lastAppName);
+    }
 
+    protected void triageReceivedIntent(Intent intent) {
+        //TODO or this?
+        //Log.d(TAG, "triageReceivedIntent: ");
         //only students need to respond to these events
         if (intent.hasExtra(LumiAccessibilityService.INFO_TAG)) {
             switch (intent.getStringExtra(LumiAccessibilityService.INFO_TAG)) {
@@ -630,9 +413,15 @@ public class LumiAccessibilityConnector {
                     break;
 
                 case LumiAccessibilityService.EVENT_RECEIVED:
+
                     if (main.getNearbyManager().isConnectedAsFollower() || main.getNearbyManager().isConnectedAsGuide()) {
-                        AccessibilityEvent evt = intent.getParcelableExtra(LumiAccessibilityService.EVENT_OBJ);
-                        AccessibilityNodeInfo root = intent.getParcelableExtra(LumiAccessibilityService.EVENT_ROOT);
+                        Bundle data = intent.getExtras();
+                        Object one = data.getString(LumiAccessibilityService.INFO_TAG);
+                        Object two = data.getParcelable(LumiAccessibilityService.EVENT_OBJ);
+                        Object three = data.getParcelable(LumiAccessibilityService.EVENT_ROOT);
+
+                        AccessibilityEvent evt = (AccessibilityEvent) two;
+                        AccessibilityNodeInfo root = (AccessibilityNodeInfo) three;
                         manageAccessibilityEvent(evt, root);
                     }
                     break;
