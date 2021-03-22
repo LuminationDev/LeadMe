@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/app_view"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
@@ -25,6 +26,7 @@
             android:src="@drawable/arrow_icon" />
 
         <TextView
+            android:id="@+id/App_title_top"
             android:layout_width="wrap_content"
             android:layout_height="fill_parent"
             android:layout_gravity="bottom|center_horizontal"
@@ -62,135 +64,159 @@
 
     </androidx.cardview.widget.CardView>
 
-    <TextView
-        android:id="@+id/text_current_task"
+    <ScrollView
+        android:id="@+id/app_scroll_view"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:fontFamily="@font/poppins_semibold"
-        android:padding="15dp"
-        android:text="Current Task"
-        android:textColor="@color/leadme_medium_grey"
-        android:textSize="18sp" />
-
-    <LinearLayout
-        android:id="@+id/current_task_layout"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal">
-
-        <ImageView
-            android:id="@+id/current_icon"
-            android:layout_width="@dimen/appicon_size"
-            android:layout_height="@dimen/appicon_size"
-            android:layout_weight="1"
-            android:scaleType="fitCenter"
-            android:src="@drawable/leadme_icon" />
+        android:layout_height="match_parent"
+        android:animateLayoutChanges="true">
 
         <LinearLayout
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:layout_weight="1"
             android:orientation="vertical">
 
             <TextView
-                android:id="@+id/current_app_name"
+                android:id="@+id/text_current_task"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:fontFamily="@font/poppins_semibold"
-                android:paddingLeft="15dp"
-                android:text="LeadMe"
-                android:textColor="@color/leadme_darkest_grey"
+                android:padding="15dp"
+                android:text="Current Task"
+                android:textColor="@color/leadme_medium_grey"
                 android:textSize="18sp" />
 
             <LinearLayout
-                android:id="@+id/current_offtask_layout"
+                android:id="@+id/current_task_layout"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
+                android:layout_height="wrap_content"
+                android:clipChildren="false"
+                android:clipToPadding="false"
                 android:orientation="horizontal">
 
-                <TextView
-                    android:id="@+id/current_offtask"
-                    android:layout_width="5dp"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center|left"
+                <ImageView
+                    android:id="@+id/current_icon"
+                    android:layout_width="@dimen/appicon_size"
+                    android:layout_height="@dimen/appicon_size"
                     android:layout_weight="1"
-                    android:fontFamily="@font/poppins"
-                    android:gravity="center|right"
-                    android:paddingLeft="15dp"
-                    android:text="2"
-                    android:textColor="@color/leadme_blue" />
+                    android:scaleType="fitCenter"
+                    android:src="@drawable/leadme_icon" />
 
-                <TextView
+                <LinearLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_gravity="center|left"
-                    android:fontFamily="@font/poppins"
-                    android:gravity="center|left"
-                    android:text=" may be off task"
-                    android:textColor="@color/leadme_medium_grey" />
+                    android:layout_gravity="center"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
 
-                <Space
+                    <TextView
+                        android:id="@+id/current_app_name"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="@font/poppins_semibold"
+                        android:paddingLeft="15dp"
+                        android:text="LeadMe"
+                        android:textColor="@color/leadme_darkest_grey"
+                        android:textSize="18sp" />
+
+                    <LinearLayout
+                        android:id="@+id/current_offtask_layout"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:id="@+id/current_offtask"
+                            android:layout_width="10dp"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center|left"
+                            android:layout_weight="1"
+                            android:fontFamily="@font/poppins"
+                            android:gravity="center|right"
+                            android:paddingLeft="15dp"
+                            android:text="2"
+                            android:textColor="@color/leadme_blue" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center|left"
+                            android:fontFamily="@font/poppins"
+                            android:gravity="center|left"
+                            android:text=" may be off task"
+                            android:textColor="@color/leadme_medium_grey" />
+
+                        <Space
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1" />
+
+                    </LinearLayout>
+
+                </LinearLayout>
+
+                <ImageButton
+                    android:id="@+id/repush_btn"
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1" />
+                    android:layout_height="45dp"
+                    android:layout_gravity="center"
+                    android:layout_marginRight="10dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_active"
+                    android:elevation="5dp"
+                    android:scaleType="fitCenter"
+                    android:src="@drawable/bg_repush" />
 
             </LinearLayout>
 
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:fontFamily="@font/poppins_semibold"
+                android:padding="15dp"
+                android:text="@string/favourites"
+                android:textColor="@color/leadme_medium_grey" />
+
+            <GridView
+                android:id="@+id/fav_list_grid"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:isScrollContainer="true"
+                android:numColumns="4"
+                android:orientation="horizontal"
+                android:scrollbars="none"
+                tools:listitem="@layout/row_fav_app">
+
+            </GridView>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:fontFamily="@font/poppins_semibold"
+                android:padding="15dp"
+                android:text="@string/all_apps"
+                android:textColor="@color/leadme_medium_grey" />
+
+            <com.lumination.leadme.MyGridView
+                android:id="@+id/app_list_grid"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="fill_vertical"
+                android:layout_weight="0.8"
+                android:clipToPadding="false"
+                android:horizontalSpacing="20dp"
+                android:isScrollContainer="true"
+                android:nestedScrollingEnabled="true"
+                android:numColumns="4"
+                android:overScrollMode="never"
+                android:paddingStart="10dp"
+                android:paddingEnd="10dp"
+                android:scrollbarStyle="outsideInset"
+                android:verticalScrollbarPosition="defaultPosition"
+                tools:listitem="@layout/row_apps"
+                tools:visibility="visible" />
+
         </LinearLayout>
-
-        <ImageView
-            android:id="@+id/imageView3"
-            android:layout_width="wrap_content"
-            android:layout_height="45dp"
-            android:layout_gravity="center"
-            android:layout_weight="1"
-            android:scaleType="fitCenter"
-            android:src="@drawable/bg_repush" />
-
-    </LinearLayout>
-
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:fontFamily="@font/poppins_semibold"
-        android:padding="15dp"
-        android:text="@string/favourites"
-        android:textColor="@color/leadme_medium_grey" />
-
-    <GridView
-        android:id="@+id/fav_list_grid"
-        android:layout_width="match_parent"
-        android:layout_height="140dp"
-        android:isScrollContainer="true"
-        android:numColumns="4"
-        android:orientation="horizontal"
-        android:scrollbars="none"
-        tools:listitem="@layout/row_fav_app" />
-
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:fontFamily="@font/poppins_semibold"
-        android:padding="15dp"
-        android:text="@string/all_apps"
-        android:textColor="@color/leadme_medium_grey" />
-
-    <GridView
-        android:id="@+id/app_list_grid"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="0.8"
-        android:clipToPadding="false"
-        android:horizontalSpacing="20dp"
-        android:numColumns="4"
-        android:overScrollMode="never"
-        android:paddingStart="10dp"
-        android:paddingEnd="10dp"
-        android:scrollbarStyle="outsideInset"
-        android:verticalScrollbarPosition="defaultPosition"
-        android:verticalSpacing="20dp"
-        tools:listitem="@layout/row_apps" />
+    </ScrollView>
 
 
 </LinearLayout>

@@ -3,6 +3,7 @@ package com.lumination.leadme;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.util.ArraySet;
 import android.util.DisplayMetrics;
@@ -661,10 +662,9 @@ public class FavouritesManager extends BaseAdapter {
         } else { //actual favourite
             final String appName = main.getAppManager().getAppName(favPackage);
             final Drawable appIcon = main.getAppManager().getAppIcon(favPackage);
-
             viewHolder.favouriteName.setText(appName);
             viewHolder.favouriteIcon.setImageDrawable(appIcon);
-            viewHolder.favouriteIcon.setBackground(activeBg);
+            viewHolder.favouriteIcon.setBackground(emptyBg);
             viewHolder.favouriteIcon.setElevation(10);
 
             convertView.setClickable(true);

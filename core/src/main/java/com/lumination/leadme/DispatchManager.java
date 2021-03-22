@@ -15,9 +15,15 @@ public class DispatchManager {
     private final String TAG = "Dispatcher";
     private LeadMeMain main;
     protected String[] launchAppOnFocus = null;
-
+    String tagRepush;
+    String packageNameRepush;
+    String appNameRepush;
+    String lockTagRepush;
     public DispatchManager(LeadMeMain main) {
         this.main = main;
+    }
+    public void repushApp(Set<String> selectedPeerIDs){
+        requestRemoteAppOpen( tagRepush,  packageNameRepush,  appNameRepush,  lockTagRepush, selectedPeerIDs);
     }
 
     protected void disableInteraction(final int status) {
@@ -56,6 +62,10 @@ public class DispatchManager {
     }
 
     public void requestRemoteAppOpenWithExtra(String tag, String packageName, String appName, String lockTag, String extra, boolean streaming, Set<String> selectedPeerIDs) {
+        tagRepush=tag;
+        packageNameRepush=packageName;
+        appNameRepush=appName;
+        lockTagRepush=lockTag;
         Parcel p = Parcel.obtain();
         byte[] bytes;
         p.writeString(tag);
@@ -70,6 +80,10 @@ public class DispatchManager {
     }
 
     public void requestRemoteAppOpen(String tag, String packageName, String appName, String lockTag, Set<String> selectedPeerIDs) {
+        tagRepush=tag;
+        packageNameRepush=packageName;
+        appNameRepush=appName;
+        lockTagRepush=lockTag;
         Parcel p = Parcel.obtain();
         byte[] bytes;
         p.writeString(tag);
@@ -81,6 +95,7 @@ public class DispatchManager {
         bytes = p.marshall();
         p.recycle();
         writeMessageToSelected(bytes, selectedPeerIDs);
+        main.updateLastTask(main.getAppManager().getAppIcon(packageName),main.getAppManager().getAppName(packageName),packageName,lockTag);
     }
 
     public synchronized void alertLogout() {

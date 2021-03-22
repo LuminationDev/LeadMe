@@ -101,10 +101,10 @@
     <string name="preview_image">Preview image</string>
     <string name="globe_icon">Globe icon</string>
     <string name="waiting_for_learners">Waiting for learners...</string>
-    <string name="unlock">Unlock</string>
+    <string name="unlock">Play</string>
     <string name="select">Select</string>
     <string name="alerts">Alerts</string>
-    <string name="lock">Lock</string>
+    <string name="lock">View</string>
     <string name="block">Block</string>
     <string name="new_video">New video</string>
     <string name="download">Download</string>

@@ -12,6 +12,8 @@ MERGED from [androidx.constraintlayout:constraintlayout:2.0.4] /Users/jakelund/.
 MERGED from [gun0912.ted:tedpermission:2.2.3] /Users/jakelund/.gradle/caches/transforms-2/files-2.1/185117ac6c987915e960ac481ecf3ea8/jetified-tedpermission-2.2.3/AndroidManifest.xml:2:1-17:12
 MERGED from [eu.bolt:screenshotty:1.0.3] /Users/jakelund/.gradle/caches/transforms-2/files-2.1/2aa8c49cb651b6d8a1eac0ed70b52018/jetified-screenshotty-1.0.3/AndroidManifest.xml:2:1-11:12
 MERGED from [com.github.karanvs:hiddenshot:v1.2] /Users/jakelund/.gradle/caches/transforms-2/files-2.1/c8fd1c65ea463c9d21b8fb6bb5ffdd82/jetified-hiddenshot-v1.2/AndroidManifest.xml:2:1-17:12
+MERGED from [com.pkmmte.view:circularimageview:1.1] /Users/jakelund/.gradle/caches/transforms-2/files-2.1/1ac6dceabea2be232f2bd2a3dee31ffe/jetified-circularimageview-1.1/AndroidManifest.xml:2:1-13:12
+MERGED from [com.jackandphantom.android:circularimageview:1.2.0] /Users/jakelund/.gradle/caches/transforms-2/files-2.1/f96dcf196cf389006b71ed0f00133f72/jetified-circularimageview-1.2.0/AndroidManifest.xml:2:1-17:12
 MERGED from [androidx.legacy:legacy-support-core-ui:1.0.0] /Users/jakelund/.gradle/caches/transforms-2/files-2.1/03d5f34ba39951d25b67dfdaf457339e/legacy-support-core-ui-1.0.0/AndroidManifest.xml:17:1-22:12
 MERGED from [androidx.coordinatorlayout:coordinatorlayout:1.1.0] /Users/jakelund/.gradle/caches/transforms-2/files-2.1/27deb2dcde56786575420bb4eaff0393/coordinatorlayout-1.1.0/AndroidManifest.xml:17:1-24:12
 MERGED from [androidx.transition:transition:1.2.0] /Users/jakelund/.gradle/caches/transforms-2/files-2.1/fc09fd86e6c3db8221e6cbebe1a75a38/transition-1.2.0/AndroidManifest.xml:17:1-24:12
@@ -166,6 +168,10 @@ MERGED from [gun0912.ted:tedpermission:2.2.3] /Users/jakelund/.gradle/caches/tra
 MERGED from [gun0912.ted:tedpermission:2.2.3] /Users/jakelund/.gradle/caches/transforms-2/files-2.1/185117ac6c987915e960ac481ecf3ea8/jetified-tedpermission-2.2.3/AndroidManifest.xml:9:5-15:19
 MERGED from [com.github.karanvs:hiddenshot:v1.2] /Users/jakelund/.gradle/caches/transforms-2/files-2.1/c8fd1c65ea463c9d21b8fb6bb5ffdd82/jetified-hiddenshot-v1.2/AndroidManifest.xml:11:5-15:19
 MERGED from [com.github.karanvs:hiddenshot:v1.2] /Users/jakelund/.gradle/caches/transforms-2/files-2.1/c8fd1c65ea463c9d21b8fb6bb5ffdd82/jetified-hiddenshot-v1.2/AndroidManifest.xml:11:5-15:19
+MERGED from [com.pkmmte.view:circularimageview:1.1] /Users/jakelund/.gradle/caches/transforms-2/files-2.1/1ac6dceabea2be232f2bd2a3dee31ffe/jetified-circularimageview-1.1/AndroidManifest.xml:11:5-20
+MERGED from [com.pkmmte.view:circularimageview:1.1] /Users/jakelund/.gradle/caches/transforms-2/files-2.1/1ac6dceabea2be232f2bd2a3dee31ffe/jetified-circularimageview-1.1/AndroidManifest.xml:11:5-20
+MERGED from [com.jackandphantom.android:circularimageview:1.2.0] /Users/jakelund/.gradle/caches/transforms-2/files-2.1/f96dcf196cf389006b71ed0f00133f72/jetified-circularimageview-1.2.0/AndroidManifest.xml:11:5-15:19
+MERGED from [com.jackandphantom.android:circularimageview:1.2.0] /Users/jakelund/.gradle/caches/transforms-2/files-2.1/f96dcf196cf389006b71ed0f00133f72/jetified-circularimageview-1.2.0/AndroidManifest.xml:11:5-15:19
 MERGED from [com.google.android.gms:play-services-base:17.0.0] /Users/jakelund/.gradle/caches/transforms-2/files-2.1/890df28573fa2f554ccd20a952326cb6/jetified-play-services-base-17.0.0/AndroidManifest.xml:22:5-27:19
 MERGED from [com.google.android.gms:play-services-base:17.0.0] /Users/jakelund/.gradle/caches/transforms-2/files-2.1/890df28573fa2f554ccd20a952326cb6/jetified-play-services-base-17.0.0/AndroidManifest.xml:22:5-27:19
 MERGED from [com.google.android.gms:play-services-tasks:17.0.0] /Users/jakelund/.gradle/caches/transforms-2/files-2.1/f08a2408c528322d7ef3f01d9e7b5486/jetified-play-services-tasks-17.0.0/AndroidManifest.xml:7:5-20
@@ -185,6 +191,7 @@ MERGED from [androidx.versionedparcelable:versionedparcelable:1.1.0] /Users/jake
 	android:label
 		ADDED from /Users/jakelund/Documents/GitHub/LeadMe/core/src/main/AndroidManifest.xml:49:9-42
 		REJECTED from [com.github.karanvs:hiddenshot:v1.2] /Users/jakelund/.gradle/caches/transforms-2/files-2.1/c8fd1c65ea463c9d21b8fb6bb5ffdd82/jetified-hiddenshot-v1.2/AndroidManifest.xml:13:9-41
+		REJECTED from [com.jackandphantom.android:circularimageview:1.2.0] /Users/jakelund/.gradle/caches/transforms-2/files-2.1/f96dcf196cf389006b71ed0f00133f72/jetified-circularimageview-1.2.0/AndroidManifest.xml:13:9-41
 	android:hardwareAccelerated
 		ADDED from /Users/jakelund/Documents/GitHub/LeadMe/core/src/main/AndroidManifest.xml:51:9-43
 	android:allowBackup
@@ -283,6 +290,10 @@ MERGED from [eu.bolt:screenshotty:1.0.3] /Users/jakelund/.gradle/caches/transfor
 MERGED from [eu.bolt:screenshotty:1.0.3] /Users/jakelund/.gradle/caches/transforms-2/files-2.1/2aa8c49cb651b6d8a1eac0ed70b52018/jetified-screenshotty-1.0.3/AndroidManifest.xml:7:5-9:41
 MERGED from [com.github.karanvs:hiddenshot:v1.2] /Users/jakelund/.gradle/caches/transforms-2/files-2.1/c8fd1c65ea463c9d21b8fb6bb5ffdd82/jetified-hiddenshot-v1.2/AndroidManifest.xml:7:5-9:41
 MERGED from [com.github.karanvs:hiddenshot:v1.2] /Users/jakelund/.gradle/caches/transforms-2/files-2.1/c8fd1c65ea463c9d21b8fb6bb5ffdd82/jetified-hiddenshot-v1.2/AndroidManifest.xml:7:5-9:41
+MERGED from [com.pkmmte.view:circularimageview:1.1] /Users/jakelund/.gradle/caches/transforms-2/files-2.1/1ac6dceabea2be232f2bd2a3dee31ffe/jetified-circularimageview-1.1/AndroidManifest.xml:7:5-9:41
+MERGED from [com.pkmmte.view:circularimageview:1.1] /Users/jakelund/.gradle/caches/transforms-2/files-2.1/1ac6dceabea2be232f2bd2a3dee31ffe/jetified-circularimageview-1.1/AndroidManifest.xml:7:5-9:41
+MERGED from [com.jackandphantom.android:circularimageview:1.2.0] /Users/jakelund/.gradle/caches/transforms-2/files-2.1/f96dcf196cf389006b71ed0f00133f72/jetified-circularimageview-1.2.0/AndroidManifest.xml:7:5-9:41
+MERGED from [com.jackandphantom.android:circularimageview:1.2.0] /Users/jakelund/.gradle/caches/transforms-2/files-2.1/f96dcf196cf389006b71ed0f00133f72/jetified-circularimageview-1.2.0/AndroidManifest.xml:7:5-9:41
 MERGED from [androidx.legacy:legacy-support-core-ui:1.0.0] /Users/jakelund/.gradle/caches/transforms-2/files-2.1/03d5f34ba39951d25b67dfdaf457339e/legacy-support-core-ui-1.0.0/AndroidManifest.xml:20:5-44
 MERGED from [androidx.legacy:legacy-support-core-ui:1.0.0] /Users/jakelund/.gradle/caches/transforms-2/files-2.1/03d5f34ba39951d25b67dfdaf457339e/legacy-support-core-ui-1.0.0/AndroidManifest.xml:20:5-44
 MERGED from [androidx.coordinatorlayout:coordinatorlayout:1.1.0] /Users/jakelund/.gradle/caches/transforms-2/files-2.1/27deb2dcde56786575420bb4eaff0393/coordinatorlayout-1.1.0/AndroidManifest.xml:20:5-22:41

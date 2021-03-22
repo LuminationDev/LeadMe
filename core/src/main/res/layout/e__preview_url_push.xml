@@ -187,7 +187,7 @@
         android:orientation="horizontal">
 
         <androidx.cardview.widget.CardView
-            android:id="@+id/spinner_parent"
+            android:id="@+id/lock_spinner"
             android:layout_width="45dp"
             android:layout_height="40dp"
             android:layout_margin="5dp"

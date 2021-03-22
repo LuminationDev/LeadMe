@@ -4,6 +4,8 @@ org/jsoup/nodes/DataNode.java
  org.jsoup.nodes.DataNode
 com/lumination/leadme/BuildConfig.java
  com.lumination.leadme.BuildConfig
+com/lumination/leadme/MyGestureDetector.java
+ com.lumination.leadme.MyGestureDetector
 org/jsoup/helper/Validate.java
  org.jsoup.helper.Validate
 org/jsoup/safety/Whitelist.java
@@ -126,6 +128,8 @@ org/jsoup/nodes/Attributes.java
  org.jsoup.nodes.Attributes$Dataset
  org.jsoup.nodes.Attributes$Dataset$DatasetIterator
  org.jsoup.nodes.Attributes$Dataset$EntrySet
+com/lumination/leadme/MyGridView.java
+ com.lumination.leadme.MyGridView
 com/lumination/leadme/AutoUpdater.java
  com.lumination.leadme.AutoUpdater
 com/lumination/leadme/linkpreview/BaseImagePickingStrategy.java
@@ -172,6 +176,11 @@ com/lumination/leadme/LeadMeMain.java
  com.lumination.leadme.LeadMeMain
  com.lumination.leadme.LeadMeMain$1
  com.lumination.leadme.LeadMeMain$10
+ com.lumination.leadme.LeadMeMain$11
+ com.lumination.leadme.LeadMeMain$12
+ com.lumination.leadme.LeadMeMain$13
+ com.lumination.leadme.LeadMeMain$14
+ com.lumination.leadme.LeadMeMain$15
  com.lumination.leadme.LeadMeMain$2
  com.lumination.leadme.LeadMeMain$3
  com.lumination.leadme.LeadMeMain$4
@@ -233,6 +242,11 @@ org/jsoup/nodes/Attribute.java
  org.jsoup.nodes.Attribute
 com/lumination/leadme/StudentAlertsAdapter.java
  com.lumination.leadme.StudentAlertsAdapter
+ com.lumination.leadme.StudentAlertsAdapter$1
+ com.lumination.leadme.StudentAlertsAdapter$2
+ com.lumination.leadme.StudentAlertsAdapter$3
+ com.lumination.leadme.StudentAlertsAdapter$4
+ com.lumination.leadme.StudentAlertsAdapter$5
 org/jsoup/nodes/LeafNode.java
  org.jsoup.nodes.LeafNode
 com/lumination/leadme/linkpreview/TextCrawler.java

@@ -80,6 +80,7 @@ attr actionProviderClass
 attr actionTextColorAlpha
 attr actionViewClass
 attr activityChooserViewStyle
+attr add_shadow
 attr alertDialogButtonGroupStyle
 attr alertDialogCenterButtons
 attr alertDialogStyle
@@ -133,7 +134,10 @@ attr behavior_overlapTop
 attr behavior_peekHeight
 attr behavior_saveFlags
 attr behavior_skipCollapsed
+attr border
 attr borderWidth
+attr border_color
+attr border_width
 attr borderlessButtonStyle
 attr bottomAppBarStyle
 attr bottomNavigationStyle
@@ -205,6 +209,7 @@ attr chipStyle
 attr chipSurfaceColor
 attr circleCrop
 attr circleRadius
+attr circularImageViewStyle
 attr clickAction
 attr closeIcon
 attr closeIconEnabled
@@ -701,6 +706,7 @@ attr reverseLayout
 attr rippleColor
 attr round
 attr roundPercent
+attr rounded_radius
 attr rowCount
 attr rowHeight
 attr rowOrderPreserved
@@ -719,6 +725,13 @@ attr seekBarStyle
 attr selectableItemBackground
 attr selectableItemBackgroundBorderless
 attr selectionRequired
+attr selector
+attr selector_color
+attr selector_stroke_color
+attr selector_stroke_width
+attr shadow
+attr shadow_color
+attr shadow_radius
 attr shapeAppearance
 attr shapeAppearanceLargeComponent
 attr shapeAppearanceMediumComponent
@@ -1681,11 +1694,18 @@ drawable follow_leader
 drawable googleg_disabled_color_18
 drawable googleg_standard_color_18
 drawable hollow_dot
+drawable ic_arrow
 drawable ic_clear_all_white_24dp
 drawable ic_mtrl_checked_circle
 drawable ic_mtrl_chip_checked_black
 drawable ic_mtrl_chip_checked_circle
 drawable ic_mtrl_chip_close_circle
+drawable ic_pages_1
+drawable ic_pages__2
+drawable ic_pages__3
+drawable ic_pages__4
+drawable ic_pages__5
+drawable ic_roundbutton_shadow
 drawable ic_stat_name
 drawable ic_system_update_white_24dp
 drawable icon_cast
@@ -1695,12 +1715,16 @@ drawable icon_fav_add
 drawable icon_fav_remove
 drawable icon_fav_star_check
 drawable icon_fav_star_uncheck
+drawable icon_info
+drawable icon_list_down
+drawable icon_list_right
 drawable icon_paste_from_clipboard
 drawable icon_repush
 drawable icon_restart
 drawable icon_restart_dark
 drawable icon_stream
 drawable icon_unknown_browser
+drawable image_round
 drawable leadme_icon
 drawable leadme_reverse
 drawable lumi_video_progress
@@ -1775,6 +1799,7 @@ font poppins
 font poppins_regular
 font poppins_semibold
 id ALT
+id App_title_top
 id BOTTOM_END
 id BOTTOM_START
 id CTRL
@@ -1856,13 +1881,15 @@ id always
 id alwaysScroll
 id animateToEnd
 id animateToStart
+id animation_view
 id app_core_btn
-id app_current_name
 id app_icon
 id app_list_grid
 id app_login
 id app_name
+id app_scroll_view
 id app_search
+id app_view
 id asConfigured
 id async
 id auto
@@ -1940,6 +1967,10 @@ id contentPanel
 id coordinator
 id cos
 id current_alerts_list
+id current_app_name
+id current_icon
+id current_offtask
+id current_offtask_layout
 id current_task_desc
 id current_task_details
 id current_task_icon
@@ -1989,6 +2020,10 @@ id end
 id enterAlways
 id enterAlwaysCollapsed
 id error_comment
+id error_description
+id error_dialog
+id error_dialog_spinner
+id error_dialog_title
 id error_icon
 id error_title
 id everyone_btn
@@ -2045,8 +2080,6 @@ id ignore
 id ignoreRequest
 id image
 id imageView
-id imageView2
-id imageView3
 id info
 id inner_view
 id inside_view
@@ -2072,18 +2105,20 @@ id line1
 id line3
 id linear
 id listMode
+id list_alert_type
+id list_drop_icon
+id list_info_button
 id list_item
-id list_student_name
 id lock_action_bar
 id lock_icon
 id lock_selected_btn
+id lock_spinner
 id lock_text
 id logout_btn
 id logout_comment
 id logout_icon
 id logout_title
 id masked
-id max_alert_icon
 id menu_btn
 id message
 id middle
@@ -2128,6 +2163,7 @@ id name_input_field
 id navigation_header_container
 id never
 id new_video
+id next_button
 id noScroll
 id no_alerts_message
 id no_free_favs
@@ -2139,9 +2175,19 @@ id normal
 id notification_background
 id notification_main_column
 id notification_main_column_container
+id oboard_btn_1
+id oboard_btn_2
+id oboard_btn_3
+id oboard_btn_4
+id oboard_btn_5
 id off
 id ok_btn
 id on
+id onBoard_content
+id onBoard_title
+id onboard_buttons
+id onboard_moreinfo_btn
+id onboard_ok_btn
 id open_favourites
 id outline
 id overlay_lock_icon
@@ -2197,6 +2243,7 @@ id recall_students
 id recall_title
 id rectangles
 id relativeLayout
+id repush_btn
 id reverseSawtooth
 id right
 id right_icon
@@ -2228,6 +2275,10 @@ id search_preview_view
 id search_spinner
 id search_src_text
 id search_voice_btn
+id select_bar
+id select_bar_back
+id select_bar_repush
+id select_bar_selectall
 id select_btn
 id select_dialog_listview
 id selected
@@ -2241,6 +2292,7 @@ id showHome
 id showTitle
 id sin
 id skipCollapsed
+id skip_intro
 id slide
 id smallLabel
 id snackbar_action
@@ -2253,7 +2305,6 @@ id spacingWidth
 id spacingWidthUniform
 id spinner_image
 id spinner_item
-id spinner_parent
 id spline
 id split_action_bar
 id spread
@@ -2299,7 +2350,6 @@ id textSpacerNoButtons
 id textSpacerNoTitle
 id textStart
 id textView
-id textView10
 id textView2
 id textView3
 id textView4
@@ -2470,6 +2520,7 @@ layout b__start_leader
 layout b__start_learner
 layout c__leader_main
 layout c__learner_main
+layout c__onboarding
 layout custom_dialog
 layout d__alerts_list
 layout d__app_list
@@ -2503,6 +2554,7 @@ layout e__preview_url_search
 layout e__recall_confirm_popup
 layout e__waiting_to_connect
 layout e__warning_popup
+layout e_error_dialog
 layout f__control_playback_youtube
 layout f__playback_settings_within
 layout f__playback_settings_youtube
@@ -2576,6 +2628,7 @@ mipmap lumination_logo_reverse
 plurals mtrl_badge_content_description
 raw embed_within_player
 raw embed_yt_player
+raw push_app
 string abc_action_bar_home_description
 string abc_action_bar_up_description
 string abc_action_menu_overflow_description
@@ -3032,8 +3085,10 @@ style Base_Widget_MaterialComponents_TextView
 style CardView
 style CardView_Dark
 style CardView_Light
+style DialogTheme
 style EmptyStyle
 style EmptyTheme
+style LeadMeFloat
 style LeadMeStyle
 style LeadMeStyle_Search
 style MatchSpinnerStyle
@@ -3503,6 +3558,7 @@ style Widget_MaterialComponents_Toolbar_PrimarySurface
 style Widget_MaterialComponents_Toolbar_Surface
 style Widget_MaterialComponents_Tooltip
 style Widget_Support_CoordinatorLayout
+style circleImageView
 style popupStyle
 styleable ActionBar background backgroundSplit backgroundStacked contentInsetEnd contentInsetEndWithActions contentInsetLeft contentInsetRight contentInsetStart contentInsetStartWithNavigation customNavigationLayout displayOptions divider elevation height hideOnContentScroll homeAsUpIndicator homeLayout icon indeterminateProgressStyle itemPadding logo navigationMode popupTheme progressBarPadding progressBarStyle subtitle subtitleTextStyle title titleTextStyle
 styleable ActionBarLayout android_layout_gravity
@@ -3530,6 +3586,8 @@ styleable ButtonBarLayout allowStacking
 styleable CardView android_minWidth android_minHeight cardBackgroundColor cardCornerRadius cardElevation cardMaxElevation cardPreventCornerOverlap cardUseCompatPadding contentPadding contentPaddingBottom contentPaddingLeft contentPaddingRight contentPaddingTop
 styleable Chip android_textAppearance android_textColor android_ellipsize android_maxWidth android_text android_checkable checkedIcon checkedIconEnabled checkedIconTint checkedIconVisible chipBackgroundColor chipCornerRadius chipEndPadding chipIcon chipIconEnabled chipIconSize chipIconTint chipIconVisible chipMinHeight chipMinTouchTargetSize chipStartPadding chipStrokeColor chipStrokeWidth chipSurfaceColor closeIcon closeIconEnabled closeIconEndPadding closeIconSize closeIconStartPadding closeIconTint closeIconVisible ensureMinTouchTargetSize hideMotionSpec iconEndPadding iconStartPadding rippleColor shapeAppearance shapeAppearanceOverlay showMotionSpec textEndPadding textStartPadding
 styleable ChipGroup checkedChip chipSpacing chipSpacingHorizontal chipSpacingVertical selectionRequired singleLine singleSelection
+styleable CircleImage add_shadow border_color border_width shadow_color shadow_radius
+styleable CircularImageView border border_color border_width selector selector_color selector_stroke_color selector_stroke_width shadow
 styleable CollapsingToolbarLayout collapsedTitleGravity collapsedTitleTextAppearance contentScrim expandedTitleGravity expandedTitleMargin expandedTitleMarginBottom expandedTitleMarginEnd expandedTitleMarginStart expandedTitleMarginTop expandedTitleTextAppearance maxLines scrimAnimationDuration scrimVisibleHeightTrigger statusBarScrim title titleEnabled toolbarId
 styleable CollapsingToolbarLayout_Layout layout_collapseMode layout_collapseParallaxMultiplier
 styleable ColorStateListItem android_color android_alpha alpha
@@ -3541,6 +3599,7 @@ styleable ConstraintSet android_orientation android_id android_visibility androi
 styleable CoordinatorLayout keylines statusBarBackground
 styleable CoordinatorLayout_Layout android_layout_gravity layout_anchor layout_anchorGravity layout_behavior layout_dodgeInsetEdges layout_insetEdge layout_keyline
 styleable CustomAttribute attributeName customBoolean customColorDrawableValue customColorValue customDimension customFloatValue customIntegerValue customPixelDimension customStringValue
+styleable CustomCircularImageViewTheme circularImageViewStyle
 styleable DrawerArrowToggle arrowHeadLength arrowShaftLength barLength color drawableSize gapBetweenBars spinBars thickness
 styleable ExtendedFloatingActionButton elevation extendMotionSpec hideMotionSpec showMotionSpec shrinkMotionSpec
 styleable ExtendedFloatingActionButton_Behavior_Layout behavior_autoHide behavior_autoShrink
@@ -3600,6 +3659,7 @@ styleable PropertySet android_visibility android_alpha layout_constraintTag moti
 styleable RangeSlider values
 styleable RecycleListView paddingBottomNoButtons paddingTopNoTitle
 styleable RecyclerView android_orientation android_clipToPadding android_descendantFocusability fastScrollEnabled fastScrollHorizontalThumbDrawable fastScrollHorizontalTrackDrawable fastScrollVerticalThumbDrawable fastScrollVerticalTrackDrawable layoutManager reverseLayout spanCount stackFromEnd
+styleable RoundedImage rounded_radius
 styleable ScrimInsetsFrameLayout insetForeground
 styleable ScrollingViewBehavior_Layout behavior_overlapTop
 styleable SearchView android_focusable android_maxWidth android_inputType android_imeOptions closeIcon commitIcon defaultQueryHint goIcon iconifiedByDefault layout queryBackground queryHint searchHintIcon searchIcon submitBackground suggestionRowLayout voiceIcon

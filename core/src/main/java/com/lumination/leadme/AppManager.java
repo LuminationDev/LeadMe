@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
+import android.content.res.Resources;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.util.Log;
@@ -330,7 +331,6 @@ public class AppManager extends BaseAdapter {
             e.printStackTrace();
             return null;
         }
-
         return convertView;
     }
 
@@ -344,6 +344,7 @@ public class AppManager extends BaseAdapter {
             myIcon = itemView.findViewById(R.id.app_icon);
         }
     }
+
 }
 
 

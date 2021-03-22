@@ -1,26 +1,21 @@
 
 package com.lumination.leadme;
 
-import android.Manifest;
 import android.accessibilityservice.AccessibilityService;
 import android.accessibilityservice.GestureDescription;
 import android.annotation.SuppressLint;
 import android.app.ActivityManager;
 import android.app.AlertDialog;
-import android.app.Notification;
 import android.content.BroadcastReceiver;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
-import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
-import android.graphics.ColorSpace;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.PixelFormat;
@@ -34,98 +29,81 @@ import android.hardware.display.DisplayManager;
 import android.media.AudioManager;
 import android.media.Image;
 import android.media.ImageReader;
+import android.media.MediaPlayer;
 import android.media.projection.MediaProjection;
 import android.media.projection.MediaProjectionManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.Looper;
 import android.os.Message;
 import android.os.PowerManager;
-import android.provider.Settings;
 import android.text.Editable;
 import android.text.TextWatcher;
-import android.util.Base64;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.ActionMode;
 import android.view.Display;
+import android.view.GestureDetector;
 import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.WindowManager;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.GridView;
+import android.widget.ImageSwitcher;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.MediaController;
+import android.widget.ScrollView;
 import android.widget.SearchView;
 import android.widget.SeekBar;
+import android.widget.TextSwitcher;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.widget.VideoView;
 import android.widget.ViewAnimator;
 import android.widget.ViewSwitcher;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.core.app.ActivityCompat;
 import androidx.core.content.res.ResourcesCompat;
+import androidx.core.view.GestureDetectorCompat;
 import androidx.fragment.app.FragmentActivity;
 import androidx.lifecycle.Lifecycle;
 import androidx.lifecycle.LifecycleObserver;
 import androidx.lifecycle.OnLifecycleEvent;
 
-import com.veer.hiddenshot.HiddenShot;
+import com.google.android.material.imageview.ShapeableImageView;
+import com.google.android.material.shape.CornerFamily;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.io.PrintWriter;
-import java.net.DatagramPacket;
-import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.net.SocketAddress;
-import java.net.SocketException;
-import java.net.URISyntaxException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
 import java.util.Set;
 import java.util.UUID;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadPoolExecutor;
 
-import eu.bolt.screenshotty.Screenshot;
-import eu.bolt.screenshotty.ScreenshotBitmap;
 import eu.bolt.screenshotty.ScreenshotManager;
 import eu.bolt.screenshotty.ScreenshotManagerBuilder;
-import eu.bolt.screenshotty.ScreenshotResult;
-import kotlin.Unit;
-import kotlin.jvm.functions.Function1;
 
 
 public class LeadMeMain extends FragmentActivity implements Handler.Callback, SensorEventListener, LifecycleObserver,SurfaceHolder.Callback {
@@ -741,6 +719,14 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                 startShakeDetection();
             }
         }
+        SharedPreferences sharedPreferences = getSharedPreferences(getResources().getString(R.string.preference_file_key), Context.MODE_PRIVATE);
+        //if a UUID exists, retrieve it
+        if (!sharedPreferences.contains("ONBOARD")) {
+            SharedPreferences.Editor editor = sharedPreferences.edit();
+            editor.putBoolean("ONBOARD", true);
+            editor.apply();
+            buildAndDisplayOnBoard();
+        }
     }
 
 
@@ -1289,16 +1275,42 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
         //add adapters for lists and grids
         //getLumiAccessibilityService();
-        ((GridView) appLauncherScreen.findViewById(R.id.app_list_grid)).setAdapter(getAppManager());
+        GridView appGrid =((GridView) appLauncherScreen.findViewById(R.id.app_list_grid));
+        appGrid.setAdapter(getAppManager());
+        ViewGroup.LayoutParams layoutParams = appGrid.getLayoutParams();
+        layoutParams.height = appGrid.getMeasuredHeight(); //this is in pixels
+        appGrid.setLayoutParams(layoutParams);
         ((GridView) appLauncherScreen.findViewById(R.id.fav_list_grid)).setAdapter(getFavouritesManager());
+        ((LinearLayout) appLauncherScreen.findViewById(R.id.current_task_layout)).setVisibility(View.GONE);
+        ((TextView) appLauncherScreen.findViewById(R.id.text_current_task)).setVisibility(View.GONE);
         ((ListView) startLearner.findViewById(R.id.leader_list_view)).setAdapter(getLeaderSelectAdapter());
+
+        ((ImageView)appLauncherScreen.findViewById(R.id.repush_btn)).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(lastLockState.equals(LOCK_TAG)) {
+                    getDispatcher().requestRemoteAppOpen(APP_TAG, lastAppID, String.valueOf(((TextView) appLauncherScreen.findViewById(R.id.text_current_task)).getText()), LOCK_TAG, getNearbyManager().getSelectedPeerIDsOrAll());
+                }else {
+                    getDispatcher().requestRemoteAppOpen(APP_TAG, lastAppID, String.valueOf(((TextView) appLauncherScreen.findViewById(R.id.text_current_task)).getText()), UNLOCK_TAG, getNearbyManager().getSelectedPeerIDsOrAll());
+                }
+            }
+        });
 
         mainLeader.findViewById(R.id.url_core_btn).setOnClickListener(v -> getWebManager().showWebLaunchDialog(false, false));
 
         mainLeader.findViewById(R.id.yt_core_btn).setOnClickListener(v -> getWebManager().showWebLaunchDialog(true, false));
 
+
+
         Button app_btn = mainLeader.findViewById(R.id.app_core_btn);
-        app_btn.setOnClickListener(v -> showAppLaunchScreen());
+        //app_btn.setOnClickListener(v -> showAppLaunchScreen());
+        app_btn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                showAppLaunchScreen();
+                ((ScrollView) appLauncherScreen.findViewById(R.id.app_scroll_view)).scrollTo(0,0);
+            }
+        });
 
         studentAlertsView = View.inflate(context, R.layout.d__alerts_list, null);
         ListView studentAlerts = studentAlertsView.findViewById(R.id.current_alerts_list);
@@ -1433,7 +1445,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
         //prepare elements for leader main view
         waitingForLearners = mainLeader.findViewById(R.id.no_students_connected);
-        appLauncherScreen = View.inflate(context, R.layout.d__app_list, null);
+        //appLauncherScreen = View.inflate(context, R.layout.d__app_list, null);
         confirmPushDialogView = View.inflate(context, R.layout.e__confirm_popup, null);
 
         confirmPushDialogView.findViewById(R.id.ok_btn).setOnClickListener(v -> hideConfirmPushDialog());
@@ -1522,7 +1534,20 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                 Toast.makeText(getApplicationContext(), "Capture rate: " + rate+" fps", Toast.LENGTH_SHORT).show();
             }
         });
-
+        mainLeader.findViewById(R.id.select_bar_back).setOnClickListener(v -> {
+            getConnectedLearnersAdapter().selectAllPeers(false);
+        });
+        CheckBox checkBox =mainLeader.findViewById(R.id.select_bar_selectall);
+        checkBox.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            if(isChecked){
+                getConnectedLearnersAdapter().selectAllPeers(true);
+            }else{
+                getConnectedLearnersAdapter().selectAllPeers(false);
+            }
+        });
+        mainLeader.findViewById(R.id.select_bar_repush).setOnClickListener(v -> {
+            getDispatcher().repushApp(getNearbyManager().getSelectedPeerIDs());
+        });
 
     }
 
@@ -2066,13 +2091,13 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
             switch (status) {
                 case ConnectedPeer.STATUS_LOCK:
-                    statusMsg += "LOCK mode.";
+                    statusMsg += getResources().getString( R.string.lock).toUpperCase()+" mode.";
                     break;
                 case ConnectedPeer.STATUS_BLACKOUT:
-                    statusMsg += "BLOCKED mode.";
+                    statusMsg += getResources().getString( R.string.block).toUpperCase()+" mode.";
                     break;
                 case ConnectedPeer.STATUS_UNLOCK:
-                    statusMsg += "UNLOCK mode.";
+                    statusMsg += getResources().getString( R.string.unlock).toUpperCase()+" mode.";
                     break;
                 default:
                     Log.e(TAG, "Invalid status: " + status);
@@ -2705,4 +2730,166 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     public void setScreenshotRate(int rate){
         screenshotRate=rate;
     }
+
+    public String lastAppID;
+    public String lastLockState;
+    public void updateLastTask(Drawable icon, String Name,String appID,String lock){
+        lastAppID=appID;
+        lastLockState=lock;
+        Log.d(TAG, "updateLastTask: "+Name);
+        ((LinearLayout) appLauncherScreen.findViewById(R.id.current_task_layout)).setVisibility(View.VISIBLE);
+        ((TextView) appLauncherScreen.findViewById(R.id.text_current_task)).setVisibility(View.VISIBLE);
+        ((ImageView) appLauncherScreen.findViewById(R.id.current_icon)).setImageDrawable(icon);
+        ((TextView) appLauncherScreen.findViewById(R.id.current_app_name)).setText(Name);
+        appLauncherScreen.invalidate();
+        updateLastOffTask();
+    }
+    public void updateLastOffTask(){
+        int offTask = getConnectedLearnersAdapter().alertsAdapter.getCount();
+        ((TextView) appLauncherScreen.findViewById(R.id.current_offtask)).setText(String.valueOf(offTask));
+    }
+    public void displaySelectBar(int numSelected){
+        boolean show =false;
+        if(numSelected>0){show=true;}
+        LinearLayout selectBar = mainLeader.findViewById(R.id.select_bar);
+        if(show){
+            selectBar.setVisibility(View.VISIBLE);
+        }else{
+            selectBar.setVisibility(View.GONE);
+        }
+        CompoundButton.OnCheckedChangeListener listener = (buttonView, isChecked) -> {
+            if(isChecked){
+                getConnectedLearnersAdapter().selectAllPeers(true);
+            }else{
+                getConnectedLearnersAdapter().selectAllPeers(false);
+            }
+        };
+        CheckBox checkBox =mainLeader.findViewById(R.id.select_bar_selectall);
+        checkBox.setOnCheckedChangeListener (null);
+        checkBox.setChecked(numSelected== getConnectedLearnersAdapter().getCount());
+        checkBox.setOnCheckedChangeListener (listener);
+
+
+    }
+    public int onBoardPage = 0;
+    public View OnBoard;
+    @SuppressLint("ClickableViewAccessibility")
+    private void buildAndDisplayOnBoard(){
+        Log.d(TAG, "buildAndDisplayOnBoard: ");
+        //check if has been displayed before
+        OnBoard = View.inflate(this, R.layout.c__onboarding, null);
+        VideoView video = OnBoard.findViewById(R.id.animation_view);
+        video.setBackgroundColor(Color.WHITE);
+        video.setVideoURI(Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.push_app));
+        video.requestFocus();
+        video.start();
+        video.setOnCompletionListener(mp -> video.start());
+        video.setOnPreparedListener(mp -> handler.postDelayed(() -> video.setBackgroundColor(Color.TRANSPARENT),100));
+
+
+        GestureDetector gestureDetector = new GestureDetector(this,new MyGestureDetector(this));
+        //TextSwitcher onBoardContent = OnBoard.findViewById(R.id.onBoard_content);
+        OnBoard.setOnTouchListener((v, event) -> {
+            if (gestureDetector.onTouchEvent(event)) {
+                return true;
+            }
+            return false;
+        });
+
+        ImageView[] buttons = {OnBoard.findViewById(R.id.oboard_btn_1),OnBoard.findViewById(R.id.oboard_btn_2),OnBoard.findViewById(R.id.oboard_btn_3),OnBoard.findViewById(R.id.oboard_btn_4),OnBoard.findViewById(R.id.oboard_btn_5)};
+        for(int i=0; i<buttons.length; i++){
+            int ind = i;
+            buttons[i].setOnClickListener(new View.OnClickListener() {
+                int index = ind;
+                @Override
+                public void onClick(View v) {
+                    setOnboardCurrent(index);
+                }
+            });
+        }
+        ImageView nextButton = OnBoard.findViewById(R.id.next_button);
+        nextButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                setOnboardCurrent(onBoardPage+1);
+
+            }
+        });
+        TextView skipIntro = OnBoard.findViewById(R.id.skip_intro);
+        skipIntro.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                setContentView(leadmeAnimator);
+            }
+        });
+        setOnboardCurrent(0);
+        this.setContentView(OnBoard);
+    }
+    public void setOnboardCurrent(int current){
+        Log.d(TAG, "setOnboardCurrent: ");
+        ImageView[] buttons = {OnBoard.findViewById(R.id.oboard_btn_1),OnBoard.findViewById(R.id.oboard_btn_2),OnBoard.findViewById(R.id.oboard_btn_3),OnBoard.findViewById(R.id.oboard_btn_4),OnBoard.findViewById(R.id.oboard_btn_5)};
+        String titleToShow[] = {"Welcome to LeadMe","Push Content","Play, View & Block","Select","Lead the Way"};
+        String textToShow[] = {"The class management tool that connects leaders and learners for a managed digital learning environment.",
+                "Select apps, URLs, and videos to push out to connected learner devices.",
+                "Restrict learner devices. 'View' mode allows display but disables touch. 'Block' mode disables both display and touch. 'Free' mode allows full access within the pushed app.",
+                "Tap the active learner icons to select and manage learners individually",
+                "To finish a task, tap the LeadMe icon to return your learners to LeadMe\n" +
+                        "Select learn more to discover the full range of features LeadMe has to offer!"};
+        Animation in = AnimationUtils.makeInAnimation (this, false);
+        Animation out = AnimationUtils.makeOutAnimation (this, false);
+        TextSwitcher onBoardTitle = OnBoard.findViewById(R.id.onBoard_title);
+        TextSwitcher onBoardContent = OnBoard.findViewById(R.id.onBoard_content);
+        onBoardContent.setInAnimation(in);
+        onBoardContent.setOutAnimation(out);
+        onBoardTitle.setInAnimation(in);
+        onBoardTitle.setOutAnimation(out);
+
+        VideoView video = OnBoard.findViewById(R.id.animation_view);
+        TextView skipIntro = OnBoard.findViewById(R.id.skip_intro);
+        ImageView nextButton = OnBoard.findViewById(R.id.next_button);
+        LinearLayout buttons_layout = OnBoard.findViewById(R.id.onboard_buttons);
+        buttons_layout.setVisibility(View.GONE);
+        if(current<onBoardPage){
+            onBoardContent.setInAnimation(AnimationUtils.makeInAnimation (getApplicationContext(), true));
+            onBoardContent.setOutAnimation(AnimationUtils.makeOutAnimation (getApplicationContext(), true));
+            onBoardTitle.setInAnimation(AnimationUtils.makeInAnimation (getApplicationContext(), true));
+            onBoardTitle.setOutAnimation(AnimationUtils.makeOutAnimation (getApplicationContext(), true));
+        }else if(current>onBoardPage){
+            onBoardContent.setInAnimation(AnimationUtils.makeInAnimation (getApplicationContext(), false));
+            onBoardContent.setOutAnimation(AnimationUtils.makeOutAnimation (getApplicationContext(), false));
+            onBoardTitle.setInAnimation(AnimationUtils.makeInAnimation (getApplicationContext(), false));
+            onBoardTitle.setOutAnimation(AnimationUtils.makeOutAnimation (getApplicationContext(), false));
+        }else{
+            return;
+        }
+        onBoardPage=current;
+        for(int j=0; j<buttons.length; j++){
+            if(j!=onBoardPage){
+                buttons[j].setImageTintList(getResources().getColorStateList(R.color.leadme_medium_grey,null));
+            }else{
+                buttons[j].setImageTintList(getResources().getColorStateList(R.color.leadme_blue,null));
+            }
+        }
+        if(onBoardPage<=4) {
+            onBoardTitle.setText(titleToShow[onBoardPage]);
+            onBoardContent.setText(textToShow[onBoardPage]);
+            //  pageHolder.setImageResource(imageToDraw[index]);
+            if(onBoardPage==4){
+                skipIntro.setVisibility(View.GONE);
+                nextButton.setVisibility(View.GONE);
+                buttons_layout.setVisibility(View.VISIBLE);
+                OnBoard.findViewById(R.id.onboard_ok_btn).setOnClickListener(v1 -> {
+                    video.setBackgroundColor(Color.WHITE);
+                    handler.postDelayed(() -> setContentView(leadmeAnimator),50);
+
+                });
+                OnBoard.findViewById(R.id.onboard_moreinfo_btn).setOnClickListener(v1 -> setContentView(leadmeAnimator));
+            }else{
+                skipIntro.setVisibility(View.VISIBLE);
+                nextButton.setVisibility(View.VISIBLE);
+                buttons_layout.setVisibility(View.GONE);
+            }
+        }
+    }
+
 }

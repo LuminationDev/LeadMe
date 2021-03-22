@@ -99,7 +99,7 @@ public class ConnectedPeer {
         }
     }
 
-    String lastApp = "none";
+    public String lastApp = "none";
 
     public void setLastLaunchedApp(String lastApp) {
         this.lastApp = lastApp;

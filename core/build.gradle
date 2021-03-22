@@ -44,6 +44,9 @@ dependencies {
     //for screenshots
     implementation 'eu.bolt:screenshotty:1.0.3'
     implementation 'com.github.karanvs:hiddenshot:v1.2'
+
+    implementation 'com.pkmmte.view:circularimageview:1.1'
+    implementation 'com.jackandphantom.android:circularimageview:1.2.0'
 }
 
 configurations.all {

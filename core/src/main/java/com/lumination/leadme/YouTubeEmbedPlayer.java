@@ -592,7 +592,7 @@ public class YouTubeEmbedPlayer {
         youtubePreviewWebView.getSettings().setJavaScriptCanOpenWindowsAutomatically(true);
         youtubePreviewWebView.addJavascriptInterface(this, "Android");
 
-        lockSpinnerParent = youtubeSettingsDialogView.findViewById(R.id.spinner_parent);
+        lockSpinnerParent = youtubeSettingsDialogView.findViewById(R.id.lock_spinner);
         lockSpinner = (Spinner) youtubeSettingsDialogView.findViewById(R.id.push_spinner);
         lockSpinnerItems = new String[2];
         lockSpinnerItems[0] = "Lock students";

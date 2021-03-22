@@ -11,7 +11,6 @@ import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
-import android.os.Looper;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.View;
@@ -35,9 +34,7 @@ import com.lumination.leadme.linkpreview.LinkPreviewCallback;
 import com.lumination.leadme.linkpreview.SourceContent;
 import com.lumination.leadme.linkpreview.TextCrawler;
 
-import java.net.UnknownHostException;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -92,7 +89,7 @@ public class WebManager {
         searchDialogView = View.inflate(main, R.layout.e__preview_url_search, null);
 
         //set up lock spinner
-        lockSpinnerParent = previewDialogView.findViewById(R.id.spinner_parent);
+        lockSpinnerParent = previewDialogView.findViewById(R.id.lock_spinner);
         lockSpinner = (Spinner) previewDialogView.findViewById(R.id.push_spinner);
         lockSpinnerItems = new String[2];
         lockSpinnerItems[0] = "Lock students";
