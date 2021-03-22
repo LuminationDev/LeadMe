@@ -19,7 +19,6 @@
         android:layout_gravity="center"
         android:layout_marginTop="5dp"
         android:layout_marginBottom="5dp"
-        android:background="@drawable/rounded_btn_white"
         android:contentDescription="@string/icon_desc"
         android:elevation="5dp"
         android:foregroundGravity="center"

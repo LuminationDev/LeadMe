@@ -27,7 +27,7 @@ public class ConnectedLearnersAdapter extends BaseAdapter {
     private LeadMeMain main;
     private View studentDisconnectedView;
     private View studentLogoutView;
-    private StudentAlertsAdapter alertsAdapter;
+    public StudentAlertsAdapter alertsAdapter;
 
     ConnectedLearnersAdapter(LeadMeMain main, List<ConnectedPeer> data, StudentAlertsAdapter alertsAdapter) {
         this.main = main;
@@ -56,6 +56,7 @@ public class ConnectedLearnersAdapter extends BaseAdapter {
         refreshAlertsView();
         notifyDataSetChanged();
         super.notifyDataSetChanged();
+        main.displaySelectBar(getSelectedCount());
     }
 
     public void alertStudentDisconnect(String id) {
@@ -433,7 +434,15 @@ public class ConnectedLearnersAdapter extends BaseAdapter {
         peer.setSelected(selected);
         refresh();
     }
-
+    public int getSelectedCount(){
+        int count=0;
+        for (ConnectedPeer peer : mData) {
+            if (peer.isSelected()) {
+                count++;
+            }
+        }
+        return count;
+    }
     public boolean someoneIsSelected() {
         for (ConnectedPeer peer : mData) {
             if (peer.isSelected()) {

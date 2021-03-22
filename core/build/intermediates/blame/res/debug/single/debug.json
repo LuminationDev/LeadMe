@@ -1,15 +1,15 @@
 [
     {
-        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/drawable_shadow_gradient.xml.flat",
-        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/drawable/shadow_gradient.xml"
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/drawable_controls_lock.xml.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/drawable/controls_lock.xml"
     },
     {
         "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/mipmap-mdpi_leadme_icon_round.png.flat",
         "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/mipmap-mdpi/leadme_icon_round.png"
     },
     {
-        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/drawable_controls_lock.xml.flat",
-        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/drawable/controls_lock.xml"
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/drawable_shadow_gradient.xml.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/drawable/shadow_gradient.xml"
     },
     {
         "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/drawable_lumi_video_progress.xml.flat",
@@ -64,8 +64,20 @@
         "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/drawable/alert_locked.xml"
     },
     {
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/drawable_ic_pages_1.xml.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/drawable/ic_pages_1.xml"
+    },
+    {
         "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/drawable_placeholder_broken_img.xml.flat",
         "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/drawable/placeholder_broken_img.xml"
+    },
+    {
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/drawable_toggle_track.xml.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/drawable/toggle_track.xml"
+    },
+    {
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/layout_e_error_dialog.xml.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/layout/e_error_dialog.xml"
     },
     {
         "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/drawable_circle_btn.xml.flat",
@@ -84,6 +96,10 @@
         "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/drawable/vid_unmute.xml"
     },
     {
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/raw_embed_within_player.html.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/raw/embed_within_player.html"
+    },
+    {
         "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/layout_e__logout_student_popup.xml.flat",
         "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/layout/e__logout_student_popup.xml"
     },
@@ -96,8 +112,8 @@
         "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/drawable/down_arrow.xml"
     },
     {
-        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/raw_embed_player.html.flat",
-        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/raw/embed_player.html"
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/raw_push_app.mp4.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/raw/push_app.mp4"
     },
     {
         "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/drawable_vid_captions_disabled.xml.flat",
@@ -140,8 +156,16 @@
         "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/drawable/bg_active.xml"
     },
     {
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/raw_welcome.mp4.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/raw/welcome.mp4"
+    },
+    {
         "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/drawable_search_yt.xml.flat",
         "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/drawable/search_yt.xml"
+    },
+    {
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/layout_f__selection_popup_within.xml.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/layout/f__selection_popup_within.xml"
     },
     {
         "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/mipmap-xhdpi_leadme_icon_round.png.flat",
@@ -164,6 +188,10 @@
         "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/layout/c__learner_main.xml"
     },
     {
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/layout_f__playback_settings_youtube.xml.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/layout/f__playback_settings_youtube.xml"
+    },
+    {
         "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/drawable_alert_warning.xml.flat",
         "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/drawable/alert_warning.xml"
     },
@@ -172,12 +200,24 @@
         "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/layout/d__options_menu.xml"
     },
     {
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/drawable_icon_list_right.xml.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/drawable/icon_list_right.xml"
+    },
+    {
         "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/drawable_video_bg_highlight.xml.flat",
         "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/drawable/video_bg_highlight.xml"
     },
     {
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/raw_play_view_block.mp4.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/raw/play_view_block.mp4"
+    },
+    {
         "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/mipmap-xxxhdpi_lumination_logo_reverse.png.flat",
         "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/mipmap-xxxhdpi/lumination_logo_reverse.png"
+    },
+    {
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/drawable_icon_restart_dark.xml.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/drawable/icon_restart_dark.xml"
     },
     {
         "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/layout_e__fav_clear_confirmation_popup.xml.flat",
@@ -206,6 +246,14 @@
     {
         "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/drawable_icon_fav_remove.xml.flat",
         "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/drawable/icon_fav_remove.xml"
+    },
+    {
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/drawable_icon_download.xml.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/drawable/icon_download.xml"
+    },
+    {
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/drawable_icon_list_down.xml.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/drawable/icon_list_down.xml"
     },
     {
         "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/mipmap-xxxhdpi_leadme_icon_foreground.png.flat",
@@ -240,12 +288,16 @@
         "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/drawable/wifi_connected_icon.xml"
     },
     {
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/drawable_core_app_icon.xml.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/drawable/core_app_icon.xml"
+    },
+    {
         "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/drawable_core_select.xml.flat",
         "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/drawable/core_select.xml"
     },
     {
-        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/drawable_core_app_icon.xml.flat",
-        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/drawable/core_app_icon.xml"
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/drawable_bg_repush.xml.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/drawable/bg_repush.xml"
     },
     {
         "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/drawable_shake_left.xml.flat",
@@ -268,6 +320,10 @@
         "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/drawable/bg_passive_right_white.xml"
     },
     {
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/raw_recall.mp4.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/raw/recall.mp4"
+    },
+    {
         "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/drawable_alert_downloading.xml.flat",
         "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/drawable/alert_downloading.xml"
     },
@@ -280,8 +336,24 @@
         "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/drawable/bg_highlight_roundeduppercorners.xml"
     },
     {
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/drawable_ic_pages__4.xml.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/drawable/ic_pages__4.xml"
+    },
+    {
         "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/drawable_arrow_icon.xml.flat",
         "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/drawable/arrow_icon.xml"
+    },
+    {
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/drawable_image_round.xml.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/drawable/image_round.xml"
+    },
+    {
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/drawable_rounded_popup_white_url.xml.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/drawable/rounded_popup_white_url.xml"
+    },
+    {
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/drawable_icon_info.xml.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/drawable/icon_info.xml"
     },
     {
         "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/layout_e__waiting_to_connect.xml.flat",
@@ -290,6 +362,10 @@
     {
         "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/layout_e__preview_app_push.xml.flat",
         "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/layout/e__preview_app_push.xml"
+    },
+    {
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/raw_overlay_permission.mp4.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/raw/overlay_permission.mp4"
     },
     {
         "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/layout_e__edit_favourites.xml.flat",
@@ -302,6 +378,10 @@
     {
         "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/layout_row_leader.xml.flat",
         "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/layout/row_leader.xml"
+    },
+    {
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/drawable_ic_roundbutton_shadow.xml.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/drawable/ic_roundbutton_shadow.xml"
     },
     {
         "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/layout_e__recall_confirm_popup.xml.flat",
@@ -320,6 +400,10 @@
         "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/layout/row_search_spinner.xml"
     },
     {
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/raw_embed_yt_player.html.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/raw/embed_yt_player.html"
+    },
+    {
         "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/drawable_controls_unlock.xml.flat",
         "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/drawable/controls_unlock.xml"
     },
@@ -328,16 +412,24 @@
         "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/drawable/student_select_border.xml"
     },
     {
-        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/drawable_task_vr_icon.xml.flat",
-        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/drawable/task_vr_icon.xml"
-    },
-    {
         "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/layout_row_fav_app.xml.flat",
         "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/layout/row_fav_app.xml"
     },
     {
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/drawable_task_vr_icon.xml.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/drawable/task_vr_icon.xml"
+    },
+    {
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/raw_select.mp4.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/raw/select.mp4"
+    },
+    {
         "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/drawable_follow_leader.xml.flat",
         "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/drawable/follow_leader.xml"
+    },
+    {
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/raw_access_permission.mp4.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/raw/access_permission.mp4"
     },
     {
         "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/mipmap-xhdpi_leadme_icon.png.flat",
@@ -350,6 +442,10 @@
     {
         "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/layout_row_fav_url.xml.flat",
         "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/layout/row_fav_url.xml"
+    },
+    {
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/layout_f__playback_settings_within.xml.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/layout/f__playback_settings_within.xml"
     },
     {
         "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/drawable_bg_active_right_leader.xml.flat",
@@ -382,6 +478,10 @@
     {
         "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/drawable_icon_clear.xml.flat",
         "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/drawable/icon_clear.xml"
+    },
+    {
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/drawable_bg_black.xml.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/drawable/bg_black.xml"
     },
     {
         "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/font_poppins.xml.flat",
@@ -424,6 +524,10 @@
         "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/mipmap-xxhdpi/leadme_icon_foreground.png"
     },
     {
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/drawable_ic_pages__3.xml.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/drawable/ic_pages__3.xml"
+    },
+    {
         "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/drawable_vid_mute.xml.flat",
         "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/drawable/vid_mute.xml"
     },
@@ -440,6 +544,10 @@
         "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/drawable/connected_student.xml"
     },
     {
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/drawable_toggle_thumb.xml.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/drawable/toggle_thumb.xml"
+    },
+    {
         "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/mipmap-hdpi_leadme_icon.png.flat",
         "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/mipmap-hdpi/leadme_icon.png"
     },
@@ -452,8 +560,16 @@
         "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/mipmap-hdpi/leadme_icon_foreground.png"
     },
     {
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/drawable_ic_pages__2.xml.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/drawable/ic_pages__2.xml"
+    },
+    {
         "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/drawable_core_yt_icon.xml.flat",
         "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/drawable/core_yt_icon.xml"
+    },
+    {
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/drawable_icon_repush.xml.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/drawable/icon_repush.xml"
     },
     {
         "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/drawable_icon_cast.xml.flat",
@@ -492,12 +608,12 @@
         "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/drawable/dusk_background.xml"
     },
     {
-        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/layout_e__currently_streaming_popup.xml.flat",
-        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/layout/e__currently_streaming_popup.xml"
-    },
-    {
         "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/layout_row_student_alert.xml.flat",
         "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/layout/row_student_alert.xml"
+    },
+    {
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/layout_c__onboarding_student.xml.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/layout/c__onboarding_student.xml"
     },
     {
         "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/mipmap-anydpi-v26_leadme_icon.xml.flat",
@@ -512,8 +628,16 @@
         "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/drawable/icon_fav_add.xml"
     },
     {
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/drawable_ic_arrow.xml.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/drawable/ic_arrow.xml"
+    },
+    {
         "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/layout_b__start_learner.xml.flat",
         "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/layout/b__start_learner.xml"
+    },
+    {
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/layout_f__control_playback_youtube.xml.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/layout/f__control_playback_youtube.xml"
     },
     {
         "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/mipmap-xxhdpi_leadme_icon_round.png.flat",
@@ -530,6 +654,10 @@
     {
         "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/font_poppins_semibold.ttf.flat",
         "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/font/poppins_semibold.ttf"
+    },
+    {
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/drawable_ic_pages__5.xml.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/drawable/ic_pages__5.xml"
     },
     {
         "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/mipmap-mdpi_leadme_icon.png.flat",
@@ -552,12 +680,24 @@
         "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/drawable/vid_rewind.xml"
     },
     {
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/drawable_bg_disabled.xml.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/drawable/bg_disabled.xml"
+    },
+    {
         "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/drawable_vid_more.xml.flat",
         "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/drawable/vid_more.xml"
     },
     {
         "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/layout_d__alerts_list.xml.flat",
         "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/layout/d__alerts_list.xml"
+    },
+    {
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/layout_c__onboarding.xml.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/layout/c__onboarding.xml"
+    },
+    {
+        "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/drawable_icon_stream.xml.flat",
+        "source": "/Users/jakelund/Documents/GitHub/LeadMe/core/src/main/res/drawable/icon_stream.xml"
     },
     {
         "merged": "/Users/jakelund/Documents/GitHub/LeadMe/core/build/intermediates/res/merged/debug/drawable_task_website_icon.xml.flat",

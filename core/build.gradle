@@ -29,6 +29,7 @@ dependencies {
 
     //for nearby connections
     implementation 'com.google.android.gms:play-services-nearby:17.0.0'
+    implementation 'androidx.constraintlayout:constraintlayout:2.0.4'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.1.0'
 
     //for permissions manager
@@ -43,6 +44,9 @@ dependencies {
     //for screenshots
     implementation 'eu.bolt:screenshotty:1.0.3'
     implementation 'com.github.karanvs:hiddenshot:v1.2'
+
+    implementation 'com.pkmmte.view:circularimageview:1.1'
+    implementation 'com.jackandphantom.android:circularimageview:1.2.0'
 }
 
 configurations.all {

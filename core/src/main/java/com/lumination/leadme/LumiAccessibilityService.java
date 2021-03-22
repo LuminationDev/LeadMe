@@ -91,13 +91,13 @@ public class LumiAccessibilityService extends AccessibilityService {
     }
 
 
-    private void sendInfoBroadcast(String tagInfo) {
+    public void sendInfoBroadcast(String tagInfo) {
         //Log.w(TAG, "Sending INFO broadcast");
         Intent intent = new Intent();
         intent.setAction(BROADCAST_ACTION);
         intent.addFlags(Intent.FLAG_INCLUDE_STOPPED_PACKAGES);
         //intent.setComponent(new ComponentName(getPackageName(), LumiAccessibilityReceiver.class.getName()));
-        intent.setComponent(new ComponentName("com.lumination.leadme", "com.lumination.leadme.LumiAccessibilityReceiver"));
+        intent.setComponent(new ComponentName(getPackageName(), LumiAccessibilityReceiver.class.getName()));
         Bundle data = new Bundle();
         //data.putString(LumiAccessibilityService.INFO_TAG, tagInfo);
         data.putString(INFO_TAG, tagInfo);
@@ -107,7 +107,15 @@ public class LumiAccessibilityService extends AccessibilityService {
 
     @Override
     public void onAccessibilityEvent(final AccessibilityEvent event) {
-        //Log.w(TAG, "Sending ACCESSIBILITY broadcast! " + getApplicationContext() + ", " + event);
+//        AccessibilityNodeInfo ani = event.getSource();
+//        Log.w(TAG, "A1] " + ani + " // " + getRootInActiveWindow());
+//        if (ani != null) {
+//            ani.refresh(); // to fix issue with viewIdResName = null on Android 6+
+//        }
+//        Log.w(TAG, "A2] " + ani + " // " + getRootInActiveWindow());
+//
+//        AccessibilityNodeInfo source = findFocus(AccessibilityNodeInfo.FOCUS_INPUT);
+//        Log.w(TAG, "A3] " + source + " // " + getRootInActiveWindow());
 
         if (getApplicationContext() == null) {
             //app is not currently running, can't do anything right now
@@ -128,6 +136,14 @@ public class LumiAccessibilityService extends AccessibilityService {
             rootInActiveWindow = getRootInActiveWindow();
         }
 
+        if (rootInActiveWindow == null) {
+            rootInActiveWindow = findFocus(AccessibilityNodeInfo.FOCUS_INPUT);
+        }
+
+        if (rootInActiveWindow == null) {
+            rootInActiveWindow = event.getSource();
+        }
+
         Intent intent = new Intent();
         intent.setAction(BROADCAST_ACTION);
         //intent.addFlags(Intent.FLAG_INCLUDE_STOPPED_PACKAGES);
@@ -140,11 +156,15 @@ public class LumiAccessibilityService extends AccessibilityService {
         intent.putExtras(data);
 
         try {
+            //Log.w(TAG, "BROADCASTING: " + event+" // "+rootInActiveWindow);
             sendBroadcast(intent);
         } catch (Exception e) {
             Log.e(TAG, "Failed to broadcast from accessibility: " + event + ", " + getRootInActiveWindow());
             e.printStackTrace();
         }
+    }
+    public void updateOnBoard(LeadMeMain main){
+        main.setStudentOnBoard(1);
     }
 
 }

@@ -28,5 +28,23 @@
     <style name="MatchSpinnerTheme" parent="android:Theme.Holo.Light.NoActionBar.Fullscreen">
         <item name="android:dropDownListViewStyle">@style/MatchSpinnerStyle</item>
     </style>
+    <style name="popupStyle">
+        <item name="android:popupBackground">@drawable/rounded_popup_white</item>
+    </style>
+    <style name="LeadMeFloat" parent="android:Theme.Holo.Light">
+    </style>
+    <style name="circleImageView" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">50%</item>
+    </style>
+    <style name="DialogTheme" parent="android:Theme.Dialog">
+
+        <item name="android:layout_width">fill_parent</item>
+        <item name="android:layout_height">fill_parent</item>
+        <!-- No backgrounds, titles or window float -->
+        <item name="android:windowBackground">@null</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:windowIsFloating">false</item>
+    </style>
 
 </resources>

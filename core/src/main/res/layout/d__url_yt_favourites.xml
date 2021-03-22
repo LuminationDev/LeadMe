@@ -57,7 +57,7 @@
             android:drawablePadding="10dp"
             android:fontFamily="@font/poppins_semibold"
             android:foregroundGravity="center_vertical"
-            android:text="@string/clear_all"
+            android:text="@string/clear"
             android:textColor="@color/leadme_darkest_grey"
             android:textSize="12sp" />
 

@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="fill_parent"
+    android:layout_height="wrap_content"
+    android:layout_centerInParent="true"
+    android:layout_centerHorizontal="true"
+    android:layout_centerVertical="true"
+    android:background="@drawable/rounded_popup_white"
+    android:gravity="center"
+    android:orientation="vertical"
+    android:showDividers="middle|beginning|end">
+
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:gravity="center|center_horizontal"
+        android:orientation="horizontal"
+        android:paddingStart="10dp"
+        android:paddingEnd="10dp">
+
+        <ImageView
+            android:id="@+id/web_back_btn"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:src="@drawable/arrow_icon" />
+
+        <TextView
+            android:id="@+id/title"
+            android:layout_width="wrap_content"
+            android:layout_height="50dp"
+            android:layout_gravity="center_vertical"
+            android:layout_weight="1"
+            android:fontFamily="@font/poppins_semibold"
+            android:foregroundGravity="center_vertical"
+            android:gravity="center_horizontal|center_vertical"
+            android:includeFontPadding="false"
+            android:padding="10dp"
+            android:text="Search Within VR"
+            android:textAlignment="center"
+            android:textSize="16sp" />
+
+        <ImageView
+            android:id="@+id/spacer"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:src="@drawable/arrow_icon"
+            android:visibility="invisible" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/preview_view"
+        android:layout_width="fill_parent"
+        android:layout_height="match_parent"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:showDividers="middle|beginning|end"
+        android:visibility="visible">
+
+
+        <WebView
+            android:id="@+id/within_webview"
+            android:layout_width="match_parent"
+            android:layout_height="380dp"
+            android:background="@color/leadme_black">
+
+        </WebView>
+
+        <TextView
+            android:id="@+id/no_internet"
+            android:layout_width="fill_parent"
+            android:layout_height="350dp"
+            android:background="@color/leadme_darkest_grey"
+            android:drawableBottom="@drawable/icon_restart"
+            android:drawablePadding="20dp"
+            android:fontFamily="@font/poppins_semibold"
+            android:gravity="center"
+            android:padding="50dp"
+            android:text="Internet unavailable\n\nPlease check your connection and tap to retry."
+            android:textColor="@color/leadme_white"
+            android:textSize="16sp"
+            android:visibility="gone" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/within_playback_btns"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:orientation="vertical"
+        android:paddingBottom="10dp">
+
+        <CheckBox
+            android:id="@+id/fav_checkbox"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="10dp"
+            android:layout_marginBottom="20dp"
+            android:layout_weight="1"
+            android:button="@drawable/star_checkbox"
+            android:checked="false"
+            android:fontFamily="@font/poppins_semibold"
+            android:includeFontPadding="false"
+            android:paddingStart="5dp"
+            android:paddingEnd="5dp"
+            android:text="@string/add_to_favourites"
+            android:textColor="@color/leadme_black"
+            android:textSize="14sp" />
+
+        <Button
+            android:id="@+id/select_btn"
+            style="?android:attr/borderlessButtonStyle"
+            android:layout_width="@dimen/standard_btn_width"
+            android:layout_height="@dimen/standard_btn_height"
+            android:layout_gravity="center_horizontal"
+            android:background="@drawable/bg_disabled"
+            android:focusable="true"
+            android:fontFamily="@font/poppins_semibold"
+            android:text="Select"
+            android:textAllCaps="false"
+            android:textColor="@color/leadme_white"
+            android:textSize="16sp"
+            app:layout_gravity="center_horizontal" />
+
+        <Space
+            android:layout_width="52dp"
+            android:layout_height="match_parent" />
+
+        <Button
+            android:id="@+id/within_back"
+            style="?android:attr/borderlessButtonStyle"
+            android:layout_width="@dimen/standard_btn_width"
+            android:layout_height="@dimen/standard_btn_height"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="10dp"
+            android:layout_marginBottom="15dp"
+            android:background="@drawable/bg_passive"
+            android:clickable="true"
+            android:focusable="true"
+            android:fontFamily="@font/poppins_semibold"
+            android:text="@string/back"
+            android:textAllCaps="false"
+            android:textColor="@color/leadme_darkest_grey"
+            android:textSize="16sp" />
+
+    </LinearLayout>
+
+</LinearLayout>
