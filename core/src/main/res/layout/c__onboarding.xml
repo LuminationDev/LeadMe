@@ -76,18 +76,21 @@
             android:layout_weight="5">
 
             <TextView
-                android:layout_width="match_parent"
+                android:layout_width="250dp"
                 android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
                 android:layout_marginLeft="30dp"
                 android:layout_marginRight="30dp"
                 android:layout_marginBottom="20dp"
                 android:fontFamily="@font/poppins_regular"
                 android:gravity="center_horizontal"
+                android:maxWidth="350dp"
                 android:text="The class management tool that connects leaders and learners for a managed digital learning environment." />
 
             <TextView
-                android:layout_width="match_parent"
+                android:layout_width="250dp"
                 android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
                 android:layout_marginLeft="30dp"
                 android:layout_marginRight="30dp"
                 android:layout_marginBottom="20dp"

@@ -260,6 +260,13 @@ networkAdapter.stopAdvertising();
         byte[] b = p.marshall();
         String test = null;
         ArrayList<String> selectedString = new ArrayList<>(endpoints);
+        if(selectedString.size()==0 && !main.isGuide){
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                String encoded = Base64.getEncoder().encodeToString(b);
+                networkAdapter.sendToServer(encoded, "ACTION");
+            }
+            return;
+        }
         if(selectedString.get(0).equals("-1") && !main.isGuide){
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 String encoded = Base64.getEncoder().encodeToString(b);

@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/leadme_white"
@@ -114,10 +115,14 @@
 
                 <SeekBar
                     android:id="@+id/screen_capture_rate"
+                    android:progressTint="@color/leadme_blue"
+                    android:thumbTint="@color/leadme_blue"
                     android:layout_width="fill_parent"
                     android:layout_height="wrap_content"
+                    android:buttonTint="@color/leadme_blue"
                     android:max="100"
-                    android:progress="1" />
+                    android:progress="1"
+                    tools:visibility="visible" />
             </LinearLayout>
 
         </LinearLayout>
@@ -146,7 +151,8 @@
             android:text="Automatically check for updates"
             android:textColor="@color/leadme_black"
             android:textSize="16sp"
-            android:visibility="visible" />
+            android:visibility="visible"
+            android:buttonTint="@color/leadme_blue"/>
 
         <CheckBox
             android:id="@+id/auto_install_checkbox"
@@ -161,7 +167,8 @@
             android:text="Auto-install missing apps"
             android:textColor="@color/leadme_black"
             android:textSize="16sp"
-            android:visibility="gone" />
+            android:visibility="gone"
+            android:buttonTint="@color/leadme_blue"/>
 
         <TextView
             android:id="@+id/help_title"

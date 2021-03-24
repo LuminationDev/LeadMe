@@ -1,17 +1,25 @@
 package com.lumination.leadme;
 
+import android.Manifest;
+import android.app.Activity;
 import android.content.Context;
+import android.content.pm.PackageManager;
 import android.net.nsd.NsdManager;
 import android.net.nsd.NsdServiceInfo;
 import android.os.Build;
+import android.os.Handler;
+import android.os.Looper;
 import android.os.Parcel;
 import android.util.Log;
 import android.view.View;
+
+import androidx.core.app.ActivityCompat;
 
 import com.google.android.gms.nearby.connection.Payload;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
@@ -165,7 +173,9 @@ public class NetworkAdapter {
         @Override
         public void onResolveFailed(NsdServiceInfo serviceInfo, int errorCode) {
             Log.e(TAG, "Resolve failed" + errorCode);
-
+            if(errorCode==3){
+                mNsdManager.resolveService(serviceInfo, new resListener());
+            }
             return;
         }
 
@@ -180,7 +190,9 @@ public class NetworkAdapter {
             }
             Log.d(TAG, "onServiceResolved: " + serviceInfo);
             mService = serviceInfo;
-            discoveredLeaders.add(serviceInfo);
+            if(!discoveredLeaders.contains(serviceInfo)){
+                discoveredLeaders.add(serviceInfo);
+            }
             List<String> leader = Arrays.asList(serviceInfo.getServiceName().split("#"));
 
             //add to the leaders list
@@ -193,7 +205,7 @@ public class NetworkAdapter {
     }
 
     /*
-    Initialises the registration listener allowing us to register the service
+    Initilises the registraion listener allowing us to register the service
      */
     public void initializeRegistrationListener() {
         if(mRegistrationListener==null) {
@@ -543,7 +555,7 @@ public class NetworkAdapter {
                     Log.d(TAG, "messageRecievedFromServer: "+inputList.get(1));
                 }else {
                     if (inputList.get(1).equals("STOP")) {
-                        main.takeScreenshots=false;
+                        //main.takeScreenshots=false;
                         main.stopServer();
                         main.stopScreenshotRunnable();
                     } else {

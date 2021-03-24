@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:background="@color/leadme_white"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    app:layout_constraintBottom_toBottomOf="parent"
+    app:layout_constraintEnd_toEndOf="parent"
+    app:layout_constraintStart_toStartOf="parent"
+    app:layout_constraintTop_toTopOf="parent">
+
+    <ImageView
+        android:id="@+id/leadme_logo"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="50dp"
+        android:padding="30dp"
+        android:scaleX="1.5"
+        android:scaleY="1.5"
+        android:src="@drawable/primary_logo"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <LinearLayout
+        android:id="@+id/rego_code"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:orientation="vertical"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/leadme_logo">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="30dp"
+            android:layout_marginRight="30dp"
+            android:fontFamily="@font/poppins_regular"
+            android:gravity="center|left"
+            android:text="Please enter your 6 character registration code. (We would have emailed this to you or your ITC contact.)" />
+
+        <EditText
+            android:id="@+id/rego_code_box"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginLeft="30dp"
+            android:layout_marginTop="15dp"
+            android:layout_marginRight="30dp"
+            android:layout_marginBottom="15dp"
+            android:accessibilityTraversalAfter="@id/codeInput1"
+            android:accessibilityTraversalBefore="@id/back_btn"
+            android:autofillHints=""
+            android:background="@drawable/rounded_btn_highlight"
+            android:digits="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ _"
+            android:focusableInTouchMode="true"
+            android:fontFamily="@font/poppins_regular"
+            android:gravity="left"
+            android:hint="XXXXXX"
+            android:imeOptions="actionNext"
+            android:inputType="textPersonName|textCapWords"
+            android:maxLines="1"
+            android:paddingLeft="5dp"
+            android:paddingTop="5dp"
+            android:paddingBottom="5dp"
+            android:singleLine="true"
+            android:textColorHint="@color/leadme_medium_grey"
+            android:textSize="16sp"
+            android:visibility="visible"></EditText>
+
+        <TextView
+            android:id="@+id/rego_lost_code"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="right"
+            android:layout_marginRight="30dp"
+            android:fontFamily="@font/poppins_semibold"
+            android:text="I've lost my code"
+            android:textColor="@color/leadme_blue" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="30dp"
+            android:fontFamily="@font/poppins_semibold"
+            android:text="*This code may be restricted to a number of uses. Take care before registering!" />
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_margin="15dp"
+            android:gravity="center"
+            android:orientation="vertical"
+            tools:visibility="visible">
+
+            <Button
+                android:id="@+id/rego_enter"
+                style="?android:attr/borderlessButtonStyle"
+                android:layout_width="@dimen/standard_btn_width"
+                android:layout_height="@dimen/standard_btn_height"
+                android:layout_gravity="center_horizontal"
+                android:accessibilityTraversalAfter="@id/back_btn"
+                android:accessibilityTraversalBefore="@id/codeInput4"
+                android:background="@drawable/bg_active"
+                android:clickable="true"
+                android:focusable="true"
+                android:fontFamily="@font/poppins_semibold"
+                android:text="Enter"
+                android:textAllCaps="false"
+                android:textColor="@color/leadme_white"
+                android:textSize="16sp" />
+
+            <Button
+                android:id="@+id/rego_back"
+                style="?android:attr/borderlessButtonStyle"
+                android:layout_width="@dimen/standard_btn_width"
+                android:layout_height="@dimen/standard_btn_height"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginTop="10dp"
+                android:background="@drawable/bg_passive"
+                android:clickable="true"
+                android:focusable="true"
+                android:fontFamily="@font/poppins_semibold"
+                android:text="Back"
+                android:textAllCaps="false"
+                android:textColor="@color/leadme_darkest_grey"
+                android:textSize="16sp" />
+
+        </LinearLayout>
+
+        <Space
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1" />
+
+        <TextView
+            android:id="@+id/rego_contact_support"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_marginBottom="10dp"
+            android:fontFamily="@font/poppins_semibold"
+            android:text="Contact Support"
+            android:textColor="@color/leadme_blue" />
+    </LinearLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>
