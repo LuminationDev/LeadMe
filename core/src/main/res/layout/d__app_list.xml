@@ -126,15 +126,16 @@
 
                         <TextView
                             android:id="@+id/current_offtask"
-                            android:layout_width="10dp"
+                            android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_gravity="center|left"
                             android:layout_weight="1"
                             android:fontFamily="@font/poppins"
-                            android:gravity="center|right"
+                            android:gravity="center|left"
                             android:paddingLeft="15dp"
                             android:text="2"
-                            android:textColor="@color/leadme_blue" />
+                            android:textColor="@color/leadme_blue"
+                            tools:visibility="visible" />
 
                         <TextView
                             android:layout_width="wrap_content"
@@ -143,7 +144,9 @@
                             android:fontFamily="@font/poppins"
                             android:gravity="center|left"
                             android:text=" may be off task"
-                            android:textColor="@color/leadme_medium_grey" />
+                            android:textColor="@color/leadme_medium_grey"
+                            android:visibility="gone"
+                            tools:visibility="gone" />
 
                         <Space
                             android:layout_width="wrap_content"

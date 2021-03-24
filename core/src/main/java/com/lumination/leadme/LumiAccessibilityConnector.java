@@ -134,7 +134,7 @@ public class LumiAccessibilityConnector {
         Log.d(TAG, "bringMainToFront: ");
         main.getHandler().post(() -> {
             if (main != null && !main.isAppVisibleInForeground()) {
-                main.recallToLeadMe();
+               main.recallToLeadMe();
             }
         });
     }

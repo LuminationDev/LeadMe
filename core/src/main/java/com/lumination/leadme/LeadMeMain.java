@@ -39,6 +39,7 @@ import android.os.Handler;
 import android.os.Message;
 import android.os.PowerManager;
 import android.text.Editable;
+import android.text.Html;
 import android.text.TextWatcher;
 import android.util.DisplayMetrics;
 import android.util.Log;
@@ -97,6 +98,7 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.URI;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Set;
@@ -302,11 +304,21 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         switch (requestCode) {
             case OVERLAY_ON:
                 Log.d(TAG, "Returning from OVERLAY ON with " + resultCode);
+                if(getPermissionsManager().isOverlayPermissionGranted()){
+                    setStudentOnBoard(2);
+                }else{
+                    setStudentOnBoard(1);
+                }
                 break;
             case ACCESSIBILITY_ON:
                 Log.d(TAG, "Returning from ACCESS ON with " + resultCode + " (" + isGuide + ")");
                 permissionManager.waitingForPermission = false;
-                permissionManager.requestBatteryOptimisation();
+                if(getPermissionsManager().isAccessibilityGranted()) {
+                    setStudentOnBoard(1);
+                }else{
+                    setStudentOnBoard(0);
+                }
+                //permissionManager.requestBatteryOptimisation();
                 break;
             case BLUETOOTH_ON:
                 Log.d(TAG, "Returning from BLUETOOTH ON with " + resultCode);
@@ -443,11 +455,11 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             return;
         }
 
-        if (canAskForAccessibility && !permissionManager.isAccessibilityGranted()) {
-            Log.d(TAG, "Permission return - request accessibility");
-            permissionManager.requestAccessibilitySettingsOn();
-            return;
-        }
+//        if (canAskForAccessibility && !permissionManager.isAccessibilityGranted()) {
+//            Log.d(TAG, "Permission return - request accessibility");
+//            permissionManager.requestAccessibilitySettingsOn();
+//            return;
+//        }
 
         if (canAskForAccessibility && permissionManager.isAccessibilityGranted() && !permissionManager.isMyServiceRunning(AccessibilityService.class)) {
             Log.d(TAG, "Permission return - accessibility permission granted, but service not running");
@@ -458,7 +470,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
         //make sure we're not just restarting
         if (init && !getNearbyManager().isConnectedAsFollower() && !nearbyManager.isConnectedAsGuide()) {
-            loginAction();
+            //loginAction(); //disabled due to calling onBoarding
         }
     }
 
@@ -719,14 +731,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                 startShakeDetection();
             }
         }
-        SharedPreferences sharedPreferences = getSharedPreferences(getResources().getString(R.string.preference_file_key), Context.MODE_PRIVATE);
-        //if a UUID exists, retrieve it
-        if (!sharedPreferences.contains("ONBOARD")) {
-            SharedPreferences.Editor editor = sharedPreferences.edit();
-            editor.putBoolean("ONBOARD", true);
-            editor.apply();
-            buildAndDisplayOnBoard();
-        }
+
     }
 
 
@@ -880,6 +885,15 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
     @OnLifecycleEvent(Lifecycle.Event.ON_RESUME)
     public void onLifecycleResume() {
+        if(OnBoardStudentInProgress){
+            VideoView vv= OnBoardPerm.findViewById(R.id.onBoardperm_video_view);
+            vv.start();
+            if(getPermissionsManager().isAccessibilityGranted() && !getPermissionsManager().isOverlayPermissionGranted()){
+                setStudentOnBoard(1);
+            }else if(getPermissionsManager().isAccessibilityGranted() && getPermissionsManager().isOverlayPermissionGranted()){
+                setStudentOnBoard(2);
+            }
+        }
         //Toast.makeText(this, "LC Resume", Toast.LENGTH_LONG).show();
         Log.w(TAG, "LC Resume // " + getDispatcher().hasDelayedLaunchContent());
         appHasFocus = true;
@@ -1908,17 +1922,17 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             loginAttemptInAction = false;
 
         } else {
-            updateFollowerCurrentTaskToLeadMe();
-            if (/*!permissionManager.isOverlayPermissionGranted() || */!permissionManager.isAccessibilityGranted()) {
-                performNextAction(); //work through permissions
-                return;
-
-            } else {
-                permissionManager.waitingForPermission = false;
-                loginAttemptInAction = false;
-                getNearbyManager().connectToSelectedLeader();
-                showWaitingForConnectDialog();
+            if(!getPermissionsManager().isAccessibilityGranted()) {
+                displayStudentOnboard();
             }
+            else if(getPermissionsManager().isAccessibilityGranted()&&!getPermissionsManager().isOverlayPermissionGranted()){
+                displayStudentOnboard();
+                setStudentOnBoard(1);
+            }else if(getPermissionsManager().isAccessibilityGranted()&&getPermissionsManager().isOverlayPermissionGranted()){
+                displayStudentOnboard();
+                setStudentOnBoard(2);
+            }
+
         }
 
         hideLoginDialog(false);
@@ -1928,7 +1942,11 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
         ((TextView) optionsScreen.findViewById(R.id.student_name)).setText(name);
         optionsScreen.findViewById(R.id.connected_only_view).setVisibility(View.VISIBLE);
-        optionsScreen.findViewById(R.id.capture_rate_display).setVisibility(View.VISIBLE);
+        if(isGuide) {
+            optionsScreen.findViewById(R.id.capture_rate_display).setVisibility(View.GONE);
+        }else{
+            optionsScreen.findViewById(R.id.capture_rate_display).setVisibility(View.VISIBLE);
+        }
 
         if (isGuide) {
             //display main guide view
@@ -1946,6 +1964,16 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             //TODO remove auto update functionality when needed
             optionsScreen.findViewById(R.id.auto_updates).setVisibility(View.VISIBLE);
 
+                SharedPreferences sharedPreferences = getSharedPreferences(getResources().getString(R.string.preference_file_key), Context.MODE_PRIVATE);
+                //if a UUID exists, retrieve it
+                if (!sharedPreferences.contains("ONBOARD")) {
+                    SharedPreferences.Editor editor = sharedPreferences.edit();
+                    editor.putBoolean("ONBOARD", true);
+                    editor.apply();
+                    buildAndDisplayOnBoard();
+                }
+
+
         } else {
             //display main student view
             leadmeAnimator.setDisplayedChild(ANIM_LEARNER_INDEX);
@@ -1959,6 +1987,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
             //refresh overlay
             verifyOverlay();
+
         }
     }
 
@@ -2494,12 +2523,10 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             startService(screen_share_intent);
         }
 
-
             //start screen capturing
             projectionManager = (MediaProjectionManager)
                     getSystemService(Context.MEDIA_PROJECTION_SERVICE);
             startActivityForResult(projectionManager.createScreenCaptureIntent(), SCREEN_CAPTURE);
-            
 
 
         //send IP address to guide
@@ -2511,7 +2538,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         ipAddress = null;
         imagesProduced = 0;
     }
-    public boolean takeScreenshots=false;
+
         private class ImageAvailableListener implements ImageReader.OnImageAvailableListener {
         @Override
         public void onImageAvailable(ImageReader reader) {
@@ -2522,29 +2549,29 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                 Log.d(TAG, "onImageAvailable: ");
                 try (Image image = imageReader.acquireLatestImage()) {
                     //if (takeScreenshots) {
-                        Log.d(TAG, "onImageAvailable: image acquired");
-                        //sleep allows control over how many screenshots are taken
-                        //old/less powerful phones need this otherwise there is heavy lag (etc for >20 screen shots a second)
-                        //newer phones can have this disabled for a faster display
-                        if (screenshotRate > 0) Thread.sleep(screenshotRate);
+                    Log.d(TAG, "onImageAvailable: image acquired");
+                    //sleep allows control over how many screenshots are taken
+                    //old/less powerful phones need this otherwise there is heavy lag (etc for >20 screen shots a second)
+                    //newer phones can have this disabled for a faster display
+                    if (screenshotRate > 0) Thread.sleep(screenshotRate);
 
-                        if (image != null) {
-                            Log.d(TAG, "onImageAvailable: image exists");
-                            Image.Plane[] planes = image.getPlanes();
-                            ByteBuffer buffer = planes[0].getBuffer();
-                            int pixelStride = planes[0].getPixelStride();
-                            int rowStride = planes[0].getRowStride();
-                            int rowPadding = rowStride - pixelStride * displayWidth;
+                    if (image != null) {
+                        Log.d(TAG, "onImageAvailable: image exists");
+                        Image.Plane[] planes = image.getPlanes();
+                        ByteBuffer buffer = planes[0].getBuffer();
+                        int pixelStride = planes[0].getPixelStride();
+                        int rowStride = planes[0].getRowStride();
+                        int rowPadding = rowStride - pixelStride * displayWidth;
 
-                            stream = new ByteArrayOutputStream();
+                        stream = new ByteArrayOutputStream();
 
-                            // create bitmap
-                            bitmap = Bitmap.createBitmap(displayWidth + rowPadding / pixelStride,
-                                    displayHeight, Bitmap.Config.ARGB_8888);
-                            bitmap.copyPixelsFromBuffer(buffer);
-                            bitmapToSend = bitmap;
-                            imagesProduced++;
-                        }
+                        // create bitmap
+                        bitmap = Bitmap.createBitmap(displayWidth + rowPadding / pixelStride,
+                                displayHeight, Bitmap.Config.ARGB_8888);
+                        bitmap.copyPixelsFromBuffer(buffer);
+                        bitmapToSend = bitmap;
+                        imagesProduced++;
+                    }
                 } catch (Exception e) {
                     e.printStackTrace();
                 } finally {
@@ -2556,7 +2583,8 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                         }
                     }
                 }
-            }
+
+        }
     }
 
 
@@ -2746,7 +2774,9 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     }
     public void updateLastOffTask(){
         int offTask = getConnectedLearnersAdapter().alertsAdapter.getCount();
-        ((TextView) appLauncherScreen.findViewById(R.id.current_offtask)).setText(String.valueOf(offTask));
+        //String.valueOf(offTask)
+        ((TextView) appLauncherScreen.findViewById(R.id.current_offtask)).setText(Html.fromHtml( "<font color=#1599F3>" + offTask + "</font><font color=#AFB7CB> may be off task</font>",Html.FROM_HTML_MODE_LEGACY));
+
     }
     public void displaySelectBar(int numSelected){
         boolean show =false;
@@ -2776,15 +2806,16 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     @SuppressLint("ClickableViewAccessibility")
     private void buildAndDisplayOnBoard(){
         Log.d(TAG, "buildAndDisplayOnBoard: ");
+        Uri videoUri = Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.welcome);
         //check if has been displayed before
         OnBoard = View.inflate(this, R.layout.c__onboarding, null);
         VideoView video = OnBoard.findViewById(R.id.animation_view);
         video.setBackgroundColor(Color.WHITE);
-        video.setVideoURI(Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.push_app));
+        video.setVideoURI(videoUri);
         video.requestFocus();
         video.start();
         video.setOnCompletionListener(mp -> video.start());
-        video.setOnPreparedListener(mp -> handler.postDelayed(() -> video.setBackgroundColor(Color.TRANSPARENT),100));
+        video.setOnPreparedListener(mp -> handler.postDelayed(() -> video.setBackgroundColor(Color.TRANSPARENT),150));
 
 
         GestureDetector gestureDetector = new GestureDetector(this,new MyGestureDetector(this));
@@ -2819,7 +2850,8 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         skipIntro.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                setContentView(leadmeAnimator);
+                //setContentView(leadmeAnimator);
+                buildloginsignup();
             }
         });
         setOnboardCurrent(0);
@@ -2835,6 +2867,9 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                 "Tap the active learner icons to select and manage learners individually",
                 "To finish a task, tap the LeadMe icon to return your learners to LeadMe\n" +
                         "Select learn more to discover the full range of features LeadMe has to offer!"};
+        Uri[] videos = {Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.welcome),Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.push_app),
+                Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.play_view_block),Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.select),
+                Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.recall)};
         Animation in = AnimationUtils.makeInAnimation (this, false);
         Animation out = AnimationUtils.makeOutAnimation (this, false);
         TextSwitcher onBoardTitle = OnBoard.findViewById(R.id.onBoard_title);
@@ -2873,6 +2908,9 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         if(onBoardPage<=4) {
             onBoardTitle.setText(titleToShow[onBoardPage]);
             onBoardContent.setText(textToShow[onBoardPage]);
+            video.setVideoURI(videos[onBoardPage]);
+            video.requestFocus();
+            video.start();
             //  pageHolder.setImageResource(imageToDraw[index]);
             if(onBoardPage==4){
                 skipIntro.setVisibility(View.GONE);
@@ -2883,7 +2921,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                     handler.postDelayed(() -> setContentView(leadmeAnimator),50);
 
                 });
-                OnBoard.findViewById(R.id.onboard_moreinfo_btn).setOnClickListener(v1 -> setContentView(leadmeAnimator));
+                OnBoard.findViewById(R.id.onboard_moreinfo_btn).setOnClickListener(v1 -> setContentView(leadmeAnimator)); //TODO wire up this button to advanced support page
             }else{
                 skipIntro.setVisibility(View.VISIBLE);
                 nextButton.setVisibility(View.VISIBLE);
@@ -2891,5 +2929,74 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             }
         }
     }
+    public View OnBoardPerm;
+    private boolean OnBoardStudentInProgress=false;
+    public void displayStudentOnboard(){
+        Log.d(TAG, "buildAndDisplayOnBoard: ");
+        OnBoardStudentInProgress=true;
+        //check if has been displayed before
+        OnBoardPerm = View.inflate(this, R.layout.c__onboarding_student, null);
+        VideoView video = OnBoardPerm.findViewById(R.id.onBoardperm_video_view);
+        video.setBackgroundColor(Color.WHITE);
+        video.setVideoURI(Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.access_permission));
+        video.requestFocus();
+        video.start();
+        video.setOnCompletionListener(mp -> video.start());
+        video.setOnPreparedListener(mp -> handler.postDelayed(() -> video.setBackgroundColor(Color.TRANSPARENT),100));
+        setStudentOnBoard(0);
+        this.setContentView(OnBoardPerm);
+    }
+    public void setStudentOnBoard(int page){
+        Log.d(TAG, "setOnboardCurrent: ");
+        String titleToShow[] = {"Allow Access","Allow App Overlay"};
+        String textToShow[] = {"LeadMe requires special access on this device. When promted, click ‘allow’, find ‘Services’ or ‘Downloaded Services’ and enable Lumination LeadMe.",
+                                "LeadMe also requires permission to display over other apps. When promted, switch on ‘allow permission’."};
+        Uri[] videos = {Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.access_permission),Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.overlay_permission)};
+        View.OnClickListener[] onClicks = {v -> {
+            getPermissionsManager().requestAccessibilitySettingsOn();
+        }, v -> {
+            getPermissionsManager().checkOverlayPermissions();
+            setStudentOnBoard(2);
+        }};
+        Animation in = AnimationUtils.makeInAnimation (this, false);
+        Animation out = AnimationUtils.makeOutAnimation (this, false);
+        TextSwitcher onBoardTitle = OnBoardPerm.findViewById(R.id.onBoardperm_title);
+        TextSwitcher onBoardContent = OnBoardPerm.findViewById(R.id.onBoardperm_content);
+        onBoardContent.setInAnimation(in);
+        onBoardContent.setOutAnimation(out);
+        onBoardTitle.setInAnimation(in);
+        onBoardTitle.setOutAnimation(out);
 
+        VideoView video = OnBoardPerm.findViewById(R.id.onBoardperm_video_view);
+        TextView support = OnBoardPerm.findViewById(R.id.onboardperm_support); //TODO support button link
+        Button okPermission = OnBoardPerm.findViewById(R.id.onboardperm_ok_btn);
+
+        if(page<=1) {
+            onBoardTitle.setText(titleToShow[page]);
+            onBoardContent.setText(textToShow[page]);
+            video.setVideoURI(videos[page]);
+            video.requestFocus();
+            video.start();
+            okPermission.setOnClickListener(onClicks[page]);
+        }else{
+            setContentView(leadmeAnimator);
+            OnBoardStudentInProgress=false;
+            updateFollowerCurrentTaskToLeadMe();
+//            if (/*!permissionManager.isOverlayPermissionGranted() || */!permissionManager.isAccessibilityGranted()) {
+//                //performNextAction(); //work through permissions
+//                return;
+//
+//            } else {
+            // permissionManager.waitingForPermission = false;
+            loginAttemptInAction = false;
+            getNearbyManager().connectToSelectedLeader();
+            showWaitingForConnectDialog();
+            // }
+            //startServer();
+        }
+    }
+    public void buildloginsignup(){
+        View Login = View.inflate(this, R.layout.b__login_signup, null);
+        setContentView(Login);
+    }
 }

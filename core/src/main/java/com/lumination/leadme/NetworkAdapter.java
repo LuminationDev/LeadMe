@@ -173,7 +173,9 @@ public class NetworkAdapter {
         @Override
         public void onResolveFailed(NsdServiceInfo serviceInfo, int errorCode) {
             Log.e(TAG, "Resolve failed" + errorCode);
-
+            if(errorCode==3){
+                mNsdManager.resolveService(serviceInfo, new resListener());
+            }
             return;
         }
 
@@ -188,7 +190,9 @@ public class NetworkAdapter {
             }
             Log.d(TAG, "onServiceResolved: " + serviceInfo);
             mService = serviceInfo;
-            discoveredLeaders.add(serviceInfo);
+            if(!discoveredLeaders.contains(serviceInfo)){
+                discoveredLeaders.add(serviceInfo);
+            }
             List<String> leader = Arrays.asList(serviceInfo.getServiceName().split("#"));
 
             //add to the leaders list
@@ -551,7 +555,7 @@ public class NetworkAdapter {
                     Log.d(TAG, "messageRecievedFromServer: "+inputList.get(1));
                 }else {
                     if (inputList.get(1).equals("STOP")) {
-                        main.takeScreenshots=false;
+                        //main.takeScreenshots=false;
                         main.stopServer();
                         main.stopScreenshotRunnable();
                     } else {

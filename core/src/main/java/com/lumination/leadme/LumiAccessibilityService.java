@@ -163,5 +163,8 @@ public class LumiAccessibilityService extends AccessibilityService {
             e.printStackTrace();
         }
     }
+    public void updateOnBoard(LeadMeMain main){
+        main.setStudentOnBoard(1);
+    }
 
 }
