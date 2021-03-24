@@ -1,25 +1,17 @@
 package com.lumination.leadme;
 
-import android.Manifest;
-import android.app.Activity;
 import android.content.Context;
-import android.content.pm.PackageManager;
 import android.net.nsd.NsdManager;
 import android.net.nsd.NsdServiceInfo;
 import android.os.Build;
-import android.os.Handler;
-import android.os.Looper;
 import android.os.Parcel;
 import android.util.Log;
 import android.view.View;
-
-import androidx.core.app.ActivityCompat;
 
 import com.google.android.gms.nearby.connection.Payload;
 
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
@@ -201,7 +193,7 @@ public class NetworkAdapter {
     }
 
     /*
-    Initilises the registraion listener allowing us to register the service
+    Initialises the registration listener allowing us to register the service
      */
     public void initializeRegistrationListener() {
         if(mRegistrationListener==null) {

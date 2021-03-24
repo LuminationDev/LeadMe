@@ -253,7 +253,7 @@ public class StudentAlertsAdapter extends BaseAdapter {
         return convertView;
     }
     public void buildAndShowError(int errorPos){
-        View OffTask = View.inflate(main, R.layout.e_error_dialog, null);
+        View OffTask = View.inflate(main, R.layout.e__error_dialog, null);
         Spinner lockSpinner;
         String[]  lockSpinnerItems = new String[0];
         lockSpinner = (Spinner) OffTask.findViewById(R.id.push_spinner);
