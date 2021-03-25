@@ -99,7 +99,7 @@ import eu.bolt.screenshotty.ScreenshotManager;
 import eu.bolt.screenshotty.ScreenshotManagerBuilder;
 
 
-public class LeadMeMain extends FragmentActivity implements Handler.Callback, SensorEventListener, LifecycleObserver,SurfaceHolder.Callback {
+public class LeadMeMain extends FragmentActivity implements Handler.Callback, SensorEventListener, LifecycleObserver, SurfaceHolder.Callback {
 
     //tag for debugging
     static final String TAG = "LeadMe";
@@ -265,10 +265,8 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     String ipAddress;
     Intent screen_share_intent = null;
     private MediaProjectionManager projectionManager = null;
-    private int displayWidth,displayHeight,imagesProduced=0;
+    private int displayWidth, displayHeight, imagesProduced = 0;
     ImageReader imageReader;
-
-
 
 
     public Handler getHandler() {
@@ -293,18 +291,18 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         switch (requestCode) {
             case OVERLAY_ON:
                 Log.d(TAG, "Returning from OVERLAY ON with " + resultCode);
-                if(getPermissionsManager().isOverlayPermissionGranted()){
+                if (getPermissionsManager().isOverlayPermissionGranted()) {
                     setStudentOnBoard(2);
-                }else{
+                } else {
                     setStudentOnBoard(1);
                 }
                 break;
             case ACCESSIBILITY_ON:
                 Log.d(TAG, "Returning from ACCESS ON with " + resultCode + " (" + isGuide + ")");
                 permissionManager.waitingForPermission = false;
-                if(getPermissionsManager().isAccessibilityGranted()) {
+                if (getPermissionsManager().isAccessibilityGranted()) {
                     setStudentOnBoard(1);
-                }else{
+                } else {
                     setStudentOnBoard(0);
                 }
                 //permissionManager.requestBatteryOptimisation();
@@ -321,25 +319,25 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             //added------------
             case SCREEN_CAPTURE:
                 MediaProjection mediaProjection = projectionManager.getMediaProjection(resultCode, data);
-                    if (mediaProjection != null) {
+                if (mediaProjection != null) {
 
-                        DisplayMetrics metrics = getResources().getDisplayMetrics();
-                        int density = metrics.densityDpi;
-                        int flags = DisplayManager.VIRTUAL_DISPLAY_FLAG_OWN_CONTENT_ONLY
-                                | DisplayManager.VIRTUAL_DISPLAY_FLAG_PUBLIC;
+                    DisplayMetrics metrics = getResources().getDisplayMetrics();
+                    int density = metrics.densityDpi;
+                    int flags = DisplayManager.VIRTUAL_DISPLAY_FLAG_OWN_CONTENT_ONLY
+                            | DisplayManager.VIRTUAL_DISPLAY_FLAG_PUBLIC;
 
-                        Point size = new Point();
-                        size.y = metrics.heightPixels;
-                        size.x = metrics.widthPixels;
-                        displayHeight = size.y;
-                        displayWidth = size.x;
+                    Point size = new Point();
+                    size.y = metrics.heightPixels;
+                    size.x = metrics.widthPixels;
+                    displayHeight = size.y;
+                    displayWidth = size.x;
 
-                        imageReader = ImageReader.newInstance(size.x, size.y, PixelFormat.RGBA_8888, 2);
+                    imageReader = ImageReader.newInstance(size.x, size.y, PixelFormat.RGBA_8888, 2);
 
-                        mediaProjection.createVirtualDisplay("screencap",
-                                size.x, size.y, density,
-                                flags, imageReader.getSurface(), null, handler);
-                        imageReader.setOnImageAvailableListener(new ImageAvailableListener(), handler);
+                    mediaProjection.createVirtualDisplay("screencap",
+                            size.x, size.y, density,
+                            flags, imageReader.getSurface(), null, handler);
+                    imageReader.setOnImageAvailableListener(new ImageAvailableListener(), handler);
 
                 }
                 break;
@@ -769,7 +767,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         //Toast.makeText(this, "LC Pause", Toast.LENGTH_LONG).show();
         Log.w(TAG, "LC Pause");
         appHasFocus = false;
-        Log.d(TAG, "onLifecyclePause: "+overlayInitialised+" "+permissionManager.isOverlayPermissionGranted());
+        Log.d(TAG, "onLifecyclePause: " + overlayInitialised + " " + permissionManager.isOverlayPermissionGranted());
         if (!overlayInitialised && permissionManager.isOverlayPermissionGranted()) {
             Log.d(TAG, "onLifecyclePause: 1");
             initialiseOverlayView();
@@ -800,7 +798,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     private static LumiAccessibilityService accessibilityService;
 
     // callback invoked either when the gesture has been completed or cancelled
-    AccessibilityService.GestureResultCallback gestureResultCallback = new AccessibilityService.GestureResultCallback() {
+    final AccessibilityService.GestureResultCallback gestureResultCallback = new AccessibilityService.GestureResultCallback() {
         @Override
         public void onCompleted(GestureDescription gestureDescription) {
             super.onCompleted(gestureDescription);
@@ -813,10 +811,21 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 //                scheduledExecutor = new ScheduledThreadPoolExecutor(1);
 //                scheduledExecutor.schedule(overlayBack,100, TimeUnit.MILLISECONDS);
             }
+            handler.post(() -> {
+                //wait until layout update is actioned before trying to gesture
+                while (overlayView.isLayoutRequested()) {
+                    try {
+                        Thread.sleep(200);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
 
-            Log.d(TAG, "gesture completed");
-            //activate the event once the tap completes
-            getLumiAccessibilityConnector().manageAccessibilityEvent(null, null);
+                Log.d(TAG, "gesture completed");
+                //activate the event once the tap completes
+                getLumiAccessibilityConnector().gestureInProgress = false;
+                //getLumiAccessibilityConnector().manageAccessibilityEvent(null, null);
+            });
         }
 
         @Override
@@ -831,10 +840,20 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 //                scheduledExecutor = new ScheduledThreadPoolExecutor(1);
 //                scheduledExecutor.schedule(overlayBack,100, TimeUnit.MILLISECONDS);
             }
+            handler.post(() -> {
+                //wait until layout update is actioned before trying to gesture
+                while (overlayView.isLayoutRequested()) {
+                    try {
+                        Thread.sleep(200);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
 
-            Log.d(TAG, "gesture cancelled");
-            //activate the event once the tap completes
-            getLumiAccessibilityConnector().manageAccessibilityEvent(null, null);
+                Log.d(TAG, "gesture cancelled");
+                //activate the event once the tap completes
+                getLumiAccessibilityConnector().manageAccessibilityEvent(null, null);
+            });
         }
     };
 
@@ -843,13 +862,14 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     }
 
     public void tapBounds(int x, int y) {
+        getLumiAccessibilityConnector().gestureInProgress = true;
         Log.e(TAG, "ATTEMPTING TAP! " + x + ", " + y);
         if (accessibilityService == null) {
             return;
         }
         runOnUiThread(() -> {
             Path swipePath = new Path();
-            swipePath.setLastPoint(x,y);
+            swipePath.setLastPoint(x, y);
             swipePath.moveTo(x, y);
 //            swipePath.lineTo(x + 200, y);
 //            swipePath.lineTo(x - 200, y);
@@ -861,11 +881,31 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                 //change overlay so taps can temporarily pass through
                 if (overlayView.isAttachedToWindow()) {
                     overlayParams.flags = WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE | WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN | WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE;
+
+                    Log.d(TAG, "1] Is layout requested? " + overlayView.isLayoutRequested());
                     getWindowManager().updateViewLayout(overlayView, overlayParams);
+                    Log.d(TAG, "2] Is layout requested? " + overlayView.isLayoutRequested());
+
+                    handler.post(() -> {
+                        //wait until layout update is actioned before trying to gesture
+                        Log.d(TAG, "3] Is layout requested? " + overlayView.isLayoutRequested());
+                        do {
+                            try {
+                                Log.e(TAG, "Waiting...");
+                                Thread.sleep(200);
+                            } catch (InterruptedException e) {
+                                e.printStackTrace();
+                            }
+                        } while (overlayView.isLayoutRequested());
+                        Log.d(TAG, "4] Is layout requested? " + overlayView.isLayoutRequested());
+                        boolean success = accessibilityService.dispatchGesture(swipe, gestureResultCallback, null);
+                        Log.e(TAG, "Did I dispatch " + swipe + " to " + accessibilityService + "? " + success + " // " + overlayView.isAttachedToWindow() + " // " + overlayView.isLayoutRequested());
+
+                    });
                 }
 
-                boolean success = accessibilityService.dispatchGesture(swipe, gestureResultCallback, null);
-                Log.e(TAG, "Did I dispatch " + swipe + " to " + accessibilityService + "? " + success + " // " + overlayView.isAttachedToWindow());
+//                boolean success = accessibilityService.dispatchGesture(swipe, gestureResultCallback, null);
+//                Log.e(TAG, "Did I dispatch " + swipe + " to " + accessibilityService + "? " + success + " // " + overlayView.isAttachedToWindow()+" // "+overlayView.isLayoutRequested());
 
             });
         });
@@ -874,12 +914,12 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
     @OnLifecycleEvent(Lifecycle.Event.ON_RESUME)
     public void onLifecycleResume() {
-        if(OnBoardStudentInProgress){
-            VideoView vv= OnBoardPerm.findViewById(R.id.onBoardperm_video_view);
+        if (OnBoardStudentInProgress) {
+            VideoView vv = OnBoardPerm.findViewById(R.id.onBoardperm_video_view);
             vv.start();
-            if(getPermissionsManager().isAccessibilityGranted() && !getPermissionsManager().isOverlayPermissionGranted()){
+            if (getPermissionsManager().isAccessibilityGranted() && !getPermissionsManager().isOverlayPermissionGranted()) {
                 setStudentOnBoard(1);
-            }else if(getPermissionsManager().isAccessibilityGranted() && getPermissionsManager().isOverlayPermissionGranted()){
+            } else if (getPermissionsManager().isAccessibilityGranted() && getPermissionsManager().isOverlayPermissionGranted()) {
                 setStudentOnBoard(2);
             }
         }
@@ -964,13 +1004,13 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         Log.w(TAG, "LC Stop");
         appHasFocus = false;
         if (!permissionManager.waitingForPermission
-                        && currentTaskPackageName != null && currentTaskPackageName.equals(leadMePackageName)
-                        && getNearbyManager().isConnectedAsFollower()) {
-                dispatcher.alertGuideStudentOffTask();
-                recallToLeadMe();
-            } else {
-                manageFocus();
-            }
+                && currentTaskPackageName != null && currentTaskPackageName.equals(leadMePackageName)
+                && getNearbyManager().isConnectedAsFollower()) {
+            dispatcher.alertGuideStudentOffTask();
+            recallToLeadMe();
+        } else {
+            manageFocus();
+        }
     }
 
     @OnLifecycleEvent(Lifecycle.Event.ON_DESTROY)
@@ -1045,7 +1085,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         Log.w(TAG, "In onDestroy");
         //subscription.dispose();
         destroyAndReset();
-        screenShot=false;
+        screenShot = false;
     }
 
     private void destroyAndReset() {
@@ -1252,7 +1292,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
         Button searchBtn = mainLeader.findViewById(R.id.search_btn);
         SearchView searchView = mainLeader.findViewById(R.id.search_bar);
-    searchBtn.setVisibility(View.INVISIBLE);
+        searchBtn.setVisibility(View.INVISIBLE);
         searchBtn.setOnClickListener(v -> {
             //TODO enable this when search function implemented
 //            if(searchView.getVisibility() == View.GONE){
@@ -1276,7 +1316,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
         //add adapters for lists and grids
         //getLumiAccessibilityService();
-        GridView appGrid =((GridView) appLauncherScreen.findViewById(R.id.app_list_grid));
+        GridView appGrid = ((GridView) appLauncherScreen.findViewById(R.id.app_list_grid));
         appGrid.setAdapter(getAppManager());
         ViewGroup.LayoutParams layoutParams = appGrid.getLayoutParams();
         layoutParams.height = appGrid.getMeasuredHeight(); //this is in pixels
@@ -1286,12 +1326,12 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         ((TextView) appLauncherScreen.findViewById(R.id.text_current_task)).setVisibility(View.GONE);
         ((ListView) startLearner.findViewById(R.id.leader_list_view)).setAdapter(getLeaderSelectAdapter());
 
-        ((ImageView)appLauncherScreen.findViewById(R.id.repush_btn)).setOnClickListener(new View.OnClickListener() {
+        ((ImageView) appLauncherScreen.findViewById(R.id.repush_btn)).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if(lastLockState.equals(LOCK_TAG)) {
+                if (lastLockState.equals(LOCK_TAG)) {
                     getDispatcher().requestRemoteAppOpen(APP_TAG, lastAppID, String.valueOf(((TextView) appLauncherScreen.findViewById(R.id.text_current_task)).getText()), LOCK_TAG, getNearbyManager().getSelectedPeerIDsOrAll());
-                }else {
+                } else {
                     getDispatcher().requestRemoteAppOpen(APP_TAG, lastAppID, String.valueOf(((TextView) appLauncherScreen.findViewById(R.id.text_current_task)).getText()), UNLOCK_TAG, getNearbyManager().getSelectedPeerIDsOrAll());
                 }
             }
@@ -1302,14 +1342,13 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         mainLeader.findViewById(R.id.yt_core_btn).setOnClickListener(v -> getWebManager().showWebLaunchDialog(true, false));
 
 
-
         Button app_btn = mainLeader.findViewById(R.id.app_core_btn);
         //app_btn.setOnClickListener(v -> showAppLaunchScreen());
         app_btn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 showAppLaunchScreen();
-                ((ScrollView) appLauncherScreen.findViewById(R.id.app_scroll_view)).scrollTo(0,0);
+                ((ScrollView) appLauncherScreen.findViewById(R.id.app_scroll_view)).scrollTo(0, 0);
             }
         });
 
@@ -1486,12 +1525,14 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         seekBar.setProgress(20); //default value that seems to work with slowish phones
         seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             int rate;
+
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress,
                                           boolean fromUser) {
                 rate = progress;
                 //Toast.makeText(getApplicationContext(),"seekbar progress: " + progress, Toast.LENGTH_SHORT).show();
             }
+
             @Override
             public void onStartTrackingTouch(SeekBar seekBar) {
                 //Toast.makeText(getApplicationContext(),"seekbar touch started!", Toast.LENGTH_SHORT).show();
@@ -1499,18 +1540,18 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {
-                screenshotRate = 1000/rate*10;
-                Toast.makeText(getApplicationContext(), "Capture rate: " + rate+" fps", Toast.LENGTH_SHORT).show();
+                screenshotRate = 1000 / rate * 10;
+                Toast.makeText(getApplicationContext(), "Capture rate: " + rate + " fps", Toast.LENGTH_SHORT).show();
             }
         });
         mainLeader.findViewById(R.id.select_bar_back).setOnClickListener(v -> {
             getConnectedLearnersAdapter().selectAllPeers(false);
         });
-        CheckBox checkBox =mainLeader.findViewById(R.id.select_bar_selectall);
+        CheckBox checkBox = mainLeader.findViewById(R.id.select_bar_selectall);
         checkBox.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            if(isChecked){
+            if (isChecked) {
                 getConnectedLearnersAdapter().selectAllPeers(true);
-            }else{
+            } else {
                 getConnectedLearnersAdapter().selectAllPeers(false);
             }
         });
@@ -1536,7 +1577,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
     private void initialiseOverlayView() {
         if (overlayInitialised || !permissionManager.isOverlayPermissionGranted()) {
-         //   Log.d(TAG, "Not initialising right now - " + overlayInitialised + ", " + permissionManager.isOverlayPermissionGranted());
+            //   Log.d(TAG, "Not initialising right now - " + overlayInitialised + ", " + permissionManager.isOverlayPermissionGranted());
             return; //already done OR don't have permission
         }
 
@@ -1858,12 +1899,12 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
     boolean loginAttemptInAction = false;
 
-   // protected PowerManager.WakeLock wakeLock;
+    // protected PowerManager.WakeLock wakeLock;
 
     void loginAction() {
         Log.w(TAG, "LOGGING IN " + nearbyManager.getName());
-     //   wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, TAG + ":" + APP_LOCK_TAG);
-      //  wakeLock.acquire(); //this is to keep the device alive while logged in to LeadMe
+        //   wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, TAG + ":" + APP_LOCK_TAG);
+        //  wakeLock.acquire(); //this is to keep the device alive while logged in to LeadMe
         loginAttemptInAction = true;
         //if all permissions are already granted, just continue
         if (leaderLearnerSwitcher.getDisplayedChild() == SWITCH_LEADER_INDEX) {
@@ -1871,13 +1912,12 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             loginAttemptInAction = false;
 
         } else {
-            if(!getPermissionsManager().isAccessibilityGranted()) {
+            if (!getPermissionsManager().isAccessibilityGranted()) {
                 displayStudentOnboard();
-            }
-            else if(getPermissionsManager().isAccessibilityGranted()&&!getPermissionsManager().isOverlayPermissionGranted()){
+            } else if (getPermissionsManager().isAccessibilityGranted() && !getPermissionsManager().isOverlayPermissionGranted()) {
                 displayStudentOnboard();
                 setStudentOnBoard(1);
-            }else if(getPermissionsManager().isAccessibilityGranted()&&getPermissionsManager().isOverlayPermissionGranted()){
+            } else if (getPermissionsManager().isAccessibilityGranted() && getPermissionsManager().isOverlayPermissionGranted()) {
                 displayStudentOnboard();
                 setStudentOnBoard(2);
             }
@@ -1891,9 +1931,9 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
         ((TextView) optionsScreen.findViewById(R.id.student_name)).setText(name);
         optionsScreen.findViewById(R.id.connected_only_view).setVisibility(View.VISIBLE);
-        if(isGuide) {
+        if (isGuide) {
             optionsScreen.findViewById(R.id.capture_rate_display).setVisibility(View.GONE);
-        }else{
+        } else {
             optionsScreen.findViewById(R.id.capture_rate_display).setVisibility(View.VISIBLE);
         }
 
@@ -1910,14 +1950,14 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             ((TextView) optionsScreen.findViewById(R.id.connected_as_role)).setText(getResources().getText(R.string.leader));
             ((TextView) optionsScreen.findViewById(R.id.connected_as_role)).setTextColor(getResources().getColor(R.color.accent, null));
 
-                SharedPreferences sharedPreferences = getSharedPreferences(getResources().getString(R.string.preference_file_key), Context.MODE_PRIVATE);
-                //if a UUID exists, retrieve it
-                if (!sharedPreferences.contains("ONBOARD")) {
-                    SharedPreferences.Editor editor = sharedPreferences.edit();
-                    editor.putBoolean("ONBOARD", true);
-                    editor.apply();
-                    buildAndDisplayOnBoard();
-                }
+            SharedPreferences sharedPreferences = getSharedPreferences(getResources().getString(R.string.preference_file_key), Context.MODE_PRIVATE);
+            //if a UUID exists, retrieve it
+            if (!sharedPreferences.contains("ONBOARD")) {
+                SharedPreferences.Editor editor = sharedPreferences.edit();
+                editor.putBoolean("ONBOARD", true);
+                editor.apply();
+                buildAndDisplayOnBoard();
+            }
 
 
         } else {
@@ -2066,13 +2106,13 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
             switch (status) {
                 case ConnectedPeer.STATUS_LOCK:
-                    statusMsg += getResources().getString( R.string.lock).toUpperCase()+" mode.";
+                    statusMsg += getResources().getString(R.string.lock).toUpperCase() + " mode.";
                     break;
                 case ConnectedPeer.STATUS_BLACKOUT:
-                    statusMsg += getResources().getString( R.string.block).toUpperCase()+" mode.";
+                    statusMsg += getResources().getString(R.string.block).toUpperCase() + " mode.";
                     break;
                 case ConnectedPeer.STATUS_UNLOCK:
-                    statusMsg += getResources().getString( R.string.unlock).toUpperCase()+" mode.";
+                    statusMsg += getResources().getString(R.string.unlock).toUpperCase() + " mode.";
                     break;
                 default:
                     Log.e(TAG, "Invalid status: " + status);
@@ -2427,6 +2467,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             tasksManager.moveTaskToFront(getTaskId(), ActivityManager.MOVE_TASK_NO_USER_ACTION);
         }
     }
+
     public boolean isAppVisibleInForeground() {
         boolean screenOn = false;
         DisplayManager dm = (DisplayManager) context.getSystemService(Context.DISPLAY_SERVICE);
@@ -2440,21 +2481,21 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     }
 
 
-
     /////////////Screenshots///////////////
     FrameLayout monitorLayout;
     SurfaceView monitorView;
     public Bitmap response;
-    public Bitmap bitmapToSend=null;
+    public Bitmap bitmapToSend = null;
     Boolean monitorInProgress = false;
-    ServerSocket serverSocket =null;
+    ServerSocket serverSocket = null;
     Socket socket = null;
 
-    boolean screenShot=false;
-    int screenshotRate=200;
+    boolean screenShot = false;
+    int screenshotRate = 200;
+
     public void startServer() {
-            projectionManager = (MediaProjectionManager)
-                    getSystemService(Context.MEDIA_PROJECTION_SERVICE);
+        projectionManager = (MediaProjectionManager)
+                getSystemService(Context.MEDIA_PROJECTION_SERVICE);
 
 
         //create an instance of a server
@@ -2462,73 +2503,74 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
         //start service class
 
-            screen_share_intent = new Intent(context, ScreensharingService.class);
+        screen_share_intent = new Intent(context, ScreensharingService.class);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             startForegroundService(screen_share_intent);
-        }else {
+        } else {
             startService(screen_share_intent);
         }
 
-            //start screen capturing
-            projectionManager = (MediaProjectionManager)
-                    getSystemService(Context.MEDIA_PROJECTION_SERVICE);
-            startActivityForResult(projectionManager.createScreenCaptureIntent(), SCREEN_CAPTURE);
+        //start screen capturing
+        projectionManager = (MediaProjectionManager)
+                getSystemService(Context.MEDIA_PROJECTION_SERVICE);
+        startActivityForResult(projectionManager.createScreenCaptureIntent(), SCREEN_CAPTURE);
 
 
         //send IP address to guide
         //Log.d(RECEIVE_IP_ADDRESS_TAG, ipAddress);
         //getDispatcher().sendIpAddress(ipAddress, SEND_TO_GUIDE);
     }
+
     public void stopServer() {
         stopService(screen_share_intent);
         ipAddress = null;
         imagesProduced = 0;
     }
 
-        private class ImageAvailableListener implements ImageReader.OnImageAvailableListener {
+    private class ImageAvailableListener implements ImageReader.OnImageAvailableListener {
         @Override
         public void onImageAvailable(ImageReader reader) {
             Log.d(TAG, "onImageAvailable: image avilable");
 
-                Bitmap bitmap = null;
-                ByteArrayOutputStream stream = null;
-                Log.d(TAG, "onImageAvailable: ");
-                try (Image image = imageReader.acquireLatestImage()) {
-                    //if (takeScreenshots) {
-                    Log.d(TAG, "onImageAvailable: image acquired");
-                    //sleep allows control over how many screenshots are taken
-                    //old/less powerful phones need this otherwise there is heavy lag (etc for >20 screen shots a second)
-                    //newer phones can have this disabled for a faster display
-                    if (screenshotRate > 0) Thread.sleep(screenshotRate);
+            Bitmap bitmap = null;
+            ByteArrayOutputStream stream = null;
+            Log.d(TAG, "onImageAvailable: ");
+            try (Image image = imageReader.acquireLatestImage()) {
+                //if (takeScreenshots) {
+                Log.d(TAG, "onImageAvailable: image acquired");
+                //sleep allows control over how many screenshots are taken
+                //old/less powerful phones need this otherwise there is heavy lag (etc for >20 screen shots a second)
+                //newer phones can have this disabled for a faster display
+                if (screenshotRate > 0) Thread.sleep(screenshotRate);
 
-                    if (image != null) {
-                        Log.d(TAG, "onImageAvailable: image exists");
-                        Image.Plane[] planes = image.getPlanes();
-                        ByteBuffer buffer = planes[0].getBuffer();
-                        int pixelStride = planes[0].getPixelStride();
-                        int rowStride = planes[0].getRowStride();
-                        int rowPadding = rowStride - pixelStride * displayWidth;
+                if (image != null) {
+                    Log.d(TAG, "onImageAvailable: image exists");
+                    Image.Plane[] planes = image.getPlanes();
+                    ByteBuffer buffer = planes[0].getBuffer();
+                    int pixelStride = planes[0].getPixelStride();
+                    int rowStride = planes[0].getRowStride();
+                    int rowPadding = rowStride - pixelStride * displayWidth;
 
-                        stream = new ByteArrayOutputStream();
+                    stream = new ByteArrayOutputStream();
 
-                        // create bitmap
-                        bitmap = Bitmap.createBitmap(displayWidth + rowPadding / pixelStride,
-                                displayHeight, Bitmap.Config.ARGB_8888);
-                        bitmap.copyPixelsFromBuffer(buffer);
-                        bitmapToSend = bitmap;
-                        imagesProduced++;
-                    }
-                } catch (Exception e) {
-                    e.printStackTrace();
-                } finally {
-                    if (stream != null) {
-                        try {
-                            stream.close();
-                        } catch (IOException ioe) {
-                            ioe.printStackTrace();
-                        }
+                    // create bitmap
+                    bitmap = Bitmap.createBitmap(displayWidth + rowPadding / pixelStride,
+                            displayHeight, Bitmap.Config.ARGB_8888);
+                    bitmap.copyPixelsFromBuffer(buffer);
+                    bitmapToSend = bitmap;
+                    imagesProduced++;
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            } finally {
+                if (stream != null) {
+                    try {
+                        stream.close();
+                    } catch (IOException ioe) {
+                        ioe.printStackTrace();
                     }
                 }
+            }
 
         }
     }
@@ -2537,36 +2579,37 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     public void setupMonitorScreen(String peer) {
         startImageClient(peer);
     }
+
     Runnable imageRunnable = new Runnable() {
         @Override
         public void run() {
             try {
-                socket=serverSocket.accept();
+                socket = serverSocket.accept();
             } catch (IOException e) {
                 e.printStackTrace();
-                monitorInProgress=false;
+                monitorInProgress = false;
                 return;
             }
             SurfaceHolder holder = monitorView.getHolder();
-            while(monitorInProgress && !Thread.currentThread().isInterrupted()) {
+            while (monitorInProgress && !Thread.currentThread().isInterrupted()) {
                 byte[] buffer = null;
                 Bitmap bmap = null;
                 try {
                     DataInputStream in = new DataInputStream(socket.getInputStream());
                     int length = in.readInt();
-                    Log.d(TAG, "run: image recieved of size "+length);
-                    if(length>10000 && length<300000) {
+                    Log.d(TAG, "run: image recieved of size " + length);
+                    if (length > 10000 && length < 300000) {
                         buffer = new byte[length];
-                        in.readFully(buffer,0,length);
+                        in.readFully(buffer, 0, length);
                         Log.d(TAG, "Packet Recieved!! ");
-                    }else if(length<0 || length>500000){
+                    } else if (length < 0 || length > 500000) {
                         Thread.currentThread().interrupt();
-                        imageSocket=new Thread(imageRunnable);
+                        imageSocket = new Thread(imageRunnable);
                     }
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-                if(buffer!=null) {
+                if (buffer != null) {
                     response = BitmapFactory.decodeByteArray(buffer, 0, buffer.length);
 //                    monitorView.getHolder().setFixedSize(response.getWidth(),response.getHeight());
                     tryDrawing(holder);
@@ -2575,6 +2618,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         }
     };
     Thread imageSocket;
+
     //client socket for monitoring
     public void startImageClient(String peer) {
         //can be refactored out to onCreate?
@@ -2598,7 +2642,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             }
         });
 
-        while(serverSocket==null) {
+        while (serverSocket == null) {
             try {
                 serverSocket = new ServerSocket(0);
             } catch (IOException e) {
@@ -2606,13 +2650,13 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             }
             Log.d(TAG, "ServerSocket: attempting to create socket");
         }
-        nearbyManager.networkAdapter.startMonitoring(Integer.parseInt(peer),serverSocket.getLocalPort());
+        nearbyManager.networkAdapter.startMonitoring(Integer.parseInt(peer), serverSocket.getLocalPort());
         if (monitorLayout.getVisibility() == View.VISIBLE) {
             monitorInProgress = true;
         } else {
             Log.e(TAG, "Monitor layout - no visibility change");
         }
-        if(imageSocket!=null) {
+        if (imageSocket != null) {
             if (imageSocket.isAlive()) {
                 imageSocket.interrupt();
             }
@@ -2621,14 +2665,16 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         imageSocket.start();
 
     }
-        @Override
+
+    @Override
     public void surfaceCreated(SurfaceHolder holder) {
         monitorView.setWillNotDraw(false);
         tryDrawing(holder);
     }
 
     @Override
-    public void surfaceDestroyed(SurfaceHolder holder) {}
+    public void surfaceDestroyed(SurfaceHolder holder) {
+    }
 
     @Override
     public void surfaceChanged(SurfaceHolder holder, int frmt, int w, int h) {
@@ -2650,11 +2696,12 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     private void drawMyStuff(final Canvas canvas, Bitmap bitmap) {
         Paint paint = new Paint();
         paint.setFilterBitmap(true);
-        canvas.drawBitmap(bitmap, 0,0, paint);
+        canvas.drawBitmap(bitmap, 0, 0, paint);
     }
-    public void startScreenshotRunnable(InetAddress ip,int Port){
 
-        screenShot=true;
+    public void startScreenshotRunnable(InetAddress ip, int Port) {
+
+        screenShot = true;
         Thread t = new Thread(new Runnable() {
             @Override
             public void run() {
@@ -2665,23 +2712,23 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                     Log.d(TAG, "startScreenShot: socket not connected");
                     return;
                 }
-                while (!Thread.currentThread().isInterrupted() &&screenShot) {
-                    if(!screenShot){
+                while (!Thread.currentThread().isInterrupted() && screenShot) {
+                    if (!screenShot) {
                         Thread.currentThread().interrupt();
                     }
                     if (bitmapToSend != null) {
                         ByteArrayOutputStream stream = new ByteArrayOutputStream();
                         bitmapToSend.compress(Bitmap.CompressFormat.JPEG, 50, stream);
-                        if(stream.toByteArray().length>300000){
+                        if (stream.toByteArray().length > 300000) {
                             bitmapToSend.compress(Bitmap.CompressFormat.JPEG, 0, stream);
                         }
-                        bitmapToSend=null;
+                        bitmapToSend = null;
                         byte[] byteArray = stream.toByteArray();
                         try {
                             DataOutputStream out = new DataOutputStream(socket.getOutputStream());
                             out.writeInt(byteArray.length);
-                            out.write(byteArray,0,byteArray.length);
-                            Log.d(TAG, "run: image sent of size "+byteArray.length);
+                            out.write(byteArray, 0, byteArray.length);
+                            Log.d(TAG, "run: image sent of size " + byteArray.length);
                         } catch (IOException e) {
                             e.printStackTrace();
                         }
@@ -2698,19 +2745,22 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         });
         t.start();
     }
-    public void stopScreenshotRunnable(){
-        screenShot=false;
+
+    public void stopScreenshotRunnable() {
+        screenShot = false;
     }
-    public void setScreenshotRate(int rate){
-        screenshotRate=rate;
+
+    public void setScreenshotRate(int rate) {
+        screenshotRate = rate;
     }
 
     public String lastAppID;
     public String lastLockState;
-    public void updateLastTask(Drawable icon, String Name,String appID,String lock){
-        lastAppID=appID;
-        lastLockState=lock;
-        Log.d(TAG, "updateLastTask: "+Name);
+
+    public void updateLastTask(Drawable icon, String Name, String appID, String lock) {
+        lastAppID = appID;
+        lastLockState = lock;
+        Log.d(TAG, "updateLastTask: " + Name);
         ((LinearLayout) appLauncherScreen.findViewById(R.id.current_task_layout)).setVisibility(View.VISIBLE);
         ((TextView) appLauncherScreen.findViewById(R.id.text_current_task)).setVisibility(View.VISIBLE);
         ((ImageView) appLauncherScreen.findViewById(R.id.current_icon)).setImageDrawable(icon);
@@ -2718,39 +2768,45 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         appLauncherScreen.invalidate();
         updateLastOffTask();
     }
-    public void updateLastOffTask(){
+
+    public void updateLastOffTask() {
         int offTask = getConnectedLearnersAdapter().alertsAdapter.getCount();
         //String.valueOf(offTask)
-        ((TextView) appLauncherScreen.findViewById(R.id.current_offtask)).setText(Html.fromHtml( "<font color=#1599F3>" + offTask + "</font><font color=#AFB7CB> may be off task</font>",Html.FROM_HTML_MODE_LEGACY));
+        ((TextView) appLauncherScreen.findViewById(R.id.current_offtask)).setText(Html.fromHtml("<font color=#1599F3>" + offTask + "</font><font color=#AFB7CB> may be off task</font>", Html.FROM_HTML_MODE_LEGACY));
 
     }
-    public void displaySelectBar(int numSelected){
-        boolean show =false;
-        if(numSelected>0){show=true;}
+
+    public void displaySelectBar(int numSelected) {
+        boolean show = false;
+        if (numSelected > 0) {
+            show = true;
+        }
         LinearLayout selectBar = mainLeader.findViewById(R.id.select_bar);
-        if(show){
+        if (show) {
             selectBar.setVisibility(View.VISIBLE);
-        }else{
+        } else {
             selectBar.setVisibility(View.GONE);
         }
         CompoundButton.OnCheckedChangeListener listener = (buttonView, isChecked) -> {
-            if(isChecked){
+            if (isChecked) {
                 getConnectedLearnersAdapter().selectAllPeers(true);
-            }else{
+            } else {
                 getConnectedLearnersAdapter().selectAllPeers(false);
             }
         };
-        CheckBox checkBox =mainLeader.findViewById(R.id.select_bar_selectall);
-        checkBox.setOnCheckedChangeListener (null);
-        checkBox.setChecked(numSelected== getConnectedLearnersAdapter().getCount());
-        checkBox.setOnCheckedChangeListener (listener);
+        CheckBox checkBox = mainLeader.findViewById(R.id.select_bar_selectall);
+        checkBox.setOnCheckedChangeListener(null);
+        checkBox.setChecked(numSelected == getConnectedLearnersAdapter().getCount());
+        checkBox.setOnCheckedChangeListener(listener);
 
 
     }
+
     public int onBoardPage = 0;
     public View OnBoard;
+
     @SuppressLint("ClickableViewAccessibility")
-    private void buildAndDisplayOnBoard(){
+    private void buildAndDisplayOnBoard() {
         Log.d(TAG, "buildAndDisplayOnBoard: ");
         Uri videoUri = Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.welcome);
         //check if has been displayed before
@@ -2761,10 +2817,10 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         video.requestFocus();
         video.start();
         video.setOnCompletionListener(mp -> video.start());
-        video.setOnPreparedListener(mp -> handler.postDelayed(() -> video.setBackgroundColor(Color.TRANSPARENT),150));
+        video.setOnPreparedListener(mp -> handler.postDelayed(() -> video.setBackgroundColor(Color.TRANSPARENT), 150));
 
 
-        GestureDetector gestureDetector = new GestureDetector(this,new MyGestureDetector(this));
+        GestureDetector gestureDetector = new GestureDetector(this, new MyGestureDetector(this));
         //TextSwitcher onBoardContent = OnBoard.findViewById(R.id.onBoard_content);
         OnBoard.setOnTouchListener((v, event) -> {
             if (gestureDetector.onTouchEvent(event)) {
@@ -2773,11 +2829,12 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             return false;
         });
 
-        ImageView[] buttons = {OnBoard.findViewById(R.id.oboard_btn_1),OnBoard.findViewById(R.id.oboard_btn_2),OnBoard.findViewById(R.id.oboard_btn_3),OnBoard.findViewById(R.id.oboard_btn_4),OnBoard.findViewById(R.id.oboard_btn_5)};
-        for(int i=0; i<buttons.length; i++){
+        ImageView[] buttons = {OnBoard.findViewById(R.id.oboard_btn_1), OnBoard.findViewById(R.id.oboard_btn_2), OnBoard.findViewById(R.id.oboard_btn_3), OnBoard.findViewById(R.id.oboard_btn_4), OnBoard.findViewById(R.id.oboard_btn_5)};
+        for (int i = 0; i < buttons.length; i++) {
             int ind = i;
             buttons[i].setOnClickListener(new View.OnClickListener() {
                 int index = ind;
+
                 @Override
                 public void onClick(View v) {
                     setOnboardCurrent(index);
@@ -2788,7 +2845,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         nextButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                setOnboardCurrent(onBoardPage+1);
+                setOnboardCurrent(onBoardPage + 1);
 
             }
         });
@@ -2803,21 +2860,22 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         setOnboardCurrent(0);
         this.setContentView(OnBoard);
     }
-    public void setOnboardCurrent(int current){
+
+    public void setOnboardCurrent(int current) {
         Log.d(TAG, "setOnboardCurrent: ");
-        ImageView[] buttons = {OnBoard.findViewById(R.id.oboard_btn_1),OnBoard.findViewById(R.id.oboard_btn_2),OnBoard.findViewById(R.id.oboard_btn_3),OnBoard.findViewById(R.id.oboard_btn_4),OnBoard.findViewById(R.id.oboard_btn_5)};
-        String titleToShow[] = {"Welcome to LeadMe","Push Content","Play, View & Block","Select","Lead the Way"};
+        ImageView[] buttons = {OnBoard.findViewById(R.id.oboard_btn_1), OnBoard.findViewById(R.id.oboard_btn_2), OnBoard.findViewById(R.id.oboard_btn_3), OnBoard.findViewById(R.id.oboard_btn_4), OnBoard.findViewById(R.id.oboard_btn_5)};
+        String titleToShow[] = {"Welcome to LeadMe", "Push Content", "Play, View & Block", "Select", "Lead the Way"};
         String textToShow[] = {"The class management tool that connects leaders and learners for a managed digital learning environment.",
                 "Select apps, URLs, and videos to push out to connected learner devices.",
                 "Restrict learner devices. 'View' mode allows display but disables touch. 'Block' mode disables both display and touch. 'Free' mode allows full access within the pushed app.",
                 "Tap the active learner icons to select and manage learners individually",
                 "To finish a task, tap the LeadMe icon to return your learners to LeadMe\n" +
                         "Select learn more to discover the full range of features LeadMe has to offer!"};
-        Uri[] videos = {Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.welcome),Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.push_app),
-                Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.play_view_block),Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.select),
+        Uri[] videos = {Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.welcome), Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.push_app),
+                Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.play_view_block), Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.select),
                 Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.recall)};
-        Animation in = AnimationUtils.makeInAnimation (this, false);
-        Animation out = AnimationUtils.makeOutAnimation (this, false);
+        Animation in = AnimationUtils.makeInAnimation(this, false);
+        Animation out = AnimationUtils.makeOutAnimation(this, false);
         TextSwitcher onBoardTitle = OnBoard.findViewById(R.id.onBoard_title);
         TextSwitcher onBoardContent = OnBoard.findViewById(R.id.onBoard_content);
         onBoardContent.setInAnimation(in);
@@ -2830,56 +2888,58 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         ImageView nextButton = OnBoard.findViewById(R.id.next_button);
         LinearLayout buttons_layout = OnBoard.findViewById(R.id.onboard_buttons);
         buttons_layout.setVisibility(View.GONE);
-        if(current<onBoardPage){
-            onBoardContent.setInAnimation(AnimationUtils.makeInAnimation (getApplicationContext(), true));
-            onBoardContent.setOutAnimation(AnimationUtils.makeOutAnimation (getApplicationContext(), true));
-            onBoardTitle.setInAnimation(AnimationUtils.makeInAnimation (getApplicationContext(), true));
-            onBoardTitle.setOutAnimation(AnimationUtils.makeOutAnimation (getApplicationContext(), true));
-        }else if(current>onBoardPage){
-            onBoardContent.setInAnimation(AnimationUtils.makeInAnimation (getApplicationContext(), false));
-            onBoardContent.setOutAnimation(AnimationUtils.makeOutAnimation (getApplicationContext(), false));
-            onBoardTitle.setInAnimation(AnimationUtils.makeInAnimation (getApplicationContext(), false));
-            onBoardTitle.setOutAnimation(AnimationUtils.makeOutAnimation (getApplicationContext(), false));
-        }else{
+        if (current < onBoardPage) {
+            onBoardContent.setInAnimation(AnimationUtils.makeInAnimation(getApplicationContext(), true));
+            onBoardContent.setOutAnimation(AnimationUtils.makeOutAnimation(getApplicationContext(), true));
+            onBoardTitle.setInAnimation(AnimationUtils.makeInAnimation(getApplicationContext(), true));
+            onBoardTitle.setOutAnimation(AnimationUtils.makeOutAnimation(getApplicationContext(), true));
+        } else if (current > onBoardPage) {
+            onBoardContent.setInAnimation(AnimationUtils.makeInAnimation(getApplicationContext(), false));
+            onBoardContent.setOutAnimation(AnimationUtils.makeOutAnimation(getApplicationContext(), false));
+            onBoardTitle.setInAnimation(AnimationUtils.makeInAnimation(getApplicationContext(), false));
+            onBoardTitle.setOutAnimation(AnimationUtils.makeOutAnimation(getApplicationContext(), false));
+        } else {
             return;
         }
-        onBoardPage=current;
-        for(int j=0; j<buttons.length; j++){
-            if(j!=onBoardPage){
-                buttons[j].setImageTintList(getResources().getColorStateList(R.color.leadme_medium_grey,null));
-            }else{
-                buttons[j].setImageTintList(getResources().getColorStateList(R.color.leadme_blue,null));
+        onBoardPage = current;
+        for (int j = 0; j < buttons.length; j++) {
+            if (j != onBoardPage) {
+                buttons[j].setImageTintList(getResources().getColorStateList(R.color.leadme_medium_grey, null));
+            } else {
+                buttons[j].setImageTintList(getResources().getColorStateList(R.color.leadme_blue, null));
             }
         }
-        if(onBoardPage<=4) {
+        if (onBoardPage <= 4) {
             onBoardTitle.setText(titleToShow[onBoardPage]);
             onBoardContent.setText(textToShow[onBoardPage]);
             video.setVideoURI(videos[onBoardPage]);
             video.requestFocus();
             video.start();
             //  pageHolder.setImageResource(imageToDraw[index]);
-            if(onBoardPage==4){
+            if (onBoardPage == 4) {
                 skipIntro.setVisibility(View.GONE);
                 nextButton.setVisibility(View.GONE);
                 buttons_layout.setVisibility(View.VISIBLE);
                 OnBoard.findViewById(R.id.onboard_ok_btn).setOnClickListener(v1 -> {
                     video.setBackgroundColor(Color.WHITE);
-                    handler.postDelayed(() -> setContentView(leadmeAnimator),50);
+                    handler.postDelayed(() -> setContentView(leadmeAnimator), 50);
 
                 });
                 OnBoard.findViewById(R.id.onboard_moreinfo_btn).setOnClickListener(v1 -> setContentView(leadmeAnimator)); //TODO wire up this button to advanced support page
-            }else{
+            } else {
                 skipIntro.setVisibility(View.VISIBLE);
                 nextButton.setVisibility(View.VISIBLE);
                 buttons_layout.setVisibility(View.GONE);
             }
         }
     }
+
     public View OnBoardPerm;
-    private boolean OnBoardStudentInProgress=false;
-    public void displayStudentOnboard(){
+    private boolean OnBoardStudentInProgress = false;
+
+    public void displayStudentOnboard() {
         Log.d(TAG, "buildAndDisplayOnBoard: ");
-        OnBoardStudentInProgress=true;
+        OnBoardStudentInProgress = true;
         //check if has been displayed before
         OnBoardPerm = View.inflate(this, R.layout.c__onboarding_student, null);
         VideoView video = OnBoardPerm.findViewById(R.id.onBoardperm_video_view);
@@ -2888,24 +2948,25 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         video.requestFocus();
         video.start();
         video.setOnCompletionListener(mp -> video.start());
-        video.setOnPreparedListener(mp -> handler.postDelayed(() -> video.setBackgroundColor(Color.TRANSPARENT),100));
+        video.setOnPreparedListener(mp -> handler.postDelayed(() -> video.setBackgroundColor(Color.TRANSPARENT), 100));
         setStudentOnBoard(0);
         this.setContentView(OnBoardPerm);
     }
-    public void setStudentOnBoard(int page){
+
+    public void setStudentOnBoard(int page) {
         Log.d(TAG, "setOnboardCurrent: ");
-        String titleToShow[] = {"Allow Access","Allow App Overlay"};
+        String titleToShow[] = {"Allow Access", "Allow App Overlay"};
         String textToShow[] = {"LeadMe requires special access on this device. When promted, click ‘allow’, find ‘Services’ or ‘Downloaded Services’ and enable Lumination LeadMe.",
-                                "LeadMe also requires permission to display over other apps. When promted, switch on ‘allow permission’."};
-        Uri[] videos = {Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.access_permission),Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.overlay_permission)};
+                "LeadMe also requires permission to display over other apps. When promted, switch on ‘allow permission’."};
+        Uri[] videos = {Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.access_permission), Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.overlay_permission)};
         View.OnClickListener[] onClicks = {v -> {
             getPermissionsManager().requestAccessibilitySettingsOn();
         }, v -> {
             getPermissionsManager().checkOverlayPermissions();
             setStudentOnBoard(2);
         }};
-        Animation in = AnimationUtils.makeInAnimation (this, false);
-        Animation out = AnimationUtils.makeOutAnimation (this, false);
+        Animation in = AnimationUtils.makeInAnimation(this, false);
+        Animation out = AnimationUtils.makeOutAnimation(this, false);
         TextSwitcher onBoardTitle = OnBoardPerm.findViewById(R.id.onBoardperm_title);
         TextSwitcher onBoardContent = OnBoardPerm.findViewById(R.id.onBoardperm_content);
         onBoardContent.setInAnimation(in);
@@ -2917,16 +2978,16 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         TextView support = OnBoardPerm.findViewById(R.id.onboardperm_support); //TODO support button link
         Button okPermission = OnBoardPerm.findViewById(R.id.onboardperm_ok_btn);
 
-        if(page<=1) {
+        if (page <= 1) {
             onBoardTitle.setText(titleToShow[page]);
             onBoardContent.setText(textToShow[page]);
             video.setVideoURI(videos[page]);
             video.requestFocus();
             video.start();
             okPermission.setOnClickListener(onClicks[page]);
-        }else{
+        } else {
             setContentView(leadmeAnimator);
-            OnBoardStudentInProgress=false;
+            OnBoardStudentInProgress = false;
             updateFollowerCurrentTaskToLeadMe();
 //            if (/*!permissionManager.isOverlayPermissionGranted() || */!permissionManager.isAccessibilityGranted()) {
 //                //performNextAction(); //work through permissions
@@ -2941,7 +3002,8 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             //startServer();
         }
     }
-    public void buildloginsignup(){
+
+    public void buildloginsignup() {
         View Login = View.inflate(this, R.layout.b__login_signup, null);
         setContentView(Login);
     }

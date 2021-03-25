@@ -28,6 +28,9 @@ public class LumiAccessibilityConnector {
     private static boolean waitingForStateChange = false;
 
 
+    public boolean gestureInProgress = false;
+
+
     YouTubeAccessibilityManager ytManager;
     WithinAccessibilityManager withinManager;
 

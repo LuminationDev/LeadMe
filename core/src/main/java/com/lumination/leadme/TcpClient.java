@@ -1,7 +1,5 @@
 package com.lumination.leadme;
 
-import android.os.Handler;
-import android.os.Looper;
 import android.util.Log;
 
 import java.io.BufferedReader;
@@ -13,16 +11,11 @@ import java.io.PrintWriter;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.net.SocketException;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Iterator;
 import java.util.List;
-import java.util.concurrent.Executor;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class TcpClient extends Thread {
     public InetAddress IpAdress;
@@ -57,7 +50,7 @@ public class TcpClient extends Thread {
                         }
                     }
                 }
-                Log.d(TAG, "run: checking for messages");
+                //Log.d(TAG, "run: checking for messages");
             }
     };
     Runnable ConnectionCheck = () -> {

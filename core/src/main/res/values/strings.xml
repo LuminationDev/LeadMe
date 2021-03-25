@@ -111,7 +111,7 @@
     <string name="re_push">Re-push</string>
 
     <string name="playback_settings_title">Playback Settings</string>
-    <string name="playback_controls_title">Playback Controls</string>
+    <string name="playback_controls_title">Control Playback</string>
 
     <string name="vr_mode_on">VR mode ON</string>
     <string name="vr_mode_off">VR mode OFF</string>

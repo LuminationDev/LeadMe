@@ -33,7 +33,7 @@
             android:layout_weight="1"
             android:fontFamily="@font/poppins_semibold"
             android:gravity="center_horizontal"
-            android:text="Playback Settings"
+            android:text="@string/playback_settings_title"
             android:textAlignment="center"
             android:textColor="@color/leadme_black"
             android:textSize="16sp" />

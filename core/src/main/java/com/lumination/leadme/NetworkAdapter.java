@@ -1,25 +1,17 @@
 package com.lumination.leadme;
 
-import android.Manifest;
-import android.app.Activity;
 import android.content.Context;
-import android.content.pm.PackageManager;
 import android.net.nsd.NsdManager;
 import android.net.nsd.NsdServiceInfo;
 import android.os.Build;
-import android.os.Handler;
-import android.os.Looper;
 import android.os.Parcel;
 import android.util.Log;
 import android.view.View;
-
-import androidx.core.app.ActivityCompat;
 
 import com.google.android.gms.nearby.connection.Payload;
 
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
@@ -205,7 +197,7 @@ public class NetworkAdapter {
     }
 
     /*
-    Initilises the registraion listener allowing us to register the service
+    Initialises the registration listener allowing us to register the service
      */
     public void initializeRegistrationListener() {
         if(mRegistrationListener==null) {
@@ -326,7 +318,7 @@ public class NetworkAdapter {
                 }
                 if(socket!=null && pingName) {
                     if (socket.isConnected()) {
-                        Log.d(TAG, "run: pinging parent");
+                        //Log.d(TAG, "run: pinging parent");
                         Name = nearbyPeersManager.getName();
                         sendToServer(Name, "NAME");
                     }
@@ -394,7 +386,7 @@ public class NetworkAdapter {
     }
 
     private void checkConnection() {
-        Log.d(TAG, "checkConnection: checking connection");
+        //Log.d(TAG, "checkConnection: checking connection");
         if(connectionisActive>0){
             connectionisActive--;
         }else if(connectionisActive==0){
@@ -452,7 +444,7 @@ public class NetworkAdapter {
 //                            }else {
                                 if (input != null) {
                                     if (input.length() > 0) {
-                                        Log.d(TAG, "run: server said: " + input);
+                                        //Log.d(TAG, "run: server said: " + input);
                                         netAdapt.messageRecievedFromServer(input);
                                     }
                                 }
@@ -537,7 +529,7 @@ public class NetworkAdapter {
                         main.closeWaitingDialog(true);
                     }
                 pingName=false;
-                Log.d(TAG, "messageRecievedFromServer: recieved ping and subsequently ignoring it");
+                //Log.d(TAG, "messageRecievedFromServer: recieved ping and subsequently ignoring it");
                 break;
             case "MONITOR":
                 if(inputList.get(1).contains(":")){

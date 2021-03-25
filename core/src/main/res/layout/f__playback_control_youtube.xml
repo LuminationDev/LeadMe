@@ -53,7 +53,7 @@
                 android:layout_weight="1"
                 android:fontFamily="@font/poppins_semibold"
                 android:gravity="center_horizontal"
-                android:text="Control Playback"
+                android:text="@string/playback_controls_title"
                 android:textAlignment="center"
                 android:textColor="@color/leadme_black"
                 android:textSize="16sp" />

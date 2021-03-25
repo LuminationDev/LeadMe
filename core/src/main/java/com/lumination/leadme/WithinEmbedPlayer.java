@@ -79,7 +79,7 @@ public class WithinEmbedPlayer {
         setupWebClient(searchWebView, true);
         setupWithinSearchButtons();
 
-        withinControllerDialogView = View.inflate(main, R.layout.f__playback_settings_within, null);
+        withinControllerDialogView = View.inflate(main, R.layout.f__playback_within, null);
         vrModeBtn = withinControllerDialogView.findViewById(R.id.vr_mode_toggle);
         streamBtn = withinControllerDialogView.findViewById(R.id.stream_btn);
         downloadBtn = withinControllerDialogView.findViewById(R.id.download_btn);
@@ -256,7 +256,11 @@ public class WithinEmbedPlayer {
                     foundTitle = url.replace(foundPrefix, "").replace(foundSuffix, "");
                     foundURL = urlPrefix + foundTitle;
                     withinSearchDialogView.findViewById(R.id.select_btn).setBackground(main.getResources().getDrawable(R.drawable.bg_active, null));
-                    Log.w(TAG, "EXTRACTED! " + foundURL);
+                    Log.w(TAG, "EXTRACTED! " + foundURL + ", " + main.getFavouritesManager().isInFavourites(foundURL));
+
+                    //update check if appropriate
+                    favCheck.setChecked(main.getWebManager().getUrlFavouritesManager().isInFavourites(foundURL));
+
                 } else if (url.startsWith("https://cms.with.in/v1/category/all?page=")) {
                     view.stopLoading();
                 }
@@ -296,8 +300,8 @@ public class WithinEmbedPlayer {
         });
 
         withinSearchDialogView.findViewById(R.id.select_btn).setOnClickListener(v -> {
-            if (!v.getBackground().equals(disabledBg)) {
-                showToast("Loading " + foundTitle + " | " + foundURL);
+            if (!v.getBackground().equals(disabledBg) && !foundURL.trim().equals("")) {
+                Log.i(TAG, "Loading " + foundTitle + " | " + foundURL);
                 if (favCheck.isChecked()) {
                     main.getWebManager().getUrlFavouritesManager().addToFavourites(foundURL, foundTitle, null);
                 }
@@ -341,6 +345,7 @@ public class WithinEmbedPlayer {
         withinControllerDialogView.findViewById(R.id.new_video).setOnClickListener(v -> {
             resetControllerState();
             videoControlDialog.dismiss();
+            showWithinSearch();
             main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.RETURN_TAG, main.getNearbyManager().getSelectedPeerIDsOrAll());
         });
 
@@ -367,7 +372,7 @@ public class WithinEmbedPlayer {
 
         pushBtn.setOnClickListener(v -> {
             attemptedURL = foundURL;
-            Log.d(TAG, "Launching WithinVR for students: " + attemptedURL + ", " + stream);
+            Log.d(TAG, "Launching WithinVR for students: " + attemptedURL + ", [STR] " + stream + ", [VR] " + vrMode);
             main.getAppManager().launchWithin(attemptedURL, stream, vrMode);
             main.updateFollowerCurrentTask(main.getAppManager().withinPackage, "Within VR", "VR Video", attemptedURL, foundTitle);
             //String packageName, String appName, String taskType, String url, String urlTitle)
@@ -415,6 +420,9 @@ public class WithinEmbedPlayer {
     }
 
     private void showWithinSearch() {
+        foundURL = ""; //reset
+        foundTitle = "";
+        attemptedURL = "";
         if (videoSearchDialog == null) {
             videoSearchDialog = new AlertDialog.Builder(main)
                     .setView(withinSearchDialogView)
@@ -428,14 +436,14 @@ public class WithinEmbedPlayer {
     //could be entered directly or from favourites
     public void showController(String url) {
         foundURL = url;
-        foundURL =foundURL.replace("/watch/","/embed/");
-        Log.d(TAG, "showController: "+foundURL);
+        foundURL = foundURL.replace("/watch/", "/embed/");
+        Log.d(TAG, "showController: " + foundURL);
         withinSearchDialogView.findViewById(R.id.select_btn).setBackground(main.getResources().getDrawable(R.drawable.bg_active, null));
         showGuideController(true);
     }
 
     private void showGuideController(boolean isFresh) {
-        updateControllerUI(false);
+        updateControllerUI(!isFresh);
         if (videoControlDialog == null) {
             videoControlDialog = new AlertDialog.Builder(main)
                     .setView(withinControllerDialogView)

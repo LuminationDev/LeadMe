@@ -90,7 +90,7 @@ public class YouTubeEmbedPlayer {
         this.main = main;
         this.webManager = webManager;
 
-        videoControllerDialogView = View.inflate(main, R.layout.f__control_playback_youtube, null);
+        videoControllerDialogView = View.inflate(main, R.layout.f__playback_control_youtube, null);
         videoControls = videoControllerDialogView.findViewById(R.id.video_controls);
         internetUnavailableMsg = videoControllerDialogView.findViewById(R.id.no_internet);
         internetUnavailableMsg.setOnClickListener(v -> loadVideoGuideURL(attemptedURL));

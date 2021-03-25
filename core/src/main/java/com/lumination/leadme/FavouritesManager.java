@@ -3,7 +3,6 @@ package com.lumination.leadme;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.util.ArraySet;
 import android.util.DisplayMetrics;
@@ -302,6 +301,15 @@ public class FavouritesManager extends BaseAdapter {
 
         Log.d(TAG, contentList.toString());
         Log.d(TAG, sharedPreferences.getAll().toString());
+    }
+
+    public boolean isInFavourites(String content) {
+        Log.e(TAG, "Looking for " + content + " in " + contentList);
+        if (contentList.contains(content)) {
+            return true;
+        }
+
+        return false;
     }
 
 

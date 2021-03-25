@@ -5,7 +5,6 @@ import android.content.Intent;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
-import android.content.res.Resources;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.util.Log;
@@ -258,7 +257,7 @@ public class AppManager extends BaseAdapter {
     }
 
     public void launchWithin(String url, boolean isStreaming, boolean isVR) {
-        Log.d(TAG, "launchWithin: ");
+        Log.d(TAG, "launchWithin: " + isStreaming + ", " + isVR);
         this.isStreaming = isStreaming;
         this.isVR = isVR;
         videoInit = false; //reset
@@ -269,7 +268,7 @@ public class AppManager extends BaseAdapter {
             lockTag = LeadMeMain.UNLOCK_TAG;
         }
         //send launch request
-        main.getDispatcher().requestRemoteAppOpenWithExtra(LeadMeMain.APP_TAG, withinPackage, "Within VR", lockTag, url, isStreaming, main.getNearbyManager().getSelectedPeerIDsOrAll());
+        main.getDispatcher().requestRemoteWithinLaunch(LeadMeMain.APP_TAG, withinPackage, "Within VR", lockTag, url, isStreaming, isVR, main.getNearbyManager().getSelectedPeerIDsOrAll());
     }
 
 

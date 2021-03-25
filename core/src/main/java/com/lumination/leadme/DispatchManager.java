@@ -19,11 +19,13 @@ public class DispatchManager {
     String packageNameRepush;
     String appNameRepush;
     String lockTagRepush;
+
     public DispatchManager(LeadMeMain main) {
         this.main = main;
     }
-    public void repushApp(Set<String> selectedPeerIDs){
-        requestRemoteAppOpen( tagRepush,  packageNameRepush,  appNameRepush,  lockTagRepush, selectedPeerIDs);
+
+    public void repushApp(Set<String> selectedPeerIDs) {
+        requestRemoteAppOpen(tagRepush, packageNameRepush, appNameRepush, lockTagRepush, selectedPeerIDs);
     }
 
     protected void disableInteraction(final int status) {
@@ -61,11 +63,11 @@ public class DispatchManager {
         }
     }
 
-    public void requestRemoteAppOpenWithExtra(String tag, String packageName, String appName, String lockTag, String extra, boolean streaming, Set<String> selectedPeerIDs) {
-        tagRepush=tag;
-        packageNameRepush=packageName;
-        appNameRepush=appName;
-        lockTagRepush=lockTag;
+    public void requestRemoteWithinLaunch(String tag, String packageName, String appName, String lockTag, String extra, boolean streaming, boolean vrMode, Set<String> selectedPeerIDs) {
+        tagRepush = tag;
+        packageNameRepush = packageName;
+        appNameRepush = appName;
+        lockTagRepush = lockTag;
         Parcel p = Parcel.obtain();
         byte[] bytes;
         p.writeString(tag);
@@ -74,16 +76,17 @@ public class DispatchManager {
         p.writeString(lockTag);
         p.writeString(extra);
         p.writeString(streaming + "");
+        p.writeString(vrMode + "");
         bytes = p.marshall();
         p.recycle();
         writeMessageToSelected(bytes, selectedPeerIDs);
     }
 
     public void requestRemoteAppOpen(String tag, String packageName, String appName, String lockTag, Set<String> selectedPeerIDs) {
-        tagRepush=tag;
-        packageNameRepush=packageName;
-        appNameRepush=appName;
-        lockTagRepush=lockTag;
+        tagRepush = tag;
+        packageNameRepush = packageName;
+        appNameRepush = appName;
+        lockTagRepush = lockTag;
         Parcel p = Parcel.obtain();
         byte[] bytes;
         p.writeString(tag);
@@ -95,7 +98,7 @@ public class DispatchManager {
         bytes = p.marshall();
         p.recycle();
         writeMessageToSelected(bytes, selectedPeerIDs);
-        main.updateLastTask(main.getAppManager().getAppIcon(packageName),main.getAppManager().getAppName(packageName),packageName,lockTag);
+        main.updateLastTask(main.getAppManager().getAppIcon(packageName), main.getAppManager().getAppName(packageName), packageName, lockTag);
     }
 
     public synchronized void alertLogout() {
@@ -387,9 +390,10 @@ public class DispatchManager {
         final String lockTag = p.readString();
         final String extra = p.readString();
         final String streaming = p.readString();
+        final String vrMode = p.readString();
         p.recycle();
 
-        Log.d(TAG, "Received in OpenApp!: " + tag + ", " + packageName + ", " + appName + ", " + lockTag + ", " + extra + ", " + streaming + " vs " + main.getAppManager().lastApp);
+        Log.d(TAG, "Received in OpenApp!: " + tag + ", " + packageName + ", " + appName + ", " + lockTag + ", " + extra + ", " + streaming + ", " + vrMode + " vs " + main.getAppManager().lastApp);
         if (tag != null && tag.equals(LeadMeMain.APP_TAG)) {
             if (lockTag.equals(LeadMeMain.LOCK_TAG)) {
                 //I've been selected to toggle student lock
@@ -412,8 +416,9 @@ public class DispatchManager {
                 if (!extra.isEmpty()) {
                     // save all the info for a Within launch
                     main.getAppManager().isStreaming = Boolean.parseBoolean(streaming);
+                    main.getAppManager().isVR = Boolean.parseBoolean(vrMode);
                     main.getAppManager().withinURI = Uri.parse(extra);
-                    Log.d(TAG, "Setting streaming status and URL for WITHIN VR " + extra + ", " + streaming + " (" + appInForeground + ")");
+                    Log.d(TAG, "Setting streaming status, vrMode and URL for WITHIN VR " + extra + ", " + streaming + ", " + vrMode + ", (" + appInForeground + ")");
                 } else {
                     //no URL was specified, so clear any previous info
                     main.getAppManager().withinURI = null;
