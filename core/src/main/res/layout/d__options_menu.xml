@@ -115,13 +115,13 @@
 
                 <SeekBar
                     android:id="@+id/screen_capture_rate"
-                    android:progressTint="@color/leadme_blue"
-                    android:thumbTint="@color/leadme_blue"
                     android:layout_width="fill_parent"
                     android:layout_height="wrap_content"
                     android:buttonTint="@color/leadme_blue"
                     android:max="100"
                     android:progress="1"
+                    android:progressTint="@color/leadme_blue"
+                    android:thumbTint="@color/leadme_blue"
                     tools:visibility="visible" />
             </LinearLayout>
 
@@ -136,23 +136,8 @@
             android:includeFontPadding="false"
             android:text="Settings"
             android:textColor="@color/leadme_black"
-            android:textSize="18sp" />
-
-        <CheckBox
-            android:id="@+id/auto_updates"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
-            android:checked="false"
-            android:fontFamily="@font/poppins_regular"
-            android:includeFontPadding="false"
-            android:layoutDirection="inherit"
-            android:paddingStart="5dp"
-            android:text="Automatically check for updates"
-            android:textColor="@color/leadme_black"
-            android:textSize="16sp"
-            android:visibility="visible"
-            android:buttonTint="@color/leadme_blue"/>
+            android:textSize="18sp"
+            android:visibility="gone" />
 
         <CheckBox
             android:id="@+id/auto_install_checkbox"
@@ -160,6 +145,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
             android:layout_marginBottom="10dp"
+            android:buttonTint="@color/leadme_blue"
             android:checked="false"
             android:fontFamily="@font/poppins_regular"
             android:includeFontPadding="false"
@@ -167,14 +153,13 @@
             android:text="Auto-install missing apps"
             android:textColor="@color/leadme_black"
             android:textSize="16sp"
-            android:visibility="gone"
-            android:buttonTint="@color/leadme_blue"/>
+            android:visibility="gone" />
 
         <TextView
             android:id="@+id/help_title"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="50dp"
+            android:layout_marginTop="20dp"
             android:fontFamily="@font/poppins_semibold"
             android:includeFontPadding="false"
             android:text="Help"

@@ -29,7 +29,6 @@ import android.hardware.display.DisplayManager;
 import android.media.AudioManager;
 import android.media.Image;
 import android.media.ImageReader;
-import android.media.MediaPlayer;
 import android.media.projection.MediaProjection;
 import android.media.projection.MediaProjectionManager;
 import android.net.Uri;
@@ -51,7 +50,6 @@ import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
@@ -66,11 +64,9 @@ import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.GridView;
-import android.widget.ImageSwitcher;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
-import android.widget.MediaController;
 import android.widget.ScrollView;
 import android.widget.SearchView;
 import android.widget.SeekBar;
@@ -82,14 +78,10 @@ import android.widget.ViewAnimator;
 import android.widget.ViewSwitcher;
 
 import androidx.core.content.res.ResourcesCompat;
-import androidx.core.view.GestureDetectorCompat;
 import androidx.fragment.app.FragmentActivity;
 import androidx.lifecycle.Lifecycle;
 import androidx.lifecycle.LifecycleObserver;
 import androidx.lifecycle.OnLifecycleEvent;
-
-import com.google.android.material.imageview.ShapeableImageView;
-import com.google.android.material.shape.CornerFamily;
 
 import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
@@ -98,7 +90,6 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.net.URI;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Set;
@@ -151,7 +142,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     static final String STUDENT_NO_INTERNET = "LumiInternet:";
     static final String LAUNCH_SUCCESS = "LumiSuccess:";
     final static String SESSION_UUID_TAG = "SessionUUID";
-    final static String SESSION_AUTO_UPDATE = "AutoUpdate";
+
     public final int OVERLAY_ON = 0;
     public final int ACCESSIBILITY_ON = 1;
     public final int BLUETOOTH_ON = 2;
@@ -183,7 +174,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
     public boolean studentLockOn = true; //students start locked
     public boolean autoInstallApps = false; //if true, missing apps on student devices get installed automatically
-    public boolean autoCheckUpdates = true; //if true, we check for updates and prompt user if there is one
 
     //details about me to send to peers
     public boolean isGuide = false;
@@ -226,7 +216,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     private ConnectedLearnersAdapter connectedLearnersAdapter;
     private LeaderSelectAdapter leaderSelectAdapter;
     private static DispatchManager dispatcher;
-    private AutoUpdater autoUpdater;
 
     private TextView nameView;
     public Button readyBtn;
@@ -1145,8 +1134,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         Log.w(TAG, "On create! " + init);
 
-        autoUpdater = new AutoUpdater(this);
-
         //store a random UUID for this phone in shared preferences
         //will be unique and anonymous and will stay stable for a
         //good period of time to allow re-connections during a session
@@ -1482,34 +1469,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             getDispatcher().sendBoolToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.AUTO_INSTALL, autoInstallApps, getNearbyManager().getSelectedPeerIDs());
         });
 
-
-        //check current defaults in shared preferences
-        //if a preference exists, retrieve it otherwise place it
-        if (sharedPreferences.contains(SESSION_AUTO_UPDATE)) {
-            autoCheckUpdates = sharedPreferences.getBoolean(SESSION_AUTO_UPDATE, true);
-        } else {
-            updateAutoCheckPreference(sharedPreferences);
-        }
-
-        //auto check for app updates
-        CheckBox auto_updates_checkbox = optionsScreen.findViewById(R.id.auto_updates);
-        auto_updates_checkbox.setChecked(autoCheckUpdates); //toggle the checkbox
-        auto_updates_checkbox.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            autoCheckUpdates = isChecked;
-            updateAutoCheckPreference(sharedPreferences);
-            Log.d(TAG, "Changed detected! Auto update is now " + autoCheckUpdates);
-            Toast toast;
-            if (autoCheckUpdates) {
-                toast = Toast.makeText(getApplicationContext(), "LeadMe will automatically check for updates", Toast.LENGTH_SHORT);
-                autoUpdater.startUpdateChecker();
-                autoUpdater.showUpdateDialog();
-            } else {
-                toast = Toast.makeText(getApplicationContext(), "LeadMe will no longer check for updates", Toast.LENGTH_SHORT);
-                autoUpdater.stopUpdateChecker();
-            }
-            toast.show();
-        });
-
         setUpControlButtons();
 
         initPermissions = true;
@@ -1517,10 +1476,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
         if (!permissionManager.isNearbyPermissionsGranted()) {
             permissionManager.checkNearbyPermissions();
-        }
-
-        if (autoCheckUpdates) {// && permissionManager.isAccessibilityGranted() && permissionManager.isOverlayPermissionGranted() && permissionManager.isNearbyPermissionsGranted()){
-            autoUpdater.startUpdateChecker();
         }
 
         screenshotManager = new ScreenshotManagerBuilder(this).withPermissionRequestCode(REQUEST_SCREENSHOT_PERMISSION) //optional, 888 is the default
@@ -1569,12 +1524,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
     public void setAlertsBtnVisibility(int visibility) {
         alertsBtn.setVisibility(visibility);
-    }
-
-    private void updateAutoCheckPreference(SharedPreferences sharedPreferences) {
-        SharedPreferences.Editor editor = sharedPreferences.edit();
-        editor.putBoolean(SESSION_AUTO_UPDATE, autoCheckUpdates);
-        editor.apply();
     }
 
     protected void buildOverlay() {
@@ -1960,9 +1909,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             title.setText(name);
             ((TextView) optionsScreen.findViewById(R.id.connected_as_role)).setText(getResources().getText(R.string.leader));
             ((TextView) optionsScreen.findViewById(R.id.connected_as_role)).setTextColor(getResources().getColor(R.color.accent, null));
-
-            //TODO remove auto update functionality when needed
-            optionsScreen.findViewById(R.id.auto_updates).setVisibility(View.VISIBLE);
 
                 SharedPreferences sharedPreferences = getSharedPreferences(getResources().getString(R.string.preference_file_key), Context.MODE_PRIVATE);
                 //if a UUID exists, retrieve it
