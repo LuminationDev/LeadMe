@@ -73,7 +73,7 @@ public class FavouritesManager extends BaseAdapter {
         this.maxLimit = maxLimit;
 
         inflater = LayoutInflater.from(main);
-        activeBg = main.getResources().getDrawable(R.drawable.rounded_btn_white, null);
+        activeBg = main.getResources().getDrawable(R.drawable.add_favourite_active, null);
         emptyBg = main.getResources().getDrawable(R.drawable.add_favourite, null);
         placeholder = main.getResources().getDrawable(R.drawable.web_no_preview, null);
 
@@ -672,7 +672,7 @@ public class FavouritesManager extends BaseAdapter {
             final Drawable appIcon = main.getAppManager().getAppIcon(favPackage);
             viewHolder.favouriteName.setText(appName);
             viewHolder.favouriteIcon.setImageDrawable(appIcon);
-            viewHolder.favouriteIcon.setBackground(emptyBg);
+            viewHolder.favouriteIcon.setBackground(activeBg);
             viewHolder.favouriteIcon.setElevation(10);
 
             convertView.setClickable(true);

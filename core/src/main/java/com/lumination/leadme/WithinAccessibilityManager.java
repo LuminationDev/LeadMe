@@ -183,6 +183,7 @@ public class WithinAccessibilityManager {
         String[] exclusionPhrases0 = {};
         if (/*currentView == VIEW_VR &&*/ screenContainsPhrases(rootInActiveWindow, targetPhrasesA, exclusionPhrases0) && screenContainsPhrases(rootInActiveWindow, targetPhrasesB, exclusionPhrases0)) {
             Log.w(TAG, "Contains PLAY and REPLAY -- must be end of video!");
+            main.updateFollowerCurrentTaskToLeadMe();
             connector.bringMainToFront();
             return;
         }

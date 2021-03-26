@@ -104,6 +104,7 @@
             android:layout_weight="1"
             android:button="@drawable/star_checkbox"
             android:checked="false"
+            android:enabled="false"
             android:fontFamily="@font/poppins_semibold"
             android:includeFontPadding="false"
             android:paddingStart="5dp"

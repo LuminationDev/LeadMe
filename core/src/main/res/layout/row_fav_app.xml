@@ -18,7 +18,7 @@
         android:layout_width="@dimen/favicon_size"
         android:layout_height="@dimen/favicon_size"
         android:layout_margin="10dp"
-        android:background="@drawable/add_favourite_inset"
+        android:background="@drawable/add_favourite"
         android:padding="2dp" />
 
     <TextView

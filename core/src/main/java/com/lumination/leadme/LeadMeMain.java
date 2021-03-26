@@ -1766,10 +1766,16 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         dialogShowing = (waitingDialog != null && waitingDialog.isShowing()) || (loginDialog != null && loginDialog.isShowing());
         Log.d(TAG, "Are they showing now?? " + (waitingDialog != null && waitingDialog.isShowing()) + " || " + (loginDialog != null && loginDialog.isShowing()));
 
-        if (dialogShowing) { //try again until they're both gone
-            closeWaitingDialog(success);
-            return;
+        //wait for dialogs to close
+        try {
+            Thread.sleep(200);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
+//        if (dialogShowing) { //try again until they're both gone
+//            closeWaitingDialog(success);
+//            return;
+//        }
 
         if (!success) {
             //failed to login, so show login screen again

@@ -48,6 +48,7 @@ public class WithinEmbedPlayer {
     private final TextView streamBtn, downloadBtn;
     private final Switch vrModeBtn;
     private final ImageView vrIcon;
+    private final ImageView playBtn, pauseBtn;
     private final Spinner lockSpinner;
 
     private String attemptedURL = "";
@@ -85,6 +86,8 @@ public class WithinEmbedPlayer {
         downloadBtn = withinControllerDialogView.findViewById(R.id.download_btn);
         lockSpinner = (Spinner) withinControllerDialogView.findViewById(R.id.push_spinner);
         pushBtn = withinControllerDialogView.findViewById(R.id.push_btn);
+        playBtn = withinControllerDialogView.findViewById(R.id.play_btn);
+        pauseBtn = withinControllerDialogView.findViewById(R.id.pause_btn);
         vrIcon = withinControllerDialogView.findViewById(R.id.vr_mode_icon);
         controllerWebView = withinControllerDialogView.findViewById(R.id.within_webview);
         controllerBackupParams = controllerWebView.getLayoutParams();
@@ -259,6 +262,7 @@ public class WithinEmbedPlayer {
                     Log.w(TAG, "EXTRACTED! " + foundURL + ", " + main.getFavouritesManager().isInFavourites(foundURL));
 
                     //update check if appropriate
+                    favCheck.setEnabled(true);
                     favCheck.setChecked(main.getWebManager().getUrlFavouritesManager().isInFavourites(foundURL));
 
                 } else if (url.startsWith("https://cms.with.in/v1/category/all?page=")) {
@@ -367,8 +371,16 @@ public class WithinEmbedPlayer {
             main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.VID_UNMUTE_TAG, main.getNearbyManager().getSelectedPeerIDsOrAll());
         });
 
-        withinControllerDialogView.findViewById(R.id.play_btn).setVisibility(View.VISIBLE);
-        withinControllerDialogView.findViewById(R.id.pause_btn).setVisibility(View.VISIBLE);
+        playBtn.setVisibility(View.VISIBLE);
+        pauseBtn.setVisibility(View.VISIBLE);
+
+        playBtn.setOnClickListener(v -> {
+            //TODO
+        });
+
+        pauseBtn.setOnClickListener(v -> {
+            //TODO
+        });
 
         pushBtn.setOnClickListener(v -> {
             attemptedURL = foundURL;
@@ -383,13 +395,13 @@ public class WithinEmbedPlayer {
             if (vrMode) {
                 //TODO AUTO PLAY VIDEO
                 withinControllerDialogView.findViewById(R.id.vr_mode).setVisibility(View.VISIBLE);
-                withinControllerDialogView.findViewById(R.id.play_btn).setVisibility(View.GONE);
-                withinControllerDialogView.findViewById(R.id.pause_btn).setVisibility(View.GONE);
+                playBtn.setVisibility(View.GONE);
+                pauseBtn.setVisibility(View.GONE);
 
             } else {
                 withinControllerDialogView.findViewById(R.id.vr_mode).setVisibility(View.GONE);
-                withinControllerDialogView.findViewById(R.id.play_btn).setVisibility(View.VISIBLE);
-                withinControllerDialogView.findViewById(R.id.pause_btn).setVisibility(View.VISIBLE);
+                playBtn.setVisibility(View.VISIBLE);
+                pauseBtn.setVisibility(View.VISIBLE);
             }
         });
 
@@ -423,6 +435,7 @@ public class WithinEmbedPlayer {
         foundURL = ""; //reset
         foundTitle = "";
         attemptedURL = "";
+        favCheck.setEnabled(false);
         if (videoSearchDialog == null) {
             videoSearchDialog = new AlertDialog.Builder(main)
                     .setView(withinSearchDialogView)
