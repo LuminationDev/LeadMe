@@ -59,6 +59,7 @@ public class YouTubeEmbedPlayer {
 
     private TextView youtubePreviewTitle;
     private Button youtubePreviewPushBtn;
+    private TextView repushBtn;
     private WebView youtubePreviewWebView;
     private View youtubeSettingsDialogView;
     private CheckBox favCheck;
@@ -213,12 +214,10 @@ public class YouTubeEmbedPlayer {
             main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.RETURN_TAG, main.getNearbyManager().getSelectedPeerIDsOrAll());
         });
 
-        videoControllerDialogView.findViewById(R.id.push_again_btn).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                webManager.pushYouTube(attemptedURL, controllerTitle, lastStartFrom, lastLockState, isVROn());
-                syncNewStudentsWithCurrentState();
-            }
+        repushBtn = videoControllerDialogView.findViewById(R.id.push_again_btn);
+        repushBtn.setOnClickListener(v -> {
+            webManager.pushYouTube(attemptedURL, controllerTitle, lastStartFrom, lastLockState, isVROn());
+            syncNewStudentsWithCurrentState();
         });
 
         videoControllerDialogView.findViewById(R.id.video_back_btn).setOnClickListener(v ->

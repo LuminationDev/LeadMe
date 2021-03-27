@@ -40,6 +40,7 @@ public class WithinEmbedPlayer {
 
     private AlertDialog videoControlDialog, videoSearchDialog;
     private final Button pushBtn;
+    private TextView repushBtn;
     private final CheckBox favCheck;
     private final View withinControllerDialogView, withinSearchDialogView;
     private final TextView internetUnavailableMsg;
@@ -85,6 +86,7 @@ public class WithinEmbedPlayer {
         downloadBtn = withinControllerDialogView.findViewById(R.id.download_btn);
         lockSpinner = (Spinner) withinControllerDialogView.findViewById(R.id.push_spinner);
         pushBtn = withinControllerDialogView.findViewById(R.id.push_btn);
+        repushBtn = withinControllerDialogView.findViewById(R.id.push_again_btn);
         vrIcon = withinControllerDialogView.findViewById(R.id.vr_mode_icon);
         controllerWebView = withinControllerDialogView.findViewById(R.id.within_webview);
         controllerBackupParams = controllerWebView.getLayoutParams();
@@ -330,6 +332,7 @@ public class WithinEmbedPlayer {
             withinControllerDialogView.findViewById(R.id.within_playback_btns).setVisibility(View.VISIBLE);
             withinControllerDialogView.findViewById(R.id.within_select_btns).setVisibility(View.GONE);
 
+            repushBtn.setVisibility(View.VISIBLE);
             ((TextView) withinControllerDialogView.findViewById(R.id.title)).setText(main.getResources().getText(R.string.playback_controls_title));
 
         } else {
@@ -339,6 +342,7 @@ public class WithinEmbedPlayer {
             withinControllerDialogView.findViewById(R.id.within_playback_btns).setVisibility(View.GONE);
             withinControllerDialogView.findViewById(R.id.within_select_btns).setVisibility(View.VISIBLE);
 
+            repushBtn.setVisibility(View.INVISIBLE);
             ((TextView) withinControllerDialogView.findViewById(R.id.title)).setText(main.getResources().getText(R.string.playback_settings_title));
         }
     }
@@ -374,25 +378,12 @@ public class WithinEmbedPlayer {
             main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.VID_UNMUTE_TAG, main.getNearbyManager().getSelectedPeerIDsOrAll());
         });
 
+        repushBtn.setOnClickListener(v -> {
+            pushWithin(); //TODO see if this needs any changes
+        });
+
         pushBtn.setOnClickListener(v -> {
-            attemptedURL = foundURL;
-            Log.d(TAG, "Launching WithinVR for students: " + attemptedURL + ", [STR] " + stream + ", [VR] " + vrMode);
-            main.getAppManager().launchWithin(attemptedURL, stream, vrMode);
-            main.updateFollowerCurrentTask(main.getAppManager().withinPackage, "Within VR", "VR Video", attemptedURL, foundTitle);
-            //String packageName, String appName, String taskType, String url, String urlTitle)
-
-            //update UI
-            updateControllerUI(true);
-
-            if (vrMode) {
-                //TODO AUTO PLAY VIDEO
-                withinControllerDialogView.findViewById(R.id.vr_mode).setVisibility(View.VISIBLE);
-                withinControllerDialogView.findViewById(R.id.phone_mode).setVisibility(View.GONE);
-
-            } else {
-                withinControllerDialogView.findViewById(R.id.vr_mode).setVisibility(View.GONE);
-                withinControllerDialogView.findViewById(R.id.phone_mode).setVisibility(View.VISIBLE);
-            }
+            pushWithin();
         });
 
         vrModeBtn.setOnCheckedChangeListener((buttonView, isChecked) -> {
@@ -410,6 +401,27 @@ public class WithinEmbedPlayer {
             toggleStreamBtn();
         });
 
+    }
+
+    private void pushWithin() {
+        attemptedURL = foundURL;
+        Log.d(TAG, "Launching WithinVR for students: " + attemptedURL + ", [STR] " + stream + ", [VR] " + vrMode);
+        main.getAppManager().launchWithin(attemptedURL, stream, vrMode);
+        main.updateFollowerCurrentTask(main.getAppManager().withinPackage, "Within VR", "VR Video", attemptedURL, foundTitle);
+        //String packageName, String appName, String taskType, String url, String urlTitle)
+
+        //update UI
+        updateControllerUI(true);
+
+        if (vrMode) {
+            //TODO AUTO PLAY VIDEO
+            withinControllerDialogView.findViewById(R.id.vr_mode).setVisibility(View.VISIBLE);
+            withinControllerDialogView.findViewById(R.id.phone_mode).setVisibility(View.GONE);
+
+        } else {
+            withinControllerDialogView.findViewById(R.id.vr_mode).setVisibility(View.GONE);
+            withinControllerDialogView.findViewById(R.id.phone_mode).setVisibility(View.VISIBLE);
+        }
     }
 
     public void showWithin() {

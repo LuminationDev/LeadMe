@@ -415,10 +415,16 @@ public class DispatchManager {
             if (packageName.equals(main.getAppManager().withinPackage)) {
                 if (!extra.isEmpty()) {
                     // save all the info for a Within launch
-                    main.getAppManager().isStreaming = Boolean.parseBoolean(streaming);
-                    main.getAppManager().isVR = Boolean.parseBoolean(vrMode);
-                    main.getAppManager().withinURI = Uri.parse(extra);
-                    Log.d(TAG, "Setting streaming status, vrMode and URL for WITHIN VR " + extra + ", " + streaming + ", " + vrMode + ", (" + appInForeground + ")");
+                    Uri thisURI = Uri.parse(extra);
+                    if (main.getAppManager().withinURI != null && main.getAppManager().withinURI.equals(thisURI)) {
+                        Log.w(TAG, "We're already playing " + thisURI.toString() + "! Ignoring...");
+                        return true; //successfully extracted the details, no action needed
+                    } else {
+                        main.getAppManager().withinURI = thisURI;
+                        main.getAppManager().isStreaming = Boolean.parseBoolean(streaming);
+                        main.getAppManager().isVR = Boolean.parseBoolean(vrMode);
+                        Log.d(TAG, "Setting streaming status, vrMode and URL for WITHIN VR " + extra + ", " + streaming + ", " + vrMode + ", (" + appInForeground + ")");
+                    }
                 } else {
                     //no URL was specified, so clear any previous info
                     main.getAppManager().withinURI = null;
