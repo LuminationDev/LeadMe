@@ -97,7 +97,7 @@ public class NearbyPeersManager {
     }
 
     public boolean isConnectedAsGuide() {
-        return main.isGuide && networkAdapter.currentClients.size() > 0;//TODO maybe replace this with current clients once implemented
+        return main.isGuide && networkAdapter.isServerRunning();
     }
 
     /**

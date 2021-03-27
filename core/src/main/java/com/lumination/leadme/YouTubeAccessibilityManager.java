@@ -455,7 +455,8 @@ public class YouTubeAccessibilityManager {
             "Skip survey",
             "No Thanks",
             "Cancel auto",
-            "Hide related videos"
+            "Hide related videos",
+            "Watch in " //should capture 'Watch in VIEW MASTER VR VIEWER' and similar for other viewers
     };
 
     private static String[] skipAdsPhrases = {

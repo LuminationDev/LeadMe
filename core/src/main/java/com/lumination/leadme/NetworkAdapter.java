@@ -238,9 +238,15 @@ public class NetworkAdapter {
     public boolean isConnected() {
         if (socket != null) {
             return socket.isConnected();
-        } else {
-            return false;
         }
+        return false;
+    }
+
+    public boolean isServerRunning() {
+        if (mServerSocket != null) {
+            return !mServerSocket.isClosed();
+        }
+        return false;
     }
 
     public void connectToServer(NsdServiceInfo serviceInfo) {
@@ -615,13 +621,11 @@ public class NetworkAdapter {
                     Log.d(TAG, "Connected.");
                 }
                 //}
-            } catch (IOException e) {
+            } catch (Exception e) {
                 Log.e(TAG, "Error creating ServerSocket: ", e);
                 e.printStackTrace();
             }
         }
-
-
     }
 
     public void startAdvertising() {

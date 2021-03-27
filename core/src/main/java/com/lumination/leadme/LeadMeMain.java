@@ -1435,6 +1435,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
         //set up options screen
         optionsScreen.findViewById(R.id.back_btn).setOnClickListener(v -> {
+            Log.e(TAG, nearbyManager.isConnectedAsFollower() + " // " + nearbyManager.isConnectedAsGuide() + " // " + isGuide);
             if (nearbyManager.isConnectedAsGuide()) {
                 leadmeAnimator.setDisplayedChild(ANIM_LEADER_INDEX);
 
