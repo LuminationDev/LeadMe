@@ -655,6 +655,7 @@ public class WebManager {
             favCheckbox.setVisibility(View.GONE);
 
         } else if (isYouTube) {
+            favCheckbox.setChecked(youTubeFavouritesManager.isInFavourites(url));
             youTubeEmbedPlayer.showPlaybackPreview(pushURL, pushTitle);
             return;
 
@@ -665,7 +666,7 @@ public class WebManager {
             } else {
                 previewPushBtn.setText(main.getResources().getString(R.string.push_this_to_everyone));
             }
-            favCheckbox.setChecked(false);
+            favCheckbox.setChecked(urlFavouritesManager.isInFavourites(url));
             favCheckbox.setVisibility(View.VISIBLE);
         }
 
@@ -815,11 +816,9 @@ public class WebManager {
         if (isYouTube) {
             title = youTubeFavouritesManager.getTitle(url);
             preview = youTubeFavouritesManager.getPreview(url);
-            favCheckbox.setChecked(youTubeFavouritesManager.isInFavourites(url));
         } else {
             title = urlFavouritesManager.getTitle(url);
             preview = urlFavouritesManager.getPreview(url);
-            favCheckbox.setChecked(urlFavouritesManager.isInFavourites(url));
         }
 
         if (preview == null || title == null) {

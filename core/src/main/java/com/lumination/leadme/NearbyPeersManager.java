@@ -1,29 +1,16 @@
 package com.lumination.leadme;
 
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.ColorSpace;
 import android.net.nsd.NsdServiceInfo;
 import android.os.Build;
-import android.os.Handler;
-import android.os.Looper;
 import android.os.Parcel;
 import android.util.Log;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.collection.ArraySet;
 
 import com.google.android.gms.nearby.connection.Payload;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.sql.Array;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Base64;
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
@@ -40,10 +27,9 @@ public class NearbyPeersManager {
     public String myName;
 
 
-
     public NearbyPeersManager(LeadMeMain main) {
-       this.main=main;
-       networkAdapter=new NetworkAdapter(main.context,main,this);
+        this.main = main;
+        networkAdapter = new NetworkAdapter(main.context, main, this);
     }
 
     protected void startPingThread() {
@@ -51,15 +37,14 @@ public class NearbyPeersManager {
     }
 
     protected void discoverLeaders() {
-        discovering=true;
+        discovering = true;
         networkAdapter.stopAdvertising();
         networkAdapter.startDiscovery();
     }
 
 
-
     protected void setSelectedLeader(ConnectedPeer peer) {
-        selectedLeader=peer;
+        selectedLeader = peer;
     }
 
     protected void cancelConnection() {
@@ -68,7 +53,7 @@ public class NearbyPeersManager {
 
     public void onStop() {
         Log.d(TAG, "onStop: deprecated");
-        networkAdapter.closeSocket=true;
+        networkAdapter.closeSocket = true;
 
     }
 
@@ -79,12 +64,12 @@ public class NearbyPeersManager {
 
     protected void connectToSelectedLeader() {
         String Name = selectedLeader.getDisplayName();
-        ArrayList<NsdServiceInfo> discoveredLeaders=networkAdapter.discoveredLeaders ;
+        ArrayList<NsdServiceInfo> discoveredLeaders = networkAdapter.discoveredLeaders;
         Iterator iterator = discoveredLeaders.iterator();
-        while (iterator.hasNext()){
+        while (iterator.hasNext()) {
             NsdServiceInfo info = (NsdServiceInfo) iterator.next();
-            Log.d(TAG, "connectToSelectedLeader: "+info.getServiceName());
-            if(info.getServiceName().equals(Name+"#Teacher")){
+            Log.d(TAG, "connectToSelectedLeader: " + info.getServiceName());
+            if (info.getServiceName().equals(Name + "#Teacher")) {
                 Thread t = new Thread(new Runnable() {
                     @Override
                     public void run() {
@@ -101,7 +86,7 @@ public class NearbyPeersManager {
 
 
     public void setAsGuide() {
-        main.isGuide=true;
+        main.isGuide = true;
         networkAdapter.stopDiscovery();
         networkAdapter.startAdvertising();
     }
@@ -112,7 +97,7 @@ public class NearbyPeersManager {
     }
 
     public boolean isConnectedAsGuide() {
-       return main.isGuide && networkAdapter.currentClients.size()>0;//TODO maybe replace this with current clients once implemented
+        return main.isGuide && networkAdapter.currentClients.size() > 0;//TODO maybe replace this with current clients once implemented
     }
 
     /**
@@ -140,27 +125,26 @@ public class NearbyPeersManager {
     }
 
 
-
     public void disconnectStudent(String endpointId) {
         networkAdapter.removeClient(Integer.parseInt(endpointId));
     }
 
     public void disconnectFromEndpoint(String endpointId) {
-        if(main.isGuide){
+        if (main.isGuide) {
             main.getConnectedLearnersAdapter().alertStudentDisconnect(endpointId);
             main.getConnectedLearnersAdapter().refresh();
             disconnectStudent(endpointId);
 
-        }else {
+        } else {
 //            try {
-                main.runOnUiThread(() -> {
-                    ArrayList<ConnectedPeer> temp = new ArrayList<>();
-                    main.getLeaderSelectAdapter().setLeaderList(temp);
-                    main.showLeaderWaitMsg(true);
-                    networkAdapter.startDiscovery();
-                    main.setUIDisconnected();
-                });
-                //networkAdapter.socket.close();
+            main.runOnUiThread(() -> {
+                ArrayList<ConnectedPeer> temp = new ArrayList<>();
+                main.getLeaderSelectAdapter().setLeaderList(temp);
+                main.showLeaderWaitMsg(true);
+                networkAdapter.startDiscovery();
+                main.setUIDisconnected();
+            });
+            //networkAdapter.socket.close();
 //            } catch (IOException e) {
 //                Log.d(TAG, "disconnectFromEndpoint: unable to close socket");
 //                e.printStackTrace();
@@ -172,7 +156,7 @@ public class NearbyPeersManager {
      * Stops advertising.
      */
     protected void stopAdvertising() {
-networkAdapter.stopAdvertising();
+        networkAdapter.stopAdvertising();
     }
 
     protected boolean isDiscovering() {
@@ -181,9 +165,9 @@ networkAdapter.stopAdvertising();
     }
 
     protected void disconnectFromAllEndpoints() {
-        if(main.isGuide){
+        if (main.isGuide) {
             networkAdapter.stopServer();
-        }else{
+        } else {
 //            try {
 //                networkAdapter.socket.close();
 //            } catch (IOException e) {
@@ -194,12 +178,13 @@ networkAdapter.stopAdvertising();
 
 
     protected final boolean isConnecting() {
-        if(networkAdapter.socket!=null) {
+        if (networkAdapter.socket != null) {
             return networkAdapter.socket.isConnected();
-        }else{
+        } else {
             return false;
         }
     }
+
     public Set<String> getSelectedPeerIDsOrAll() {
 
         Set<String> endpoints = new ArraySet<>();
@@ -220,6 +205,7 @@ networkAdapter.stopAdvertising();
         }
         return endpoints;
     }
+
     public Set<String> getSelectedPeerIDs() {
 
         Set<String> endpoints = new ArraySet<>();
@@ -234,7 +220,7 @@ networkAdapter.stopAdvertising();
             return endpoints;
 
             //if connected as follower, send message back to guide
-        }else{
+        } else {
             endpoints.add("-1");
         }
         return endpoints;
@@ -243,11 +229,11 @@ networkAdapter.stopAdvertising();
     public Set<String> getAllPeerIDs() {
         Set<String> something = new HashSet();
         Iterator it = networkAdapter.currentClients.iterator();
-        while(it.hasNext()){
+        while (it.hasNext()) {
             client id = (client) it.next();
             something.add(String.valueOf(id.ID));
         }
-        if(!main.isGuide){
+        if (!main.isGuide) {
             something.add("-1");
         }
         return something;
@@ -260,19 +246,19 @@ networkAdapter.stopAdvertising();
         byte[] b = p.marshall();
         String test = null;
         ArrayList<String> selectedString = new ArrayList<>(endpoints);
-        if(selectedString.size()==0 && !main.isGuide){
+        if (selectedString.size() == 0 && !main.isGuide) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 String encoded = Base64.getEncoder().encodeToString(b);
                 networkAdapter.sendToServer(encoded, "ACTION");
             }
             return;
         }
-        if(selectedString.get(0).equals("-1") && !main.isGuide){
+        if (!selectedString.isEmpty() && selectedString.get(0).equals("-1") && !main.isGuide) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 String encoded = Base64.getEncoder().encodeToString(b);
                 networkAdapter.sendToServer(encoded, "ACTION");
             }
-        }else {
+        } else {
             ArrayList<Integer> selected = new ArrayList<>();
             Iterator iterator = selectedString.iterator();
             while (iterator.hasNext()) {
@@ -287,7 +273,6 @@ networkAdapter.stopAdvertising();
         }
 
     }
-
 
 
     /**

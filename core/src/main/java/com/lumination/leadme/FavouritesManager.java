@@ -305,12 +305,8 @@ public class FavouritesManager extends BaseAdapter {
     }
 
     public boolean isInFavourites(String content) {
-        Log.e(TAG, "Looking for " + content + " in " + contentList);
-        if (contentList.contains(content)) {
-            return true;
-        }
-
-        return false;
+        Log.e(TAG, "Looking for " + content + " in " + contentList + " >> " + contentList.contains(content));
+        return contentList.contains(content);
     }
 
 

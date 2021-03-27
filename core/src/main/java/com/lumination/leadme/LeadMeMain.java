@@ -890,17 +890,17 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
                     handler.post(() -> {
                         //wait until layout update is actioned before trying to gesture
-                        do {
+                        //do {
                             try {
-                                Log.e(TAG, "Waiting...");
+                                Log.e(TAG, "Waiting... " + overlayView.isLayoutRequested());
                                 Thread.sleep(200);
                             } catch (InterruptedException e) {
                                 e.printStackTrace();
                             }
-                        } while (overlayView.isLayoutRequested());
+                        // } while (overlayView.isLayoutRequested());
 
                         boolean success = accessibilityService.dispatchGesture(swipe, gestureResultCallback, null);
-                        //Log.e(TAG, "Did I dispatch " + swipe + " to " + accessibilityService + "? " + success + " // " + overlayView.isAttachedToWindow() + " // " + overlayView.isLayoutRequested());
+                        Log.e(TAG, "Did I dispatch " + swipe + " to " + accessibilityService + "? " + success + " // " + overlayView.isAttachedToWindow() + " // " + overlayView.isLayoutRequested());
 
                     });
                 }
