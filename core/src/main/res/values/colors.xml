@@ -23,6 +23,7 @@
     <color name="accent">#FDA627</color>
 
     <color name="leadme_black">#000000</color>
+    <color name="leadme_black_transparent">#3B000000</color>
     <color name="leadme_darkest_grey">#3A3A3A</color>
     <color name="leadme_dark_grey">#919BB4</color>
     <color name="leadme_medium_grey">#AFB7CB</color>
