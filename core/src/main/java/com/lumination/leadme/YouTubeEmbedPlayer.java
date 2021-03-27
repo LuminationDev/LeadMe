@@ -595,9 +595,9 @@ public class YouTubeEmbedPlayer {
         lockSpinnerParent = youtubeSettingsDialogView.findViewById(R.id.lock_spinner);
         lockSpinner = (Spinner) youtubeSettingsDialogView.findViewById(R.id.push_spinner);
         lockSpinnerItems = new String[2];
-        lockSpinnerItems[0] = "Lock students";
-        lockSpinnerItems[1] = "Unlock students";
-        Integer[] push_imgs = {R.drawable.controls_lock, R.drawable.controls_unlock};
+        lockSpinnerItems[0] = "View only";
+        lockSpinnerItems[1] = "Free play";
+        Integer[] push_imgs = {R.drawable.controls_view, R.drawable.controls_play};
         SpinnerAdapter push_adapter = new SpinnerAdapter(main, R.layout.row_push_spinner, lockSpinnerItems, push_imgs);
         lockSpinner.setAdapter(push_adapter);
         lockSpinner.setSelection(0); //default to locked
@@ -633,6 +633,8 @@ public class YouTubeEmbedPlayer {
             youtubeInternetUnavailableMsg.setVisibility(View.VISIBLE);
             youtubeVideoControls.setVisibility(View.GONE);
         }
+
+        favCheck.setChecked(main.getWebManager().getYouTubeFavouritesManager().isInFavourites(url));
 
         if (playbackSettingsDialog == null) {
             playbackSettingsDialog = new AlertDialog.Builder(main)

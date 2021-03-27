@@ -850,6 +850,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                     }
                 }
 
+                getLumiAccessibilityConnector().gestureInProgress = false;
                 Log.d(TAG, "gesture cancelled");
                 //activate the event once the tap completes
                 getLumiAccessibilityConnector().manageAccessibilityEvent(null, null);
@@ -859,6 +860,10 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
     public static void setAccessibilityService(LumiAccessibilityService service) {
         accessibilityService = service;
+    }
+
+    public static AccessibilityService getAccessibilityService() {
+        return accessibilityService;
     }
 
     public void tapBounds(int x, int y) {
@@ -881,14 +886,10 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                 //change overlay so taps can temporarily pass through
                 if (overlayView.isAttachedToWindow()) {
                     overlayParams.flags = WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE | WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN | WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE;
-
-                    Log.d(TAG, "1] Is layout requested? " + overlayView.isLayoutRequested());
                     getWindowManager().updateViewLayout(overlayView, overlayParams);
-                    Log.d(TAG, "2] Is layout requested? " + overlayView.isLayoutRequested());
 
                     handler.post(() -> {
                         //wait until layout update is actioned before trying to gesture
-                        Log.d(TAG, "3] Is layout requested? " + overlayView.isLayoutRequested());
                         do {
                             try {
                                 Log.e(TAG, "Waiting...");
@@ -897,9 +898,9 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                                 e.printStackTrace();
                             }
                         } while (overlayView.isLayoutRequested());
-                        Log.d(TAG, "4] Is layout requested? " + overlayView.isLayoutRequested());
+
                         boolean success = accessibilityService.dispatchGesture(swipe, gestureResultCallback, null);
-                        Log.e(TAG, "Did I dispatch " + swipe + " to " + accessibilityService + "? " + success + " // " + overlayView.isAttachedToWindow() + " // " + overlayView.isLayoutRequested());
+                        //Log.e(TAG, "Did I dispatch " + swipe + " to " + accessibilityService + "? " + success + " // " + overlayView.isAttachedToWindow() + " // " + overlayView.isLayoutRequested());
 
                     });
                 }
@@ -2151,6 +2152,9 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
 
     public void updateFollowerCurrentTaskToLeadMe() {
+        if (currentTaskPackageName != leadMePackageName) {
+            activityManager.killBackgroundProcesses(currentTaskPackageName);
+        }
         updateFollowerCurrentTask(leadMePackageName, leadMeAppName, "Application", "", "");
     }
 
@@ -2297,6 +2301,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         closeKeyboard();
         permissionManager.needsRecall = false;
         getLumiAccessibilityConnector().bringMainToFront(); //call each other until it works
+        getLumiAccessibilityConnector().withinManager.cleanUpVideo(); //end video
 
         Intent intent = new Intent(this, LeadMeMain.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);

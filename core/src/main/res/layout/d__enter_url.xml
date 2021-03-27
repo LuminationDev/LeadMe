@@ -96,7 +96,7 @@
                     android:id="@+id/open_favourites"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:drawableLeft="@drawable/icon_fav_star_check"
+                    android:drawableLeft="@drawable/icon_fav_star_solid"
                     android:drawablePadding="5dp"
                     android:fontFamily="@font/poppins_semibold"
                     android:gravity="center_vertical"

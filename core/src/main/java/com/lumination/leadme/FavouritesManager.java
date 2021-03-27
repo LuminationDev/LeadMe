@@ -195,6 +195,7 @@ public class FavouritesManager extends BaseAdapter {
                         //otherwise stick with what was last saved
                         if (!sourceContent.getTitle().isEmpty()) {
                             titleList.set(i, sourceContent.getTitle());
+                            formatAndSavePrefs();
                         }
 
                         final int prevIndex = i;
@@ -558,6 +559,7 @@ public class FavouritesManager extends BaseAdapter {
         int index = contentList.indexOf(url);
         if (index != -1) {
             titleList.set(index, title);
+            formatAndSavePrefs();
             return true;
         } else {
             return false;

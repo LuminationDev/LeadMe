@@ -92,9 +92,9 @@ public class WebManager {
         lockSpinnerParent = previewDialogView.findViewById(R.id.lock_spinner);
         lockSpinner = (Spinner) previewDialogView.findViewById(R.id.push_spinner);
         lockSpinnerItems = new String[2];
-        lockSpinnerItems[0] = "Lock students";
-        lockSpinnerItems[1] = "Unlock students";
-        Integer[] push_imgs = {R.drawable.controls_lock, R.drawable.controls_unlock};
+        lockSpinnerItems[0] = "View only";
+        lockSpinnerItems[1] = "Free play";
+        Integer[] push_imgs = {R.drawable.controls_view, R.drawable.controls_play};
         SpinnerAdapter push_adapter = new SpinnerAdapter(main, R.layout.row_push_spinner, lockSpinnerItems, push_imgs);
         lockSpinner.setAdapter(push_adapter);
         lockSpinner.setSelection(0); //default to locked
@@ -815,9 +815,11 @@ public class WebManager {
         if (isYouTube) {
             title = youTubeFavouritesManager.getTitle(url);
             preview = youTubeFavouritesManager.getPreview(url);
+            favCheckbox.setChecked(youTubeFavouritesManager.isInFavourites(url));
         } else {
             title = urlFavouritesManager.getTitle(url);
             preview = urlFavouritesManager.getPreview(url);
+            favCheckbox.setChecked(urlFavouritesManager.isInFavourites(url));
         }
 
         if (preview == null || title == null) {

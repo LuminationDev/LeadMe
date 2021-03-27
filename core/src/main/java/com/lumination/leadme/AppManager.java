@@ -46,8 +46,8 @@ public class AppManager extends BaseAdapter {
         //set up lock spinner
         lockSpinner = main.appPushDialogView.findViewById(R.id.push_spinner);
         withinLockSpinner = withinPlayer.getLockSpinner();
-        String[] items = {"Lock students", "Unlock students"};
-        Integer[] imgs = {R.drawable.controls_lock, R.drawable.controls_unlock};
+        String[] items = {"View only", "Free play"};
+        Integer[] imgs = {R.drawable.controls_view, R.drawable.controls_play};
 
         SpinnerAdapter adapter = new SpinnerAdapter(main, R.layout.row_push_spinner, items, imgs);
         lockSpinner.setAdapter(adapter);

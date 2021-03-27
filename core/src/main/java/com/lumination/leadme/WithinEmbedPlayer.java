@@ -48,7 +48,6 @@ public class WithinEmbedPlayer {
     private final TextView streamBtn, downloadBtn;
     private final Switch vrModeBtn;
     private final ImageView vrIcon;
-    private final ImageView playBtn, pauseBtn;
     private final Spinner lockSpinner;
 
     private String attemptedURL = "";
@@ -86,8 +85,6 @@ public class WithinEmbedPlayer {
         downloadBtn = withinControllerDialogView.findViewById(R.id.download_btn);
         lockSpinner = (Spinner) withinControllerDialogView.findViewById(R.id.push_spinner);
         pushBtn = withinControllerDialogView.findViewById(R.id.push_btn);
-        playBtn = withinControllerDialogView.findViewById(R.id.play_btn);
-        pauseBtn = withinControllerDialogView.findViewById(R.id.pause_btn);
         vrIcon = withinControllerDialogView.findViewById(R.id.vr_mode_icon);
         controllerWebView = withinControllerDialogView.findViewById(R.id.within_webview);
         controllerBackupParams = controllerWebView.getLayoutParams();
@@ -296,7 +293,13 @@ public class WithinEmbedPlayer {
         disabledBg = main.getResources().getDrawable(R.drawable.bg_disabled, null);
         //set up standard dialog buttons
         withinSearchDialogView.findViewById(R.id.web_back_btn).setOnClickListener(v -> {
-            searchWebView.goBack();
+            if (foundURL.isEmpty()) {
+                //if no experience is selected, close the popup
+                videoSearchDialog.dismiss();
+            } else {
+                //otherwise, go back
+                searchWebView.goBack();
+            }
         });
 
         withinSearchDialogView.findViewById(R.id.within_back).setOnClickListener(v -> {
@@ -371,17 +374,6 @@ public class WithinEmbedPlayer {
             main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.VID_UNMUTE_TAG, main.getNearbyManager().getSelectedPeerIDsOrAll());
         });
 
-        playBtn.setVisibility(View.VISIBLE);
-        pauseBtn.setVisibility(View.VISIBLE);
-
-        playBtn.setOnClickListener(v -> {
-            //TODO
-        });
-
-        pauseBtn.setOnClickListener(v -> {
-            //TODO
-        });
-
         pushBtn.setOnClickListener(v -> {
             attemptedURL = foundURL;
             Log.d(TAG, "Launching WithinVR for students: " + attemptedURL + ", [STR] " + stream + ", [VR] " + vrMode);
@@ -395,13 +387,11 @@ public class WithinEmbedPlayer {
             if (vrMode) {
                 //TODO AUTO PLAY VIDEO
                 withinControllerDialogView.findViewById(R.id.vr_mode).setVisibility(View.VISIBLE);
-                playBtn.setVisibility(View.GONE);
-                pauseBtn.setVisibility(View.GONE);
+                withinControllerDialogView.findViewById(R.id.phone_mode).setVisibility(View.GONE);
 
             } else {
                 withinControllerDialogView.findViewById(R.id.vr_mode).setVisibility(View.GONE);
-                playBtn.setVisibility(View.VISIBLE);
-                pauseBtn.setVisibility(View.VISIBLE);
+                withinControllerDialogView.findViewById(R.id.phone_mode).setVisibility(View.VISIBLE);
             }
         });
 
@@ -436,6 +426,7 @@ public class WithinEmbedPlayer {
         foundTitle = "";
         attemptedURL = "";
         favCheck.setEnabled(false);
+        favCheck.setChecked(false);
         if (videoSearchDialog == null) {
             videoSearchDialog = new AlertDialog.Builder(main)
                     .setView(withinSearchDialogView)
@@ -449,7 +440,7 @@ public class WithinEmbedPlayer {
     //could be entered directly or from favourites
     public void showController(String url) {
         foundURL = url;
-        foundURL = foundURL.replace("/watch/", "/embed/");
+//        foundURL = foundURL.replace("/watch/", "/embed/"); //moved this to showGuideController
         Log.d(TAG, "showController: " + foundURL);
         withinSearchDialogView.findViewById(R.id.select_btn).setBackground(main.getResources().getDrawable(R.drawable.bg_active, null));
         showGuideController(true);
@@ -480,8 +471,8 @@ public class WithinEmbedPlayer {
             toggleVRBtn();
 
             pageLoaded = false; //reset flag
-            loadVideoGuideURL(foundURL);
-            controllerWebView.scrollTo(0, 200);
+            loadVideoGuideURL(foundURL.replace("/watch/", "/embed/")); //display embedded version
+            //controllerWebView.scrollTo(0, 200);
         }
 
         videoControlDialog.show();
@@ -493,7 +484,6 @@ public class WithinEmbedPlayer {
         if (main.getPermissionsManager().isInternetConnectionAvailable()) {
             internetUnavailableMsg.setVisibility(View.GONE);
             controllerWebView.setVisibility(View.VISIBLE);
-            //controllerWebView.loadUrl("https://get.webgl.org/");
             Log.d(TAG, "Attempting to load " + url + " on controller");
             controllerWebView.loadDataWithBaseURL(null, getiFrameData(url), "text/html", "UTF-8", null);
         } else {

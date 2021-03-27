@@ -144,7 +144,7 @@
             android:clickable="true"
             android:focusable="true"
             android:fontFamily="@font/poppins_semibold"
-            android:text="@string/back"
+            android:text="Close"
             android:textAllCaps="false"
             android:textColor="@color/leadme_darkest_grey"
             android:textSize="16sp" />

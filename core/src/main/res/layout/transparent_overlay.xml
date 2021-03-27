@@ -16,7 +16,7 @@
         android:layout_marginStart="10dp"
         android:layout_marginTop="40dp"
         android:foregroundGravity="top|left"
-        android:src="@drawable/controls_lock"
+        android:src="@drawable/controls_view"
         android:visibility="visible" />
 
     <LinearLayout

@@ -14,7 +14,7 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:contentDescription="@string/app_name"
-            android:src="@drawable/controls_lock"
+            android:src="@drawable/controls_view"
             android:tag="spinner_img" />
 
         <TextView
@@ -26,7 +26,7 @@
             android:paddingStart="10dp"
             android:paddingEnd="10dp"
             android:tag="spinner_text"
-            android:text="Lock students"
+            android:text="View only"
             android:textSize="14sp" />
 
     </TableRow>

@@ -1,7 +1,7 @@
 package com.lumination.leadme;
 
+import android.accessibilityservice.AccessibilityService;
 import android.graphics.Rect;
-import android.os.Bundle;
 import android.util.Log;
 import android.view.accessibility.AccessibilityEvent;
 import android.view.accessibility.AccessibilityNodeInfo;
@@ -9,9 +9,10 @@ import android.view.accessibility.AccessibilityNodeInfo;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
+
+import static java.util.concurrent.TimeUnit.SECONDS;
 
 public class WithinAccessibilityManager {
 
@@ -43,10 +44,24 @@ public class WithinAccessibilityManager {
     private LumiAccessibilityConnector connector;
     private LeadMeMain main;
 
+
+    boolean initTapLocations = false;
+
+    ScheduledThreadPoolExecutor scheduledExecutor = new ScheduledThreadPoolExecutor(1);
+    public int firstTime = -1, finishTime = -1;
+    boolean checkAgain = false;
+    boolean scheduled = false;
+    boolean checkingForFinish = false;
+    ScheduledFuture schedTask;
+
+    AccessibilityEvent lastEvent;
+
+
     public WithinAccessibilityManager(LeadMeMain main, LumiAccessibilityConnector connector) {
         Log.d(TAG, "WithinAccessibilityManager: ");
         this.connector = connector;
         this.main = main;
+        scheduledExecutor.setRemoveOnCancelPolicy(true);
     }
 
     private boolean screenContainsPhrases(AccessibilityNodeInfo rootInActiveWindow, String[] targetPhrases, String[] exclusionPhrases) {
@@ -133,37 +148,25 @@ public class WithinAccessibilityManager {
         }
     }
 
-    boolean initTapLocations = false;
-    Runnable tapVideo = new Runnable() {
-        @Override
-        public void run() {
-            main.tapBounds(500, 500);
-            try {
-                Thread.currentThread().sleep(100);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-            main.tapBounds(500, 500);
-            checkAgain = true;
-            scheduledExecutor.shutdown();
-        }
-    };
-    ScheduledExecutorService scheduledExecutor = new ScheduledThreadPoolExecutor(1);
-    public int firstTime = -1;
-    boolean checkAgain = false;
+    int lastDelay = -1;
+    int concurrentDelays = 0;
 
     public void manageWithinAccess(AccessibilityEvent event, AccessibilityNodeInfo rootInActiveWindow) {
-        Log.d(TAG, "manageWithinAccess: ");
+        Log.d(TAG, "manageWithinAccess: " + currentView + " == " + VIEW_VR + ", " + checkingForFinish);
+        lastEvent = event;
 
         if (main.getLumiAccessibilityConnector().gestureInProgress) {
             Log.i(TAG, "WAITING FOR LAST GESTURE");
             return;
         }
 
-        if (event != null) {//&& event.getEventType() == AccessibilityEvent.TYPE_VIEW_CLICKED) {
-            Log.e(TAG, "WITHIN] " + event.getSource() + ", " + rootInActiveWindow);
+        if (event != null) {
+            Log.e(TAG, "WITHIN A] " + AccessibilityEvent.eventTypeToString(event.getEventType()) + ", " + event.getClassName() + " // " + rootInActiveWindow.getClassName() + ", " + event.getAction() + "\n"
+                    + event.getSource() + "\n"
+                    + rootInActiveWindow);
         } else {
-            Log.d(TAG, "WITHIN] " + event + ", " + rootInActiveWindow);
+            Log.d(TAG, "WITHIN B] " + AccessibilityEvent.eventTypeToString(event.getEventType()) + ", " + event.getClassName() + " // " + rootInActiveWindow.getClassName() + ", " + event.getAction() + "\n"
+                    + event + "\n " + rootInActiveWindow);
         }
 
         if (main.getAppManager().getIsWithinStreaming()) {
@@ -178,13 +181,14 @@ public class WithinAccessibilityManager {
             currentView = VIEW_PHONE;
         }
 
+        String[] exclusionPhrasesEmpty = {};
+
         String[] targetPhrasesA = {"Play"};
         String[] targetPhrasesB = {"Replay"};
-        String[] exclusionPhrases0 = {};
-        if (/*currentView == VIEW_VR &&*/ screenContainsPhrases(rootInActiveWindow, targetPhrasesA, exclusionPhrases0) && screenContainsPhrases(rootInActiveWindow, targetPhrasesB, exclusionPhrases0)) {
-            Log.w(TAG, "Contains PLAY and REPLAY -- must be end of video!");
-            main.updateFollowerCurrentTaskToLeadMe();
-            connector.bringMainToFront();
+        String[] exclusionPhrases1 = {"Play"};
+        //this should indicate end of video in VR MODE ONLY
+        if (screenContainsPhrases(rootInActiveWindow, targetPhrasesA, exclusionPhrasesEmpty) && screenContainsPhrases(rootInActiveWindow, targetPhrasesB, exclusionPhrases1)) {
+            endOfVideo();
             return;
         }
 
@@ -193,107 +197,111 @@ public class WithinAccessibilityManager {
         }
 
         List<AccessibilityNodeInfo> collectedInfo = rootInActiveWindow.findAccessibilityNodeInfosByText(":");
-        List<AccessibilityNodeInfo> collectedInfo2 = new ArrayList<>();
 
-        if (event != null && event.getSource() != null) {
-            event.getSource().findAccessibilityNodeInfosByText(":");
+        //do alternate search if first failed
+        if (collectedInfo.isEmpty() && event != null && event.getSource() != null) {
+            collectedInfo.addAll(event.getSource().findAccessibilityNodeInfosByText(":"));
         }
 
-        Log.e(TAG, "Got " + collectedInfo.size() + " or " + collectedInfo2.size() + " with : in them");
-        int counter = 0;
-        for (AccessibilityNodeInfo info : collectedInfo) {
-            Log.e(TAG, "\t" + info.getText() + " // " + info.getContentDescription());
-            int tmp = -1;
-            try {
-                List<String> time = Arrays.asList(info.getText().toString().split(":"));
-                for (int i = time.size() - 1; i >= 0; i--) {
-                    if (i == time.size() - 1) {
-                        tmp = Integer.parseInt(time.get(i));
-                    } else if (i == time.size() - 2) {
-                        tmp += Integer.parseInt(time.get(i)) * 60;
-                    } else if (i == time.size() - 3) {
-                        tmp += Integer.parseInt(time.get(i)) * 60 * 60;
-                    } else if (i == time.size() - 4) {
-                        tmp += Integer.parseInt(time.get(i)) * 60 * 60 * 24;
-                    } else if (i == time.size() - 5) {
-                        tmp += Integer.parseInt(time.get(i)) * 60 * 60 * 24 * 7;
-                    }
+        Log.i(TAG, "Got " + collectedInfo.size() + " with : in them");
 
-                }
-                //tmp = Integer.parseInt(info.getText().toString().replace(":", ""));
-                if (tmp > -1 && tmp >= firstTime - 3 && firstTime != -1) {
-                    Log.d(TAG, "manageWithinAccess: tmp: " + tmp + " firstTime: " + firstTime);
-                    counter++;
-                    if (counter >= 2) {
-                        //the video is finished!
-                        counter = 0;
-                        Log.w(TAG, "The video is done!");
-                        main.recallToLeadMe();
-                        main.activityManager.killBackgroundProcesses("com.shakingearthdigital.vrsecardboard");
-                    }
-                } else if (tmp > -1) {
-                    Log.w(TAG, "Got a time! " + tmp + " vs " + firstTime);
-                    if (checkAgain = false) {
-                        main.runOnUiThread(() -> {
-                            main.tapBounds(500, 500);
-                            try {
-                                Thread.sleep(40);
-                            } catch (InterruptedException e) {
-                                e.printStackTrace();
-                            }
-                            main.tapBounds(500, 500);
-                        });
-                    }
-                    if (firstTime == -1) {
-                        Log.d(TAG, "manageWithinAccess: setting firstTime to: " + tmp);
-                        firstTime = tmp;
-                        //scheduledExecutor.schedule(tapVideo,tmp*1000, TimeUnit.MILLISECONDS);
-                        scheduledExecutor = new ScheduledThreadPoolExecutor(1);
-                        scheduledExecutor.schedule(tapVideo, (tmp * 1000) - 1000, TimeUnit.MILLISECONDS);
-                        Log.d(TAG, "manageWithinAccess: scheduled timer for " + tmp + " seconds");
-                        checkAgain = false;
-                        //return;
-                    } else {
-                        if (checkAgain) {
-                            checkAgain = false;
-                            int remaining = firstTime - tmp;
-                            Log.d(TAG, "manageWithinAccess: " + remaining + " seconds of video left");
-                            scheduledExecutor = new ScheduledThreadPoolExecutor(1);
-                            if (remaining > 2) {
-                                // scheduledExecutor = new ScheduledThreadPoolExecutor(1);
-                                scheduledExecutor.schedule(tapVideo, 200, TimeUnit.MILLISECONDS);
-                                checkAgain = false;
-                                Thread.currentThread().sleep(1000);
-                                checkAgain = false;
-                                return;
-                            }
-                            scheduledExecutor.schedule(tapVideo, (remaining * 1000) - 1000, TimeUnit.MILLISECONDS);
-                            //main.tapBounds(500,500);
-                            return;
+        if (!collectedInfo.isEmpty()) {
+            firstTime = -1; //reset each time we collect times
+
+            for (AccessibilityNodeInfo info : collectedInfo) {
+                //Log.i(TAG, "\t" + info.getText() + " // " + info.getContentDescription());
+                int tmp = -1;
+                try {
+                    List<String> time = Arrays.asList(info.getText().toString().split(":"));
+                    for (int i = time.size() - 1; i >= 0; i--) {
+                        if (i == time.size() - 1) {
+                            tmp = Integer.parseInt(time.get(i));
+                        } else if (i == time.size() - 2) {
+                            tmp += Integer.parseInt(time.get(i)) * 60;
+                        } else if (i == time.size() - 3) {
+                            tmp += Integer.parseInt(time.get(i)) * 60 * 60;
+                        } else if (i == time.size() - 4) {
+                            tmp += Integer.parseInt(time.get(i)) * 60 * 60 * 24;
+                        } else if (i == time.size() - 5) {
+                            tmp += Integer.parseInt(time.get(i)) * 60 * 60 * 24 * 7;
                         }
                     }
+
+                    if (finishTime < tmp && tmp < 9000) {
+                        finishTime = tmp;
+                    }
+
+                    if (firstTime == -1 && tmp < 9000) {
+                        //Log.d(TAG, "manageWithinAccess: setting firstTime to: " + tmp);
+                        firstTime = tmp;
+                        continue; //got a time, now move to next entry to compare
+                    }
+
+                    //Log.d(TAG, "manageWithinAccess: got times: " + firstTime + " vs " + finishTime);
+
+                    //necessary for managing video end times in VR MODE
+                    if (currentView == VIEW_VR && firstTime > 0 && finishTime >= firstTime) {
+                        scheduled = true;
+                        int delay = finishTime - firstTime;
+                        if (lastDelay == delay) {
+                            concurrentDelays++;
+                        } else {
+                            concurrentDelays = 0;
+                            lastDelay = delay;
+                        }
+
+                        if (schedTask != null) {
+                            Log.w(TAG, "Cancelling scheduled VR exit.");
+                            //cancel previous task, ready for updated time
+                            schedTask.cancel(true);
+                            scheduledExecutor.purge();
+                        }
+
+                        if (delay > 0 && concurrentDelays > 4) {
+                            Log.w(TAG, "Might be paused! Not scheduling. Concurrent: " + concurrentDelays);
+                            scheduled = false;
+                            tapAndSchedule();
+
+                        } else {
+                            Log.w(TAG, "Scheduling! Will run in " + delay + " milliseconds. Concurrent: " + concurrentDelays);
+                            scheduledExecutor.setCorePoolSize(1);
+                            schedTask = scheduledExecutor.schedule(() -> {
+                                // do a thing
+                                exitVRvideo();
+                            }, delay, SECONDS);
+                            Log.w(TAG, "Is it scheduled? ");//+schedTask.isCancelled()+", "+schedTask.isDone()+", "+schedTask.getDelay(SECONDS));
+                        }
+                    }
+
+                    //necessary for managing video end times in PHONE MODE
+                    if (tmp > -1 && tmp >= firstTime - 2 && tmp <= firstTime + 2) {
+                        //Log.d(TAG, "manageWithinAccess: tmp: " + tmp + " firstTime: " + firstTime + ", finish: " + finishTime);
+                        //the video is finished!
+                        endOfVideo();
+                    }
+
+                } catch (Exception e) {
+                    //not the time string we're looking for
+                    continue;
                 }
-            } catch (Exception e) {
-                //not the time string we're looking for
-                continue;
             }
         }
 
         //check for this first, before checking for stream/download
         String[] targetPhrases1 = {"Play"};
-        String[] exclusionPhrases1 = {};
-        if (screenContainsPhrases(rootInActiveWindow, targetPhrases1, exclusionPhrases1)) {
+        String[] exclusionPhrases0 = {"Replay"};
+        if (screenContainsPhrases(rootInActiveWindow, targetPhrases1, exclusionPhrases0)) {
             Log.w(TAG, "[PLAY] Phrases are present! " + currentView);
             main.tapBounds(leftRect.centerX(), leftRect.centerY());
             main.getAppManager().videoInit = true;
 
             try {
-                Thread.sleep(1000);
+                Thread.sleep(500);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
 
-            // firstTime=-1;
+            finishTime = -1;
             return;
         }
 
@@ -301,7 +309,6 @@ public class WithinAccessibilityManager {
         String[] exclusionPhrases = {"YOU HAVEN'T DOWNLOADED", "Streaming", "Preparing"};
         if (screenContainsPhrases(rootInActiveWindow, targetPhrases, exclusionPhrases)) {
             Log.w(TAG, "[STREAM/DOWNLOAD] Phrases are present! " + currentMode);
-            firstTime = -1;
             if (currentMode == MODE_DOWNLOAD) {
                 main.tapBounds(rightRect.centerX(), rightRect.centerY());
             } else {
@@ -309,22 +316,16 @@ public class WithinAccessibilityManager {
             }
             main.getAppManager().videoInit = true;
             try {
-                Thread.sleep(1000);
+                Thread.sleep(500);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-            //firstTime=-1;
+            finishTime = -1;
             return;
         }
 
         String[] targetPhrases2 = {"VIEW IN VR"};
-        String[] exclusionPhrases2 = {};
-        if (main.getAppManager().videoInit && screenContainsPhrases(rootInActiveWindow, targetPhrases2, exclusionPhrases2)) {
-//            try {
-//                Thread.currentThread().sleep(100);
-//            } catch (InterruptedException e) {
-//                e.printStackTrace();
-//            }
+        if (main.getAppManager().videoInit && screenContainsPhrases(rootInActiveWindow, targetPhrases2, exclusionPhrasesEmpty)) {
             Log.w(TAG, "[MODE] Phrases are present! " + currentView);
             if (currentView == VIEW_PHONE) {
                 main.tapBounds(rightRect.centerX(), rightRect.centerY());
@@ -332,10 +333,14 @@ public class WithinAccessibilityManager {
                 main.tapBounds(leftRect.centerX(), leftRect.centerY());
             }
             try {
-                Thread.sleep(1000);
+                Thread.sleep(500);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
+
+            tapAndSchedule();
+
+            finishTime = -1;
         }
     }
 
@@ -358,30 +363,15 @@ public class WithinAccessibilityManager {
 
             infoArrayList.add(v1);
 
-            if (v1.getClassName().toString().contains("ImageView")) {
-                Rect r = new Rect();
-                v1.getBoundsInParent(r);
-                Log.w(TAG, "Where am I? " + r + ", " + r.top + " " + r.left + " " + r.bottom + ", " + r.right);
-
-                if (r.top == 0 && r.left == 0 && r.bottom <= 91 && r.right <= 91) {
-                    if (!hasTapped) { //TODO think this gets activated before we're ready
-                        //connector.gestureTapNode(v1);
-                        hasTapped = true;
-                    } else if (!hasTexted) {
-                        // ENTER TEXT IN FIELD
-                        Bundle arguments = new Bundle();
-                        arguments.putCharSequence(AccessibilityNodeInfo.ACTION_ARGUMENT_SET_TEXT_CHARSEQUENCE, "Iceland is Melting");
-                        v1.performAction(AccessibilityNodeInfo.AccessibilityAction.ACTION_SET_TEXT.getId(), arguments);
-                        hasTexted = true;
-                    }
-                }
-            }
-
-            if (v1.getChildCount() > 0)
+            if (v1.getChildCount() > 0) {
                 infoArrayList.addAll(recursiveCollect(v1, (level + 1)));
-            if (v1.getText() == null && v1.getContentDescription() == null) {
-                continue; //nothing useful to print here, move to the next
             }
+
+
+//            if (v1.getText() == null && v1.getContentDescription() == null) {
+//                continue; //nothing useful to print here, move to the next
+//            }
+
 
             String testForDur = "" + v1.getText();
             String testForDurDesc = "" + v1.getContentDescription();
@@ -393,5 +383,53 @@ public class WithinAccessibilityManager {
         return infoArrayList;
     }
 
+    private void exitVRvideo() {
+        AccessibilityService service = main.getAccessibilityService();
+        Log.w(TAG, "CHECK VR FINISHED?? " + service.getRootInActiveWindow().getClassName() + " == " + lastEvent.getClassName() + ", " + checkingForFinish + ", " + scheduled);
+        endOfVideo();
+        checkingForFinish = false; //prepare to check again
+        scheduled = false; //if not found, might need to schedule again
+    }
+
+    private void endOfVideo() {
+        Log.w(TAG, "The video is done!");
+        cleanUpVideo();
+        main.runOnUiThread(() -> main.updateFollowerCurrentTaskToLeadMe());
+        connector.bringMainToFront();
+    }
+
+    public void cleanUpVideo() {
+        if (schedTapTask != null) {
+            schedTapTask.cancel(true);
+        }
+
+        if (schedTask != null) {
+            schedTask.cancel(true);
+        }
+
+        scheduledExecutor.purge();
+    }
+
+    // every 15 seconds, tap the screen and check again
+    // if not already scheduled to exit at end of video
+    ScheduledFuture schedTapTask;
+
+    private void tapAndSchedule() {
+        Log.w(TAG, "TAP AND SCHED! " + scheduled);
+        if (!scheduled) {
+            main.tapBounds(250, 250);
+            if (schedTapTask != null) {
+                Log.w(TAG, "Cancelling scheduled tap.");
+                //cancel previous task, ready for updated time
+                schedTapTask.cancel(true);
+                scheduledExecutor.purge();
+            }
+            scheduledExecutor.setCorePoolSize(1);
+            Log.w(TAG, "Scheduling next tap.");
+            schedTapTask = scheduledExecutor.schedule(() -> {
+                tapAndSchedule();
+            }, 15, SECONDS);
+        }
+    }
 
 }

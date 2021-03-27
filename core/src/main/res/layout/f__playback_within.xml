@@ -137,21 +137,18 @@
                     android:textColor="@color/leadme_white"
                     android:textSize="14sp" />
 
-                <ImageView
-                    android:id="@+id/play_btn"
+                <TextView
+                    android:id="@+id/phone_mode"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_margin="15dp"
-                    android:src="@drawable/vid_play"
-                    android:visibility="gone" />
-
-                <ImageView
-                    android:id="@+id/pause_btn"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_margin="15dp"
-                    android:padding="5dp"
-                    android:src="@drawable/vid_pause"
+                    android:layout_marginEnd="20dp"
+                    android:drawableLeft="@drawable/task_vr_icon_disabled"
+                    android:drawablePadding="8dp"
+                    android:fontFamily="@font/poppins_semibold"
+                    android:includeFontPadding="false"
+                    android:text="VR mode off"
+                    android:textColor="@color/leadme_white"
+                    android:textSize="14sp"
                     android:visibility="gone" />
 
                 <ImageView
