@@ -1,5 +1,5 @@
 apply plugin: 'com.android.application'
-
+apply plugin: 'com.google.gms.google-services'
 android {
     compileSdkVersion 30
     buildToolsVersion '30.0.3'
@@ -45,8 +45,12 @@ dependencies {
     implementation 'eu.bolt:screenshotty:1.0.3'
     implementation 'com.github.karanvs:hiddenshot:v1.2'
 
-    implementation 'com.pkmmte.view:circularimageview:1.1'
-    implementation 'com.jackandphantom.android:circularimageview:1.2.0'
+    //for firebase
+    implementation platform('com.google.firebase:firebase-bom:26.7.0')
+    implementation 'com.google.firebase:firebase-analytics'
+    implementation 'com.google.firebase:firebase-firestore'
+    implementation 'com.google.firebase:firebase-auth'
+    implementation 'com.google.android.gms:play-services-auth:19.0.0'
 }
 
 configurations.all {

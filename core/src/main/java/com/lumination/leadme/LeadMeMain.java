@@ -20,6 +20,7 @@ import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.PixelFormat;
 import android.graphics.Point;
+import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
@@ -77,11 +78,27 @@ import android.widget.VideoView;
 import android.widget.ViewAnimator;
 import android.widget.ViewSwitcher;
 
+import androidx.annotation.NonNull;
 import androidx.core.content.res.ResourcesCompat;
 import androidx.fragment.app.FragmentActivity;
 import androidx.lifecycle.Lifecycle;
 import androidx.lifecycle.LifecycleObserver;
 import androidx.lifecycle.OnLifecycleEvent;
+
+import com.google.android.gms.auth.api.signin.GoogleSignIn;
+import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
+import com.google.android.gms.auth.api.signin.GoogleSignInClient;
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
+import com.google.android.gms.common.api.ApiException;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.AuthCredential;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.auth.GoogleAuthProvider;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
@@ -92,6 +109,8 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
@@ -147,6 +166,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     public final int ACCESSIBILITY_ON = 1;
     public final int BLUETOOTH_ON = 2;
     public final int FINE_LOC_ON = 3;
+    public final int RC_SIGN_IN = 4;
 
 
     //for testing if a connection is still live
@@ -268,6 +288,10 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     private int displayWidth, displayHeight, imagesProduced = 0;
     ImageReader imageReader;
 
+    FirebaseFirestore db = FirebaseFirestore.getInstance();
+    GoogleSignInClient mGoogleSignInClient;
+    private FirebaseAuth mAuth;
+    FirebaseUser currentUser=null;
 
     public Handler getHandler() {
         return handler;
@@ -341,6 +365,17 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
                 }
                 break;
+            case RC_SIGN_IN:
+                // The Task returned from this call is always completed, no need to attach
+                        // a listener.
+                Task<GoogleSignInAccount> task = GoogleSignIn.getSignedInAccountFromIntent(data);
+                try{
+                    GoogleSignInAccount account = task.getResult(ApiException.class);
+                    handleSignInResult(account);
+                } catch (ApiException e) {
+                    e.printStackTrace();
+                }
+                     break;
             //added------------
             default:
                 Log.d(TAG, "RETURNED FROM ?? with " + resultCode);
@@ -683,6 +718,8 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             return;
         }
         stopShakeDetection();
+        GoogleSignInAccount account = GoogleSignIn.getLastSignedInAccount(this);
+        //todo if null then show account popup
 
         //set appropriate mode
         if (leaderLearnerSwitcher.getDisplayedChild() == SWITCH_LEADER_INDEX) {
@@ -698,7 +735,30 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                     .setView(loginDialogView)
                     .create();
         }
+        loginDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
 
+        EditText username = loginDialogView.findViewById(R.id.login_email);
+        EditText password = loginDialogView.findViewById(R.id.login_password);
+        TextView forgotPassword = loginDialogView.findViewById(R.id.login_forgotten);
+        LinearLayout googleSignin = loginDialogView.findViewById(R.id.login_google);
+        Button enterBtn = loginDialogView.findViewById(R.id.login_enter);
+        Button backBtn = loginDialogView.findViewById(R.id.login_back);
+        TextView signup = loginDialogView.findViewById(R.id.login_signup);
+
+
+        googleSignin.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent signInIntent = mGoogleSignInClient.getSignInIntent();
+                startActivityForResult(signInIntent,RC_SIGN_IN);
+            }
+        });
+        signup.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                buildloginsignup();
+            }
+        });
         //hideSystemUI();
         initPermissions = false; //reset this to ask once more
         dialogShowing = true;
@@ -1169,6 +1229,12 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     public void onCreate(Bundle savedInstanceState) {
         //onCreate can get called when device rotated, keyboard opened/shut, etc
         super.onCreate(savedInstanceState);
+        GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                .requestIdToken(getString(R.string.default_web_client_id))
+                .requestEmail()
+                .build();
+        mGoogleSignInClient = GoogleSignIn.getClient(this, gso);
+        mAuth = FirebaseAuth.getInstance();
         powerManager = (PowerManager) getSystemService(POWER_SERVICE);
 
 
@@ -3017,6 +3083,59 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
     public void buildloginsignup() {
         View Login = View.inflate(this, R.layout.b__login_signup, null);
+        EditText loginCode= Login.findViewById(R.id.rego_code_box);
         setContentView(Login);
     }
-}
+        private void handleSignInResult(GoogleSignInAccount account) {
+            AuthCredential credential = GoogleAuthProvider.getCredential(account.getIdToken(),null);
+            mAuth.signInWithCredential(credential).addOnCompleteListener(task -> {
+                if(task.isSuccessful()) {
+                    currentUser = mAuth.getCurrentUser();
+                    mAuth.addAuthStateListener(firebaseAuth -> {
+                        if (currentUser != null) {
+                            db.collection("users").document(currentUser.getUid())
+                                    .get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                                @Override
+                                public void onComplete(@NonNull Task<DocumentSnapshot> task1) {
+                                    if(task1.isSuccessful()) {
+                                        if (task1.getResult().exists()) {
+                                            Log.d(TAG, "handleSignInResult: user found");
+                                            getNearbyManager().myName = account.getGivenName();
+                                            getNameView().setText(account.getGivenName());
+                                            loginAction();
+                                        } else {
+                                            Log.d(TAG, "handleSignInResult: new user");
+                                            Map<String, Object> userDet = new HashMap<>();
+                                            userDet.put("name", account.getGivenName() + " " + account.getFamilyName());
+                                            userDet.put("email", currentUser.getEmail());
+                                            db.collection("users").document(currentUser.getUid()).set(userDet)
+                                                    .addOnSuccessListener(aVoid -> {
+                                                        Log.d(TAG, "handleSignInResult: new user created");
+                                                        getNearbyManager().myName = account.getGivenName();
+                                                        getNameView().setText(account.getGivenName());
+                                                        loginAction();
+                                                    })
+                                                    .addOnFailureListener(new OnFailureListener() {
+                                                        @Override
+                                                        public void onFailure(@NonNull Exception e) {
+                                                            Log.d(TAG, "handleSignInResult: failed to create new user please check internet");
+                                                        }
+                                                    });
+
+                                        }
+                                    }
+                                }
+                            });
+                        } else {
+                            Intent signInIntent = mGoogleSignInClient.getSignInIntent();
+                            startActivityForResult(signInIntent, RC_SIGN_IN);
+                        }
+                    });
+                }else{
+                    Log.d(TAG, "handleSignInResult: failed to sign in");
+                }
+            });
+
+        }
+    }
+
