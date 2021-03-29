@@ -1,6 +1,7 @@
 
 package com.lumination.leadme;
 
+import android.accessibilityservice.AccessibilityService;
 import android.accessibilityservice.GestureDescription;
 import android.annotation.SuppressLint;
 import android.app.ActivityManager;
@@ -11,7 +12,11 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.PixelFormat;
 import android.graphics.Point;
@@ -22,6 +27,10 @@ import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.hardware.display.DisplayManager;
 import android.media.AudioManager;
+import android.media.Image;
+import android.media.ImageReader;
+import android.media.projection.MediaProjection;
+import android.media.projection.MediaProjectionManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -31,6 +40,7 @@ import android.os.PowerManager;
 import android.text.Editable;
 import android.text.Html;
 import android.text.TextWatcher;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.ActionMode;
 import android.view.Display;
@@ -40,6 +50,8 @@ import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.SurfaceHolder;
+import android.view.SurfaceView;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
@@ -50,6 +62,7 @@ import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.EditText;
+import android.widget.FrameLayout;
 import android.widget.GridView;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -70,10 +83,19 @@ import androidx.lifecycle.Lifecycle;
 import androidx.lifecycle.LifecycleObserver;
 import androidx.lifecycle.OnLifecycleEvent;
 
+import java.io.ByteArrayOutputStream;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.net.InetAddress;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Set;
 import java.util.UUID;
 
+import eu.bolt.screenshotty.ScreenshotManager;
 import eu.bolt.screenshotty.ScreenshotManagerBuilder;
 
 
@@ -173,13 +195,12 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     private final int ANIM_LEADER_INDEX = 3;
     private final int ANIM_APP_LAUNCH_INDEX = 4;
     private final int ANIM_OPTIONS_INDEX = 5;
-    private final int ANIM_XRAY_INDEX = 6;
 
     AlertDialog warningDialog, loginDialog, appPushDialog;
     private AlertDialog confirmPushDialog, studentAlertsDialog;
     public View waitingForLearners, appLauncherScreen, appPushDialogView;
     private View loginDialogView, confirmPushDialogView, studentAlertsView;
-    private View mainLearner, mainLeader, optionsScreen, xrayScreen;
+    private View mainLearner, mainLeader, optionsScreen;
     private TextView warningDialogTitle, warningDialogMessage, learnerWaitingText;
     private Button leader_toggle, learner_toggle;
 
@@ -229,8 +250,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     XrayManager xrayManager;
 
     SeekBar seekBar;
-
-
 
     public Handler getHandler() {
         return handler;
@@ -393,7 +412,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 //            return;
 //        }
 
-        if (canAskForAccessibility && permissionManager.isAccessibilityGranted() && !permissionManager.isMyServiceRunning(android.accessibilityservice.AccessibilityService.class)) {
+        if (canAskForAccessibility && permissionManager.isAccessibilityGranted() && !permissionManager.isMyServiceRunning(AccessibilityService.class)) {
             Log.d(TAG, "Permission return - accessibility permission granted, but service not running");
             Intent accessibilityIntent = new Intent(this, LumiAccessibilityService.class);
             startService(accessibilityIntent);
@@ -489,17 +508,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             code4 = loginDialogView.findViewById(R.id.codeInput4);
             readyBtn = loginDialogView.findViewById(R.id.connect_btn);
         }
-
-        loginDialogView.findViewById(R.id.clear_code_btn).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                code1.getText().clear();
-                code2.getText().clear();
-                code3.getText().clear();
-                code4.getText().clear();
-                code1.requestFocus();
-            }
-        });
 
         loginDialogView.findViewById(R.id.close_login_alert_btn).setOnClickListener(v -> {
             if (!codeEntered) {
@@ -720,6 +728,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
     @OnLifecycleEvent(Lifecycle.Event.ON_PAUSE)
     public void onLifecyclePause() {
+        //Toast.makeText(this, "LC Pause", Toast.LENGTH_LONG).show();
         Log.w(TAG, "LC Pause");
         appHasFocus = false;
         Log.d(TAG, "onLifecyclePause: " + overlayInitialised + " " + permissionManager.isOverlayPermissionGranted());
@@ -748,17 +757,12 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             overlayView.setVisibility(View.INVISIBLE);
         }
 
-        if (permissionManager.waitingForPermission) {
-            Log.e(TAG, "Waiting for a permission! Hide overlay!");
-            overlayView.setVisibility(View.INVISIBLE);
-        }
-
     }
 
-    private static LumiAccessibilityService lumiAccessibilityService;
+    private static LumiAccessibilityService accessibilityService;
 
     // callback invoked either when the gesture has been completed or cancelled
-    final android.accessibilityservice.AccessibilityService.GestureResultCallback gestureResultCallback = new android.accessibilityservice.AccessibilityService.GestureResultCallback() {
+    final AccessibilityService.GestureResultCallback gestureResultCallback = new AccessibilityService.GestureResultCallback() {
         @Override
         public void onCompleted(GestureDescription gestureDescription) {
             super.onCompleted(gestureDescription);
@@ -818,18 +822,18 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         }
     };
 
-    public static void setLumiAccessibilityService(LumiAccessibilityService service) {
-        lumiAccessibilityService = service;
+    public static void setAccessibilityService(LumiAccessibilityService service) {
+        accessibilityService = service;
     }
 
-    public static android.accessibilityservice.AccessibilityService getLumiAccessibilityService() {
-        return lumiAccessibilityService;
+    public static AccessibilityService getAccessibilityService() {
+        return accessibilityService;
     }
 
     public void tapBounds(int x, int y) {
         getLumiAccessibilityConnector().gestureInProgress = true;
         Log.e(TAG, "ATTEMPTING TAP! " + x + ", " + y);
-        if (lumiAccessibilityService == null) {
+        if (accessibilityService == null) {
             return;
         }
         runOnUiThread(() -> {
@@ -851,16 +855,16 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                     handler.post(() -> {
                         //wait until layout update is actioned before trying to gesture
                         //do {
-                        try {
-                            Log.e(TAG, "Waiting... " + overlayView.isLayoutRequested());
-                            Thread.sleep(200);
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
+                            try {
+                                Log.e(TAG, "Waiting... " + overlayView.isLayoutRequested());
+                                Thread.sleep(200);
+                            } catch (InterruptedException e) {
+                                e.printStackTrace();
+                            }
                         // } while (overlayView.isLayoutRequested());
 
-                        boolean success = lumiAccessibilityService.dispatchGesture(swipe, gestureResultCallback, null);
-                        Log.e(TAG, "Did I dispatch " + swipe + " to " + lumiAccessibilityService + "? " + success + " // " + overlayView.isAttachedToWindow() + " // " + overlayView.isLayoutRequested());
+                        boolean success = accessibilityService.dispatchGesture(swipe, gestureResultCallback, null);
+                        Log.e(TAG, "Did I dispatch " + swipe + " to " + accessibilityService + "? " + success + " // " + overlayView.isAttachedToWindow() + " // " + overlayView.isLayoutRequested());
 
                     });
                 }
@@ -1125,8 +1129,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         return sessionUUID;
     }
 
-    private int lastDisplayedIndex = -1;
-
     @Override
     public void onCreate(Bundle savedInstanceState) {
         //onCreate can get called when device rotated, keyboard opened/shut, etc
@@ -1248,10 +1250,8 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         mainLearner = View.inflate(context, R.layout.c__learner_main, null);
         mainLeader = View.inflate(context, R.layout.c__leader_main, null);
         optionsScreen = View.inflate(context, R.layout.d__options_menu, null);
-        xrayScreen = View.inflate(context, R.layout.d__xray_view, null);
         appLauncherScreen = View.inflate(context, R.layout.d__app_list, null);
         learnerWaitingText = startLearner.findViewById(R.id.waiting_text);
-        xrayManager = new XrayManager(this, xrayScreen);
 
         //set up main page search
 
@@ -1306,24 +1306,24 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
         mainLeader.findViewById(R.id.yt_core_btn).setOnClickListener(v -> getWebManager().showWebLaunchDialog(true, false));
 
-        mainLeader.findViewById(R.id.xray_core_btn).setOnClickListener(v -> {
-            if (getConnectedLearnersAdapter().getCount() > 0) {
-                xrayManager.showXrayView("");
-            } else {
-                Toast.makeText(getApplicationContext(), "No students connected.", Toast.LENGTH_SHORT).show();
-            }
-        });
 
-        mainLeader.findViewById(R.id.app_core_btn).setOnClickListener(v -> {
-            showAppLaunchScreen();
-            ((ScrollView) appLauncherScreen.findViewById(R.id.app_scroll_view)).scrollTo(0, 0);
+        Button app_btn = mainLeader.findViewById(R.id.app_core_btn);
+        //app_btn.setOnClickListener(v -> showAppLaunchScreen());
+        app_btn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                showAppLaunchScreen();
+                ((ScrollView) appLauncherScreen.findViewById(R.id.app_scroll_view)).scrollTo(0, 0);
+            }
         });
 
         studentAlertsView = View.inflate(context, R.layout.d__alerts_list, null);
         ListView studentAlerts = studentAlertsView.findViewById(R.id.current_alerts_list);
-        View noAlertsView = studentAlertsView.findViewById(R.id.no_alerts_message);
 
-        StudentAlertsAdapter alertsAdapter = new StudentAlertsAdapter(this, studentAlerts, noAlertsView);
+        View no_alerts_view = studentAlertsView.findViewById(R.id.no_alerts_message);
+        View alerts_list = studentAlertsView.findViewById(R.id.current_alerts_list);
+
+        StudentAlertsAdapter alertsAdapter = new StudentAlertsAdapter(this, alerts_list, no_alerts_view);
         studentAlerts.setAdapter(alertsAdapter);
 
         studentAlertsView.findViewById(R.id.confirm_btn).setOnClickListener(v -> hideAlertsDialog());
@@ -1350,6 +1350,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             }
         });
 
+
         //set up start switcher and main animator
         final View switcherView = View.inflate(context, R.layout.a__viewswitcher, null);
         leaderLearnerSwitcher = switcherView.findViewById(R.id.viewswitcher);
@@ -1362,24 +1363,19 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         leadmeAnimator.addView(mainLeader);
         leadmeAnimator.addView(appLauncherScreen);
         leadmeAnimator.addView(optionsScreen);
-        leadmeAnimator.addView(xrayScreen);
 
         leadmeAnimator.setDisplayedChild(ANIM_SPLASH_INDEX);
 
         setContentView(leadmeAnimator);
 
         //set up menu buttons
-        View.OnClickListener menuListener = v -> {
-            lastDisplayedIndex = leadmeAnimator.getDisplayedChild();
-            leadmeAnimator.setDisplayedChild(ANIM_OPTIONS_INDEX);
-        };
+        View.OnClickListener menuListener = v -> leadmeAnimator.setDisplayedChild(ANIM_OPTIONS_INDEX);
 
         startLeader.findViewById(R.id.menu_btn).setOnClickListener(menuListener);
         startLearner.findViewById(R.id.menu_btn).setOnClickListener(menuListener);
         mainLeader.findViewById(R.id.menu_btn).setOnClickListener(menuListener);
         mainLearner.findViewById(R.id.menu_btn).setOnClickListener(menuListener);
         appLauncherScreen.findViewById(R.id.menu_btn).setOnClickListener(menuListener);
-        xrayScreen.findViewById(R.id.menu_btn).setOnClickListener(menuListener);
 
         //set up back buttons
         appLauncherScreen.findViewById(R.id.back_btn).setOnClickListener(v -> leadmeAnimator.setDisplayedChild(ANIM_LEADER_INDEX));
@@ -1397,14 +1393,18 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
         //set up options screen
         optionsScreen.findViewById(R.id.back_btn).setOnClickListener(v -> {
-            Log.e(TAG, lastDisplayedIndex + " // " + nearbyManager.isConnectedAsFollower() + " // " + nearbyManager.isConnectedAsGuide() + " // " + isGuide);
-            if (lastDisplayedIndex == ANIM_START_SWITCH_INDEX) {
-                //we weren't logged in yet, so refresh button colours and state
-                prepLoginSwitcher();
-                leadmeAnimator.setDisplayedChild(ANIM_START_SWITCH_INDEX);
+            Log.e(TAG, nearbyManager.isConnectedAsFollower() + " // " + nearbyManager.isConnectedAsGuide() + " // " + isGuide);
+            if (nearbyManager.isConnectedAsGuide()) {
+                leadmeAnimator.setDisplayedChild(ANIM_LEADER_INDEX);
+
+            } else if (nearbyManager.isConnectedAsFollower()) {
+                leadmeAnimator.setDisplayedChild(ANIM_LEARNER_INDEX);
+
             } else {
-                //return to where we were before
-                leadmeAnimator.setDisplayedChild(lastDisplayedIndex);
+                //refresh button colours and state
+                prepLoginSwitcher();
+                //display the right card
+                leadmeAnimator.setDisplayedChild(ANIM_START_SWITCH_INDEX);
             }
         });
 
@@ -1477,8 +1477,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             permissionManager.checkNearbyPermissions();
         }
 
-        xrayManager.screenshotManager = new ScreenshotManagerBuilder(this)
-                .withPermissionRequestCode(REQUEST_SCREENSHOT_PERMISSION) //optional, 888 is the default
+        xrayManager.screenshotManager = new ScreenshotManagerBuilder(this).withPermissionRequestCode(REQUEST_SCREENSHOT_PERMISSION) //optional, 888 is the default
                 .build();
         //start this
         //getForegroundActivity();
@@ -1488,7 +1487,8 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             int rate;
 
             @Override
-            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+            public void onProgressChanged(SeekBar seekBar, int progress,
+                                          boolean fromUser) {
                 rate = progress;
                 //Toast.makeText(getApplicationContext(),"seekbar progress: " + progress, Toast.LENGTH_SHORT).show();
             }
@@ -1851,19 +1851,9 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         }
     }
 
-    public void hideXray() {
-        leadmeAnimator.setDisplayedChild(ANIM_LEADER_INDEX);
-    }
-
-    public void showXray() {
-        leadmeAnimator.setDisplayedChild(ANIM_XRAY_INDEX);
-    }
-
     void logoutAction() {
         getDispatcher().alertLogout(); //need to send this before resetting 'isGuide'
         isGuide = false;
-        xrayManager.monitorInProgress = false; //break connection loop in clientStream
-        getConnectedLearnersAdapter().stopMonitoringAllStudents();
         getNearbyManager().onStop();
         getNearbyManager().stopAdvertising();
         getNearbyManager().disconnectFromAllEndpoints(); //disconnect everyone
@@ -1873,12 +1863,8 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         moveAwayFromSplashScreen();
     }
 
-    void stopMonitoringStudent(String peerID) {
-        nearbyManager.networkAdapter.stopMonitoring(Integer.parseInt(peerID));
-    }
-
     boolean loginAttemptInAction = false;
-    private static boolean spinnerReady = false;
+
     // protected PowerManager.WakeLock wakeLock;
 
     void loginAction() {
@@ -1971,7 +1957,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             blackoutFromMainAction();
         });
     }
-
 
     @Override
     public void onActionModeStarted(ActionMode mode) {
@@ -2532,7 +2517,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         video.setOnPreparedListener(mp -> handler.postDelayed(() -> video.setBackgroundColor(Color.TRANSPARENT), 150));
 
 
-        GestureDetector gestureDetector = new GestureDetector(this, new OnboardingGestureDetector(this));
+        GestureDetector gestureDetector = new GestureDetector(this, new MyGestureDetector(this));
         //TextSwitcher onBoardContent = OnBoard.findViewById(R.id.onBoard_content);
         OnBoard.setOnTouchListener((v, event) -> {
             if (gestureDetector.onTouchEvent(event)) {
