@@ -12,11 +12,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.Canvas;
 import android.graphics.Color;
-import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.PixelFormat;
 import android.graphics.Point;
@@ -27,10 +23,6 @@ import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.hardware.display.DisplayManager;
 import android.media.AudioManager;
-import android.media.Image;
-import android.media.ImageReader;
-import android.media.projection.MediaProjection;
-import android.media.projection.MediaProjectionManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -40,7 +32,6 @@ import android.os.PowerManager;
 import android.text.Editable;
 import android.text.Html;
 import android.text.TextWatcher;
-import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.ActionMode;
 import android.view.Display;
@@ -50,8 +41,6 @@ import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.SurfaceHolder;
-import android.view.SurfaceView;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
@@ -62,7 +51,6 @@ import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.EditText;
-import android.widget.FrameLayout;
 import android.widget.GridView;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -83,19 +71,10 @@ import androidx.lifecycle.Lifecycle;
 import androidx.lifecycle.LifecycleObserver;
 import androidx.lifecycle.OnLifecycleEvent;
 
-import java.io.ByteArrayOutputStream;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
-import java.net.InetAddress;
-import java.net.ServerSocket;
-import java.net.Socket;
-import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Set;
 import java.util.UUID;
 
-import eu.bolt.screenshotty.ScreenshotManager;
 import eu.bolt.screenshotty.ScreenshotManagerBuilder;
 
 
@@ -195,12 +174,13 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     private final int ANIM_LEADER_INDEX = 3;
     private final int ANIM_APP_LAUNCH_INDEX = 4;
     private final int ANIM_OPTIONS_INDEX = 5;
+    private final int ANIM_XRAY_INDEX = 6;
 
     AlertDialog warningDialog, loginDialog, appPushDialog;
     private AlertDialog confirmPushDialog, studentAlertsDialog;
     public View waitingForLearners, appLauncherScreen, appPushDialogView;
     private View loginDialogView, confirmPushDialogView, studentAlertsView;
-    private View mainLearner, mainLeader, optionsScreen;
+    private View mainLearner, mainLeader, optionsScreen, xrayScreen;
     private TextView warningDialogTitle, warningDialogMessage, learnerWaitingText;
     private Button leader_toggle, learner_toggle;
 
@@ -508,6 +488,17 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             code4 = loginDialogView.findViewById(R.id.codeInput4);
             readyBtn = loginDialogView.findViewById(R.id.connect_btn);
         }
+
+        loginDialogView.findViewById(R.id.clear_code_btn).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                code1.getText().clear();
+                code2.getText().clear();
+                code3.getText().clear();
+                code4.getText().clear();
+                code1.requestFocus();
+            }
+        });
 
         loginDialogView.findViewById(R.id.close_login_alert_btn).setOnClickListener(v -> {
             if (!codeEntered) {
@@ -1129,6 +1120,8 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         return sessionUUID;
     }
 
+    private int lastDisplayedIndex = -1;
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         //onCreate can get called when device rotated, keyboard opened/shut, etc
@@ -1250,8 +1243,10 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         mainLearner = View.inflate(context, R.layout.c__learner_main, null);
         mainLeader = View.inflate(context, R.layout.c__leader_main, null);
         optionsScreen = View.inflate(context, R.layout.d__options_menu, null);
+        xrayScreen = View.inflate(context, R.layout.d__xray_view, null);
         appLauncherScreen = View.inflate(context, R.layout.d__app_list, null);
         learnerWaitingText = startLearner.findViewById(R.id.waiting_text);
+        xrayManager = new XrayManager(this, xrayScreen);
 
         //set up main page search
 
@@ -1317,6 +1312,15 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             }
         });
 
+
+        mainLeader.findViewById(R.id.xray_core_btn).setOnClickListener(v -> {
+            if (getConnectedLearnersAdapter().getCount() > 0) {
+                xrayManager.showXrayView("");
+            } else {
+                Toast.makeText(getApplicationContext(), "No students connected.", Toast.LENGTH_SHORT).show();
+            }
+        });
+
         studentAlertsView = View.inflate(context, R.layout.d__alerts_list, null);
         ListView studentAlerts = studentAlertsView.findViewById(R.id.current_alerts_list);
 
@@ -1363,19 +1367,25 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         leadmeAnimator.addView(mainLeader);
         leadmeAnimator.addView(appLauncherScreen);
         leadmeAnimator.addView(optionsScreen);
+        leadmeAnimator.addView(xrayScreen);
 
         leadmeAnimator.setDisplayedChild(ANIM_SPLASH_INDEX);
 
         setContentView(leadmeAnimator);
 
         //set up menu buttons
-        View.OnClickListener menuListener = v -> leadmeAnimator.setDisplayedChild(ANIM_OPTIONS_INDEX);
+        View.OnClickListener menuListener = v -> {
+            lastDisplayedIndex = leadmeAnimator.getDisplayedChild();
+            leadmeAnimator.setDisplayedChild(ANIM_OPTIONS_INDEX);
+        };
+
 
         startLeader.findViewById(R.id.menu_btn).setOnClickListener(menuListener);
         startLearner.findViewById(R.id.menu_btn).setOnClickListener(menuListener);
         mainLeader.findViewById(R.id.menu_btn).setOnClickListener(menuListener);
         mainLearner.findViewById(R.id.menu_btn).setOnClickListener(menuListener);
         appLauncherScreen.findViewById(R.id.menu_btn).setOnClickListener(menuListener);
+        xrayScreen.findViewById(R.id.menu_btn).setOnClickListener(menuListener);
 
         //set up back buttons
         appLauncherScreen.findViewById(R.id.back_btn).setOnClickListener(v -> leadmeAnimator.setDisplayedChild(ANIM_LEADER_INDEX));
@@ -1392,19 +1402,16 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         appPushDialogView.findViewById(R.id.back_btn).setOnClickListener(v -> hideAppPushDialogView());
 
         //set up options screen
+        //set up options screen
         optionsScreen.findViewById(R.id.back_btn).setOnClickListener(v -> {
-            Log.e(TAG, nearbyManager.isConnectedAsFollower() + " // " + nearbyManager.isConnectedAsGuide() + " // " + isGuide);
-            if (nearbyManager.isConnectedAsGuide()) {
-                leadmeAnimator.setDisplayedChild(ANIM_LEADER_INDEX);
-
-            } else if (nearbyManager.isConnectedAsFollower()) {
-                leadmeAnimator.setDisplayedChild(ANIM_LEARNER_INDEX);
-
-            } else {
-                //refresh button colours and state
+            Log.e(TAG, lastDisplayedIndex + " // " + nearbyManager.isConnectedAsFollower() + " // " + nearbyManager.isConnectedAsGuide() + " // " + isGuide);
+            if (lastDisplayedIndex == ANIM_START_SWITCH_INDEX) {
+                //we weren't logged in yet, so refresh button colours and state
                 prepLoginSwitcher();
-                //display the right card
                 leadmeAnimator.setDisplayedChild(ANIM_START_SWITCH_INDEX);
+            } else {
+                //return to where we were before
+                leadmeAnimator.setDisplayedChild(lastDisplayedIndex);
             }
         });
 
@@ -1521,6 +1528,15 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
     }
 
+
+    public void hideXray() {
+        leadmeAnimator.setDisplayedChild(ANIM_LEADER_INDEX);
+    }
+
+    public void showXray() {
+        leadmeAnimator.setDisplayedChild(ANIM_XRAY_INDEX);
+    }
+
     Button alertsBtn;
 
     public void setAlertsBtnVisibility(int visibility) {
@@ -1564,6 +1580,10 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         if (loginDialogView == null || nameView == null) {
             loginDialogView = View.inflate(context, R.layout.b__login_popup, null);
             nameView = loginDialogView.findViewById(R.id.name_input_field);
+
+            //TODO temporary code to allow me to skip login while testing
+            loginDialogView.findViewById(R.id.name_code_entry_view).setVisibility(View.VISIBLE);
+            loginDialogView.findViewById(R.id.login_signup_view).setVisibility(View.GONE);
         }
         return nameView;
     }
@@ -1854,6 +1874,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     void logoutAction() {
         getDispatcher().alertLogout(); //need to send this before resetting 'isGuide'
         isGuide = false;
+        xrayManager.monitorInProgress = false; //break connection loop in clientStream
         getNearbyManager().onStop();
         getNearbyManager().stopAdvertising();
         getNearbyManager().disconnectFromAllEndpoints(); //disconnect everyone
@@ -2517,7 +2538,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         video.setOnPreparedListener(mp -> handler.postDelayed(() -> video.setBackgroundColor(Color.TRANSPARENT), 150));
 
 
-        GestureDetector gestureDetector = new GestureDetector(this, new MyGestureDetector(this));
+        GestureDetector gestureDetector = new GestureDetector(this, new OnboardingGestureDetector(this));
         //TextSwitcher onBoardContent = OnBoard.findViewById(R.id.onBoard_content);
         OnBoard.setOnTouchListener((v, event) -> {
             if (gestureDetector.onTouchEvent(event)) {

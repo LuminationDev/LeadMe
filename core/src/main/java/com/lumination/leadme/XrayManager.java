@@ -124,7 +124,7 @@ public class XrayManager {
                 xrayDropdown.setVisibility(GONE);
 
             } else {
-                ConnectedPeer thisPeer = main.xrayManager.getCurrentlyDisplayedStudent();
+                ConnectedPeer thisPeer = getCurrentlyDisplayedStudent();
                 boolean currentlySelected = thisPeer.isSelected();
                 //make sure UI is appropriate for displayed peer
                 if (currentlySelected) {
@@ -155,13 +155,14 @@ public class XrayManager {
 
         //disconnect student
         xrayDropdown.findViewById(R.id.disconnect_text).setOnClickListener(view -> {
-            ConnectedPeer thisPeer = main.xrayManager.getCurrentlyDisplayedStudent();
+            ConnectedPeer thisPeer = getCurrentlyDisplayedStudent();
+            Log.w(TAG, "Removing student: " + thisPeer.getID() + ", " + thisPeer.getDisplayName());
             main.getConnectedLearnersAdapter().showLogoutPrompt(thisPeer.getID());
             xrayButton.callOnClick();
         });
 
         selectToggleBtn.setOnClickListener(view -> {
-            ConnectedPeer thisPeer = main.xrayManager.getCurrentlyDisplayedStudent();
+            ConnectedPeer thisPeer = getCurrentlyDisplayedStudent();
             String displayedText = selectToggleBtn.getText().toString();
             boolean currentlySelected = thisPeer.isSelected();
             Log.e(TAG, "ITEM SELECTED! " + thisPeer.getDisplayName() + ", " + thisPeer.getID() + ", " + currentlySelected + ", " + displayedText);
@@ -169,7 +170,7 @@ public class XrayManager {
             if (displayedText.equals("Select") && !currentlySelected) {
                 Log.e(TAG, "Setting SELECTED!");
                 main.getConnectedLearnersAdapter().selectPeer(thisPeer.getID(), true);
-                main.xrayManager.updateXrayForSelection(thisPeer);
+                updateXrayForSelection(thisPeer);
 
                 selectToggleBtn.setCompoundDrawablesWithIntrinsicBounds(R.drawable.icon_unselect_peer, 0, 0, 0);
                 selectToggleBtn.setText("Unselect");
@@ -178,7 +179,7 @@ public class XrayManager {
             } else if (displayedText.equals("Unselect") && currentlySelected) {
                 Log.e(TAG, "Setting UNSELECTED!");
                 main.getConnectedLearnersAdapter().selectPeer(thisPeer.getID(), false);
-                main.xrayManager.updateXrayForSelection(thisPeer);
+                updateXrayForSelection(thisPeer);
 
                 selectToggleBtn.setCompoundDrawablesWithIntrinsicBounds(R.drawable.icon_select_peer, 0, 0, 0);
                 selectToggleBtn.setText("Select");
@@ -238,6 +239,7 @@ public class XrayManager {
     }
 
     public ConnectedPeer getCurrentlyDisplayedStudent() {
+        Log.w(TAG, "Getting matching peer: " + currentXrayStudentIndex + ", " + selectedXrayStudents.get(currentXrayStudentIndex));
         return main.getConnectedLearnersAdapter().getMatchingPeer(selectedXrayStudents.get(currentXrayStudentIndex));
     }
 
@@ -258,10 +260,12 @@ public class XrayManager {
 
         if (selectedXrayStudents.size() > 0) {
             setXrayStudent(peer);
-            main.showXray();
+            if (xrayScreen.getVisibility() != VISIBLE) {
+                main.showXray();
+            }
         } else {
             Toast.makeText(main.getApplicationContext(), "No students available.", Toast.LENGTH_SHORT).show();
-            main.showXray();
+            main.hideXray();
         }
     }
 
@@ -286,6 +290,7 @@ public class XrayManager {
             //this student must have disconnected, refresh the UI
             hideXrayView();
             showXrayView("");
+            return;
         }
 
         //show/hide next and prev student buttons as needed
@@ -305,22 +310,25 @@ public class XrayManager {
             prevXrayStudent.setClickable(false);
         }
 
-        xrayStudentDisplayNameView.setText(xrayStudent.getDisplayName());
+        if (xrayStudent != null) {
+            Log.w(TAG, xrayStudentDisplayNameView + ", " + xrayStudent);
+            xrayStudentDisplayNameView.setText(xrayStudent.getDisplayName());
 
-        Drawable icon = xrayStudent.getIcon();
-        if (icon == null) {
-            icon = main.leadmeIcon;
+            Drawable icon = xrayStudent.getIcon();
+            if (icon == null) {
+                icon = main.leadmeIcon;
+            }
+            //update app icon
+            xrayStudentIcon.setImageDrawable(icon);
+
+            //display most recent screenshot
+            Bitmap latestScreenie = clientRecentScreenshots.get(monitoredPeer);
+            xrayScreenshotView.setImageBitmap(latestScreenie);
+
+            updateXrayForSelection(xrayStudent);
+
+            startImageClient(monitoredPeer);
         }
-        //update app icon
-        xrayStudentIcon.setImageDrawable(icon);
-
-        //display most recent screenshot
-        Bitmap latestScreenie = clientRecentScreenshots.get(monitoredPeer);
-        xrayScreenshotView.setImageBitmap(latestScreenie);
-
-        updateXrayForSelection(xrayStudent);
-
-        startImageClient(monitoredPeer);
     }
 
     void updateXrayForSelection(ConnectedPeer xrayStudent) {

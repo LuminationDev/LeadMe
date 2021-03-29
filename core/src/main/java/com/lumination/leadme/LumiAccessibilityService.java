@@ -79,7 +79,7 @@ public class LumiAccessibilityService extends android.accessibilityservice.Acces
     protected void onServiceConnected() {
         Log.d(TAG, "Accessibility Service CONNECTED!");
         sendInfoBroadcast(LumiAccessibilityService.INFO_CONNECTED);
-        LeadMeMain.setLumiAccessibilityService(this);
+        LeadMeMain.setAccessibilityService(this);
     }
 
 

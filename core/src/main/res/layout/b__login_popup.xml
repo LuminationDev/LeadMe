@@ -84,6 +84,7 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_horizontal"
                 android:layout_marginTop="30dp"
+                android:layout_marginBottom="10dp"
                 android:fontFamily="@font/poppins_semibold"
                 android:text="@string/teacher_code"
                 android:textSize="18sp" />
@@ -96,6 +97,15 @@
                 android:divider="@drawable/divider_horizontal"
                 android:orientation="horizontal"
                 android:showDividers="middle">
+
+
+                <ImageView
+                    android:id="@+id/clear_code_buffer"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_vertical"
+                    android:src="@drawable/close"
+                    android:visibility="invisible" />
 
                 <EditText
                     android:id="@+id/codeInput1"
@@ -193,6 +203,13 @@
                     android:textSize="16sp"
                     android:visibility="visible"></EditText>
 
+
+                <ImageView
+                    android:id="@+id/clear_code_btn"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_vertical"
+                    android:src="@drawable/close" />
 
             </LinearLayout>
         </LinearLayout>

@@ -62,24 +62,12 @@ public class ConnectedLearnersAdapter extends BaseAdapter {
     public void alertStudentDisconnect(String id) {
         ConnectedPeer peer = getMatchingPeer(id);
         if (peer != null) {
-            main.stopMonitoringStudent(peer.getID());
+            main.xrayManager.monitorInProgress = false;
             peer.setStatus(ConnectedPeer.STATUS_ERROR);
             moveToFrontOfList(peer);
             refresh();
         }
     }
-
-    public void stopMonitoringAllStudents() {
-        for (ConnectedPeer peer : mData) {
-            main.stopMonitoringStudent(peer.getID());
-        }
-    }
-
-    public void removeAllStudents() {
-        mData = new ArrayList<>();
-        refresh();
-    }
-
 
     public boolean removeStudent(String id) {
         ConnectedPeer found = getMatchingPeer(id);
