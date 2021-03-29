@@ -234,7 +234,7 @@ public class XrayManager {
     }
 
     private void hideXrayView() {
-        main.hideXray();
+        main.exitXrayView();
         selectedXrayStudents.clear(); //reset
     }
 
@@ -261,11 +261,11 @@ public class XrayManager {
         if (selectedXrayStudents.size() > 0) {
             setXrayStudent(peer);
             if (xrayScreen.getVisibility() != VISIBLE) {
-                main.showXray();
+                main.displayXrayView();
             }
         } else {
             Toast.makeText(main.getApplicationContext(), "No students available.", Toast.LENGTH_SHORT).show();
-            main.hideXray();
+            main.exitXrayView();
         }
     }
 
@@ -289,7 +289,10 @@ public class XrayManager {
         if (xrayStudent == null) {
             //this student must have disconnected, refresh the UI
             hideXrayView();
-            showXrayView("");
+            if (main.getConnectedLearnersAdapter().mData.size() > 0) {
+                Log.w(TAG, "Got connected learners! Showing xray again! " + main.getConnectedLearnersAdapter().mData.size());
+                showXrayView("");
+            }
             return;
         }
 
@@ -346,10 +349,10 @@ public class XrayManager {
     }
 
     public void startServer() {
-        if (screenShot) {
-            Log.w(TAG, "Already capturing screenShots!");
-            return;
-        }
+//        if (screenShot) {
+//            Log.w(TAG, "Already capturing screenShots!");
+//            return;
+//        }
         projectionManager = (MediaProjectionManager) main.getSystemService(Context.MEDIA_PROJECTION_SERVICE);
 
         //start service class
@@ -373,21 +376,21 @@ public class XrayManager {
     private class ImageAvailableListener implements ImageReader.OnImageAvailableListener {
         @Override
         public void onImageAvailable(ImageReader reader) {
-            Log.d(TAG, "onImageAvailable: image available");
+            //Log.d(TAG, "onImageAvailable: image available");
 
             Bitmap bitmap = null;
             ByteArrayOutputStream stream = null;
-            Log.d(TAG, "onImageAvailable: ");
+            //Log.d(TAG, "onImageAvailable: ");
             try (Image image = imageReader.acquireLatestImage()) {
                 //if (takeScreenshots) {
-                Log.d(TAG, "onImageAvailable: image acquired");
+                //Log.d(TAG, "onImageAvailable: image acquired");
                 //sleep allows control over how many screenshots are taken
                 //old/less powerful phones need this otherwise there is heavy lag (etc for >20 screen shots a second)
                 //newer phones can have this disabled for a faster display
                 if (screenshotRate > 0) Thread.sleep(screenshotRate);
 
                 if (image != null) {
-                    Log.d(TAG, "onImageAvailable: image exists");
+                    //Log.d(TAG, "onImageAvailable: image exists");
                     Image.Plane[] planes = image.getPlanes();
                     ByteBuffer buffer = planes[0].getBuffer();
                     int pixelStride = planes[0].getPixelStride();
@@ -419,12 +422,12 @@ public class XrayManager {
     }
 
 
-    private void imageRunnableFunction(String peer) {
+    private void imageRunnableFunction(String imgPeer) {
+        Log.e(TAG, "Starting imageRunnable: " + serverSocket.isClosed() + ", " + serverSocket.isBound());
         Socket socket;
         try {
             socket = serverSocket.accept();
-            socket.setKeepAlive(true);
-            Log.w(TAG, "Accepting SERVER socket from " + serverSocket.getInetAddress() + ", I'm " + socket.getLocalAddress() + " / " + peer);
+            Log.w(TAG, "Accepting SERVER socket from " + serverSocket.getInetAddress() + ", I'm " + socket.getLocalAddress() + " / " + imgPeer);
 
         } catch (IOException e) {
             e.printStackTrace();
@@ -432,18 +435,19 @@ public class XrayManager {
             return;
         }
 
-        while (monitorInProgress) { //global state, maybe change to individuals?
+        while (monitorInProgress && !socket.isClosed()) { //global state, maybe change to individuals?
             byte[] buffer = null;
             try {
                 DataInputStream in = new DataInputStream(socket.getInputStream());
                 int length = in.readInt();
-                Log.d(TAG, "run: image received of size " + length + " from " + peer);
+                Log.d(TAG, "run: image received of size " + length + " from " + imgPeer);
                 if (length > 10000 && length < 300000) {
                     buffer = new byte[length];
                     in.readFully(buffer, 0, length);
                     Log.d(TAG, "Packet Received!! ");
                 }
             } catch (IOException e) {
+                //monitorInProgress = false;
                 e.printStackTrace();
             }
             Log.w(TAG, buffer + ", " + response);
@@ -451,10 +455,11 @@ public class XrayManager {
                 Bitmap tmpBmp = BitmapFactory.decodeByteArray(buffer, 0, buffer.length);
                 response = tmpBmp;
                 main.runOnUiThread(() -> {
-                    clientRecentScreenshots.put(peer, tmpBmp); //store it
+                    Log.d(TAG, "Adding screenshot! " + monitoredPeer + " == " + imgPeer);
+                    clientRecentScreenshots.put(imgPeer, tmpBmp); //store it
 
                     //I'm on display!
-                    if (monitoredPeer.equals(peer)) {
+                    if (monitoredPeer.equals(imgPeer)) {
                         xrayScreenshotView.setImageBitmap(tmpBmp);
                         Log.w(TAG, "Updated the image!");
                     }
@@ -464,8 +469,6 @@ public class XrayManager {
         Log.e(TAG, "imageRunnable ended! " + monitorInProgress + " && " + !Thread.currentThread().isInterrupted());
     }
 
-    ;
-
     //Thread imageSocket;
     private String monitoredPeer;
     HashMap<String, Thread> clientSocketThreads = new HashMap();
@@ -473,6 +476,7 @@ public class XrayManager {
 
     //client socket for monitoring
     public void startImageClient(String peer) {
+        Log.d(TAG, "Starting image client for " + peer);
         while (serverSocket == null) {
             try {
                 serverSocket = new ServerSocket(0);
@@ -482,25 +486,17 @@ public class XrayManager {
             Log.d(TAG, "ServerSocket: attempting to create socket");
         }
 
-        main.getNearbyManager().networkAdapter.startMonitoring(Integer.parseInt(peer), serverSocket.getLocalPort());
-
-
         //get the image socket for this peer
         Thread imageSocketThread = clientSocketThreads.get(peer);
 
-        //if image socket is not usable, clean it up
-        if (imageSocketThread != null && (!monitorInProgress || !imageSocketThread.isAlive())) {
-            imageSocketThread.interrupt();
-            imageSocketThread = null;
-        }
-
-        monitorInProgress = true;
-
-        if (imageSocketThread == null) {
+        if(imageSocketThread == null) {
+            monitorInProgress = true;
             imageSocketThread = new Thread(() -> imageRunnableFunction(peer));
             imageSocketThread.start();
             clientSocketThreads.put(peer, imageSocketThread); //store this
-            Log.w(TAG, "Now have client sockets: " + clientSocketThreads.size());
+            Log.w(TAG, "Now have client sockets: " + clientSocketThreads.size() + " : " + peer);
+
+            main.getNearbyManager().networkAdapter.startMonitoring(Integer.parseInt(peer), serverSocket.getLocalPort());
         }
 
     }
@@ -514,14 +510,18 @@ public class XrayManager {
         if (screenshotSocket != null && screenshotSocket.isConnected()) {
             Log.w(TAG, "Already have a screenshot runnable going!");
             main.getPermissionsManager().waitingForPermission = false;
-            return; //already got one!
+            try {
+                screenshotSocket.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            //return; //already got one!
         }
 
         Thread t = new Thread(() -> {
             try {
                 Log.w(TAG, "creating CLIENT socket with " + ip + ", " + Port);
                 screenshotSocket = new Socket(ip, Port);
-                screenshotSocket.setKeepAlive(true);
 
             } catch (IOException e) {
                 e.printStackTrace();
@@ -551,7 +551,6 @@ public class XrayManager {
                         Thread.sleep(screenshotRate);
                     } catch (InterruptedException e) {
                         e.printStackTrace();
-                        screenShot = false;
                         Log.d(TAG, "Thread: thread wouldn't sleep");
                     }
                 }

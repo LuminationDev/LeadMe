@@ -58,7 +58,7 @@ public class TcpClient extends Thread {
             PrintWriter out = new PrintWriter(client.getOutputStream(), true);
             out.println("PING,"+ID); //set to be ignored at the client end, tcp will tell us if they have disconnected
             if (out.checkError()){
-                System.out.println("ERROR writing data to socket student has disconnected");
+                Log.e(TAG, "ERROR writing data to socket student has disconnected");
                 parent.executorService.submit(new Runnable() {
                                                   @Override
                                                   public void run() {

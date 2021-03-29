@@ -530,12 +530,14 @@ public class NetworkAdapter {
 
                 break;
             case "DISCONNECT":
+                Log.w(TAG, "Disconnect. Guide? "+main.isGuide);
                 try {
                     socket.close();
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
                 socket = null;
+                main.xrayManager.stopScreenshotRunnable();
                 nearbyPeersManager.disconnectFromEndpoint("");
 
                 break;
@@ -556,11 +558,7 @@ public class NetworkAdapter {
                             Log.w(TAG, "Starting client monitoring server!");
                             main.getPermissionsManager().waitingForPermission = true;
                             main.xrayManager.startServer();
-                            //main.monitorInProgress=true;
-                            //main.takeScreenshots=true;
-                            //main.startImageClient(String.valueOf(clientID));
                             main.xrayManager.startScreenshotRunnable(socket.getInetAddress(), Integer.parseInt(inputList2.get(1)));
-
                         });
                     }
                     Log.d(TAG, "messageReceivedFromServer: " + inputList.get(1));

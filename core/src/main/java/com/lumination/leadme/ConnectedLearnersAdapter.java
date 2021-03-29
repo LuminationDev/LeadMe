@@ -71,11 +71,12 @@ public class ConnectedLearnersAdapter extends BaseAdapter {
 
     public boolean removeStudent(String id) {
         ConnectedPeer found = getMatchingPeer(id);
-        Log.d(TAG, "Removing student! " + found);
+        Log.d(TAG, "Removing from mData! " + found);
         if (found != null) {
             //remove old one so we keep the newest version
             mData.remove(found);
             refresh();
+            Log.d(TAG, "Now have " + mData.size());
             return true;
         }
         refresh();
@@ -256,22 +257,33 @@ public class ConnectedLearnersAdapter extends BaseAdapter {
     }
 
 
-    protected void showLogoutPrompt(String peerID) {
+    private String lastPromptedID = "";
 
+    protected void showLogoutPrompt(String peerID) {
+        lastPromptedID = peerID;
         if (studentLogoutView == null) {
             studentLogoutView = View.inflate(main, R.layout.e__logout_student_popup, null);
             Button ok_btn = studentLogoutView.findViewById(R.id.ok_btn);
             Button back_btn = studentLogoutView.findViewById(R.id.back_btn);
 
             ok_btn.setOnClickListener(v12 -> {
-                Log.d(TAG, "Removing student: " + peerID);
-                main.getConnectedLearnersAdapter().removeStudent(peerID);
-                main.getConnectedLearnersAdapter().refresh();
-                ArrayList<Integer> selected = new ArrayList<>();
-                selected.add(Integer.valueOf(peerID));
-                main.getNearbyManager().networkAdapter.sendToSelectedClients("", "DISCONNECT", selected);
+                Log.d(TAG, "[Logout] Removing student: " + lastPromptedID);
+
+                removeStudent(lastPromptedID);
+                refresh();
+                main.getNearbyManager().networkAdapter.stopMonitoring(Integer.parseInt(lastPromptedID));
+                main.getNearbyManager().networkAdapter.removeClient(Integer.valueOf(lastPromptedID));
+                main.xrayManager.clientSocketThreads.remove(lastPromptedID);
+                main.xrayManager.clientRecentScreenshots.remove(lastPromptedID);
+
+                Log.w(TAG, mData.size()+", "+main.xrayManager.clientSocketThreads.size() + ", " + main.xrayManager.clientRecentScreenshots.size());
+
                 logoutPrompt.hide();
-                main.xrayManager.showXrayView(""); //refresh this view
+                if (main.getConnectedLearnersAdapter().mData.size() > 0) {
+                    main.xrayManager.showXrayView(""); //refresh this view
+                } else {
+                    main.exitXrayView();
+                }
             });
 
             back_btn.setOnClickListener(v1 -> logoutPrompt.hide());
@@ -350,12 +362,12 @@ public class ConnectedLearnersAdapter extends BaseAdapter {
                         Button back_btn = studentDisconnectedView.findViewById(R.id.back_btn);
 
                         ok_btn.setOnClickListener(v12 -> {
-                            Log.d(TAG, "Removing student: " + lastClickedID);
-                            main.getConnectedLearnersAdapter().removeStudent(lastClickedID);
-                            main.getConnectedLearnersAdapter().refresh();
+                            Log.d(TAG, "[adapter] Removing student: " + lastClickedID);
                             ArrayList<Integer> selected = new ArrayList<>();
                             selected.add(Integer.valueOf(lastClickedID));
                             main.getNearbyManager().networkAdapter.sendToSelectedClients("", "DISCONNECT", selected);
+                            removeStudent(lastClickedID);
+                            refresh();
                             disconnectPrompt.hide();
                         });
 

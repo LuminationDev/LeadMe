@@ -1529,11 +1529,11 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     }
 
 
-    public void hideXray() {
+    public void exitXrayView() {
         leadmeAnimator.setDisplayedChild(ANIM_LEADER_INDEX);
     }
 
-    public void showXray() {
+    public void displayXrayView() {
         leadmeAnimator.setDisplayedChild(ANIM_XRAY_INDEX);
     }
 
