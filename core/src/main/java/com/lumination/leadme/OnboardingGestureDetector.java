@@ -3,17 +3,18 @@ package com.lumination.leadme;
 import android.util.Log;
 import android.view.MotionEvent;
 
-class MyGestureDetector extends android.view.GestureDetector.SimpleOnGestureListener {
+class OnboardingGestureDetector extends android.view.GestureDetector.SimpleOnGestureListener {
 
-    final String TAG = MyGestureDetector.class.getSimpleName();
+    final String TAG = OnboardingGestureDetector.class.getSimpleName();
 
     // for touch left or touch right events
     private static final int SWIPE_MIN_DISTANCE = 80;   //default is 120
     private static final int SWIPE_MAX_OFF_PATH = 400;
     private static final int SWIPE_THRESHOLD_VELOCITY = 70;
     LeadMeMain main;
-    public MyGestureDetector(LeadMeMain main){
-        this.main=main;
+
+    public OnboardingGestureDetector(LeadMeMain main) {
+        this.main = main;
     }
 
     @Override

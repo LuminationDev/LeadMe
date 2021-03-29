@@ -199,7 +199,7 @@
                 android:text="@string/all_apps"
                 android:textColor="@color/leadme_medium_grey" />
 
-            <com.lumination.leadme.MyGridView
+            <com.lumination.leadme.AppListGridView
                 android:id="@+id/app_list_grid"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"

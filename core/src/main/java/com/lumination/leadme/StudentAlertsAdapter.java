@@ -350,7 +350,7 @@ public class StudentAlertsAdapter extends BaseAdapter {
                 break;
         }
 
-        SpinnerAdapter push_adapter = new SpinnerAdapter(main, R.layout.row_push_spinner, lockSpinnerItems, push_imgs);
+        LumiSpinnerAdapter push_adapter = new LumiSpinnerAdapter(main, R.layout.row_push_spinner, lockSpinnerItems, push_imgs);
         lockSpinner.setAdapter(push_adapter);
         lockSpinner.setSelection(0); //default to locked
         AlertDialog errors = new AlertDialog.Builder(main)

@@ -8,13 +8,13 @@ import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-public class SpinnerAdapter extends ArrayAdapter<String> {
+public class LumiSpinnerAdapter extends ArrayAdapter<String> {
 
     private Context ctx;
     private String[] contentArray;
     private Integer[] imageArray;
 
-    public SpinnerAdapter(Context context, int resource, String[] objects, Integer[] imageArray) {
+    public LumiSpinnerAdapter(Context context, int resource, String[] objects, Integer[] imageArray) {
         super(context, R.layout.row_push_spinner, R.id.spinner_item, objects);
         this.ctx = context;
         this.contentArray = objects;

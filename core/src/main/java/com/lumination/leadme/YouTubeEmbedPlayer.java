@@ -597,7 +597,7 @@ public class YouTubeEmbedPlayer {
         lockSpinnerItems[0] = "View only";
         lockSpinnerItems[1] = "Free play";
         Integer[] push_imgs = {R.drawable.controls_view, R.drawable.controls_play};
-        SpinnerAdapter push_adapter = new SpinnerAdapter(main, R.layout.row_push_spinner, lockSpinnerItems, push_imgs);
+        LumiSpinnerAdapter push_adapter = new LumiSpinnerAdapter(main, R.layout.row_push_spinner, lockSpinnerItems, push_imgs);
         lockSpinner.setAdapter(push_adapter);
         lockSpinner.setSelection(0); //default to locked
     }

@@ -1,0 +1,564 @@
+package com.lumination.leadme;
+
+import android.annotation.SuppressLint;
+import android.content.Context;
+import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.PixelFormat;
+import android.graphics.Point;
+import android.graphics.drawable.Drawable;
+import android.hardware.display.DisplayManager;
+import android.media.Image;
+import android.media.ImageReader;
+import android.media.projection.MediaProjection;
+import android.media.projection.MediaProjectionManager;
+import android.os.Build;
+import android.util.DisplayMetrics;
+import android.util.Log;
+import android.view.View;
+import android.widget.Button;
+import android.widget.ImageView;
+import android.widget.RelativeLayout;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import java.io.ByteArrayOutputStream;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.net.InetAddress;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.HashMap;
+
+import eu.bolt.screenshotty.ScreenshotManager;
+
+import static android.view.View.GONE;
+import static android.view.View.VISIBLE;
+
+public class XrayManager {
+
+    //added-------
+    ScreenshotManager screenshotManager;
+
+    static final String MONITOR_STUDENT_TAG = "LumiMonitor";
+    static final String RECEIVE_IP_ADDRESS_TAG = "LumiReceiveIpAddress";
+    static final String SEND_IP_ADDRESS_TAG = "LumiSendIpAddress";
+    static final String DESTROY_SERVER_TAG = "LumiDestroyServer";
+    static final String SEND_TO_GUIDE = "Guide";
+    static final String SEND_TO_PEERS = "Peers";
+    static public int CAPTURE_RATE = 200;
+    //added---------------------
+//    LocalServer server;
+    String ipAddress;
+    Intent screen_share_intent = null;
+    private MediaProjectionManager projectionManager = null;
+    private int displayWidth, displayHeight, imagesProduced = 0;
+    ImageReader imageReader;
+
+    public Bitmap response;
+    public Bitmap bitmapToSend = null;
+    Boolean monitorInProgress = false;
+    ServerSocket serverSocket = null;
+    boolean screenShot = false;
+    int screenshotRate = 200;
+
+    private TextView xrayStudentSelectedView, xrayStudentDisplayNameView;
+    private ImageView xrayStudentIcon, xrayScreenshotView;
+    private View nextXrayStudent, prevXrayStudent;
+    private Button xrayButton;
+    private View xrayScreen;
+    private LeadMeMain main;
+
+    private final String TAG = "XrayManager";
+
+    public XrayManager(LeadMeMain main, View xrayScreen) {
+        this.main = main;
+        this.xrayScreen = xrayScreen;
+    }
+
+    @SuppressLint("WrongConstant")
+    public void manageResultsReturn(int requestCode, int resultCode, Intent data) {
+        main.getPermissionsManager().waitingForPermission = false;
+        Log.d(TAG, "RETURNED RESULT FROM SCREEN_CAPTURE! " + resultCode + ", " + data);
+        MediaProjection mediaProjection = projectionManager.getMediaProjection(resultCode, data);
+        if (mediaProjection != null) {
+            DisplayMetrics metrics = main.getResources().getDisplayMetrics();
+            int density = metrics.densityDpi;
+            int flags = DisplayManager.VIRTUAL_DISPLAY_FLAG_OWN_CONTENT_ONLY
+                    | DisplayManager.VIRTUAL_DISPLAY_FLAG_PUBLIC;
+
+            Point size = new Point();
+            size.y = metrics.heightPixels;
+            size.x = metrics.widthPixels;
+            displayHeight = size.y;
+            displayWidth = size.x;
+
+            imageReader = ImageReader.newInstance(size.x, size.y, PixelFormat.RGBA_8888, 2);
+
+            mediaProjection.createVirtualDisplay("screencap",
+                    size.x, size.y, density,
+                    flags, imageReader.getSurface(), null, main.getHandler());
+            imageReader.setOnImageAvailableListener(new ImageAvailableListener(), main.getHandler());
+        }
+    }
+
+    private void setupXrayView() {
+        xrayStudentIcon = xrayScreen.findViewById(R.id.student_icon);
+        xrayStudentDisplayNameView = xrayScreen.findViewById(R.id.student_display_name);
+        xrayStudentSelectedView = xrayScreen.findViewById(R.id.student_is_selected);
+        nextXrayStudent = xrayScreen.findViewById(R.id.next_student_btn);
+        prevXrayStudent = xrayScreen.findViewById(R.id.previous_student_btn);
+        xrayScreenshotView = xrayScreen.findViewById(R.id.monitor_popup_img);
+        xrayButton = xrayScreen.findViewById(R.id.current_peer_btn);
+        View xrayDropdown = xrayScreen.findViewById(R.id.dropdown_menu);
+        xrayDropdown.setVisibility(GONE);
+
+        TextView selectToggleBtn = xrayDropdown.findViewById(R.id.select_text);
+        xrayButton.setOnClickListener(view -> {
+
+            if (xrayDropdown.getVisibility() == View.VISIBLE) {
+                xrayDropdown.setVisibility(GONE);
+
+            } else {
+                ConnectedPeer thisPeer = main.xrayManager.getCurrentlyDisplayedStudent();
+                boolean currentlySelected = thisPeer.isSelected();
+                //make sure UI is appropriate for displayed peer
+                if (currentlySelected) {
+                    selectToggleBtn.setCompoundDrawablesWithIntrinsicBounds(R.drawable.icon_unselect_peer, 0, 0, 0);
+                    selectToggleBtn.setText("Unselect");
+
+                } else {
+                    selectToggleBtn.setCompoundDrawablesWithIntrinsicBounds(R.drawable.icon_select_peer, 0, 0, 0);
+                    selectToggleBtn.setText("Select");
+                }
+
+                xrayDropdown.setVisibility(View.VISIBLE);
+            }
+
+            int[] btnLoc = new int[2];
+            int[] dropLoc = new int[2];
+
+            xrayDropdown.post(() -> {
+                // Values should no longer be 0
+                xrayDropdown.getLocationOnScreen(dropLoc);
+                xrayButton.getLocationOnScreen(btnLoc);
+                RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) xrayDropdown.getLayoutParams();
+                params.setMargins(btnLoc[0] + xrayButton.getWidth() - xrayDropdown.getWidth(), (int) (btnLoc[1] - (xrayButton.getHeight() / 2.0)), 0, 0);
+                xrayDropdown.setLayoutParams(params);
+                xrayDropdown.requestLayout();
+            });
+        });
+
+        //disconnect student
+        xrayDropdown.findViewById(R.id.disconnect_text).setOnClickListener(view -> {
+            ConnectedPeer thisPeer = main.xrayManager.getCurrentlyDisplayedStudent();
+            main.getConnectedLearnersAdapter().showLogoutPrompt(thisPeer.getID());
+            xrayButton.callOnClick();
+        });
+
+        selectToggleBtn.setOnClickListener(view -> {
+            ConnectedPeer thisPeer = main.xrayManager.getCurrentlyDisplayedStudent();
+            String displayedText = selectToggleBtn.getText().toString();
+            boolean currentlySelected = thisPeer.isSelected();
+            Log.e(TAG, "ITEM SELECTED! " + thisPeer.getDisplayName() + ", " + thisPeer.getID() + ", " + currentlySelected + ", " + displayedText);
+
+            if (displayedText.equals("Select") && !currentlySelected) {
+                Log.e(TAG, "Setting SELECTED!");
+                main.getConnectedLearnersAdapter().selectPeer(thisPeer.getID(), true);
+                main.xrayManager.updateXrayForSelection(thisPeer);
+
+                selectToggleBtn.setCompoundDrawablesWithIntrinsicBounds(R.drawable.icon_unselect_peer, 0, 0, 0);
+                selectToggleBtn.setText("Unselect");
+                xrayButton.callOnClick();
+
+            } else if (displayedText.equals("Unselect") && currentlySelected) {
+                Log.e(TAG, "Setting UNSELECTED!");
+                main.getConnectedLearnersAdapter().selectPeer(thisPeer.getID(), false);
+                main.xrayManager.updateXrayForSelection(thisPeer);
+
+                selectToggleBtn.setCompoundDrawablesWithIntrinsicBounds(R.drawable.icon_select_peer, 0, 0, 0);
+                selectToggleBtn.setText("Select");
+                xrayButton.callOnClick();
+            }
+        });
+
+
+        //set up next and prev buttons
+        nextXrayStudent.setOnClickListener(view -> {
+            currentXrayStudentIndex++;
+            if (currentXrayStudentIndex < selectedXrayStudents.size()) {
+                setXrayStudent(selectedXrayStudents.get(currentXrayStudentIndex));
+                if (xrayDropdown.getVisibility() == VISIBLE) {
+                    xrayButton.callOnClick(); //hide it
+                }
+            }
+        });
+
+        prevXrayStudent.setOnClickListener(view -> {
+            currentXrayStudentIndex--;
+            if (currentXrayStudentIndex >= 0) {
+                setXrayStudent(selectedXrayStudents.get(currentXrayStudentIndex));
+                if (xrayDropdown.getVisibility() == VISIBLE) {
+                    xrayButton.callOnClick(); //hide it
+                }
+            }
+        });
+
+        //set up main buttons
+        xrayScreen.findViewById(R.id.unlock_selected_btn).setOnClickListener(v -> {
+            main.unlockFromMainAction();
+        });
+
+        xrayScreen.findViewById(R.id.lock_selected_btn).setOnClickListener(v -> {
+            main.lockFromMainAction();
+        });
+
+        xrayScreen.findViewById(R.id.block_selected_btn).setOnClickListener(v -> {
+            main.blackoutFromMainAction();
+        });
+
+        ImageView closeButton = xrayScreen.findViewById(R.id.back_btn);
+        closeButton.setOnClickListener(v -> {
+            hideXrayView();
+            if (xrayDropdown.getVisibility() == VISIBLE) {
+                xrayButton.callOnClick(); //hide it
+            }
+//            monitorInProgress = false; //break connection loop in clientStream
+//            nearbyManager.networkAdapter.stopMonitoring(Integer.parseInt(monitoredPeer));
+        });
+    }
+
+    private void hideXrayView() {
+        main.hideXray();
+        selectedXrayStudents.clear(); //reset
+    }
+
+    public ConnectedPeer getCurrentlyDisplayedStudent() {
+        return main.getConnectedLearnersAdapter().getMatchingPeer(selectedXrayStudents.get(currentXrayStudentIndex));
+    }
+
+    private ArrayList<String> selectedXrayStudents = new ArrayList<>();
+    private int currentXrayStudentIndex = -1;
+    private boolean xrayInit = false;
+
+    void showXrayView(String peer) {
+        Log.w(TAG, "Showing xray view!");
+        if (!xrayInit) {
+            setupXrayView();
+            xrayInit = true;
+        }
+
+        //populate list with selected students (or all if none selected)
+        selectedXrayStudents.clear();
+        selectedXrayStudents.addAll(main.getNearbyManager().getSelectedPeerIDsOrAll());
+
+        if (selectedXrayStudents.size() > 0) {
+            setXrayStudent(peer);
+            main.showXray();
+        } else {
+            Toast.makeText(main.getApplicationContext(), "No students available.", Toast.LENGTH_SHORT).show();
+            main.showXray();
+        }
+    }
+
+    private void setXrayStudent(String peer) {
+        //update variables to align with currently monitored peer
+        currentXrayStudentIndex = selectedXrayStudents.indexOf(peer);
+        monitoredPeer = peer;
+
+        Log.w(TAG, "Finding details for: " + peer + ", " + currentXrayStudentIndex);
+
+        //no matching peer was found, use defaults
+        if (peer.trim().isEmpty() || currentXrayStudentIndex < 0) {
+            currentXrayStudentIndex = 0;
+            monitoredPeer = selectedXrayStudents.get(currentXrayStudentIndex);
+        }
+
+        ConnectedPeer xrayStudent = main.getConnectedLearnersAdapter().getMatchingPeer(monitoredPeer);
+
+        Log.w(TAG, "Setting arrows! " + monitoredPeer + ", " + currentXrayStudentIndex + ", " + selectedXrayStudents.size() + ", " + xrayStudent);
+
+        if (xrayStudent == null) {
+            //this student must have disconnected, refresh the UI
+            hideXrayView();
+            showXrayView("");
+        }
+
+        //show/hide next and prev student buttons as needed
+        if (selectedXrayStudents.size() > (currentXrayStudentIndex + 1)) {
+            nextXrayStudent.setVisibility(View.VISIBLE);
+            nextXrayStudent.setClickable(true);
+        } else {
+            nextXrayStudent.setVisibility(View.INVISIBLE);
+            nextXrayStudent.setClickable(false);
+        }
+
+        if ((currentXrayStudentIndex - 1) >= 0) {
+            prevXrayStudent.setVisibility(View.VISIBLE);
+            prevXrayStudent.setClickable(true);
+        } else {
+            prevXrayStudent.setVisibility(View.INVISIBLE);
+            prevXrayStudent.setClickable(false);
+        }
+
+        xrayStudentDisplayNameView.setText(xrayStudent.getDisplayName());
+
+        Drawable icon = xrayStudent.getIcon();
+        if (icon == null) {
+            icon = main.leadmeIcon;
+        }
+        //update app icon
+        xrayStudentIcon.setImageDrawable(icon);
+
+        //display most recent screenshot
+        Bitmap latestScreenie = clientRecentScreenshots.get(monitoredPeer);
+        xrayScreenshotView.setImageBitmap(latestScreenie);
+
+        updateXrayForSelection(xrayStudent);
+
+        startImageClient(monitoredPeer);
+    }
+
+    void updateXrayForSelection(ConnectedPeer xrayStudent) {
+        Log.w(TAG, "Updating UI!");
+        if (xrayStudent.isSelected()) {
+            //selectedAdapter.setItemList(itemsForSelected, imgsForSelected);
+            xrayStudentSelectedView.setText("Selected");
+            xrayStudentSelectedView.setTextColor(main.getResources().getColor(R.color.light, null));
+        } else {
+            //selectedAdapter.setItemList(itemsForUnselected, imgsForUnselected);
+            xrayStudentSelectedView.setText("Unselected");
+            xrayStudentSelectedView.setTextColor(main.getResources().getColor(R.color.leadme_dark_grey, null));
+        }
+        //xrayStudentSelectedView.invalidate();
+    }
+
+    public void startServer() {
+        if (screenShot) {
+            Log.w(TAG, "Already capturing screenShots!");
+            return;
+        }
+        projectionManager = (MediaProjectionManager) main.getSystemService(Context.MEDIA_PROJECTION_SERVICE);
+
+        //start service class
+        screen_share_intent = new Intent(main.getApplicationContext(), ScreensharingService.class);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            main.startForegroundService(screen_share_intent);
+        } else {
+            main.startService(screen_share_intent);
+        }
+
+        //start screen capturing
+        main.startActivityForResult(projectionManager.createScreenCaptureIntent(), main.SCREEN_CAPTURE);
+    }
+
+    public void stopServer() {
+        main.stopService(screen_share_intent);
+        ipAddress = null;
+        imagesProduced = 0;
+    }
+
+    private class ImageAvailableListener implements ImageReader.OnImageAvailableListener {
+        @Override
+        public void onImageAvailable(ImageReader reader) {
+            Log.d(TAG, "onImageAvailable: image available");
+
+            Bitmap bitmap = null;
+            ByteArrayOutputStream stream = null;
+            Log.d(TAG, "onImageAvailable: ");
+            try (Image image = imageReader.acquireLatestImage()) {
+                //if (takeScreenshots) {
+                Log.d(TAG, "onImageAvailable: image acquired");
+                //sleep allows control over how many screenshots are taken
+                //old/less powerful phones need this otherwise there is heavy lag (etc for >20 screen shots a second)
+                //newer phones can have this disabled for a faster display
+                if (screenshotRate > 0) Thread.sleep(screenshotRate);
+
+                if (image != null) {
+                    Log.d(TAG, "onImageAvailable: image exists");
+                    Image.Plane[] planes = image.getPlanes();
+                    ByteBuffer buffer = planes[0].getBuffer();
+                    int pixelStride = planes[0].getPixelStride();
+                    int rowStride = planes[0].getRowStride();
+                    int rowPadding = rowStride - pixelStride * displayWidth;
+
+                    stream = new ByteArrayOutputStream();
+
+                    // create bitmap
+                    bitmap = Bitmap.createBitmap(displayWidth + rowPadding / pixelStride,
+                            displayHeight, Bitmap.Config.ARGB_8888);
+                    bitmap.copyPixelsFromBuffer(buffer);
+                    bitmapToSend = bitmap;
+                    imagesProduced++;
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            } finally {
+                if (stream != null) {
+                    try {
+                        stream.close();
+                    } catch (IOException ioe) {
+                        ioe.printStackTrace();
+                    }
+                }
+            }
+
+        }
+    }
+
+
+    private void imageRunnableFunction(String peer) {
+        Socket socket;
+        try {
+            socket = serverSocket.accept();
+            socket.setKeepAlive(true);
+            Log.w(TAG, "Accepting SERVER socket from " + serverSocket.getInetAddress() + ", I'm " + socket.getLocalAddress() + " / " + peer);
+
+        } catch (IOException e) {
+            e.printStackTrace();
+            monitorInProgress = false;
+            return;
+        }
+
+        while (monitorInProgress) { //global state, maybe change to individuals?
+            byte[] buffer = null;
+            try {
+                DataInputStream in = new DataInputStream(socket.getInputStream());
+                int length = in.readInt();
+                Log.d(TAG, "run: image received of size " + length + " from " + peer);
+                if (length > 10000 && length < 300000) {
+                    buffer = new byte[length];
+                    in.readFully(buffer, 0, length);
+                    Log.d(TAG, "Packet Received!! ");
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            Log.w(TAG, buffer + ", " + response);
+            if (buffer != null) {
+                Bitmap tmpBmp = BitmapFactory.decodeByteArray(buffer, 0, buffer.length);
+                response = tmpBmp;
+                main.runOnUiThread(() -> {
+                    clientRecentScreenshots.put(peer, tmpBmp); //store it
+
+                    //I'm on display!
+                    if (monitoredPeer.equals(peer)) {
+                        xrayScreenshotView.setImageBitmap(tmpBmp);
+                        Log.w(TAG, "Updated the image!");
+                    }
+                });
+            }
+        }
+        Log.e(TAG, "imageRunnable ended! " + monitorInProgress + " && " + !Thread.currentThread().isInterrupted());
+    }
+
+    ;
+
+    //Thread imageSocket;
+    private String monitoredPeer;
+    HashMap<String, Thread> clientSocketThreads = new HashMap();
+    HashMap<String, Bitmap> clientRecentScreenshots = new HashMap();
+
+    //client socket for monitoring
+    public void startImageClient(String peer) {
+        while (serverSocket == null) {
+            try {
+                serverSocket = new ServerSocket(0);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            Log.d(TAG, "ServerSocket: attempting to create socket");
+        }
+
+        main.getNearbyManager().networkAdapter.startMonitoring(Integer.parseInt(peer), serverSocket.getLocalPort());
+
+
+        //get the image socket for this peer
+        Thread imageSocketThread = clientSocketThreads.get(peer);
+
+        //if image socket is not usable, clean it up
+        if (imageSocketThread != null && (!monitorInProgress || !imageSocketThread.isAlive())) {
+            imageSocketThread.interrupt();
+            imageSocketThread = null;
+        }
+
+        monitorInProgress = true;
+
+        if (imageSocketThread == null) {
+            imageSocketThread = new Thread(() -> imageRunnableFunction(peer));
+            imageSocketThread.start();
+            clientSocketThreads.put(peer, imageSocketThread); //store this
+            Log.w(TAG, "Now have client sockets: " + clientSocketThreads.size());
+        }
+
+    }
+
+    //will only have one of these at the client
+    //OK to store this way
+    Socket screenshotSocket = null;
+
+    public void startScreenshotRunnable(InetAddress ip, int Port) {
+        screenShot = true;
+        if (screenshotSocket != null && screenshotSocket.isConnected()) {
+            Log.w(TAG, "Already have a screenshot runnable going!");
+            main.getPermissionsManager().waitingForPermission = false;
+            return; //already got one!
+        }
+
+        Thread t = new Thread(() -> {
+            try {
+                Log.w(TAG, "creating CLIENT socket with " + ip + ", " + Port);
+                screenshotSocket = new Socket(ip, Port);
+                screenshotSocket.setKeepAlive(true);
+
+            } catch (IOException e) {
+                e.printStackTrace();
+                Log.d(TAG, "startScreenShot: socket not connected");
+                main.getPermissionsManager().waitingForPermission = false;
+                return;
+            }
+            while (screenShot) {
+                if (bitmapToSend != null && screenshotSocket.isConnected()) {
+                    ByteArrayOutputStream stream = new ByteArrayOutputStream();
+                    bitmapToSend.compress(Bitmap.CompressFormat.JPEG, 50, stream);
+                    if (stream.toByteArray().length > 300000) {
+                        bitmapToSend.compress(Bitmap.CompressFormat.JPEG, 0, stream);
+                    }
+                    bitmapToSend = null;
+                    byte[] byteArray = stream.toByteArray();
+                    try {
+                        DataOutputStream out = new DataOutputStream(screenshotSocket.getOutputStream());
+                        out.writeInt(byteArray.length);
+                        out.write(byteArray, 0, byteArray.length);
+                        Log.d(TAG, "run: image sent of size " + byteArray.length + " to " + screenshotSocket.getInetAddress() + ", from " + screenshotSocket.getLocalAddress());
+
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                    try {
+                        Thread.sleep(screenshotRate);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                        screenShot = false;
+                        Log.d(TAG, "Thread: thread wouldn't sleep");
+                    }
+                }
+            }
+            Log.e(TAG, "Image send thread closed. " + screenShot);
+            screenShot = false;
+        });
+        t.start();
+    }
+
+    public void stopScreenshotRunnable() {
+        screenShot = false;
+    }
+
+    public void setScreenshotRate(int rate) {
+        screenshotRate = rate;
+    }
+}

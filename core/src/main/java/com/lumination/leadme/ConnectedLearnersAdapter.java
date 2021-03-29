@@ -62,9 +62,16 @@ public class ConnectedLearnersAdapter extends BaseAdapter {
     public void alertStudentDisconnect(String id) {
         ConnectedPeer peer = getMatchingPeer(id);
         if (peer != null) {
+            main.stopMonitoringStudent(peer.getID());
             peer.setStatus(ConnectedPeer.STATUS_ERROR);
             moveToFrontOfList(peer);
             refresh();
+        }
+    }
+
+    public void stopMonitoringAllStudents() {
+        for (ConnectedPeer peer : mData) {
+            main.stopMonitoringStudent(peer.getID());
         }
     }
 
@@ -156,7 +163,7 @@ public class ConnectedLearnersAdapter extends BaseAdapter {
 
     public void appLaunchSuccess(String id, String lastApp) {
         ConnectedPeer thisPeer = getMatchingPeer(id);
-        if(thisPeer!=null) {
+        if (thisPeer != null) {
             thisPeer.setLastLaunchedApp(lastApp);
             thisPeer.setWarning(LeadMeMain.APP_TAG, true);
         }
@@ -260,6 +267,37 @@ public class ConnectedLearnersAdapter extends BaseAdapter {
         }
     }
 
+
+    protected void showLogoutPrompt(String peerID) {
+
+        if (studentLogoutView == null) {
+            studentLogoutView = View.inflate(main, R.layout.e__logout_student_popup, null);
+            Button ok_btn = studentLogoutView.findViewById(R.id.ok_btn);
+            Button back_btn = studentLogoutView.findViewById(R.id.back_btn);
+
+            ok_btn.setOnClickListener(v12 -> {
+                Log.d(TAG, "Removing student: " + peerID);
+                main.getConnectedLearnersAdapter().removeStudent(peerID);
+                main.getConnectedLearnersAdapter().refresh();
+                ArrayList<Integer> selected = new ArrayList<>();
+                selected.add(Integer.valueOf(peerID));
+                main.getNearbyManager().networkAdapter.sendToSelectedClients("", "DISCONNECT", selected);
+                logoutPrompt.hide();
+                main.xrayManager.showXrayView(""); //refresh this view
+            });
+
+            back_btn.setOnClickListener(v1 -> logoutPrompt.hide());
+        }
+
+        if (logoutPrompt == null) {
+            logoutPrompt = new AlertDialog.Builder(main)
+                    .setView(studentLogoutView)
+                    .show();
+        } else {
+            logoutPrompt.show();
+        }
+    }
+
     @Override
     public Object getItem(int position) {
         return mData.get(position);
@@ -309,35 +347,7 @@ public class ConnectedLearnersAdapter extends BaseAdapter {
             convertView.setLongClickable(true);
             convertView.setOnLongClickListener(v -> {
                 lastClickedID = peer.getID();
-                if (studentLogoutView == null) {
-                    studentLogoutView = View.inflate(main, R.layout.e__logout_student_popup, null);
-                    Button ok_btn = studentLogoutView.findViewById(R.id.ok_btn);
-                    Button monitor_btn = studentLogoutView.findViewById(R.id.monitor_btn);
-                    Button back_btn = studentLogoutView.findViewById(R.id.back_btn);
-
-                    ok_btn.setOnClickListener(v12 -> {
-                        Log.d(TAG, "Disconnecting from student: " + lastClickedID);
-                        main.getNearbyManager().disconnectStudent(lastClickedID);
-                        main.getConnectedLearnersAdapter().removeStudent(lastClickedID);
-                        main.getConnectedLearnersAdapter().refresh();
-                        logoutPrompt.hide();
-                    });
-                    //added
-                    monitor_btn.setOnClickListener(v2 -> {
-                        logoutPrompt.hide();
-
-                        main.setupMonitorScreen(lastClickedID);
-                    });
-                    back_btn.setOnClickListener(v1 -> logoutPrompt.hide());
-                }
-
-                if (logoutPrompt == null) {
-                    logoutPrompt = new AlertDialog.Builder(main)
-                            .setView(studentLogoutView)
-                            .show();
-                } else {
-                    logoutPrompt.show();
-                }
+                main.xrayManager.showXrayView(lastClickedID);
                 return true;
             });
 
@@ -357,7 +367,7 @@ public class ConnectedLearnersAdapter extends BaseAdapter {
                             main.getConnectedLearnersAdapter().refresh();
                             ArrayList<Integer> selected = new ArrayList<>();
                             selected.add(Integer.valueOf(lastClickedID));
-                            main.getNearbyManager().networkAdapter.sendToSelectedClients("","DISCONNECT",selected);
+                            main.getNearbyManager().networkAdapter.sendToSelectedClients("", "DISCONNECT", selected);
                             disconnectPrompt.hide();
                         });
 
@@ -434,8 +444,9 @@ public class ConnectedLearnersAdapter extends BaseAdapter {
         peer.setSelected(selected);
         refresh();
     }
-    public int getSelectedCount(){
-        int count=0;
+
+    public int getSelectedCount() {
+        int count = 0;
         for (ConnectedPeer peer : mData) {
             if (peer.isSelected()) {
                 count++;
@@ -443,6 +454,7 @@ public class ConnectedLearnersAdapter extends BaseAdapter {
         }
         return count;
     }
+
     public boolean someoneIsSelected() {
         for (ConnectedPeer peer : mData) {
             if (peer.isSelected()) {

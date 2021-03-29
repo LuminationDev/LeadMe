@@ -8,26 +8,6 @@
     android:background="@color/leadme_light_grey"
     android:orientation="vertical">
 
-
-    <FrameLayout
-        android:id="@+id/monitor_layout"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:visibility="gone">
-
-        <Button
-            android:id="@+id/close_monitor_btn"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:text="X" />
-
-        <SurfaceView
-            android:id="@+id/monitor_popup"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent" />
-
-    </FrameLayout>
-
     <androidx.cardview.widget.CardView
         android:layout_width="match_parent"
         android:layout_height="50dp"
@@ -144,6 +124,7 @@
             style="@style/EmptyStyle"
             android:layout_width="@dimen/pushbtn_size"
             android:layout_height="@dimen/pushbtn_size"
+            android:layout_marginStart="20dp"
             android:layout_marginTop="15dp"
             android:layout_marginBottom="25dp"
             android:background="@drawable/circle_btn"
@@ -155,7 +136,6 @@
             android:textAllCaps="false"
             android:textColor="@color/leadme_black"
             android:textSize="12sp"
-            android:visibility="gone"
             app:layout_gravity="center_horizontal|top" />
 
         <Space
@@ -163,19 +143,20 @@
             android:layout_height="wrap_content" />
 
         <Button
-            android:id="@+id/toggle_all_btn"
+            android:id="@+id/xray_core_btn"
             style="@style/EmptyStyle"
             android:layout_width="@dimen/pushbtn_size"
             android:layout_height="@dimen/pushbtn_size"
             android:layout_marginTop="15dp"
             android:layout_marginBottom="25dp"
             android:background="@drawable/circle_btn"
-            android:drawableTop="@drawable/core_select"
+            android:drawableTop="@drawable/core_xray_with_inset"
             android:drawablePadding="-4dp"
             android:elevation="15dp"
             android:fontFamily="@font/poppins_semibold"
+            android:includeFontPadding="false"
             android:paddingTop="13dp"
-            android:text="@string/select"
+            android:text="X-Ray"
             android:textAllCaps="false"
             android:textColor="@color/leadme_black"
             android:textSize="12sp"
@@ -300,6 +281,7 @@
                         android:fontFamily="@font/poppins_semibold"
                         android:gravity="center"
                         android:includeFontPadding="false"
+                        android:labelFor="@id/select_bar_back"
                         android:text="Select Mode"
                         android:textSize="13sp" />
 

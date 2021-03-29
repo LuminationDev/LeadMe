@@ -26,7 +26,6 @@ public class NearbyPeersManager {
 
     public String myName;
 
-
     public NearbyPeersManager(LeadMeMain main) {
         this.main = main;
         networkAdapter = new NetworkAdapter(main.context, main, this);
@@ -54,12 +53,10 @@ public class NearbyPeersManager {
     public void onStop() {
         Log.d(TAG, "onStop: deprecated");
         networkAdapter.closeSocket = true;
-
     }
 
     public void onBackPressed() {
         Log.d(TAG, "onBackPressed: deprecated");
-
     }
 
     protected void connectToSelectedLeader() {

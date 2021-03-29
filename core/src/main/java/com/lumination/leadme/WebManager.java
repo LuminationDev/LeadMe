@@ -95,7 +95,7 @@ public class WebManager {
         lockSpinnerItems[0] = "View only";
         lockSpinnerItems[1] = "Free play";
         Integer[] push_imgs = {R.drawable.controls_view, R.drawable.controls_play};
-        SpinnerAdapter push_adapter = new SpinnerAdapter(main, R.layout.row_push_spinner, lockSpinnerItems, push_imgs);
+        LumiSpinnerAdapter push_adapter = new LumiSpinnerAdapter(main, R.layout.row_push_spinner, lockSpinnerItems, push_imgs);
         lockSpinner.setAdapter(push_adapter);
         lockSpinner.setSelection(0); //default to locked
 
@@ -106,7 +106,7 @@ public class WebManager {
         searchSpinnerItems[0] = "Google search";
         searchSpinnerItems[1] = "YouTube search";
         Integer[] search_imgs = {R.drawable.search_google, R.drawable.search_yt};
-        SpinnerAdapter search_adapter = new SpinnerAdapter(main, R.layout.row_search_spinner, searchSpinnerItems, search_imgs);
+        LumiSpinnerAdapter search_adapter = new LumiSpinnerAdapter(main, R.layout.row_search_spinner, searchSpinnerItems, search_imgs);
         searchSpinner.setAdapter(search_adapter);
 
         //set up favourites view

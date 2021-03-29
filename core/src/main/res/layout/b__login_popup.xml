@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="fill_parent"
     android:layout_height="wrap_content"
     android:layout_centerInParent="true"
@@ -48,6 +47,7 @@
                 android:layout_marginBottom="15dp"
                 android:accessibilityTraversalAfter="@id/codeInput1"
                 android:accessibilityTraversalBefore="@id/back_btn"
+                android:maxLines="1"
                 android:autofillHints=""
                 android:background="@drawable/rounded_btn_highlight"
                 android:digits="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ _"
@@ -57,7 +57,6 @@
                 android:hint="@string/type_your_name_hint"
                 android:imeOptions="actionNext"
                 android:inputType="textPersonName|textCapWords"
-                android:maxLines="1"
                 android:paddingTop="5dp"
                 android:paddingBottom="5dp"
                 android:singleLine="true"
@@ -83,7 +82,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_horizontal"
-                android:layout_marginTop="30dp"
+                android:layout_marginTop="40dp"
+                android:layout_marginBottom="10dp"
                 android:fontFamily="@font/poppins_semibold"
                 android:text="@string/teacher_code"
                 android:textSize="18sp" />
@@ -97,24 +97,32 @@
                 android:orientation="horizontal"
                 android:showDividers="middle">
 
+                <ImageView
+                    android:id="@+id/padding"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_vertical"
+                    android:src="@drawable/close"
+                    android:visibility="invisible" />
+
                 <EditText
                     android:id="@+id/codeInput1"
                     android:layout_width="@dimen/code_textbox_size"
                     android:layout_height="30dp"
-                    android:accessibilityTraversalAfter="@id/codeInput2"
-                    android:accessibilityTraversalBefore="@id/name_input_field"
                     android:autofillHints=""
                     android:background="@drawable/rounded_btn_highlight"
                     android:digits="0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ _"
                     android:focusableInTouchMode="true"
+                    android:accessibilityTraversalAfter="@id/codeInput2"
+                    android:accessibilityTraversalBefore="@id/name_input_field"
                     android:fontFamily="@font/poppins_regular"
                     android:gravity="bottom|center_horizontal"
                     android:hint="@string/code_hint"
                     android:imeOptions="flagNavigateNext"
+                    android:singleLine="true"
                     android:inputType="number"
                     android:maxLength="1"
                     android:paddingTop="5dp"
-                    android:singleLine="true"
                     android:textAlignment="center"
                     android:textColor="@color/leadme_black"
                     android:textColorHint="@color/leadme_medium_grey"
@@ -135,10 +143,10 @@
                     android:gravity="bottom|center_horizontal"
                     android:hint="@string/code_hint"
                     android:imeOptions="flagNavigateNext"
+                    android:singleLine="true"
                     android:inputType="number"
                     android:maxLength="1"
                     android:paddingTop="5dp"
-                    android:singleLine="true"
                     android:textAlignment="center"
                     android:textColor="@color/leadme_black"
                     android:textColorHint="@color/leadme_medium_grey"
@@ -159,10 +167,10 @@
                     android:gravity="bottom|center_horizontal"
                     android:hint="@string/code_hint"
                     android:imeOptions="flagNavigateNext"
+                    android:singleLine="true"
                     android:inputType="number"
                     android:maxLength="1"
                     android:paddingTop="5dp"
-                    android:singleLine="true"
                     android:textAlignment="center"
                     android:textColor="@color/leadme_black"
                     android:textColorHint="@color/leadme_medium_grey"
@@ -183,15 +191,22 @@
                     android:gravity="bottom|center_horizontal"
                     android:hint="@string/code_hint"
                     android:imeOptions="flagNavigateNext"
+                    android:singleLine="true"
                     android:inputType="number"
                     android:maxLength="1"
                     android:paddingTop="5dp"
-                    android:singleLine="true"
                     android:textAlignment="center"
                     android:textColor="@color/leadme_black"
                     android:textColorHint="@color/leadme_medium_grey"
                     android:textSize="16sp"
                     android:visibility="visible"></EditText>
+
+                <ImageView
+                    android:id="@+id/clear_code_btn"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_vertical"
+                    android:src="@drawable/close" />
 
 
             </LinearLayout>
@@ -202,7 +217,7 @@
             android:layout_height="wrap_content" />
 
         <LinearLayout
-            android:id="@+id/button_view"
+            android:id="@+id/within_playback_btns"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="30dp"
@@ -306,103 +321,6 @@
             android:text="@string/ok"
             android:textColor="@color/leadme_white"
             android:textSize="16sp" />
-
-    </LinearLayout>
-
-    <LinearLayout
-        android:id="@+id/login_signup_view"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="vertical"
-        android:visibility="gone"
-        tools:visibility="gone">
-
-        <TextView
-            android:id="@+id/textView5"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="TextView" />
-
-        <EditText
-            android:id="@+id/name_input_field2"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center_horizontal"
-            android:layout_marginTop="15dp"
-            android:layout_marginBottom="15dp"
-            android:accessibilityTraversalAfter="@id/codeInput1"
-            android:accessibilityTraversalBefore="@id/back_btn"
-            android:autofillHints=""
-            android:background="@drawable/rounded_btn_highlight"
-            android:digits="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ _"
-            android:focusableInTouchMode="true"
-            android:fontFamily="@font/poppins_regular"
-            android:gravity="center"
-            android:hint="@string/type_your_name_hint"
-            android:imeOptions="actionNext"
-            android:inputType="textPersonName|textCapWords"
-            android:maxLines="1"
-            android:paddingTop="5dp"
-            android:paddingBottom="5dp"
-            android:singleLine="true"
-            android:textAlignment="center"
-            android:textColorHint="@color/leadme_medium_grey"
-            android:textSize="16sp"
-            android:visibility="visible"></EditText>
-
-        <EditText
-            android:id="@+id/name_input_field3"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center_horizontal"
-            android:layout_marginTop="15dp"
-            android:layout_marginBottom="15dp"
-            android:accessibilityTraversalAfter="@id/codeInput1"
-            android:accessibilityTraversalBefore="@id/back_btn"
-            android:autofillHints=""
-            android:background="@drawable/rounded_btn_highlight"
-            android:digits="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ _"
-            android:focusableInTouchMode="true"
-            android:fontFamily="@font/poppins_regular"
-            android:gravity="center"
-            android:hint="@string/type_your_name_hint"
-            android:imeOptions="actionNext"
-            android:inputType="textPersonName|textCapWords"
-            android:maxLines="1"
-            android:paddingTop="5dp"
-            android:paddingBottom="5dp"
-            android:singleLine="true"
-            android:textAlignment="center"
-            android:textColorHint="@color/leadme_medium_grey"
-            android:textSize="16sp"
-            android:visibility="visible"></EditText>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:orientation="horizontal">
-
-            <Space
-                android:layout_width="wrap_content"
-                android:layout_height="1dp"
-                android:layout_gravity="center"
-                android:layout_weight="1"
-                android:background="@color/leadme_darkest_grey"
-                android:backgroundTint="@color/leadme_darkest_grey"
-                android:foregroundTint="@color/leadme_darkest_grey" />
-
-            <TextView
-                android:id="@+id/textView6"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="TextView" />
-
-            <Space
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:layout_weight="1" />
-        </LinearLayout>
 
     </LinearLayout>
 

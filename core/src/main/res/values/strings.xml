@@ -109,6 +109,7 @@
     <string name="new_video">New video</string>
     <string name="download">Download</string>
     <string name="re_push">Re-push</string>
+    <string name="x_ray_view">X-Ray View</string>
 
     <string name="playback_settings_title">Playback Settings</string>
     <string name="playback_controls_title">Control Playback</string>

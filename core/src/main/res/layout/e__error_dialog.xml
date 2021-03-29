@@ -65,8 +65,8 @@
 
         <androidx.cardview.widget.CardView
             android:id="@+id/error_dialog_spinner"
-            android:layout_width="30dp"
-            android:layout_height="30dp"
+            android:layout_width="45dp"
+            android:layout_height="40dp"
             android:layout_margin="5dp"
             android:layout_marginStart="-10dp"
             app:cardBackgroundColor="@color/leadme_white"
@@ -77,14 +77,14 @@
                 android:id="@+id/down_arrow"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:scaleType="fitCenter"
+                android:layout_gravity="start|center_vertical"
+                android:paddingStart="5dp"
                 android:src="@drawable/down_arrow" />
 
             <Spinner
                 android:id="@+id/push_spinner"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_width="60dp"
+                android:layout_height="@dimen/standard_btn_height"
                 android:layout_marginTop="-10dp"
                 android:background="@color/leadme_white"
                 android:dropDownWidth="wrap_content"
@@ -96,6 +96,7 @@
                 android:translationZ="-10dp"
                 tools:listitem="@layout/row_push_spinner" />
         </androidx.cardview.widget.CardView>
+
 
         <LinearLayout
             android:layout_width="wrap_content"

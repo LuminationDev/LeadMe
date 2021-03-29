@@ -384,7 +384,7 @@ public class WithinAccessibilityManager {
     }
 
     private void exitVRvideo() {
-        AccessibilityService service = main.getAccessibilityService();
+        AccessibilityService service = main.getLumiAccessibilityService();
         Log.w(TAG, "CHECK VR FINISHED?? " + service.getRootInActiveWindow().getClassName() + " == " + lastEvent.getClassName() + ", " + checkingForFinish + ", " + scheduled);
         endOfVideo();
         checkingForFinish = false; //prepare to check again

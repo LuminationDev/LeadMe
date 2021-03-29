@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:layout_gravity="center_vertical"
+    android:orientation="horizontal"
+    android:paddingTop="10dp"
+    android:paddingBottom="10dp">
+
+    <ImageView
+        android:id="@+id/option_image"
+        android:layout_width="21dp"
+        android:layout_height="25dp"
+        android:layout_gravity="center"
+        android:layout_marginStart="20dp"
+        android:src="@drawable/icon_disconnect_peer"
+        android:tag="spinner_img" />
+
+    <TextView
+        android:id="@+id/option_text"
+        android:layout_width="120dp"
+        android:layout_height="50dp"
+        android:fontFamily="@font/poppins_regular"
+        android:paddingStart="15dp"
+        android:paddingTop="15dp"
+        android:paddingEnd="15dp"
+        android:tag="spinner_text"
+        android:text="Disconnect" />
+</LinearLayout>

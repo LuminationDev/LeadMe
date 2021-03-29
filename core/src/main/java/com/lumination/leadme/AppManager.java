@@ -18,6 +18,8 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 public class AppManager extends BaseAdapter {
@@ -49,11 +51,11 @@ public class AppManager extends BaseAdapter {
         String[] items = {"View only", "Free play"};
         Integer[] imgs = {R.drawable.controls_view, R.drawable.controls_play};
 
-        SpinnerAdapter adapter = new SpinnerAdapter(main, R.layout.row_push_spinner, items, imgs);
+        LumiSpinnerAdapter adapter = new LumiSpinnerAdapter(main, R.layout.row_push_spinner, items, imgs);
         lockSpinner.setAdapter(adapter);
         lockSpinner.setSelection(1); //default to unlocked
 
-        SpinnerAdapter withinAdapter = new SpinnerAdapter(main, R.layout.row_push_spinner, items, imgs);
+        LumiSpinnerAdapter withinAdapter = new LumiSpinnerAdapter(main, R.layout.row_push_spinner, items, imgs);
         withinLockSpinner.setAdapter(withinAdapter);
     }
 
@@ -78,6 +80,15 @@ public class AppManager extends BaseAdapter {
         }
     }
 
+    public class ApplicationInfoComparator implements Comparator<ApplicationInfo> {
+        @Override
+        public int compare(ApplicationInfo t1, ApplicationInfo t2) {
+            String t1Name = pm.getApplicationLabel(t1).toString();
+            String t2Name = pm.getApplicationLabel(t2).toString();
+            return t1Name.compareToIgnoreCase(t2Name);
+        }
+    }
+
     private List<ApplicationInfo> listApps() {
         appList = new ArrayList<>();
         ArrayList<String> nameList = new ArrayList<>();
@@ -98,6 +109,8 @@ public class AppManager extends BaseAdapter {
                     nameList.add(ai.packageName); //to prevent duplicates
                 }
             }
+            //sort alphabetically by name
+            Collections.sort(appList, new ApplicationInfoComparator());
             return appList;
         } catch (Exception e) {
             Log.e(TAG, e.getLocalizedMessage());
@@ -148,7 +161,6 @@ public class AppManager extends BaseAdapter {
         Intent intent = main.getPackageManager().getLaunchIntentForPackage(packageName);
 
 
-
         if (intent == null) {
 
             if (packageName.toLowerCase().contains("browser")) {
@@ -173,15 +185,15 @@ public class AppManager extends BaseAdapter {
         }
 
         if (packageName.equals(withinPackage)) {
-            intent=new Intent(Intent.ACTION_VIEW);
+            intent = new Intent(Intent.ACTION_VIEW);
             //intent = new Intent(Intent.ACTION_VIEW, withinURI);
             intent.setData(withinURI);
             intent.addCategory(Intent.CATEGORY_BROWSABLE);
-            intent.setComponent(new ComponentName("com.shakingearthdigital.vrsecardboard","com.shakingearthdigital.vrsecardboard.activities.DeeplinkStartupActivity"));
+            intent.setComponent(new ComponentName("com.shakingearthdigital.vrsecardboard", "com.shakingearthdigital.vrsecardboard.activities.DeeplinkStartupActivity"));
             intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
             //intent.setPackage(packageName);
         }
-        if(actualAppPackage.equals(withinPackage)){
+        if (actualAppPackage.equals(withinPackage)) {
             main.activityManager.killBackgroundProcesses(withinPackage);
         }
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
@@ -195,7 +207,7 @@ public class AppManager extends BaseAdapter {
                 main.updateFollowerCurrentTask(actualAppPackage, appName, "Application", "", "");
             }
         }
-        Log.w(TAG, "Launching: " + appName + ", " + actualAppPackage+" "+withinPackage);
+        Log.w(TAG, "Launching: " + appName + ", " + actualAppPackage + " " + withinPackage);
 
 
         main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.LAUNCH_SUCCESS + appName + ":" + main.getNearbyManager().getID() + ":" + actualAppPackage, main.getNearbyManager().getAllPeerIDs());
@@ -311,7 +323,7 @@ public class AppManager extends BaseAdapter {
             viewHolder.myIcon.setImageDrawable(appIcon);
 
             convertView.setOnClickListener(v -> {
-                Log.i(TAG, "Launching " + appName + " from " + packageName+" "+withinPackage);
+                Log.i(TAG, "Launching " + appName + " from " + packageName + " " + withinPackage);
                 if (packageName.equals(withinPackage)) {
                     Log.d(TAG, "getView: is a within package");
                     withinPlayer.showWithin(); //showGuideController();

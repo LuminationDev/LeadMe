@@ -114,11 +114,14 @@ public class NetworkAdapter {
 
                 @Override
                 public void onServiceFound(NsdServiceInfo service) {
-                    Log.d(TAG, "Service discovery success" + service);
+                    Log.d(TAG, "Service discovery success " + service);
+
                     if (!service.getServiceType().equals(SERVICE_TYPE)) {
                         Log.d(TAG, "Unknown Service Type: " + service.getServiceType());
+
                     } else if (service.getServiceName().equals(Name)) {
                         Log.d(TAG, "Same machine: " + Name);
+
                     } else if (service.getServiceName().contains("#Teacher")) {
                         Log.d(TAG, "onServiceFound: attempting to resolve " + service.getServiceName());
                         mNsdManager.resolveService(service, new resListener());
@@ -158,6 +161,7 @@ public class NetworkAdapter {
         }
     }
 
+
     /*
     Resolves services found by the discovery listener, will check if is same machine
     if not will return and info object that contains IP address and port
@@ -167,6 +171,7 @@ public class NetworkAdapter {
         public void onResolveFailed(NsdServiceInfo serviceInfo, int errorCode) {
             Log.e(TAG, "Resolve failed " + errorCode);
             if (errorCode == 3) {
+                //TODO clean up from connection attempt, and try again
                 mNsdManager.resolveService(serviceInfo, new resListener());
             }
             return;
@@ -476,7 +481,7 @@ public class NetworkAdapter {
 
     }
 
-    //stops any discovery processes that are inprogress
+    //stops any discovery processes that are in progress
     public void stopDiscovery() {
         if (mDiscoveryListener != null) {
             try {
@@ -538,37 +543,39 @@ public class NetworkAdapter {
                 nearbyPeersManager.myID = inputList.get(1);
                 connectionisActive = 3;
                 if (main.waitingDialog.isShowing()) {
-                    main.closeWaitingDialog(true);
+                    main.getHandler().post(() -> main.closeWaitingDialog(true));
                 }
                 pingName = false;
-                //Log.d(TAG, "messageRecievedFromServer: recieved ping and subsequently ignoring it");
+                //Log.d(TAG, "messageReceivedFromServer: received ping and subsequently ignoring it");
                 break;
             case "MONITOR":
                 if (inputList.get(1).contains(":")) {
                     List<String> inputList2 = Arrays.asList(inputList.get(1).split(":"));
                     if (inputList2.get(0).equals("START")) {
                         main.runOnUiThread(() -> {
-                            main.startServer();
+                            Log.w(TAG, "Starting client monitoring server!");
+                            main.getPermissionsManager().waitingForPermission = true;
+                            main.xrayManager.startServer();
                             //main.monitorInProgress=true;
                             //main.takeScreenshots=true;
                             //main.startImageClient(String.valueOf(clientID));
-                            main.startScreenshotRunnable(socket.getInetAddress(), Integer.parseInt(inputList2.get(1)));
+                            main.xrayManager.startScreenshotRunnable(socket.getInetAddress(), Integer.parseInt(inputList2.get(1)));
 
                         });
                     }
-                    Log.d(TAG, "messageRecievedFromServer: " + inputList.get(1));
+                    Log.d(TAG, "messageReceivedFromServer: " + inputList.get(1));
                 } else {
                     if (inputList.get(1).equals("STOP")) {
                         //main.takeScreenshots=false;
-                        main.stopServer();
-                        main.stopScreenshotRunnable();
+                        main.xrayManager.stopServer();
+                        main.xrayManager.stopScreenshotRunnable();
                     } else {
-                        main.setScreenshotRate(Integer.parseInt(inputList.get(1)));
+                        main.xrayManager.setScreenshotRate(Integer.parseInt(inputList.get(1)));
                     }
                 }
                 break;
             default:
-                Log.d(TAG, "messageRecievedFromServer: Invalid message type");
+                Log.d(TAG, "messageReceivedFromServer: Invalid message type");
                 break;
         }
     }

@@ -23,13 +23,10 @@ public class LumiAccessibilityConnector {
     private String lastAppName, lastPackageName;
 
     //handler for executing on the main thread
-    //private static final Handler mainHandler = new Handler(Looper.getMainLooper());
     private DispatchManager dispatcher;
     private static boolean waitingForStateChange = false;
 
-
     public boolean gestureInProgress = false;
-
 
     YouTubeAccessibilityManager ytManager;
     WithinAccessibilityManager withinManager;
@@ -396,9 +393,10 @@ public class LumiAccessibilityConnector {
 
     protected void triageReceivedIntent(Intent intent) {
         //TODO or this?
-        //Log.d(TAG, "triageReceivedIntent: ");
+        Log.d(TAG, "triageReceivedIntent!");
         //only students need to respond to these events
         if (intent.hasExtra(LumiAccessibilityService.INFO_TAG)) {
+            Log.d(TAG, "triageReceivedIntent: " + intent.getStringExtra(LumiAccessibilityService.INFO_TAG));
             switch (intent.getStringExtra(LumiAccessibilityService.INFO_TAG)) {
                 case LumiAccessibilityService.REFRESH_ACTION:
                     Log.w(TAG, "REFRESHING ACCESSIBILITY STATE");
@@ -412,6 +410,7 @@ public class LumiAccessibilityConnector {
                     break;
 
                 case LumiAccessibilityService.INFO_CONNECTED:
+                    Log.d(TAG, "Recalling from settings to LeadMe");
                     main.recallToLeadMe();
                     break;
 

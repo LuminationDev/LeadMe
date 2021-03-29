@@ -1,6 +1,5 @@
 package com.lumination.leadme;
 
-import android.accessibilityservice.AccessibilityService;
 import android.content.ComponentName;
 import android.content.Intent;
 import android.content.res.Configuration;
@@ -11,7 +10,7 @@ import android.view.accessibility.AccessibilityNodeInfo;
 
 import androidx.annotation.NonNull;
 
-public class LumiAccessibilityService extends AccessibilityService {
+public class LumiAccessibilityService extends android.accessibilityservice.AccessibilityService {
 
     private final static String TAG = "LumiAccessService";
 
@@ -80,7 +79,7 @@ public class LumiAccessibilityService extends AccessibilityService {
     protected void onServiceConnected() {
         Log.d(TAG, "Accessibility Service CONNECTED!");
         sendInfoBroadcast(LumiAccessibilityService.INFO_CONNECTED);
-        LeadMeMain.setAccessibilityService(this);
+        LeadMeMain.setLumiAccessibilityService(this);
     }
 
 
