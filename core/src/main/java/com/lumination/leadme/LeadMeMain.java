@@ -782,15 +782,15 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             }
             handler.post(() -> {
                 //wait until layout update is actioned before trying to gesture
-                while (overlayView.isLayoutRequested()) {
+                //while (overlayView.isLayoutRequested()) {
                     try {
                         Thread.sleep(200);
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
-                }
+                //}
 
-                Log.d(TAG, "gesture completed");
+                Log.w(TAG, "gesture completed");
                 //activate the event once the tap completes
                 getLumiAccessibilityConnector().gestureInProgress = false;
                 //getLumiAccessibilityConnector().manageAccessibilityEvent(null, null);
@@ -811,16 +811,16 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             }
             handler.post(() -> {
                 //wait until layout update is actioned before trying to gesture
-                while (overlayView.isLayoutRequested()) {
+                //while (overlayView.isLayoutRequested()) {
                     try {
                         Thread.sleep(200);
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
-                }
+                //}
 
                 getLumiAccessibilityConnector().gestureInProgress = false;
-                Log.d(TAG, "gesture cancelled");
+                Log.w(TAG, "gesture cancelled");
                 //activate the event once the tap completes
                 getLumiAccessibilityConnector().manageAccessibilityEvent(null, null);
             });
@@ -835,7 +835,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         return accessibilityService;
     }
 
-    boolean justTesting = true;
+    boolean justTesting = false;
     public void tapBounds(int x, int y) {
         if (justTesting) {
             return;

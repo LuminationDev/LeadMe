@@ -48,6 +48,11 @@ public class YouTubeAccessibilityManager {
             return; //guides manage YT their own way
         }
 
+//        if (main.getLumiAccessibilityConnector().gestureInProgress) {
+//            Log.i(TAG, "WAITING FOR LAST GESTURE");
+//            return;
+//        }
+
         AccessibilityNodeInfo eventSource = event.getSource();
         Log.e(TAG, "ROOT IN WINDOW? " + (rootInActiveWindow != null) + " vs " + (eventSource != null));// + " //PREV] " + lastYouTubeInfo);
         //we're refreshing a previous event
@@ -346,7 +351,7 @@ public class YouTubeAccessibilityManager {
             Log.e(TAG, "GOT HERE!! [screenTap]");
             return;
         }
-        main.tapBounds((p.x / 2), (p.y / 4) * 3);
+        main.tapBounds((p.x / 2), (p.y / 4));
     }
 
     private boolean gestureTap(AccessibilityNodeInfo thisInfo, int action) {
@@ -411,6 +416,7 @@ public class YouTubeAccessibilityManager {
         pushURL = "";
         pushTitle = "";
         videoPlayStarted = false;
+        main.getLumiAccessibilityConnector().gestureInProgress = false;
     }
 
     public void cueYouTubeAction(String actionStr) {
