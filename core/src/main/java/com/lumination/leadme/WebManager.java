@@ -391,7 +391,7 @@ public class WebManager {
         return pushURL;
     }
 
-    protected void resetPushURL() {
+    protected void reset() {
         pushURL = "";
     }
 
@@ -416,6 +416,7 @@ public class WebManager {
     public void pushYouTube(String url, String urlTitle, int startFrom, boolean locked, boolean vrOn) {
         pushURL = url;
         pushTitle = urlTitle;
+        main.getLumiAccessibilityConnector().resetState();
 
         if (urlTitle.isEmpty()) {
             urlTitle = " ";

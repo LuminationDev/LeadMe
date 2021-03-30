@@ -160,6 +160,10 @@ public class DispatchManager {
 
         Log.d(TAG, "Received boolean: " + actionTag + ", " + action + "=" + value);
 
+        if (action == null) {
+            return false;
+        }
+
         switch (action) {
             case LeadMeMain.AUTO_INSTALL:
                 main.autoInstallApps = boolVal;
@@ -182,6 +186,10 @@ public class DispatchManager {
         String action = p.readString();
         p.recycle();
 
+        if (action == null) {
+            return false;
+        }
+
         Log.d(TAG, "Received action: " + actionTag + ", " + action);
 
         if (actionTag != null && actionTag.equals(LeadMeMain.ACTION_TAG)) {
@@ -189,12 +197,12 @@ public class DispatchManager {
             switch (action) {
                 case LeadMeMain.XRAY_ON:
                     Log.w(TAG, "I AM being watched! " + main.getNearbyManager().getName());
-                    main.xrayManager.generateScreenshots(true);
+                    //main.xrayManager.generateScreenshots(true);
                     break;
 
                 case LeadMeMain.XRAY_OFF:
                     Log.w(TAG, "I'm NOT being watched! " + main.getNearbyManager().getName());
-                    main.xrayManager.generateScreenshots(false);
+                    //main.xrayManager.generateScreenshots(false);
                     break;
 
                 case LeadMeMain.PING_ACTION:

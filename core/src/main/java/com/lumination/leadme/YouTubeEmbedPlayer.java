@@ -206,7 +206,12 @@ public class YouTubeEmbedPlayer {
     private void setupGuideVideoControllerButtons() {
         //set up standard dialog buttons
         videoControllerDialogView.findViewById(R.id.new_video).setOnClickListener(v -> {
-            main.getWebManager().resetPushURL();
+
+            //clean any launch on focus items
+            main.appIntentOnFocus = null;
+            main.getDispatcher().launchAppOnFocus = null;
+
+            main.getWebManager().reset();
             webManager.lastWasGuideView = false; //reset
             videoControlDialog.hide();
             webManager.showWebLaunchDialog(false);
@@ -226,7 +231,6 @@ public class YouTubeEmbedPlayer {
 
         //set up basic controls
         View basicControls = videoControllerDialogView.findViewById(R.id.basic_controls);
-        View vrModeMsg = videoControllerDialogView.findViewById(R.id.vr_mode_msg);
 
         ImageView vrIcon = videoControllerDialogView.findViewById(R.id.vr_mode_icon);
         vrModeBtn = (Switch) videoControllerDialogView.findViewById(R.id.vr_mode_toggle);
@@ -238,9 +242,6 @@ public class YouTubeEmbedPlayer {
                     vrModeBtn.setText("VR Mode ON");
                     vrModeBtn.setChecked(true);
 
-                    basicControls.setVisibility(View.GONE);
-                    vrModeMsg.setVisibility(View.VISIBLE);
-
                     vrIcon.setImageDrawable(main.getResources().getDrawable(R.drawable.task_vr_icon, null));
                     playVideo(); //entering VR mode automatically plays the video for students, so replicate that here
 
@@ -251,9 +252,6 @@ public class YouTubeEmbedPlayer {
                     videoCurrentDisplayMode = FULLSCRN_MODE;
                     vrModeBtn.setText("VR Mode OFF");
                     vrModeBtn.setChecked(false);
-
-                    basicControls.setVisibility(View.VISIBLE);
-                    vrModeMsg.setVisibility(View.GONE);
 
                     vrIcon.setImageDrawable(main.getResources().getDrawable(R.drawable.task_vr_icon_disabled, null));
 
@@ -642,6 +640,11 @@ public class YouTubeEmbedPlayer {
     boolean lastLockState = true;
 
     public void showPlaybackPreview(String url, String title) {
+        main.runOnUiThread(() -> {
+            main.closeKeyboard();
+            main.hideSystemUI();
+        });
+
         init = false;
         activeWebView = youtubePreviewWebView;
         attemptedURL = embedYouTubeURL(url);

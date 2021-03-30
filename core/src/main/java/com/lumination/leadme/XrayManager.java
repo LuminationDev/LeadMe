@@ -68,6 +68,9 @@ public class XrayManager {
 
     private final String TAG = "XrayManager";
 
+    private InetAddress ip;
+    private int Port;
+
     public XrayManager(LeadMeMain main, View xrayScreen) {
         this.main = main;
         this.xrayScreen = xrayScreen;
@@ -75,6 +78,11 @@ public class XrayManager {
 
     public void generateScreenshots(boolean isWatching) {
         screenshotPaused = !isWatching;
+
+        if (!screenCapPermission) {
+            startServer();
+            startScreenshotRunnable(ip, Port);
+        }
     }
 
     boolean screenCapPermission = false;
@@ -249,7 +257,7 @@ public class XrayManager {
     private int currentXrayStudentIndex = -1;
     private boolean xrayInit = false;
 
-    void showXrayView(String peer) {
+    private void showXrayView(String peer) {
         Log.w(TAG, "Showing xray view!");
         if (!xrayInit) {
             setupXrayView();
@@ -351,7 +359,7 @@ public class XrayManager {
         selected.add(xrayStudent.getID());
         main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.XRAY_ON, selected);
 
-        Log.e(TAG, "Peers: " + notSelected);
+        Log.e(TAG, "Peers: SEL:" + selected + ", NOT:" + notSelected);
 
         if (xrayStudent.isSelected()) {
             //selectedAdapter.setItemList(itemsForSelected, imgsForSelected);
@@ -467,8 +475,9 @@ public class XrayManager {
 
         while (monitorInProgress && !socket.isClosed()) { //global state, maybe change to individuals?
             if (monitoredPeer == null) {
+                //Log.e(TAG, "Monitored peer is NULL!");
                 try {
-                    Thread.sleep(1000);
+                    Thread.sleep(3000);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
@@ -477,7 +486,7 @@ public class XrayManager {
             byte[] buffer = null;
             try {
                 DataInputStream in = new DataInputStream(socket.getInputStream());
-                while (in.available() > 0) {
+                if (in.available() > 0) {
                     int length = in.readInt();
                     Log.d(TAG, "run: image received of size " + length + " from " + imgPeer);
                     if (length > 10000 && length < 300000) {
@@ -555,6 +564,8 @@ public class XrayManager {
 
     public void startScreenshotRunnable(InetAddress ip, int Port) {
         screenShot = true;
+        this.ip = ip;
+        this.Port = Port;
         if (screenshotSocket != null && screenshotSocket.isConnected()) {
             Log.w(TAG, "Already have a screenshot runnable going!");
             try {
@@ -579,7 +590,7 @@ public class XrayManager {
             }
             while (screenShot) {
                 if (screenshotPaused) {
-                    Log.w(TAG, "SCREENSHOT PAUSED!");
+                    //Log.w(TAG, "SCREENSHOT PAUSED!");
                     try {
                         screenShotRunner.sleep(3000); //how long until we should check again?
                         continue;
@@ -588,7 +599,7 @@ public class XrayManager {
                     }
                 }
 
-                Log.w(TAG, "SCREENSHOT RESUMED!");
+                //Log.w(TAG, "SCREENSHOT RUNNING!");
                 if (bitmapToSend != null && screenshotSocket.isConnected()) {
                     ByteArrayOutputStream stream = new ByteArrayOutputStream();
                     bitmapToSend.compress(Bitmap.CompressFormat.JPEG, 50, stream);

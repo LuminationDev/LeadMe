@@ -24,7 +24,7 @@
 
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_height="50dp"
             android:orientation="horizontal">
 
             <TextView
@@ -116,20 +116,19 @@
 
                 <ImageView
                     android:id="@+id/vr_mode_icon"
-                    android:layout_width="50dp"
-                    android:layout_height="40dp"
-                    android:layout_marginStart="20dp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="30dp"
                     android:layout_weight="0"
-                    android:gravity="center_horizontal"
+                    android:gravity="end"
                     android:src="@drawable/task_vr_icon_disabled" />
 
                 <Switch
                     android:id="@+id/vr_mode_toggle"
-                    android:layout_width="180dp"
+                    android:layout_width="170dp"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center_horizontal|center_vertical"
-                    android:layout_marginStart="10dp"
-                    android:layout_marginEnd="20dp"
+                    android:layout_marginStart="5dp"
+                    android:layout_marginEnd="10dp"
                     android:layout_weight="0"
                     android:checked="false"
                     android:fontFamily="@font/poppins_semibold"
@@ -140,7 +139,7 @@
                     android:switchPadding="10dp"
                     android:text="VR Mode OFF"
                     android:textColor="@color/leadme_white"
-                    android:textSize="16sp"
+                    android:textSize="14sp"
                     android:thumb="@drawable/toggle_thumb"
                     android:track="@drawable/toggle_track" />
 
@@ -149,11 +148,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
-                    android:layout_marginStart="15dp"
-                    android:layout_marginLeft="15dp"
-                    android:layout_marginTop="10dp"
-                    android:layout_marginEnd="15dp"
-                    android:layout_marginBottom="10dp"
+                    android:layout_marginStart="20dp"
                     android:fontFamily="@font/poppins_semibold"
                     android:gravity="center_horizontal"
                     android:includeFontPadding="false"
@@ -166,41 +161,11 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
-                    android:layout_marginStart="15dp"
-                    android:layout_marginLeft="15dp"
-                    android:layout_marginTop="10dp"
-                    android:layout_marginEnd="15dp"
-                    android:layout_marginBottom="10dp"
+                    android:layout_marginStart="20dp"
                     android:fontFamily="@font/poppins_semibold"
                     android:gravity="center_horizontal"
                     android:includeFontPadding="false"
                     android:src="@drawable/vid_unmute"
-                    android:textColor="@color/leadme_white"
-                    android:textSize="12sp" />
-
-            </LinearLayout>
-
-            <LinearLayout
-                android:id="@+id/vr_mode_msg"
-                android:layout_width="match_parent"
-                android:layout_height="65dp"
-                android:background="@color/leadme_darkest_grey"
-                android:gravity="center"
-                android:orientation="horizontal"
-                android:paddingStart="10dp"
-                android:paddingEnd="10dp"
-                android:visibility="gone">
-
-                <TextView
-                    android:id="@+id/vr_mode_msg_text"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center"
-                    android:drawablePadding="8dp"
-                    android:fontFamily="@font/poppins_regular"
-                    android:gravity="center_horizontal"
-                    android:includeFontPadding="false"
-                    android:text="Disable VR mode to access controls"
                     android:textColor="@color/leadme_white"
                     android:textSize="12sp" />
 

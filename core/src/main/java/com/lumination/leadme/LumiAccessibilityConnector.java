@@ -12,6 +12,8 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class LumiAccessibilityConnector {
 
@@ -39,14 +41,6 @@ public class LumiAccessibilityConnector {
         withinManager = new WithinAccessibilityManager(main, this);
     }
 
-    public void manageYouTubeAccess(AccessibilityEvent event, AccessibilityNodeInfo node) {
-        ytManager.manageYouTubeAccess(event, node);
-    }
-
-    public void manageWithinAccess(AccessibilityEvent event, AccessibilityNodeInfo node) {
-        withinManager.manageWithinAccess(event, node);
-    }
-
     public void resetState() {
         Log.d(TAG, "resetState: ");
         ytManager.resetState();
@@ -62,7 +56,7 @@ public class LumiAccessibilityConnector {
     }
 
     ArrayList<AccessibilityNodeInfo> collectChildren(AccessibilityNodeInfo nodeInfo, String phrase, int level) {
-        Log.d(TAG, "collectChildren: ");
+        //Log.d(TAG, "collectChildren: ");
         String[] tmp = {phrase};
         return collectChildren(nodeInfo, tmp, level);
     }
@@ -70,7 +64,7 @@ public class LumiAccessibilityConnector {
     //recursively search for child nodes of the given parent that contain
     //any of the specified phrases in their text or content description
     ArrayList<AccessibilityNodeInfo> collectChildren(AccessibilityNodeInfo nodeInfo, String[] phrases, int level) {
-        Log.d(TAG, "collectChildren: ");
+        //Log.d(TAG, "collectChildren: ");
         //Log.e(TAG, "SEEKING: " + Arrays.toString(phrases));
         Set<AccessibilityNodeInfo> infoArrayList = new HashSet<>();
         if (nodeInfo == null) {
@@ -84,7 +78,6 @@ public class LumiAccessibilityConnector {
                 infoArrayList.addAll(list);
             }
         }
-
 
         ArrayList<AccessibilityNodeInfo> finalList = new ArrayList<>();
         //do some filtering
@@ -134,7 +127,7 @@ public class LumiAccessibilityConnector {
         Log.d(TAG, "bringMainToFront: ");
         main.getHandler().post(() -> {
             if (main != null && !main.isAppVisibleInForeground()) {
-               main.recallToLeadMe();
+                main.recallToLeadMe();
             }
         });
     }
@@ -142,6 +135,7 @@ public class LumiAccessibilityConnector {
     boolean showDebugMsg = false;
     AccessibilityEvent lastEvent = null;
     AccessibilityNodeInfo lastInfo = null;
+    ExecutorService executor = Executors.newSingleThreadExecutor();
 
     public boolean manageAccessibilityEvent(AccessibilityEvent event, AccessibilityNodeInfo rootInActiveWindow) {
 
@@ -152,14 +146,16 @@ public class LumiAccessibilityConnector {
             return false;
         }
 
-        if (event == null && rootInActiveWindow == null) { //lastEvent != null) {
-            Log.w(TAG, "Revisiting previous event..."+lastEvent+" "+lastInfo);
-            event = lastEvent;
-            rootInActiveWindow = lastInfo;
-            lastInfo = null; //we probably don't want to revisit these too many times
-            lastEvent = null; //we probably don't want to revisit these too many times
+//        if (event == null && rootInActiveWindow == null) { //lastEvent != null) {
+//            Log.w(TAG, "Revisiting previous event..."+lastEvent+" "+lastInfo);
+//            event = lastEvent;
+//            rootInActiveWindow = lastInfo;
+//            lastInfo = null; //we probably don't want to revisit these too many times
+//            lastEvent = null; //we probably don't want to revisit these too many times
+//
+//        } else
 
-        } else if (event == null && rootInActiveWindow == null) {
+        if (event == null && rootInActiveWindow == null) {
             Log.e(TAG, "No events here to act on");
             return false;
 
@@ -184,10 +180,17 @@ public class LumiAccessibilityConnector {
             }
 
             if (!appInForeground && event.getSource() != null && event.getSource().getPackageName().toString().contains(main.getAppManager().withinPackage)) {
-                withinManager.manageWithinAccess(event, rootInActiveWindow);
+                AccessibilityEvent finalEvent = event;
+                AccessibilityNodeInfo finalRootInActiveWindow = rootInActiveWindow;
+                executor.execute(() -> {
+                    withinManager.manageWithinAccess(finalEvent, finalRootInActiveWindow);
+                });
 
             } else if (!appInForeground && event.getSource() != null && event.getSource().getPackageName().toString().contains(main.getAppManager().youtubePackage)) {
-                ytManager.manageYouTubeAccess(event, rootInActiveWindow);
+                executor.execute(() -> {
+                    //non-UI work here
+                    ytManager.manageYouTubeAccess(event, rootInActiveWindow);
+                });
 
             } else if (appInForeground && dispatcher.launchAppOnFocus == null
                     && (event.getEventType() == AccessibilityEvent.TYPE_VIEW_FOCUSED && event.getPackageName().toString().equals("com.android.systemui")
@@ -393,10 +396,10 @@ public class LumiAccessibilityConnector {
 
     protected void triageReceivedIntent(Intent intent) {
         //TODO or this?
-        Log.d(TAG, "triageReceivedIntent!");
+        //Log.d(TAG, "triageReceivedIntent!");
         //only students need to respond to these events
         if (intent.hasExtra(LumiAccessibilityService.INFO_TAG)) {
-            Log.d(TAG, "triageReceivedIntent: " + intent.getStringExtra(LumiAccessibilityService.INFO_TAG));
+            //Log.d(TAG, "triageReceivedIntent: " + intent.getStringExtra(LumiAccessibilityService.INFO_TAG));
             switch (intent.getStringExtra(LumiAccessibilityService.INFO_TAG)) {
                 case LumiAccessibilityService.REFRESH_ACTION:
                     Log.w(TAG, "REFRESHING ACCESSIBILITY STATE");
@@ -430,4 +433,6 @@ public class LumiAccessibilityConnector {
             }
         }
     }
+
+
 }

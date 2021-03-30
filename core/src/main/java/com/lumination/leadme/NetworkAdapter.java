@@ -286,6 +286,7 @@ public class NetworkAdapter {
                 connectToServer(serviceInfo);
             }
             Log.d(TAG, "connectToServer: reconnection unsuccessful");
+
         } else if (socket.isConnected()) {
             if (socket.getInetAddress().equals(serviceInfo.getHost()) && socket.getPort() == serviceInfo.getPort()) {
                 Log.d(TAG, "connectToServer: socket already connected");
@@ -348,27 +349,26 @@ public class NetworkAdapter {
     public void sendToServer(String message, String type) {
         if (socket != null) {
             if (socket.isConnected()) {
-//                Thread thread = new Thread() {//no network on main thread
-                executorService.submit(new Runnable() {
-                    @Override
-                    public void run() {
-                        PrintWriter out;
-                        try {
-                            out = new PrintWriter(socket.getOutputStream(), true);
-                            out.println(type + "," + message.replace("\n", "_").replace("\r", "|"));
-                            Log.d(TAG, "sendToServer: message sent, type: " + type + " message: " + message);
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
-                        try {
-                            Thread.currentThread().sleep(100);
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
+                executorService.submit(() -> {
+                    PrintWriter out;
+                    try {
+                        out = new PrintWriter(socket.getOutputStream(), true);
+                        out.println(type + "," + message.replace("\n", "_").replace("\r", "|"));
+                        Log.d(TAG, "sendToServer: message sent, type: " + type + " message: " + message);
+                        return;
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                    try {
+                        Thread.currentThread().sleep(100);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
                     }
                 });
+                return;
             }
         }
+        Log.e(TAG, "FAILED! Tried to send from " + main.getNearbyManager().getName() + " to server >> " + message + ", " + type);
     }
 
     public void removeClient(int id) {
@@ -416,7 +416,6 @@ public class NetworkAdapter {
     //discovers services, is not continuous so will need to be called in a runnable to implement a scan
     public void startDiscovery() {
         discoveredLeaders = new ArrayList<>();
-        //Name = text.getText().toString(); //TODO swap with actual name in Leadme
         stopDiscovery();  // Cancel any existing discovery request
         initializeDiscoveryListener();
 
@@ -425,12 +424,10 @@ public class NetworkAdapter {
         //Updates parent with the name, this acts as a ping mechanism.
         //on the fly name changes are supported, client is identified by assigned ID
 
-
         //new Thread so server messages can be read from a while loop without impacting the UI
         Thread thread = new Thread() {
             @Override
             public void run() {
-
                 while (allowInput) {
                     if (socket != null) {
                         if (!socket.isClosed() && !socket.isInputShutdown()) {
@@ -446,11 +443,10 @@ public class NetworkAdapter {
                                         socket.close();
                                     }
                                     e.printStackTrace();
+                                    Log.e(TAG, "FAILED! {1}");
                                     return;
                                 }
-//                            if(inStream.read()==-1){
-//                                Log.d(TAG, "Disconnected: The teacher has disconnected");
-//                            }else {
+
                                 if (input != null) {
                                     if (input.length() > 0) {
                                         //Log.d(TAG, "run: server said: " + input);
@@ -459,19 +455,22 @@ public class NetworkAdapter {
                                 }
                             } catch (IOException e) {
                                 e.printStackTrace();
+                                Log.e(TAG, "FAILED! {2}");
                             }
                         } else {
                             socket = null;
                             main.runOnUiThread(() -> {
                                 main.setUIDisconnected();
                             });
+                            Log.e(TAG, "FAILED! {3}");
                         }
                     }
                 }
+                Log.e(TAG, "FAILED! {4}");
             }
         };
+        thread.setPriority(Thread.MAX_PRIORITY);
         thread.start();
-
     }
 
     //stops any discovery processes that are in progress
@@ -496,7 +495,7 @@ public class NetworkAdapter {
         List<String> inputList = Arrays.asList(input.split(","));
         switch (inputList.get(0)) {
             case "COMMUNICATION":
-                Log.d(TAG, "messageReceivedFromServer: " + inputList.get(1));
+                Log.d(TAG, "messageReceivedFromServer: [COMM] " + inputList.get(1));
                 if (inputList.get(1).length() > 6 && inputList.get(1).contains("Thanks")) {
                     main.closeWaitingDialog(true);
                     pingName = false;
@@ -516,22 +515,37 @@ public class NetworkAdapter {
                 Parcel p = Parcel.obtain();
                 p.unmarshall(bytes, 0, bytes.length);
                 p.setDataPosition(0);
-                Log.d(TAG, "messageReceivedFromServer: " + p.readString());
                 Payload payload = fromBytes(bytes);
-                main.runOnUiThread(() -> {
+
+                final String timestamp = System.currentTimeMillis() + "MS";
+                Log.d(TAG, timestamp + "]] messageReceivedFromServer: [ACTION] " + p.readString() + ", " + payload);
+                //main.getHandler().removeCallbacks(null);
+                main.getHandler().postAtFrontOfQueue(() -> {
+                    Log.d(TAG, timestamp + "]] messageReceivedFromServer: [ACTION] INSIDE MAIN THREAD");
                     main.handlePayload(payload.asBytes());
+                    try {
+                        Thread.sleep(100);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                    Log.d(TAG, timestamp + "]] done!");
                 });
+                try {
+                    Thread.sleep(100);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
                 break;
 
             case "DISCONNECT":
-                Log.w(TAG, "Disconnect. Guide? "+main.isGuide);
+                Log.w(TAG, "Disconnect. Guide? " + main.isGuide);
                 try {
                     socket.close();
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
                 socket = null;
-                main.xrayManager.stopScreenshotRunnable();
+                //main.xrayManager.stopScreenshotRunnable();
                 nearbyPeersManager.disconnectFromEndpoint("");
                 break;
 
@@ -548,27 +562,27 @@ public class NetworkAdapter {
             case "MONITOR":
                 if (inputList.get(1).contains(":")) {
                     List<String> inputList2 = Arrays.asList(inputList.get(1).split(":"));
-                    if (inputList2.get(0).equals("START")) {
-                        main.runOnUiThread(() -> {
-                            Log.w(TAG, "Starting client monitoring server!");
-                            main.getPermissionsManager().waitingForPermission = true;
-                            main.xrayManager.startServer();
-                            main.xrayManager.startScreenshotRunnable(socket.getInetAddress(), Integer.parseInt(inputList2.get(1)));
-                            if (main.xrayScreen.getVisibility() != View.VISIBLE) {
-                                main.xrayManager.screenshotPaused = true;
-                            }
-                        });
-                    }
-                    Log.d(TAG, "messageReceivedFromServer: " + inputList.get(1));
+//                    if (inputList2.get(0).equals("START")) {
+//                        main.runOnUiThread(() -> {
+//                            Log.w(TAG, "Starting client monitoring server!");
+//                            main.getPermissionsManager().waitingForPermission = true;
+//                            main.xrayManager.startServer();
+//                            main.xrayManager.startScreenshotRunnable(socket.getInetAddress(), Integer.parseInt(inputList2.get(1)));
+//                            if (main.xrayScreen.getVisibility() != View.VISIBLE) {
+//                                main.xrayManager.screenshotPaused = true;
+//                            }
+//                        });
+//                    }
+                    Log.d(TAG, "messageReceivedFromServer: [MONITOR] " + inputList.get(1));
 
                 } else {
-                    if (inputList.get(1).equals("STOP")) {
-                        //main.takeScreenshots=false;
-                        main.xrayManager.stopServer();
-                        main.xrayManager.stopScreenshotRunnable();
-                    } else {
-                        main.xrayManager.setScreenshotRate(Integer.parseInt(inputList.get(1)));
-                    }
+//                    if (inputList.get(1).equals("STOP")) {
+//                        //main.takeScreenshots=false;
+//                        main.xrayManager.stopServer();
+//                        main.xrayManager.stopScreenshotRunnable();
+//                    } else {
+//                        main.xrayManager.setScreenshotRate(Integer.parseInt(inputList.get(1)));
+//                    }
                 }
                 break;
 
@@ -589,7 +603,7 @@ public class NetworkAdapter {
     Server Functions Below:
      */
 
-    //necessary to be on a seperate thread as it runs an eternal server allowing any connections that come in
+    //necessary to be on a separate thread as it runs an eternal server allowing any connections that come in
     class ServerThread implements Runnable {
 
         @Override
@@ -753,7 +767,7 @@ public class NetworkAdapter {
                 Parcel p = Parcel.obtain();
                 p.unmarshall(bytes, 0, bytes.length);
                 p.setDataPosition(0);
-                Log.d(TAG, "messageRecievedFromServer: " + p.readString());
+                Log.d(TAG, "messageReceivedFromServer: " + p.readString());
                 Payload payload = fromBytes(bytes);
                 main.runOnUiThread(() -> {
                     main.handlePayload(payload.asBytes());

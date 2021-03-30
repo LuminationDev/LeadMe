@@ -62,7 +62,7 @@ public class ConnectedLearnersAdapter extends BaseAdapter {
     public void alertStudentDisconnect(String id) {
         ConnectedPeer peer = getMatchingPeer(id);
         if (peer != null) {
-            main.xrayManager.monitorInProgress = false;
+            //main.xrayManager.monitorInProgress = false;
             peer.setStatus(ConnectedPeer.STATUS_ERROR);
             moveToFrontOfList(peer);
             refresh();
@@ -97,7 +97,7 @@ public class ConnectedLearnersAdapter extends BaseAdapter {
         mData.add(peer);
         refresh();
 
-        main.xrayManager.startImageClient(peer.getID());
+        //main.xrayManager.startImageClient(peer.getID());
 
         Log.d(TAG, "Adding " + peer.getDisplayName() + " to my student list. Now: " + mData.size() + " || " + mData);
     }
@@ -275,14 +275,15 @@ public class ConnectedLearnersAdapter extends BaseAdapter {
                 refresh();
                 main.getNearbyManager().networkAdapter.stopMonitoring(Integer.parseInt(lastPromptedID));
                 main.getNearbyManager().networkAdapter.removeClient(Integer.valueOf(lastPromptedID));
-                main.xrayManager.clientSocketThreads.remove(lastPromptedID);
-                main.xrayManager.clientRecentScreenshots.remove(lastPromptedID);
 
-                Log.w(TAG, mData.size()+", "+main.xrayManager.clientSocketThreads.size() + ", " + main.xrayManager.clientRecentScreenshots.size());
+//                main.xrayManager.clientSocketThreads.remove(lastPromptedID);
+//                main.xrayManager.clientRecentScreenshots.remove(lastPromptedID);
+//
+//                Log.w(TAG, mData.size()+", "+main.xrayManager.clientSocketThreads.size() + ", " + main.xrayManager.clientRecentScreenshots.size());
 
                 logoutPrompt.hide();
                 if (main.getConnectedLearnersAdapter().mData.size() > 0) {
-                    main.xrayManager.showXrayView(""); //refresh this view
+                    //main.xrayManager.showXrayView(""); //refresh this view
                 } else {
                     main.exitXrayView();
                 }
@@ -349,7 +350,7 @@ public class ConnectedLearnersAdapter extends BaseAdapter {
             convertView.setLongClickable(true);
             convertView.setOnLongClickListener(v -> {
                 lastClickedID = peer.getID();
-                main.xrayManager.showXrayView(lastClickedID);
+                //main.xrayManager.showXrayView(lastClickedID);
                 return true;
             });
 

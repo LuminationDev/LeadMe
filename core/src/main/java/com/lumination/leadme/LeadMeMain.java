@@ -75,8 +75,6 @@ import java.util.ArrayList;
 import java.util.Set;
 import java.util.UUID;
 
-import eu.bolt.screenshotty.ScreenshotManagerBuilder;
-
 
 public class LeadMeMain extends FragmentActivity implements Handler.Callback, SensorEventListener, LifecycleObserver {
 
@@ -233,7 +231,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
     private boolean init = false;
 
-    XrayManager xrayManager;
+    //XrayManager xrayManager;
 
     SeekBar seekBar;
 
@@ -289,14 +287,14 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                 break;
             //added------------
             case SCREEN_CAPTURE:
-                xrayManager.manageResultsReturn(requestCode, resultCode, data);
+                //xrayManager.manageResultsReturn(requestCode, resultCode, data);
                 break;
             //added------------
             default:
                 Log.d(TAG, "RETURNED FROM ?? with " + resultCode);
                 break;
         }
-        xrayManager.screenshotManager.onActivityResult(requestCode, resultCode, data);
+        //xrayManager.screenshotManager.onActivityResult(requestCode, resultCode, data);
     }
 
     public boolean handleMessage(Message msg) {
@@ -305,6 +303,10 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     }
 
     public boolean handlePayload(byte[] payloadBytes) {
+        if (payloadBytes == null) {
+            Log.e(TAG, "Payload is EMPTY!");
+            return false;
+        }
 
         //if it's an action, execute it
         if (getDispatcher().readAction(payloadBytes)) {
@@ -323,7 +325,8 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             return true; //it was an app launch request, we're done!
         }
 
-        return true;
+        Log.e(TAG, "Couldn't find a match for " + payloadBytes);
+        return false;
     }
 
 
@@ -832,7 +835,11 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         return accessibilityService;
     }
 
+    boolean justTesting = true;
     public void tapBounds(int x, int y) {
+        if (justTesting) {
+            return;
+        }
         getLumiAccessibilityConnector().gestureInProgress = true;
         Log.e(TAG, "ATTEMPTING TAP! " + x + ", " + y);
         if (accessibilityService == null) {
@@ -848,14 +855,14 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             gestureBuilder.addStroke(new GestureDescription.StrokeDescription(swipePath, 0, 200)); //50 was too short for Within
             GestureDescription swipe = gestureBuilder.build();
 
-            handler.postAtFrontOfQueue(() -> {
-                //change overlay so taps can temporarily pass through
+            //handler.postAtFrontOfQueue(() -> {
+            //change overlay so taps can temporarily pass through
                 if (overlayView.isAttachedToWindow()) {
                     overlayParams.flags = WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE | WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN | WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE;
                     getWindowManager().updateViewLayout(overlayView, overlayParams);
 
-                    handler.post(() -> {
-                        //wait until layout update is actioned before trying to gesture
+                    //handler.post(() -> {
+                    //wait until layout update is actioned before trying to gesture
                         //do {
                         try {
                             Log.e(TAG, "Waiting... " + overlayView.isLayoutRequested());
@@ -868,13 +875,10 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                         boolean success = accessibilityService.dispatchGesture(swipe, gestureResultCallback, null);
                         Log.e(TAG, "Did I dispatch " + swipe + " to " + accessibilityService + "? " + success + " // " + overlayView.isAttachedToWindow() + " // " + overlayView.isLayoutRequested());
 
-                    });
+                    //});
                 }
 
-//                boolean success = accessibilityService.dispatchGesture(swipe, gestureResultCallback, null);
-//                Log.e(TAG, "Did I dispatch " + swipe + " to " + accessibilityService + "? " + success + " // " + overlayView.isAttachedToWindow()+" // "+overlayView.isLayoutRequested());
-
-            });
+            //});
         });
     }
 
@@ -1057,7 +1061,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         Log.w(TAG, "In onDestroy");
         //subscription.dispose();
         destroyAndReset();
-        xrayManager.screenShot = false;
+        //xrayManager.screenShot = false;
     }
 
     private void destroyAndReset() {
@@ -1076,8 +1080,8 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             }
         }
 
-        xrayManager.stopScreenshotRunnable();
-        xrayManager.stopServer();
+//        xrayManager.stopScreenshotRunnable();
+//        xrayManager.stopServer();
 
         cleanUpDialogs();
 
@@ -1145,6 +1149,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     public void onCreate(Bundle savedInstanceState) {
         //onCreate can get called when device rotated, keyboard opened/shut, etc
         super.onCreate(savedInstanceState);
+
         powerManager = (PowerManager) getSystemService(POWER_SERVICE);
 
 
@@ -1265,7 +1270,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         xrayScreen = View.inflate(context, R.layout.d__xray_view, null);
         appLauncherScreen = View.inflate(context, R.layout.d__app_list, null);
         learnerWaitingText = startLearner.findViewById(R.id.waiting_text);
-        xrayManager = new XrayManager(this, xrayScreen);
+        //xrayManager = new XrayManager(this, xrayScreen);
 
         //set up main page search
 
@@ -1333,11 +1338,11 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
 
         mainLeader.findViewById(R.id.xray_core_btn).setOnClickListener(v -> {
-            if (getConnectedLearnersAdapter().getCount() > 0) {
-                xrayManager.showXrayView("");
-            } else {
-                Toast.makeText(getApplicationContext(), "No students connected.", Toast.LENGTH_SHORT).show();
-            }
+//            if (getConnectedLearnersAdapter().getCount() > 0) {
+//                xrayManager.showXrayView("");
+//            } else {
+//                Toast.makeText(getApplicationContext(), "No students connected.", Toast.LENGTH_SHORT).show();
+//            }
         });
 
         studentAlertsView = View.inflate(context, R.layout.d__alerts_list, null);
@@ -1503,33 +1508,34 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             permissionManager.checkNearbyPermissions();
         }
 
-        xrayManager.screenshotManager = new ScreenshotManagerBuilder(this).withPermissionRequestCode(REQUEST_SCREENSHOT_PERMISSION) //optional, 888 is the default
-                .build();
-        //start this
-        //getForegroundActivity();
-        seekBar = (SeekBar) findViewById(R.id.screen_capture_rate);
-        seekBar.setProgress(20); //default value that seems to work with slowish phones
-        seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-            int rate;
+//        xrayManager.screenshotManager = new ScreenshotManagerBuilder(this).withPermissionRequestCode(REQUEST_SCREENSHOT_PERMISSION) //optional, 888 is the default
+//                .build();
+//        //start this
+//        //getForegroundActivity();
+//        seekBar = (SeekBar) findViewById(R.id.screen_capture_rate);
+//        seekBar.setProgress(20); //default value that seems to work with slowish phones
+//        seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+//            int rate;
+//
+//            @Override
+//            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+//                rate = progress;
+//                //Toast.makeText(getApplicationContext(),"seekbar progress: " + progress, Toast.LENGTH_SHORT).show();
+//            }
+//
+//            @Override
+//            public void onStartTrackingTouch(SeekBar seekBar) {
+//                //Toast.makeText(getApplicationContext(),"seekbar touch started!", Toast.LENGTH_SHORT).show();
+//            }
+//
+//            @Override
+//            public void onStopTrackingTouch(SeekBar seekBar) {
+//                xrayManager.screenshotRate = 1000 / rate * 10;
+//                Toast.makeText(getApplicationContext(), "Capture rate: " + rate + " fps", Toast.LENGTH_SHORT).show();
+//            }
+//        });
 
-            @Override
-            public void onProgressChanged(SeekBar seekBar, int progress,
-                                          boolean fromUser) {
-                rate = progress;
-                //Toast.makeText(getApplicationContext(),"seekbar progress: " + progress, Toast.LENGTH_SHORT).show();
-            }
 
-            @Override
-            public void onStartTrackingTouch(SeekBar seekBar) {
-                //Toast.makeText(getApplicationContext(),"seekbar touch started!", Toast.LENGTH_SHORT).show();
-            }
-
-            @Override
-            public void onStopTrackingTouch(SeekBar seekBar) {
-                xrayManager.screenshotRate = 1000 / rate * 10;
-                Toast.makeText(getApplicationContext(), "Capture rate: " + rate + " fps", Toast.LENGTH_SHORT).show();
-            }
-        });
         mainLeader.findViewById(R.id.select_bar_back).setOnClickListener(v -> {
             getConnectedLearnersAdapter().selectAllPeers(false);
         });
@@ -1544,6 +1550,15 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         mainLeader.findViewById(R.id.select_bar_repush).setOnClickListener(v -> {
             getDispatcher().repushApp(getNearbyManager().getSelectedPeerIDs());
         });
+
+
+//        if (BuildConfig.DEBUG) {
+//            StrictMode.setThreadPolicy(new StrictMode.ThreadPolicy.Builder().detectAll()
+//                    .penaltyLog().build());
+//
+//            StrictMode.setVmPolicy(new StrictMode.VmPolicy.Builder().detectAll()
+//                            .penaltyLog().build());
+//        }
 
     }
 
@@ -1893,7 +1908,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     void logoutAction() {
         getDispatcher().alertLogout(); //need to send this before resetting 'isGuide'
         isGuide = false;
-        xrayManager.monitorInProgress = false; //break connection loop in clientStream
+        //xrayManager.monitorInProgress = false; //break connection loop in clientStream
         getNearbyManager().onStop();
         getNearbyManager().stopAdvertising();
         getNearbyManager().disconnectFromAllEndpoints(); //disconnect everyone
@@ -2101,7 +2116,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
         studentLockOn = (status == ConnectedPeer.STATUS_BLACKOUT || status == ConnectedPeer.STATUS_LOCK);
 
-        Log.d(TAG, "Is locked? " + studentLockOn);
+        Log.d(TAG, "Is locked? " + studentLockOn + ", " + prevStatus + " vs " + status);
 
         //don't need to alert to anything, already in this state
         if (prevStatus != status) {
@@ -2129,29 +2144,35 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                     return; //invalid status
             }
 
-            Toast studentStatus = Toast.makeText(context, statusMsg, Toast.LENGTH_SHORT);
-            studentStatus.show();
+            String finalStatusMsg = statusMsg;
+            getHandler().post(() -> {
+                Toast studentStatus = Toast.makeText(context, finalStatusMsg, Toast.LENGTH_SHORT);
+                studentStatus.show();
+            });
         }
-
-        if (!verifyOverlay()) {
-            return;
-        }
-
-        if (!leadmeAnimator.isShown()) {
-            switch (status) {
-                case ConnectedPeer.STATUS_LOCK:
-                case ConnectedPeer.STATUS_BLACKOUT:
-                    if (!getPermissionsManager().waitingForPermission) {
-                        overlayView.setVisibility(View.VISIBLE);
-                    }
-                    break;
-                case ConnectedPeer.STATUS_UNLOCK:
-                    overlayView.setVisibility(View.INVISIBLE);
-                    break;
-                default:
-                    Log.e(TAG, "Invalid status: " + status);
+        getHandler().post(() -> {
+            if (!verifyOverlay()) {
+                return;
             }
-        }
+
+            Log.w(TAG, "In leadmemain: " + leadmeAnimator.isShown() + ", " + getPermissionsManager().waitingForPermission + ", " + status);
+
+            if (!leadmeAnimator.isShown()) {
+                switch (status) {
+                    case ConnectedPeer.STATUS_LOCK:
+                    case ConnectedPeer.STATUS_BLACKOUT:
+                        if (!getPermissionsManager().waitingForPermission) {
+                            overlayView.setVisibility(View.VISIBLE);
+                        }
+                        break;
+                    case ConnectedPeer.STATUS_UNLOCK:
+                        overlayView.setVisibility(View.INVISIBLE);
+                        break;
+                    default:
+                        Log.e(TAG, "Invalid status: " + status);
+                }
+            }
+        });
 
     }
 
@@ -2292,7 +2313,9 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
 
     public void recallToLeadMe() {
-        getWebManager().resetPushURL();
+        getWebManager().reset();
+        getLumiAccessibilityConnector().resetState();
+
         if (appHasFocus && hasWindowFocus()) {
             Log.d(TAG, "Already in LeadMe! " + appHasFocus + ", " + hasWindowFocus());
             return;

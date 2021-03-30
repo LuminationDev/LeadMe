@@ -36,15 +36,21 @@ public class LeaderSelectAdapter extends BaseAdapter {
     }
 
     public synchronized void addLeader(ConnectedPeer leader) {
+        boolean needsRemoval = false;
+        ArrayList<ConnectedPeer> peersForRemoval = new ArrayList<>();
         for (ConnectedPeer peer : leader_list) {
             if (peer.getID().equals(leader.getID())) {
-                Log.d(TAG, "This one already exists " + leader);
-                leader_list.remove(peer); //remove this so we don't have duplicates
+                Log.d(TAG, "This one already exists " + leader.getDisplayName());
+                peersForRemoval.add(peer);
             }
         }
 
+        if (!peersForRemoval.isEmpty()) {
+            leader_list.removeAll(peersForRemoval);
+        }
+
         //this leader is not in the list, so add it
-        Log.d(TAG, "Adding " + leader);
+        Log.d(TAG, "Adding " + leader.getDisplayName());
         leader_list.add(leader);
         notifyDataSetChanged();
     }

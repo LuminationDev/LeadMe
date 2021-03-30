@@ -39,9 +39,10 @@ public class YouTubeAccessibilityManager {
     private String goalTime = "";
     private String goalTimeShort = "";
 
-    private AccessibilityNodeInfo lastYouTubeInfo = null;
+    boolean justTesting = false;
 
     public void manageYouTubeAccess(AccessibilityEvent event, AccessibilityNodeInfo rootInActiveWindow) {
+
         Log.d(TAG, "manageYouTubeAccess: ");
         if (main.getNearbyManager().isConnectedAsGuide()) {
             return; //guides manage YT their own way
@@ -67,12 +68,6 @@ public class YouTubeAccessibilityManager {
         if (!detectAdNodes.isEmpty()) {
             Log.e(TAG, "WAITING FOR AD TO FINISH >> " + main.getWebManager().getLaunchTitle());
 
-            //this indicates the video finished
-//            if (videoPlayStarted) {
-//               endOfVideo();
-//                return;
-//            }
-
             for (AccessibilityNodeInfo detectNode : detectAdNodes) {
                 if (detectNode.getText() != null && detectNode.getText().toString().contains("Up next in")) {
                     endOfVideo();
@@ -96,11 +91,17 @@ public class YouTubeAccessibilityManager {
         ArrayList<AccessibilityNodeInfo> titleNodes = null;
         if (!main.getWebManager().isFreshPlay() && !videoPlayStarted) {
             //this code assists in confirming that the ACTUAL video (not just an ad) has started
-            tapVideoScreen();
+            //tapVideoScreen();
             pushTitle = main.getWebManager().getLaunchTitle().trim();
             pushURL = main.getWebManager().getPushURL();
             titleNodes = connector.collectChildren(rootInActiveWindow, pushTitle, 0);
             titleNodes.addAll(connector.collectChildren(rootInActiveWindow, "title", 0));
+
+            Log.d(TAG, "Has it started? " + videoPlayStarted + ", " + main.getWebManager().isFreshPlay() + ", " + titleNodes.size() + " for " + pushTitle);
+            if (!titleNodes.isEmpty()) {
+                Log.e(TAG, "VIDEO STARTED!!");
+                videoPlayStarted = true;
+            }
         }
 
         if (main.getWebManager().isFreshPlay()) {
@@ -110,10 +111,11 @@ public class YouTubeAccessibilityManager {
             videoPlayStarted = false; //reset this here
             closedMini = false; //reset
             main.getWebManager().setFreshPlay(false); //done!
-            if (!main.getWebManager().launchingVR) {
-                cueYouTubeAction(CUE_PAUSE + "");
-                cueYouTubeAction(CUE_FS_ONLY + "");
-            }
+//            if (!main.getWebManager().launchingVR) {
+//                Log.w(TAG, "Launching!!");
+            cueYouTubeAction(CUE_PAUSE + "");
+            cueYouTubeAction(CUE_FS_ONLY + "");
+//            }
         } else if (!videoPlayStarted && !pushTitle.isEmpty() && titleNodes != null && !titleNodes.isEmpty()) {
             //confirms that actual video, not just an ad, has started
             Log.w(TAG, "Found TITLE for CURRENT video! Title=" + pushTitle + ", " + titleNodes.size());
@@ -180,6 +182,10 @@ public class YouTubeAccessibilityManager {
             return; //nothing to do!
         }
 
+
+        //TODO whatever is killing the UI is AFTER this point
+
+
         //String[] selectedPhrases = {};
         //make a copy of the cued actions so we can act on the array list
         //during iteration without causing a concurrent access exception
@@ -201,12 +207,12 @@ public class YouTubeAccessibilityManager {
             if (cuedActions.contains(CUE_VR_OFF + "")) {
                 Log.i(TAG, "Exiting VR mode");
                 ArrayList<AccessibilityNodeInfo> vrNodes = connector.collectChildren(rootInActiveWindow, getVROnPhrases(), 0);
-                if (!vrNodes.isEmpty() || !inVR) {
+                if (!vrNodes.isEmpty()) {// || !inVR) {
                     Log.i(TAG, "Already in FULLSCREEN mode");
                     inVR = false;
                     cuedActions.remove(CUE_VR_OFF + ""); //don't need to keep looking
                 } else {
-                    //tapVideoScreen();
+                    tapVideoScreen();
                     for (AccessibilityNodeInfo thisInfo : connector.collectChildren(rootInActiveWindow, getVROffPhrases(), 0)) {
                         Log.w(TAG, "-- Tapping " + thisInfo.getContentDescription() + "/" + thisInfo.getText());
                         boolean success = gestureTap(thisInfo, CUE_VR_OFF);
@@ -227,7 +233,7 @@ public class YouTubeAccessibilityManager {
                 Log.i(TAG, "Entering Full Screen mode");
                 ArrayList<AccessibilityNodeInfo> vrNodes = connector.collectChildren(rootInActiveWindow, "back", 0);
                 if (!vrNodes.isEmpty()) {
-                    //tapVideoScreen();
+                    tapVideoScreen();
                     Log.i(TAG, "Need to exit VR first");
                     for (AccessibilityNodeInfo thisInfo : vrNodes) {
                         Log.w(TAG, "-- Tapping " + thisInfo.getContentDescription() + "/" + thisInfo.getText());
@@ -241,7 +247,7 @@ public class YouTubeAccessibilityManager {
                     cuedActions.remove(CUE_FS_ONLY + "");
                     inVR = false;
                 } else {
-                    //tapVideoScreen();
+                    tapVideoScreen();
                     for (AccessibilityNodeInfo thisInfo : fsNodes) {
                         Log.w(TAG, "-- Tapping " + thisInfo.getContentDescription() + "/" + thisInfo.getText());
                         boolean success = gestureTap(thisInfo, CUE_FS_ONLY);
@@ -267,7 +273,8 @@ public class YouTubeAccessibilityManager {
                     inVR = true;
                     cuedActions.remove(CUE_VR_ON + ""); //don't need to keep looking
                 } else {
-                    //tapVideoScreen();
+                    inVR = false;
+                    tapVideoScreen();
                     for (AccessibilityNodeInfo thisInfo : connector.collectChildren(rootInActiveWindow, getVROnPhrases(), 0)) {
                         boolean success = gestureTap(thisInfo, CUE_VR_ON);
                         if (success) {
@@ -277,6 +284,7 @@ public class YouTubeAccessibilityManager {
 
                     if (!connector.collectChildren(rootInActiveWindow, getVROffPhrases(), 0).isEmpty()) {
                         cuedActions.remove(CUE_VR_ON + "");
+                        dismissPopups(rootInActiveWindow);
                     }
                 }
             }
@@ -285,11 +293,12 @@ public class YouTubeAccessibilityManager {
                 Log.i(TAG, "Attempting Pause");
                 //can't find the button, try unlocking the screen
                 ArrayList<AccessibilityNodeInfo> playNodes = connector.collectChildren(rootInActiveWindow, getPlayPhrases(), 0);
-                if (!playNodes.isEmpty() || inVR) {
-                    Log.i(TAG, "Already in PAUSE mode");
+                playNodes.addAll(connector.collectChildren(rootInActiveWindow, getVROffPhrases(), 0));
+                if (!playNodes.isEmpty()) {// || inVR) {
+                    Log.i(TAG, "Already in PAUSE or VR mode");
                     cuedActions.remove(CUE_PAUSE + ""); //don't need to keep looking
                 } else {
-                    //tapVideoScreen();
+                    tapVideoScreen();
                     ArrayList<AccessibilityNodeInfo> pauseNodes = connector.collectChildren(rootInActiveWindow, getPausePhrases(), 0);
                     Log.e(TAG, "GOT PAUSE! " + pauseNodes.size());
                     for (AccessibilityNodeInfo thisInfo : pauseNodes) {
@@ -306,12 +315,13 @@ public class YouTubeAccessibilityManager {
                 Log.i(TAG, "Attempting Play");
                 //can't find the button, try unlocking the screen
                 ArrayList<AccessibilityNodeInfo> pauseNodes = connector.collectChildren(rootInActiveWindow, getPausePhrases(), 0);
+                pauseNodes.addAll(connector.collectChildren(rootInActiveWindow, getVROffPhrases(), 0));
                 //ArrayList<AccessibilityNodeInfo> vrNodes = connector.collectChildren(rootInActiveWindow, getVROffPhrases(), 0);
-                if (!pauseNodes.isEmpty() || inVR) {// || !vrNodes.isEmpty()) {
+                if (!pauseNodes.isEmpty()) {// || inVR) {// || !vrNodes.isEmpty()) {
                     Log.i(TAG, "Already in PLAY or VR mode");
                     cuedActions.remove(CUE_PLAY + ""); //don't need to keep looking
                 } else {
-                    //tapVideoScreen();
+                    tapVideoScreen();
                     ArrayList<AccessibilityNodeInfo> playNodes = connector.collectChildren(rootInActiveWindow, getPlayPhrases(), 0);
                     Log.e(TAG, "GOT PLAY! " + playNodes.size());
                     for (AccessibilityNodeInfo thisInfo : playNodes) {
@@ -324,26 +334,32 @@ public class YouTubeAccessibilityManager {
                 }
             }
         }
-        Log.e(TAG, "CUED ACTIONS NOW: " + cuedActions + ", in VR? " + inVR);
+        Log.e(TAG, "CUED ACTIONS NOW: " + cuedActions);// + ", in VR? " + inVR);
     }
-    //return;
-    //}
 
     private void tapVideoScreen() {
         Log.d(TAG, "tapVideoScreen: Youtube");
         Point p = new Point();
         main.getWindowManager().getDefaultDisplay().getRealSize(p);
-        main.tapBounds((p.x / 2), (p.y / 3));
+
+        if (justTesting) {
+            Log.e(TAG, "GOT HERE!! [screenTap]");
+            return;
+        }
+        main.tapBounds((p.x / 2), (p.y / 4) * 3);
     }
 
     private boolean gestureTap(AccessibilityNodeInfo thisInfo, int action) {
-        Log.d(TAG, "gestureTap: ");
+        if (justTesting) {
+            Log.e(TAG, "GOT HERE!! [GT]");
+            return false;
+        }
+
         Log.w(TAG, "CLICK CLICK: " + thisInfo.getText() + " // " + thisInfo.getContentDescription() + " // " + cuedActions);
 
-        Log.w(TAG, "CLICK [1]");
         boolean success = thisInfo.performAction(AccessibilityNodeInfo.ACTION_CLICK);
         if (!success) {
-            Log.w(TAG, "CLICK [2]");
+            Log.w(TAG, "CLICK #2");
             Rect r = new Rect();
             thisInfo.getBoundsInScreen(r);
             main.tapBounds(r.centerX(), r.centerY());
@@ -352,14 +368,12 @@ public class YouTubeAccessibilityManager {
     }
 
     private String[] getPlayPhrases() {
-        Log.d(TAG, "getPlayPhrases: ");
         String[] selectedPhrases = new String[1];
         selectedPhrases[0] = "Play video";
         return selectedPhrases;
     }
 
     private String[] getPausePhrases() {
-        Log.d(TAG, "getPausePhrases: ");
         String[] selectedPhrases = new String[1];
         selectedPhrases[0] = "Pause";
         return selectedPhrases;
@@ -373,7 +387,6 @@ public class YouTubeAccessibilityManager {
     }
 
     private String[] getVROffPhrases() {
-        Log.d(TAG, "getVROffPhrases: ");
         String[] selectedPhrases = new String[3];
         selectedPhrases[0] = "Enter full screen"; //used for MiSE8
         selectedPhrases[1] = "Enter fullscreen"; //used for Redmi7
@@ -382,7 +395,6 @@ public class YouTubeAccessibilityManager {
     }
 
     private String[] getFullscreenPhrases() {
-        Log.d(TAG, "getFullscreenPhrases: ");
         String[] selectedPhrases = new String[3];
         selectedPhrases[0] = "Enter full screen"; //used for MiSE8
         selectedPhrases[1] = "Enter fullscreen"; //used for Redmi7
@@ -393,15 +405,16 @@ public class YouTubeAccessibilityManager {
     private String pushURL = "";
 
     public void resetState() {
-        Log.d(TAG, "resetState: ");
+        //Log.d(TAG, "resetState: ");
         Log.w(TAG, "Clearing CUED ACTIONS!");
         cuedActions.clear();
         pushURL = "";
         pushTitle = "";
+        videoPlayStarted = false;
     }
 
     public void cueYouTubeAction(String actionStr) {
-        Log.d(TAG, "cueYouTubeAction: ");
+        //Log.d(TAG, "cueYouTubeAction: ");
         if (main.getNearbyManager().isConnectedAsGuide()) {
             return; //guides manage YT their own way
         }
@@ -433,7 +446,10 @@ public class YouTubeAccessibilityManager {
         //add new action
         cuedActions.add(action + "");
         Log.d(TAG, "CUED ACTIONS: " + cuedActions);
-        manageYouTubeAccess(connector.lastEvent, connector.lastInfo); //re-try last event
+
+        new Thread(() -> {
+            manageYouTubeAccess(connector.lastEvent, connector.lastInfo); //re-try last event
+        }).start();
     }
 
     //these are not case sensitive, and will return partial matches
@@ -482,12 +498,13 @@ public class YouTubeAccessibilityManager {
         Log.d(TAG, "skipAds: ");
         ArrayList<AccessibilityNodeInfo> popupNodes = connector.collectChildren(rootInActiveWindow, skipAdsPhrases, 0);
 
-        if (!popupNodes.isEmpty() && videoPlayStarted) {
+        if (videoPlayStarted && !popupNodes.isEmpty() && videoPlayStarted) {
             endOfVideo();
             return;
         }
 
         for (AccessibilityNodeInfo thisInfo : popupNodes) {
+            Log.w(TAG, "Skipping add; " + thisInfo.getText() + ", " + thisInfo.getContentDescription());
             Rect bounds = new Rect();
             thisInfo.getBoundsInScreen(bounds);
             main.tapBounds(bounds.centerX(), bounds.centerY());
@@ -498,12 +515,13 @@ public class YouTubeAccessibilityManager {
     boolean closedMini = false;
 
     private void closeMiniPlayer(AccessibilityNodeInfo rootInActiveWindow) {
-        Log.d(TAG, "closeMiniPlayer: ");
+        //Log.d(TAG, "closeMiniPlayer: ");
         if (closedMini) {
             return; //don't launch it twice
         }
         ArrayList<AccessibilityNodeInfo> miniPlayerNodes = connector.collectChildren(rootInActiveWindow, detectMiniPlayer, 0);
         if (!miniPlayerNodes.isEmpty()) {
+            Log.d(TAG, "Closing Mini Player");
             closedMini = true;
             //difficult to accurately tap the right button, so just relaunch the video
             main.getWebManager().launchYouTube(pushURL, pushTitle, main.getWebManager().getYouTubeEmbedPlayer().isVROn(), false);
@@ -515,7 +533,7 @@ public class YouTubeAccessibilityManager {
     }
 
     private void dismissPopups(AccessibilityNodeInfo rootInActiveWindow) {
-        Log.d(TAG, "dismissPopups: ");
+        //Log.d(TAG, "dismissPopups: ");
         ArrayList<AccessibilityNodeInfo> popupNodes = connector.collectChildren(rootInActiveWindow, popupPhrases, 0);
         for (AccessibilityNodeInfo thisInfo : popupNodes) {
             Log.w(TAG, "Trying to dismiss: " + thisInfo.getText() + ", " + thisInfo.getContentDescription());
@@ -524,7 +542,9 @@ public class YouTubeAccessibilityManager {
     }
 
     private void endOfVideo() {
-        connector.bringMainToFront();
-        main.updateFollowerCurrentTaskToLeadMe();
+        main.runOnUiThread(() -> {
+            connector.bringMainToFront();
+            main.updateFollowerCurrentTaskToLeadMe();
+        });
     }
 }
