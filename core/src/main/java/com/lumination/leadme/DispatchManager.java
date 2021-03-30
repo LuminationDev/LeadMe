@@ -187,6 +187,16 @@ public class DispatchManager {
         if (actionTag != null && actionTag.equals(LeadMeMain.ACTION_TAG)) {
 
             switch (action) {
+                case LeadMeMain.XRAY_ON:
+                    Log.w(TAG, "I AM being watched! " + main.getNearbyManager().getName());
+                    main.xrayManager.generateScreenshots(true);
+                    break;
+
+                case LeadMeMain.XRAY_OFF:
+                    Log.w(TAG, "I'm NOT being watched! " + main.getNearbyManager().getName());
+                    main.xrayManager.generateScreenshots(false);
+                    break;
+
                 case LeadMeMain.PING_ACTION:
                     Set<String> peerSet = new HashSet<>();
                     peerSet.add(action.split(":")[1]);

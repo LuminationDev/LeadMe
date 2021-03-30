@@ -33,6 +33,8 @@ import java.net.Socket;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Set;
 
 import eu.bolt.screenshotty.ScreenshotManager;
 
@@ -44,15 +46,6 @@ public class XrayManager {
     //added-------
     ScreenshotManager screenshotManager;
 
-    static final String MONITOR_STUDENT_TAG = "LumiMonitor";
-    static final String RECEIVE_IP_ADDRESS_TAG = "LumiReceiveIpAddress";
-    static final String SEND_IP_ADDRESS_TAG = "LumiSendIpAddress";
-    static final String DESTROY_SERVER_TAG = "LumiDestroyServer";
-    static final String SEND_TO_GUIDE = "Guide";
-    static final String SEND_TO_PEERS = "Peers";
-    static public int CAPTURE_RATE = 200;
-    //added---------------------
-//    LocalServer server;
     String ipAddress;
     Intent screen_share_intent = null;
     private MediaProjectionManager projectionManager = null;
@@ -80,7 +73,12 @@ public class XrayManager {
         this.xrayScreen = xrayScreen;
     }
 
+    public void generateScreenshots(boolean isWatching) {
+        screenshotPaused = !isWatching;
+    }
+
     boolean screenCapPermission = false;
+
     @SuppressLint("WrongConstant")
     public void manageResultsReturn(int requestCode, int resultCode, Intent data) {
         main.getPermissionsManager().waitingForPermission = false;
@@ -341,7 +339,20 @@ public class XrayManager {
     }
 
     void updateXrayForSelection(ConnectedPeer xrayStudent) {
-        Log.w(TAG, "Updating UI!");
+        Log.w(TAG, "Updating UI for " + xrayStudent.getDisplayName() + "!");
+
+        //let everyone else know we're NOT watching so they reduce computational load
+        Set<String> notSelected = main.getNearbyManager().getAllPeerIDs();
+        notSelected.remove(xrayStudent.getID());
+        main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.XRAY_OFF, notSelected);
+
+        //let student know we're watching so they send screenshots
+        Set<String> selected = new HashSet<>();
+        selected.add(xrayStudent.getID());
+        main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.XRAY_ON, selected);
+
+        Log.e(TAG, "Peers: " + notSelected);
+
         if (xrayStudent.isSelected()) {
             //selectedAdapter.setItemList(itemsForSelected, imgsForSelected);
             xrayStudentSelectedView.setText("Selected");
@@ -355,8 +366,9 @@ public class XrayManager {
     }
 
     public void startServer() {
+        Log.w(TAG, "Starting server...");
         main.getPermissionsManager().waitingForPermission = true;
-        if (projectionManager == null || !screenCapPermission) {
+        if (!screenCapPermission) {
             projectionManager = (MediaProjectionManager) main.getSystemService(Context.MEDIA_PROJECTION_SERVICE);
 
             //start service class
@@ -454,15 +466,25 @@ public class XrayManager {
         }
 
         while (monitorInProgress && !socket.isClosed()) { //global state, maybe change to individuals?
+            if (monitoredPeer == null) {
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                continue;
+            }
             byte[] buffer = null;
             try {
                 DataInputStream in = new DataInputStream(socket.getInputStream());
-                int length = in.readInt();
-                Log.d(TAG, "run: image received of size " + length + " from " + imgPeer);
-                if (length > 10000 && length < 300000) {
-                    buffer = new byte[length];
-                    in.readFully(buffer, 0, length);
-                    Log.d(TAG, "Packet Received!! ");
+                while (in.available() > 0) {
+                    int length = in.readInt();
+                    Log.d(TAG, "run: image received of size " + length + " from " + imgPeer);
+                    if (length > 10000 && length < 300000) {
+                        buffer = new byte[length];
+                        in.readFully(buffer, 0, length);
+                        //Log.d(TAG, "Packet Received!! ");
+                    }
                 }
             } catch (IOException e) {
                 //monitorInProgress = false;
@@ -522,6 +544,8 @@ public class XrayManager {
     //will only have one of these at the client
     //OK to store this way
     Socket screenshotSocket = null;
+    public boolean screenshotPaused = false;
+    Thread screenShotRunner = null;
 
     public void startScreenshotRunnable(InetAddress ip, int Port) {
         screenShot = true;
@@ -535,7 +559,7 @@ public class XrayManager {
             //return; //already got one!
         }
 
-        Thread t = new Thread(() -> {
+        screenShotRunner = new Thread(() -> {
             try {
                 Log.w(TAG, "creating CLIENT socket with " + ip + ", " + Port);
                 screenshotSocket = new Socket(ip, Port);
@@ -548,6 +572,17 @@ public class XrayManager {
                 return;
             }
             while (screenShot) {
+                if (screenshotPaused) {
+                    Log.w(TAG, "SCREENSHOT PAUSED!");
+                    try {
+                        screenShotRunner.sleep(3000); //how long until we should check again?
+                        continue;
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+
+                Log.w(TAG, "SCREENSHOT RESUMED!");
                 if (bitmapToSend != null && screenshotSocket.isConnected()) {
                     ByteArrayOutputStream stream = new ByteArrayOutputStream();
                     bitmapToSend.compress(Bitmap.CompressFormat.JPEG, 50, stream);
@@ -576,7 +611,7 @@ public class XrayManager {
             Log.e(TAG, "Image send thread closed. " + screenShot);
             screenShot = false;
         });
-        t.start();
+        screenShotRunner.start();
     }
 
     public void stopScreenshotRunnable() {

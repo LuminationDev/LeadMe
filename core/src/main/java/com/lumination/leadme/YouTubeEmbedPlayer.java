@@ -1,7 +1,6 @@
 package com.lumination.leadme;
 
 import android.app.AlertDialog;
-import android.graphics.Point;
 import android.net.http.SslError;
 import android.text.format.DateUtils;
 import android.util.Log;
@@ -154,7 +153,6 @@ public class YouTubeEmbedPlayer {
         //controllerWebView.loadUrl("javascript:hideCaptions()");
     }
 
-
     boolean pageLoaded = false;
 
     private void setupGuideVideoControllerWebClient() {
@@ -208,6 +206,7 @@ public class YouTubeEmbedPlayer {
     private void setupGuideVideoControllerButtons() {
         //set up standard dialog buttons
         videoControllerDialogView.findViewById(R.id.new_video).setOnClickListener(v -> {
+            main.getWebManager().resetPushURL();
             webManager.lastWasGuideView = false; //reset
             videoControlDialog.hide();
             webManager.showWebLaunchDialog(false);
@@ -276,27 +275,27 @@ public class YouTubeEmbedPlayer {
             main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.VID_UNMUTE_TAG, main.getNearbyManager().getSelectedPeerIDsOrAll());
         });
 
-        videoControllerDialogView.findViewById(R.id.play_btn).setOnClickListener(v -> {
-            if (videoCurrentDisplayMode == VR_MODE) {
-                showToast("Cannot play in VR mode. Exit VR mode and try again.");
-                return;
-            }
-            playVideo();
-            main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG,
-                    LeadMeMain.VID_ACTION_TAG + YouTubeAccessibilityManager.CUE_PLAY,
-                    main.getNearbyManager().getSelectedPeerIDsOrAll());
-        });
-
-        videoControllerDialogView.findViewById(R.id.pause_btn).setOnClickListener(v -> {
-            if (videoCurrentDisplayMode == VR_MODE) {
-                showToast("Cannot pause in VR mode. Exit VR mode and try again.");
-                return;
-            }
-            pauseVideo();
-            main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG,
-                    LeadMeMain.VID_ACTION_TAG + YouTubeAccessibilityManager.CUE_PAUSE,
-                    main.getNearbyManager().getSelectedPeerIDsOrAll());
-        });
+//        videoControllerDialogView.findViewById(R.id.play_btn).setOnClickListener(v -> {
+//            if (videoCurrentDisplayMode == VR_MODE) {
+//                showToast("Cannot play in VR mode. Exit VR mode and try again.");
+//                return;
+//            }
+//            playVideo();
+//            main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG,
+//                    LeadMeMain.VID_ACTION_TAG + YouTubeAccessibilityManager.CUE_PLAY,
+//                    main.getNearbyManager().getSelectedPeerIDsOrAll());
+//        });
+//
+//        videoControllerDialogView.findViewById(R.id.pause_btn).setOnClickListener(v -> {
+//            if (videoCurrentDisplayMode == VR_MODE) {
+//                showToast("Cannot pause in VR mode. Exit VR mode and try again.");
+//                return;
+//            }
+//            pauseVideo();
+//            main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG,
+//                    LeadMeMain.VID_ACTION_TAG + YouTubeAccessibilityManager.CUE_PAUSE,
+//                    main.getNearbyManager().getSelectedPeerIDsOrAll());
+//        });
 
     }
 
@@ -355,25 +354,38 @@ public class YouTubeEmbedPlayer {
     }
 
 
-    private void playVideo() {
+    @JavascriptInterface
+    public void playVideo() {
         if (firstPlay) {
             firstPlay = false;
-            //touch the screen, we're ready
-            Point p = new Point();
-            main.getWindowManager().getDefaultDisplay().getRealSize(p);
-            main.tapBounds(518, 927);
-            Log.w(TAG, "TAP TAP! " + (p.x / 2) + ", " + (p.y / 2.5) + " vs hardcoded 518, 927");
-        } else {
-            activeWebView.loadUrl("javascript:playVideo()");
         }
+        main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG,
+                LeadMeMain.VID_ACTION_TAG + YouTubeAccessibilityManager.CUE_PLAY,
+                main.getNearbyManager().getSelectedPeerIDsOrAll());
+
+//        if (firstPlay) {
+//            firstPlay = false;
+//            //touch the screen, we're ready
+//            Point p = new Point();
+//            main.getWindowManager().getDefaultDisplay().getRealSize(p);
+//            main.tapBounds(518, 927);
+//            Log.w(TAG, "TAP TAP! " + (p.x / 2) + ", " + (p.y / 2.5) + " vs hardcoded 518, 927");
+//        } else {
+//            activeWebView.loadUrl("javascript:playVideo()");
+//        }
     }
 
-    private void pauseVideo() {
-        activeWebView.loadUrl("javascript:pauseVideo()");
+    @JavascriptInterface
+    public void pauseVideo() {
+        main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG,
+                LeadMeMain.VID_ACTION_TAG + YouTubeAccessibilityManager.CUE_PAUSE,
+                main.getNearbyManager().getSelectedPeerIDsOrAll());
+
+        //activeWebView.loadUrl("javascript:pauseVideo()");
     }
 
     private void stopVideo() {
-        activeWebView.loadUrl("javascript:stopVideo()");
+        //activeWebView.loadUrl("javascript:stopVideo()");
     }
 
     public String getiFrameForURL(String url) {
@@ -397,8 +409,10 @@ public class YouTubeEmbedPlayer {
     }
 
     public void showVideoController() {
-        main.closeKeyboard();
-        main.hideSystemUI();
+        main.runOnUiThread(() -> {
+            main.closeKeyboard();
+            main.hideSystemUI();
+        });
 
         activeWebView = controllerWebView;
         if (videoControlDialog == null) {
@@ -414,6 +428,7 @@ public class YouTubeEmbedPlayer {
     }
 
     private TextView internetUnavailableMsg;
+
     private void loadVideoGuideURL(String url) {
         init = false;
         attemptedURL = embedYouTubeURL(url);
@@ -447,6 +462,11 @@ public class YouTubeEmbedPlayer {
     }
 
     public void dismissDialogs() {
+        main.runOnUiThread(() -> {
+            main.closeKeyboard();
+            main.hideSystemUI();
+        });
+
         if (videoControlDialog != null) {
             videoControlDialog.dismiss();
         }
@@ -457,6 +477,11 @@ public class YouTubeEmbedPlayer {
     }
 
     private void hideVideoController() {
+        main.runOnUiThread(() -> {
+            main.closeKeyboard();
+            main.hideSystemUI();
+        });
+
         pauseVideo();
         videoControlDialog.hide();
     }

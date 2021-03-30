@@ -122,6 +122,9 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     static final String LAUNCH_SUCCESS = "LumiSuccess:";
     final static String SESSION_UUID_TAG = "SessionUUID";
 
+    static final String XRAY_ON = "LumiXrayOn";
+    static final String XRAY_OFF = "LumiXrayOff";
+
     public final int OVERLAY_ON = 0;
     public final int ACCESSIBILITY_ON = 1;
     public final int BLUETOOTH_ON = 2;
@@ -883,10 +886,8 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             } else if (getPermissionsManager().isAccessibilityGranted() && getPermissionsManager().isOverlayPermissionGranted()) {
                 setStudentOnBoard(2);
             }
-        } else if (nearbyManager.isConnectedAsFollower() && !permissionManager.waitingForPermission && !xrayManager.screenCapPermission) {
-            //start screen shot capturing
-            xrayManager.startServer();
         }
+
         //Toast.makeText(this, "LC Resume", Toast.LENGTH_LONG).show();
         Log.w(TAG, "LC Resume // " + getDispatcher().hasDelayedLaunchContent());
         appHasFocus = true;
@@ -1071,6 +1072,9 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                 Log.e(TAG, "Accessibility receiver was not registered!");
             }
         }
+
+        xrayManager.stopScreenshotRunnable();
+        xrayManager.stopServer();
 
         cleanUpDialogs();
 
@@ -1542,6 +1546,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
 
     public void exitXrayView() {
+        getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.XRAY_OFF, getNearbyManager().getAllPeerIDs());
         leadmeAnimator.setDisplayedChild(ANIM_LEADER_INDEX);
     }
 
@@ -2285,6 +2290,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
 
     public void recallToLeadMe() {
+        getWebManager().resetPushURL();
         if (appHasFocus && hasWindowFocus()) {
             Log.d(TAG, "Already in LeadMe! " + appHasFocus + ", " + hasWindowFocus());
             return;

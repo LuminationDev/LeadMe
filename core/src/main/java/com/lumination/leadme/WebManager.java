@@ -391,6 +391,10 @@ public class WebManager {
         return pushURL;
     }
 
+    protected void resetPushURL() {
+        pushURL = "";
+    }
+
     protected String getLaunchTitle() {
         return pushTitle;
     }

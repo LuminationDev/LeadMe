@@ -97,6 +97,8 @@ public class ConnectedLearnersAdapter extends BaseAdapter {
         mData.add(peer);
         refresh();
 
+        main.xrayManager.startImageClient(peer.getID());
+
         Log.d(TAG, "Adding " + peer.getDisplayName() + " to my student list. Now: " + mData.size() + " || " + mData);
     }
 

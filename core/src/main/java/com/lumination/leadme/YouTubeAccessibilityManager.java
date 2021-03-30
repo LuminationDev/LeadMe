@@ -136,10 +136,14 @@ public class YouTubeAccessibilityManager {
             if (!timeNodes.isEmpty()) {
                 for (AccessibilityNodeInfo thisInfo : timeNodes) {
                     Log.w(TAG, "Testing for time: " + thisInfo.getText());
+                    if (thisInfo == null) {
+                        continue;
+                    }
                     String time = thisInfo.getText() + "";
                     String[] times = time.split("/");
-                    String[] goalTimeSplit = times[1].trim().split(":");
+
                     if (times.length == 2) {
+                        String[] goalTimeSplit = times[1].trim().split(":");
                         goalTime = times[1].trim() + "/" + times[1].trim();
                         goalTimeShort = goalTimeSplit[0] + ":" + (Integer.parseInt(goalTimeSplit[1]) - 1);//times[1].trim();
 
@@ -514,6 +518,7 @@ public class YouTubeAccessibilityManager {
         Log.d(TAG, "dismissPopups: ");
         ArrayList<AccessibilityNodeInfo> popupNodes = connector.collectChildren(rootInActiveWindow, popupPhrases, 0);
         for (AccessibilityNodeInfo thisInfo : popupNodes) {
+            Log.w(TAG, "Trying to dismiss: " + thisInfo.getText() + ", " + thisInfo.getContentDescription());
             connector.accessibilityClickNode(thisInfo);
         }
     }

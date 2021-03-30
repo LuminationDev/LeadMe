@@ -39,7 +39,7 @@ public class LeaderSelectAdapter extends BaseAdapter {
         for (ConnectedPeer peer : leader_list) {
             if (peer.getID().equals(leader.getID())) {
                 Log.d(TAG, "This one already exists " + leader);
-                return;
+                leader_list.remove(peer); //remove this so we don't have duplicates
             }
         }
 

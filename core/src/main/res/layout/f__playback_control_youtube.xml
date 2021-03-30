@@ -106,17 +106,19 @@
                 android:background="@color/leadme_black"></WebView>
 
             <LinearLayout
+                android:id="@+id/basic_controls"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="match_parent"
+                android:background="@color/leadme_darkest_grey"
                 android:gravity="center"
                 android:orientation="horizontal"
-                android:paddingTop="10dp"
-                android:paddingBottom="5dp">
+                android:padding="10dp">
 
                 <ImageView
                     android:id="@+id/vr_mode_icon"
                     android:layout_width="50dp"
                     android:layout_height="40dp"
+                    android:layout_marginStart="20dp"
                     android:layout_weight="0"
                     android:gravity="center_horizontal"
                     android:src="@drawable/task_vr_icon_disabled" />
@@ -127,7 +129,7 @@
                     android:layout_height="wrap_content"
                     android:layout_gravity="center_horizontal|center_vertical"
                     android:layout_marginStart="10dp"
-                    android:layout_marginEnd="10dp"
+                    android:layout_marginEnd="20dp"
                     android:layout_weight="0"
                     android:checked="false"
                     android:fontFamily="@font/poppins_semibold"
@@ -141,48 +143,6 @@
                     android:textSize="16sp"
                     android:thumb="@drawable/toggle_thumb"
                     android:track="@drawable/toggle_track" />
-            </LinearLayout>
-
-            <View
-                android:id="@+id/vrDivider"
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:layout_marginStart="20dp"
-                android:layout_marginTop="3dp"
-                android:layout_marginEnd="20dp"
-                android:layout_marginBottom="3dp"
-                android:background="@color/leadme_black_transparent" />
-
-            <LinearLayout
-                android:id="@+id/basic_controls"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:background="@color/leadme_darkest_grey"
-                android:gravity="center"
-                android:orientation="horizontal">
-
-                <ImageView
-                    android:id="@+id/play_btn"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="15dp"
-                    android:layout_marginLeft="15dp"
-                    android:layout_marginTop="10dp"
-                    android:layout_marginEnd="15dp"
-                    android:layout_marginBottom="10dp"
-                    android:src="@drawable/vid_play" />
-
-                <ImageView
-                    android:id="@+id/pause_btn"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="15dp"
-                    android:layout_marginLeft="15dp"
-                    android:layout_marginTop="10dp"
-                    android:layout_marginEnd="15dp"
-                    android:layout_marginBottom="10dp"
-                    android:padding="5dp"
-                    android:src="@drawable/vid_pause" />
 
                 <ImageView
                     android:id="@+id/mute_btn"

@@ -461,7 +461,7 @@ public class NetworkAdapter {
                                 if (input != null) {
                                     if (input.length() > 0) {
                                         //Log.d(TAG, "run: server said: " + input);
-                                        netAdapt.messageRecievedFromServer(input);
+                                        netAdapt.messageReceivedFromServer(input);
                                     }
                                 }
                             } catch (IOException e) {
@@ -499,7 +499,7 @@ public class NetworkAdapter {
     ACTION: used for controlling the client with different actions, app launches, etc
     PING: used to let the client know it is still recieving data from the server and helps keep the connection alive
      */
-    public void messageRecievedFromServer(String input) {
+    public void messageReceivedFromServer(String input) {
         List<String> inputList = Arrays.asList(input.split(","));
         switch (inputList.get(0)) {
             case "COMMUNICATION":
