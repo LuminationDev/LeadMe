@@ -183,7 +183,10 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     private AlertDialog confirmPushDialog, studentAlertsDialog;
     public View waitingForLearners, appLauncherScreen, appPushDialogView;
     private View loginDialogView, confirmPushDialogView, studentAlertsView;
-    private View mainLearner, mainLeader, optionsScreen, xrayScreen;
+    private View mainLearner;
+    private View mainLeader;
+    private View optionsScreen;
+    View xrayScreen;
     private TextView warningDialogTitle, warningDialogMessage, learnerWaitingText;
     private Button leader_toggle, learner_toggle;
 
@@ -1546,7 +1549,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
 
     public void exitXrayView() {
-        getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.XRAY_OFF, getNearbyManager().getAllPeerIDs());
         leadmeAnimator.setDisplayedChild(ANIM_LEADER_INDEX);
     }
 

@@ -75,7 +75,7 @@ public class NetworkAdapter {
     int clientID = 0;
     boolean pingName = true;
     boolean closeSocket = false;
-    int connectionisActive = 0;
+    int connectionIsActive = 0;
 
 
     public ArrayList<studentThread> clientThreadList = new ArrayList<>();
@@ -264,7 +264,7 @@ public class NetworkAdapter {
             }
             if (socket != null) {
                 if (socket.isConnected()) {
-                    connectionisActive = 20;
+                    connectionIsActive = 20;
                     allowInput = true;
                     Log.d(TAG, "connectToServer: connection successful");
                     Name = nearbyPeersManager.getName();
@@ -296,7 +296,7 @@ public class NetworkAdapter {
                 }
                 if (socket != null) {
                     if (socket.isConnected()) {
-                        connectionisActive = 20;
+                        connectionIsActive = 20;
                         Log.d(TAG, "connectToServer: connection successful");
                         Name = nearbyPeersManager.getName();
                         sendToServer(Name, "NAME"); //sends the student name to the teacher for a record
@@ -367,12 +367,6 @@ public class NetworkAdapter {
                         }
                     }
                 });
-//                @Override
-//                    public void run() {
-//
-//                    }
-//                };
-//                thread.start();
             }
         }
     }
@@ -402,9 +396,9 @@ public class NetworkAdapter {
 
     private void checkConnection() {
         //Log.d(TAG, "checkConnection: checking connection");
-        if (connectionisActive > 0) {
-            connectionisActive--;
-        } else if (connectionisActive == 0) {
+        if (connectionIsActive > 0) {
+            connectionIsActive--;
+        } else if (connectionIsActive == 0) {
             main.runOnUiThread(() -> {
                 try {
                     socket.close();
@@ -414,7 +408,7 @@ public class NetworkAdapter {
                 socket = null;
                 Log.d(TAG, "checkConnection: connection timed out");
                 main.setUIDisconnected();
-                connectionisActive--;
+                connectionIsActive--;
             });
         }
     }
@@ -426,8 +420,7 @@ public class NetworkAdapter {
         stopDiscovery();  // Cancel any existing discovery request
         initializeDiscoveryListener();
 
-        mNsdManager.discoverServices(
-                SERVICE_TYPE, NsdManager.PROTOCOL_DNS_SD, mDiscoveryListener);
+        mNsdManager.discoverServices(SERVICE_TYPE, NsdManager.PROTOCOL_DNS_SD, mDiscoveryListener);
 
         //Updates parent with the name, this acts as a ping mechanism.
         //on the fly name changes are supported, client is identified by assigned ID
@@ -497,13 +490,13 @@ public class NetworkAdapter {
     splits message over the comma into type and message use as per below:
     COMMUNICATION: simply prints the message on the client is used for nothing else
     ACTION: used for controlling the client with different actions, app launches, etc
-    PING: used to let the client know it is still recieving data from the server and helps keep the connection alive
+    PING: used to let the client know it is still receiving data from the server and helps keep the connection alive
      */
     public void messageReceivedFromServer(String input) {
         List<String> inputList = Arrays.asList(input.split(","));
         switch (inputList.get(0)) {
             case "COMMUNICATION":
-                Log.d(TAG, "messageRecievedFromServer: " + inputList.get(1));
+                Log.d(TAG, "messageReceivedFromServer: " + inputList.get(1));
                 if (inputList.get(1).length() > 6 && inputList.get(1).contains("Thanks")) {
                     main.closeWaitingDialog(true);
                     pingName = false;
@@ -511,6 +504,7 @@ public class NetworkAdapter {
 
                 //pingName=false;
                 break;
+
             case "ACTION":
                 byte[] bytes = new byte[0];
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -522,13 +516,13 @@ public class NetworkAdapter {
                 Parcel p = Parcel.obtain();
                 p.unmarshall(bytes, 0, bytes.length);
                 p.setDataPosition(0);
-                Log.d(TAG, "messageRecievedFromServer: " + p.readString());
+                Log.d(TAG, "messageReceivedFromServer: " + p.readString());
                 Payload payload = fromBytes(bytes);
                 main.runOnUiThread(() -> {
                     main.handlePayload(payload.asBytes());
                 });
-
                 break;
+
             case "DISCONNECT":
                 Log.w(TAG, "Disconnect. Guide? "+main.isGuide);
                 try {
@@ -539,17 +533,18 @@ public class NetworkAdapter {
                 socket = null;
                 main.xrayManager.stopScreenshotRunnable();
                 nearbyPeersManager.disconnectFromEndpoint("");
-
                 break;
+
             case "PING":
                 nearbyPeersManager.myID = inputList.get(1);
-                connectionisActive = 3;
+                connectionIsActive = 3;
                 if (main.waitingDialog.isShowing()) {
                     main.getHandler().post(() -> main.closeWaitingDialog(true));
                 }
                 pingName = false;
                 //Log.d(TAG, "messageReceivedFromServer: received ping and subsequently ignoring it");
                 break;
+
             case "MONITOR":
                 if (inputList.get(1).contains(":")) {
                     List<String> inputList2 = Arrays.asList(inputList.get(1).split(":"));
@@ -559,9 +554,13 @@ public class NetworkAdapter {
                             main.getPermissionsManager().waitingForPermission = true;
                             main.xrayManager.startServer();
                             main.xrayManager.startScreenshotRunnable(socket.getInetAddress(), Integer.parseInt(inputList2.get(1)));
+                            if (main.xrayScreen.getVisibility() != View.VISIBLE) {
+                                main.xrayManager.screenshotPaused = true;
+                            }
                         });
                     }
                     Log.d(TAG, "messageReceivedFromServer: " + inputList.get(1));
+
                 } else {
                     if (inputList.get(1).equals("STOP")) {
                         //main.takeScreenshots=false;
@@ -572,6 +571,7 @@ public class NetworkAdapter {
                     }
                 }
                 break;
+
             default:
                 Log.d(TAG, "messageReceivedFromServer: Invalid message type");
                 break;
@@ -579,7 +579,7 @@ public class NetworkAdapter {
     }
 
 
-    //getter for the serviceinfo, only useful for student to teacher connections
+    //getter for the serviceInfo, only useful for student to teacher connections
     public NsdServiceInfo getChosenServiceInfo() {
         return mService;
     }

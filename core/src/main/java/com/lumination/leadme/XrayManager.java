@@ -227,11 +227,11 @@ public class XrayManager {
         ImageView closeButton = xrayScreen.findViewById(R.id.back_btn);
         closeButton.setOnClickListener(v -> {
             hideXrayView();
+            main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.XRAY_OFF, main.getNearbyManager().getAllPeerIDs());
+
             if (xrayDropdown.getVisibility() == VISIBLE) {
                 xrayButton.callOnClick(); //hide it
             }
-//            monitorInProgress = false; //break connection loop in clientStream
-//            nearbyManager.networkAdapter.stopMonitoring(Integer.parseInt(monitoredPeer));
         });
     }
 
@@ -317,8 +317,10 @@ public class XrayManager {
             prevXrayStudent.setClickable(false);
         }
 
-        if (xrayStudent != null) {
-            Log.w(TAG, xrayStudentDisplayNameView + ", " + xrayStudent);
+        startImageClient(monitoredPeer);
+
+        if (xrayStudent != null && xrayStudentDisplayNameView != null) {
+            Log.w(TAG, "Updating display: " + xrayStudentDisplayNameView + ", " + xrayStudent.getDisplayName() + ", " + xrayStudent.getID() + ", " + monitoredPeer);
             xrayStudentDisplayNameView.setText(xrayStudent.getDisplayName());
 
             Drawable icon = xrayStudent.getIcon();
@@ -329,12 +331,10 @@ public class XrayManager {
             xrayStudentIcon.setImageDrawable(icon);
 
             //display most recent screenshot
-            Bitmap latestScreenie = clientRecentScreenshots.get(monitoredPeer);
+            Bitmap latestScreenie = clientRecentScreenshots.get(xrayStudent.getID());
             xrayScreenshotView.setImageBitmap(latestScreenie);
 
             updateXrayForSelection(xrayStudent);
-
-            startImageClient(monitoredPeer);
         }
     }
 
@@ -490,7 +490,7 @@ public class XrayManager {
                 //monitorInProgress = false;
                 e.printStackTrace();
             }
-            Log.w(TAG, buffer + ", " + response);
+            //Log.w(TAG, buffer + ", " + response);
             if (buffer != null) {
                 Bitmap tmpBmp = BitmapFactory.decodeByteArray(buffer, 0, buffer.length);
                 response = tmpBmp;
@@ -504,6 +504,12 @@ public class XrayManager {
                         Log.w(TAG, "Updated the image!");
                     }
                 });
+            } else {
+                try {
+                    Thread.currentThread().sleep(1000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
             }
         }
         Log.e(TAG, "imageRunnable ended! " + monitorInProgress + " && " + !Thread.currentThread().isInterrupted());
