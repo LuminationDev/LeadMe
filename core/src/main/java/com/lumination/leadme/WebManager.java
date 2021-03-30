@@ -434,7 +434,7 @@ public class WebManager {
 
     public void pushURL(String url, String urlTitle) {
         //update lock status
-        if (lockSpinner.getSelectedItem().toString().startsWith("Lock")) {
+        if (lockSpinner.getSelectedItem().toString().startsWith("View")) {
             //locked by default
             main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.LOCK_TAG, main.getNearbyManager().getSelectedPeerIDsOrAll());
         } else {

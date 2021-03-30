@@ -741,13 +741,18 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
         } else if (studentLockOn) {
             setStudentLock(ConnectedPeer.STATUS_LOCK);
-            overlayView.setVisibility(View.VISIBLE);
+
+            if (!getPermissionsManager().waitingForPermission) {
+                overlayView.setVisibility(View.VISIBLE);
+            } else {
+                //need to allow students to accept permissions
+                overlayView.setVisibility(View.INVISIBLE);
+            }
 
         } else if (!studentLockOn) {
             setStudentLock(ConnectedPeer.STATUS_UNLOCK);
             overlayView.setVisibility(View.INVISIBLE);
         }
-
     }
 
     private static LumiAccessibilityService accessibilityService;
@@ -846,12 +851,12 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                     handler.post(() -> {
                         //wait until layout update is actioned before trying to gesture
                         //do {
-                            try {
-                                Log.e(TAG, "Waiting... " + overlayView.isLayoutRequested());
-                                Thread.sleep(200);
-                            } catch (InterruptedException e) {
-                                e.printStackTrace();
-                            }
+                        try {
+                            Log.e(TAG, "Waiting... " + overlayView.isLayoutRequested());
+                            Thread.sleep(200);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
                         // } while (overlayView.isLayoutRequested());
 
                         boolean success = accessibilityService.dispatchGesture(swipe, gestureResultCallback, null);
@@ -878,6 +883,9 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             } else if (getPermissionsManager().isAccessibilityGranted() && getPermissionsManager().isOverlayPermissionGranted()) {
                 setStudentOnBoard(2);
             }
+        } else if (nearbyManager.isConnectedAsFollower() && !permissionManager.waitingForPermission && !xrayManager.screenCapPermission) {
+            //start screen shot capturing
+            xrayManager.startServer();
         }
         //Toast.makeText(this, "LC Resume", Toast.LENGTH_LONG).show();
         Log.w(TAG, "LC Resume // " + getDispatcher().hasDelayedLaunchContent());
@@ -1030,6 +1038,10 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                         LeadMeMain.LAUNCH_SUCCESS + currentTaskName + ":" + getNearbyManager().getID() + ":" + getAppManager().lastApp, getNearbyManager().getAllPeerIDs());
 
             }
+        }
+
+        if (appHasFocus) {
+            overlayView.setVisibility(View.INVISIBLE); //NEVER want this over LeadMe
         }
     }
 
@@ -1252,7 +1264,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
         Button searchBtn = mainLeader.findViewById(R.id.search_btn);
         SearchView searchView = mainLeader.findViewById(R.id.search_bar);
-        searchBtn.setVisibility(View.INVISIBLE);
+        searchBtn.setVisibility(View.GONE);
         searchBtn.setOnClickListener(v -> {
             //TODO enable this when search function implemented
 //            if(searchView.getVisibility() == View.GONE){
@@ -1989,6 +2001,10 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         if (overlayInitialised && overlayView != null) {
             windowManager.updateViewLayout(overlayView, overlayParams);
         }
+
+        if (appHasFocus) {
+            overlayView.setVisibility(View.INVISIBLE); //NEVER want this over LeadMe
+        }
     }
 
     int CORE_FLAGS;
@@ -2118,7 +2134,9 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             switch (status) {
                 case ConnectedPeer.STATUS_LOCK:
                 case ConnectedPeer.STATUS_BLACKOUT:
-                    overlayView.setVisibility(View.VISIBLE);
+                    if (!getPermissionsManager().waitingForPermission) {
+                        overlayView.setVisibility(View.VISIBLE);
+                    }
                     break;
                 case ConnectedPeer.STATUS_UNLOCK:
                     overlayView.setVisibility(View.INVISIBLE);
@@ -2581,17 +2599,37 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
     public void setOnboardCurrent(int current) {
         Log.d(TAG, "setOnboardCurrent: ");
-        ImageView[] buttons = {OnBoard.findViewById(R.id.oboard_btn_1), OnBoard.findViewById(R.id.oboard_btn_2), OnBoard.findViewById(R.id.oboard_btn_3), OnBoard.findViewById(R.id.oboard_btn_4), OnBoard.findViewById(R.id.oboard_btn_5)};
-        String titleToShow[] = {"Welcome to LeadMe", "Push Content", "Play, View & Block", "Select", "Lead the Way"};
-        String textToShow[] = {"The class management tool that connects leaders and learners for a managed digital learning environment.",
-                "Select apps, URLs, and videos to push out to connected learner devices.",
-                "Restrict learner devices. 'View' mode allows display but disables touch. 'Block' mode disables both display and touch. 'Free' mode allows full access within the pushed app.",
-                "Tap the active learner icons to select and manage learners individually",
-                "To finish a task, tap the LeadMe icon to return your learners to LeadMe\n" +
-                        "Select learn more to discover the full range of features LeadMe has to offer!"};
+
+        ImageView[] buttons = {
+                OnBoard.findViewById(R.id.oboard_btn_1),
+                OnBoard.findViewById(R.id.oboard_btn_2),
+                OnBoard.findViewById(R.id.oboard_btn_3),
+                OnBoard.findViewById(R.id.oboard_btn_4),
+                OnBoard.findViewById(R.id.oboard_btn_5)};
+
+        String titleToShow[] = {
+                getResources().getString(R.string.onboard_title_1),
+                getResources().getString(R.string.onboard_title_2),
+                getResources().getString(R.string.onboard_title_3),
+                getResources().getString(R.string.onboard_title_4),
+                getResources().getString(R.string.onboard_title_5)};
+
+        String textToShow[] = {
+                getResources().getString(R.string.onboard_1),
+                getResources().getString(R.string.onboard_2),
+                getResources().getString(R.string.onboard_3),
+                getResources().getString(R.string.onboard_4),
+                getResources().getString(R.string.onboard_5)};
+//
+//        Uri[] videos = {Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.welcome), Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.push_app),
+//                Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.play_view_block), Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.select),
+//                Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.recall)};
+
+
         Uri[] videos = {Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.welcome), Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.push_app),
                 Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.play_view_block), Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.select),
                 Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.recall)};
+
         Animation in = AnimationUtils.makeInAnimation(this, false);
         Animation out = AnimationUtils.makeOutAnimation(this, false);
         TextSwitcher onBoardTitle = OnBoard.findViewById(R.id.onBoard_title);

@@ -80,12 +80,14 @@ public class XrayManager {
         this.xrayScreen = xrayScreen;
     }
 
+    boolean screenCapPermission = false;
     @SuppressLint("WrongConstant")
     public void manageResultsReturn(int requestCode, int resultCode, Intent data) {
         main.getPermissionsManager().waitingForPermission = false;
         Log.d(TAG, "RETURNED RESULT FROM SCREEN_CAPTURE! " + resultCode + ", " + data);
         MediaProjection mediaProjection = projectionManager.getMediaProjection(resultCode, data);
         if (mediaProjection != null) {
+            screenCapPermission = true;
             DisplayMetrics metrics = main.getResources().getDisplayMetrics();
             int density = metrics.densityDpi;
             int flags = DisplayManager.VIRTUAL_DISPLAY_FLAG_OWN_CONTENT_ONLY
@@ -103,6 +105,8 @@ public class XrayManager {
                     size.x, size.y, density,
                     flags, imageReader.getSurface(), null, main.getHandler());
             imageReader.setOnImageAvailableListener(new ImageAvailableListener(), main.getHandler());
+        } else {
+            screenCapPermission = false;
         }
     }
 
@@ -265,7 +269,9 @@ public class XrayManager {
             }
         } else {
             Toast.makeText(main.getApplicationContext(), "No students available.", Toast.LENGTH_SHORT).show();
-            main.exitXrayView();
+            if (xrayScreen.getVisibility() == VISIBLE) {
+                main.exitXrayView();
+            }
         }
     }
 
@@ -349,22 +355,21 @@ public class XrayManager {
     }
 
     public void startServer() {
-//        if (screenShot) {
-//            Log.w(TAG, "Already capturing screenShots!");
-//            return;
-//        }
-        projectionManager = (MediaProjectionManager) main.getSystemService(Context.MEDIA_PROJECTION_SERVICE);
+        main.getPermissionsManager().waitingForPermission = true;
+        if (projectionManager == null || !screenCapPermission) {
+            projectionManager = (MediaProjectionManager) main.getSystemService(Context.MEDIA_PROJECTION_SERVICE);
 
-        //start service class
-        screen_share_intent = new Intent(main.getApplicationContext(), ScreensharingService.class);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            main.startForegroundService(screen_share_intent);
-        } else {
-            main.startService(screen_share_intent);
+            //start service class
+            screen_share_intent = new Intent(main.getApplicationContext(), ScreensharingService.class);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                main.startForegroundService(screen_share_intent);
+            } else {
+                main.startService(screen_share_intent);
+            }
+
+            //start screen capturing
+            main.startActivityForResult(projectionManager.createScreenCaptureIntent(), main.SCREEN_CAPTURE);
         }
-
-        //start screen capturing
-        main.startActivityForResult(projectionManager.createScreenCaptureIntent(), main.SCREEN_CAPTURE);
     }
 
     public void stopServer() {
@@ -382,6 +387,12 @@ public class XrayManager {
             ByteArrayOutputStream stream = null;
             //Log.d(TAG, "onImageAvailable: ");
             try (Image image = imageReader.acquireLatestImage()) {
+
+                if (main.getPermissionsManager().waitingForPermission) {
+                    main.getPermissionsManager().waitingForPermission = false;
+                    main.refreshOverlay();
+                }
+
                 //if (takeScreenshots) {
                 //Log.d(TAG, "onImageAvailable: image acquired");
                 //sleep allows control over how many screenshots are taken
@@ -409,6 +420,13 @@ public class XrayManager {
             } catch (Exception e) {
                 e.printStackTrace();
             } finally {
+
+
+                if (main.getPermissionsManager().waitingForPermission) {
+                    main.getPermissionsManager().waitingForPermission = false;
+                    main.refreshOverlay();
+                }
+
                 if (stream != null) {
                     try {
                         stream.close();
@@ -489,7 +507,7 @@ public class XrayManager {
         //get the image socket for this peer
         Thread imageSocketThread = clientSocketThreads.get(peer);
 
-        if(imageSocketThread == null) {
+        if (imageSocketThread == null) {
             monitorInProgress = true;
             imageSocketThread = new Thread(() -> imageRunnableFunction(peer));
             imageSocketThread.start();
@@ -509,7 +527,6 @@ public class XrayManager {
         screenShot = true;
         if (screenshotSocket != null && screenshotSocket.isConnected()) {
             Log.w(TAG, "Already have a screenshot runnable going!");
-            main.getPermissionsManager().waitingForPermission = false;
             try {
                 screenshotSocket.close();
             } catch (IOException e) {
@@ -527,6 +544,7 @@ public class XrayManager {
                 e.printStackTrace();
                 Log.d(TAG, "startScreenShot: socket not connected");
                 main.getPermissionsManager().waitingForPermission = false;
+                main.refreshOverlay();
                 return;
             }
             while (screenShot) {

@@ -397,6 +397,9 @@ public class YouTubeEmbedPlayer {
     }
 
     public void showVideoController() {
+        main.closeKeyboard();
+        main.hideSystemUI();
+
         activeWebView = controllerWebView;
         if (videoControlDialog == null) {
             videoControlDialog = new AlertDialog.Builder(main)
@@ -578,7 +581,7 @@ public class YouTubeEmbedPlayer {
         youtubePreviewPushBtn.setOnClickListener(v -> main.getHandler().post(() -> {
             playbackSettingsDialog.dismiss();
             int durationCalc = (int) ((progressBar.getProgress() / 100.0) * totalTime);
-            lastLockState = lockSpinner.getSelectedItem().toString().startsWith("Lock");
+            lastLockState = lockSpinner.getSelectedItem().toString().startsWith("View");
             webManager.pushYouTube(attemptedURL, controllerTitle, durationCalc, lastLockState, isVROn());
             if (favCheck.isChecked()) {
                 webManager.getYouTubeFavouritesManager().addCurrentPreviewToFavourites();

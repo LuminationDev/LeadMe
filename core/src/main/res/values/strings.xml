@@ -117,4 +117,16 @@
     <string name="vr_mode_on">VR mode ON</string>
     <string name="vr_mode_off">VR mode OFF</string>
 
+    <string name="onboard_1">The class management tool that connects leaders and learners for a managed digital learning environment.</string>
+    <string name="onboard_2">Select apps, URLs, and videos to push out to connected learner devices.</string>
+    <string name="onboard_3">Restrict learner devices. \'View\' mode allows display but disables touch. \'Block\' mode disables both display and touch. \'Free\' mode allows full access within the pushed app.</string>
+    <string name="onboard_4">Tap the active learner icons to select and manage learners individually</string>
+    <string name="onboard_5">To finish a task, tap the LeadMe icon to return your learners to LeadMe \n Select learn more to discover the full range of features LeadMe has to offer!</string>
+
+    <string name="onboard_title_1">Welcome to LeadMe</string>
+    <string name="onboard_title_2">Push Content</string>
+    <string name="onboard_title_3">Play, View &amp; Block</string>
+    <string name="onboard_title_4">Select</string>
+    <string name="onboard_title_5">Lead the Way</string>
+
 </resources>
