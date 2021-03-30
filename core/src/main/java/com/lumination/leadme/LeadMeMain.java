@@ -782,13 +782,13 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             }
             handler.post(() -> {
                 //wait until layout update is actioned before trying to gesture
-                //while (overlayView.isLayoutRequested()) {
+                while (currentTaskPackageName.equals(getAppManager().withinPackage) && overlayView.isLayoutRequested()) {
                     try {
                         Thread.sleep(200);
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
-                //}
+                }
 
                 Log.w(TAG, "gesture completed");
                 //activate the event once the tap completes
@@ -811,13 +811,13 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             }
             handler.post(() -> {
                 //wait until layout update is actioned before trying to gesture
-                //while (overlayView.isLayoutRequested()) {
+                while (currentTaskPackageName.equals(getAppManager().withinPackage) && overlayView.isLayoutRequested()) {
                     try {
                         Thread.sleep(200);
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
-                //}
+                }
 
                 getLumiAccessibilityConnector().gestureInProgress = false;
                 Log.w(TAG, "gesture cancelled");
@@ -855,30 +855,30 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             gestureBuilder.addStroke(new GestureDescription.StrokeDescription(swipePath, 0, 200)); //50 was too short for Within
             GestureDescription swipe = gestureBuilder.build();
 
-            //handler.postAtFrontOfQueue(() -> {
-            //change overlay so taps can temporarily pass through
+            handler.postAtFrontOfQueue(() -> {
+                //change overlay so taps can temporarily pass through
                 if (overlayView.isAttachedToWindow()) {
                     overlayParams.flags = WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE | WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN | WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE;
                     getWindowManager().updateViewLayout(overlayView, overlayParams);
 
-                    //handler.post(() -> {
-                    //wait until layout update is actioned before trying to gesture
-                        //do {
-                        try {
-                            Log.e(TAG, "Waiting... " + overlayView.isLayoutRequested());
-                            Thread.sleep(200);
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
-                        // } while (overlayView.isLayoutRequested());
+                    handler.post(() -> {
+                        //wait until layout update is actioned before trying to gesture
+                        do {
+                            try {
+                                Log.e(TAG, "Waiting... " + overlayView.isLayoutRequested());
+                                Thread.sleep(200);
+                            } catch (InterruptedException e) {
+                                e.printStackTrace();
+                            }
+                        } while (currentTaskPackageName.equals(getAppManager().withinPackage) && overlayView.isLayoutRequested());
 
                         boolean success = accessibilityService.dispatchGesture(swipe, gestureResultCallback, null);
                         Log.e(TAG, "Did I dispatch " + swipe + " to " + accessibilityService + "? " + success + " // " + overlayView.isAttachedToWindow() + " // " + overlayView.isLayoutRequested());
 
-                    //});
+                    });
                 }
 
-            //});
+            });
         });
     }
 

@@ -399,6 +399,8 @@ public class WithinAccessibilityManager {
     }
 
     public void cleanUpVideo() {
+        main.getAppManager().withinURI = null;
+
         if (schedTapTask != null) {
             schedTapTask.cancel(true);
         }

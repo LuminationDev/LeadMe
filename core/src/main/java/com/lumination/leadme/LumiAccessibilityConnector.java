@@ -44,6 +44,7 @@ public class LumiAccessibilityConnector {
     public void resetState() {
         Log.d(TAG, "resetState: ");
         ytManager.resetState();
+        withinManager.cleanUpVideo();
     }
 
     public void cueYouTubeAction(String actionStr) {
