@@ -2659,7 +2659,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
         Uri[] videos = {Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.welcome), Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.push_app),
                 Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.play_view_block), Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.select),
-                Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.recall)};
+                Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.recall_student)};
 
         Animation in = AnimationUtils.makeInAnimation(this, false);
         Animation out = AnimationUtils.makeOutAnimation(this, false);
