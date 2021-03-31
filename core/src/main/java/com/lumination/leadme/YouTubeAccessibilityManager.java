@@ -453,9 +453,11 @@ public class YouTubeAccessibilityManager {
         cuedActions.add(action + "");
         Log.d(TAG, "CUED ACTIONS: " + cuedActions);
 
-        new Thread(() -> {
-            manageYouTubeAccess(connector.lastEvent, connector.lastInfo); //re-try last event
-        }).start();
+        if (connector.lastEvent != null && connector.lastInfo != null) {
+            new Thread(() -> {
+                manageYouTubeAccess(connector.lastEvent, connector.lastInfo); //re-try last event
+            }).start();
+        }
     }
 
     //these are not case sensitive, and will return partial matches
