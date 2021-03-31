@@ -22,6 +22,7 @@ import java.util.Arrays;
 import java.util.Base64;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Queue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -82,6 +83,10 @@ public class NetworkAdapter {
     public ArrayList<client> currentClients = new ArrayList<>();
     public ArrayList<NsdServiceInfo> discoveredLeaders = new ArrayList<>();
 
+    private resListener resolver;
+    private boolean resInProgress=false;
+    ArrayList<NsdServiceInfo> serviceQueue;
+
     public ExecutorService executorService = Executors.newFixedThreadPool(1);
     ScheduledExecutorService scheduledExecutor = new ScheduledThreadPoolExecutor(1);
 
@@ -94,9 +99,11 @@ public class NetworkAdapter {
         this.nearbyPeersManager = nearbyPeersManager;
         this.main = main;
         mNsdManager = (NsdManager) context.getSystemService(Context.NSD_SERVICE);
+        resolver = new resListener();
         //
         startServer();
         //main.startServer();
+        serviceQueue = new ArrayList<>();
     }
 
     /*
@@ -110,6 +117,11 @@ public class NetworkAdapter {
                 @Override
                 public void onDiscoveryStarted(String regType) {
                     Log.d(TAG, "Service discovery started");
+                    main.runOnUiThread(() -> {
+                        ArrayList<ConnectedPeer> temp = new ArrayList<>();
+                        main.getLeaderSelectAdapter().setLeaderList(temp);
+                        main.showLeaderWaitMsg(true);
+                    });
                 }
 
                 @Override
@@ -124,7 +136,23 @@ public class NetworkAdapter {
 
                     } else if (service.getServiceName().contains("#Teacher")) {
                         Log.d(TAG, "onServiceFound: attempting to resolve " + service.getServiceName());
-                        mNsdManager.resolveService(service, new resListener());
+                        //serviceQueue.add(service);
+//                        if(!resInProgress) {
+//                            resInProgress=true;
+                        //fixes the resolve 3 error
+                        executorService.submit(new Runnable() {
+                            @Override
+                            public void run() {
+                                mNsdManager.resolveService(service, new resListener());
+                                try {
+                                    Thread.currentThread().sleep(50);
+                                } catch (InterruptedException e) {
+                                    e.printStackTrace();
+                                }
+                            }
+                        });
+
+//                        }
                     }
                 }
 
@@ -170,10 +198,6 @@ public class NetworkAdapter {
         @Override
         public void onResolveFailed(NsdServiceInfo serviceInfo, int errorCode) {
             Log.e(TAG, "Resolve failed " + errorCode);
-            if (errorCode == 3) {
-                //TODO clean up from connection attempt, and try again
-                mNsdManager.resolveService(serviceInfo, new resListener());
-            }
             return;
         }
 
@@ -184,20 +208,28 @@ public class NetworkAdapter {
             //stop it from detecting its own service, not relevant for LeadMe as it is either in discovery or advertising mode
             if (serviceInfo.getServiceName().equals(Name)) {
                 Log.d(TAG, "Same IP.");
+                resInProgress=false;
                 return;
             }
             Log.d(TAG, "onServiceResolved: " + serviceInfo);
-            mService = serviceInfo;
-            if (!discoveredLeaders.contains(serviceInfo)) {
-                discoveredLeaders.add(serviceInfo);
-            }
-            List<String> leader = Arrays.asList(serviceInfo.getServiceName().split("#"));
+            executorService.submit(new Runnable() {
+                @Override
+                public void run() {
+                    mService = serviceInfo;
+                    if (!discoveredLeaders.contains(serviceInfo)) {
+                        discoveredLeaders.add(serviceInfo);
+                    }
+                    List<String> leader = Arrays.asList(serviceInfo.getServiceName().split("#"));
 
-            //add to the leaders list
-            main.runOnUiThread(() -> {
-                main.getLeaderSelectAdapter().addLeader(new ConnectedPeer(leader.get(0), serviceInfo.getHost().toString()));
-                main.showLeaderWaitMsg(false);
+                    //add to the leaders list
+                    main.runOnUiThread(() -> {
+                        main.getLeaderSelectAdapter().addLeader(new ConnectedPeer(leader.get(0), serviceInfo.getHost().toString()));
+                        main.showLeaderWaitMsg(false);
+                    });
+                    resInProgress=false;
+                }
             });
+
             return;
         }
     }

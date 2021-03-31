@@ -20,7 +20,7 @@
         android:gravity="center"
         android:orientation="vertical"
         android:showDividers="middle|beginning|end"
-        android:visibility="gone">
+        android:visibility="visible">
 
 
         <LinearLayout
@@ -328,8 +328,7 @@
         android:layout_height="match_parent"
         android:background="@drawable/rounded_popup_white"
         android:orientation="vertical"
-        android:visibility="visible"
-        tools:visibility="visible">
+        android:visibility="gone">
 
         <TextView
             android:layout_width="wrap_content"
@@ -342,6 +341,13 @@
             android:text="Login to begin"
             android:textSize="16sp" />
 
+        <TextView
+            android:id="@+id/error_text"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColor="@android:color/holo_red_dark"
+            android:visibility="gone" />
+
         <EditText
             android:id="@+id/login_email"
             android:layout_width="match_parent"
@@ -352,13 +358,12 @@
             android:accessibilityTraversalBefore="@id/back_btn"
             android:autofillHints=""
             android:background="@drawable/rounded_btn_highlight"
-            android:digits="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ _"
             android:focusableInTouchMode="true"
             android:fontFamily="@font/poppins_regular"
             android:gravity="left"
             android:hint="Email"
             android:imeOptions="actionNext"
-            android:inputType="textPersonName|textCapWords"
+            android:inputType="textEmailAddress"
             android:maxLines="1"
             android:paddingLeft="10dp"
             android:paddingTop="10dp"
@@ -380,12 +385,12 @@
             android:accessibilityTraversalBefore="@id/back_btn"
             android:autofillHints=""
             android:background="@drawable/rounded_btn_highlight"
-            android:digits="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ _"
             android:focusableInTouchMode="true"
             android:fontFamily="@font/poppins_regular"
             android:gravity="left"
             android:hint="Password"
             android:imeOptions="actionNext"
+            android:inputType="textPassword"
             android:maxLines="1"
             android:paddingLeft="10dp"
             android:paddingTop="10dp"
@@ -393,8 +398,7 @@
             android:singleLine="true"
             android:textColorHint="@color/leadme_medium_grey"
             android:textSize="16sp"
-            android:visibility="visible"
-            android:inputType="textPassword"></EditText>
+            android:visibility="visible"></EditText>
 
         <TextView
             android:id="@+id/login_forgotten"
@@ -410,7 +414,8 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:orientation="horizontal">
+            android:orientation="horizontal"
+            android:visibility="gone">
 
             <ImageView
                 android:id="@+id/imageView3"
@@ -457,7 +462,8 @@
             android:layout_marginTop="10dp"
             android:layout_marginBottom="20dp"
             android:background="@drawable/bg_passive"
-            android:orientation="horizontal">
+            android:orientation="horizontal"
+            android:visibility="gone">
 
             <ImageView
                 android:layout_width="wrap_content"
