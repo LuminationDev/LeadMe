@@ -50,7 +50,6 @@
                     android:id="@+id/textView3"
                     android:layout_width="wrap_content"
                     android:layout_height="35dp"
-                    android:layout_weight="1"
                     android:fontFamily="@font/poppins_semibold"
                     android:gravity="center|right"
                     android:text="Search Web" />
@@ -102,7 +101,7 @@
                     android:fontFamily="@font/poppins_semibold"
                     android:gravity="center_vertical"
                     android:includeFontPadding="false"
-                    android:text="Favourites"
+                    android:text="Browse Favourites"
                     android:textColor="@color/leadme_darkest_grey"
                     android:textSize="12sp" />
 
@@ -119,7 +118,7 @@
                     android:drawableLeft="@drawable/icon_paste_from_clipboard"
                     android:drawablePadding="5dp"
                     android:fontFamily="@font/poppins_semibold"
-                    android:text="Paste from clipboard"
+                    android:text="Paste"
                     android:textAlignment="textEnd"
                     android:textColor="@color/leadme_darkest_grey"
                     android:textSize="12sp" />
@@ -140,8 +139,6 @@
                 android:layout_width="@dimen/standard_btn_width"
                 android:layout_height="@dimen/standard_btn_height"
                 android:layout_gravity="center_horizontal"
-                android:accessibilityTraversalAfter="@id/back_btn"
-                android:accessibilityTraversalBefore="@id/codeInput4"
                 android:background="@drawable/bg_active"
                 android:clickable="true"
                 android:fontFamily="@font/poppins_semibold"

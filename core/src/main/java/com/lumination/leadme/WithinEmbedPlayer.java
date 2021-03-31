@@ -329,7 +329,7 @@ public class WithinEmbedPlayer {
             withinControllerDialogView.findViewById(R.id.basic_controls).setVisibility(View.VISIBLE);
             withinControllerDialogView.findViewById(R.id.vr_selection).setVisibility(View.GONE);
 
-            withinControllerDialogView.findViewById(R.id.within_playback_btns).setVisibility(View.VISIBLE);
+            withinControllerDialogView.findViewById(R.id.playback_btns).setVisibility(View.VISIBLE);
             withinControllerDialogView.findViewById(R.id.within_select_btns).setVisibility(View.GONE);
 
             repushBtn.setVisibility(View.VISIBLE);
@@ -339,7 +339,7 @@ public class WithinEmbedPlayer {
             withinControllerDialogView.findViewById(R.id.basic_controls).setVisibility(View.GONE);
             withinControllerDialogView.findViewById(R.id.vr_selection).setVisibility(View.VISIBLE);
 
-            withinControllerDialogView.findViewById(R.id.within_playback_btns).setVisibility(View.GONE);
+            withinControllerDialogView.findViewById(R.id.playback_btns).setVisibility(View.GONE);
             withinControllerDialogView.findViewById(R.id.within_select_btns).setVisibility(View.VISIBLE);
 
             repushBtn.setVisibility(View.INVISIBLE);

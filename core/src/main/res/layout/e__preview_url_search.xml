@@ -174,17 +174,32 @@
         <WebView
             android:id="@+id/webview_preview"
             android:layout_width="match_parent"
-            android:layout_height="350dp"
+            android:layout_height="300dp"
             android:visibility="visible" />
 
     </LinearLayout>
 
     <LinearLayout
-        android:id="@+id/within_playback_btns"
+        android:id="@+id/playback_btns"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_marginTop="30dp"
         android:orientation="vertical">
+
+
+        <Button
+            android:id="@+id/search_btn"
+            style="?android:attr/borderlessButtonStyle"
+            android:layout_width="@dimen/standard_btn_width"
+            android:layout_height="@dimen/standard_btn_height"
+            android:layout_gravity="center_horizontal"
+            android:background="@drawable/bg_active"
+            android:clickable="true"
+            android:fontFamily="@font/poppins_semibold"
+            android:text="@android:string/search_go"
+            android:textAllCaps="false"
+            android:textColor="@color/leadme_white"
+            android:textSize="16sp" />
 
         <Space
             android:layout_width="match_parent"

@@ -44,7 +44,7 @@ public class ConnectedLearnersAdapter extends BaseAdapter {
             }
         }
         if (peersWithWarnings.isEmpty()) {
-            main.setAlertsBtnVisibility(View.INVISIBLE);
+            main.setAlertsBtnVisibility(View.GONE);
         } else {
             main.setAlertsBtnVisibility(View.VISIBLE);
         }

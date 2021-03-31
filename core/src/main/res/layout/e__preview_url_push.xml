@@ -62,14 +62,14 @@
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="15dp"
-            android:layout_marginBottom="5dp"
+            android:layout_marginBottom="10dp"
             android:ellipsize="end"
             android:fontFamily="@font/poppins_semibold"
             android:maxLines="2"
             android:text="@string/website_title"
             android:textAlignment="textStart"
             android:textColor="@color/leadme_black"
-            android:textSize="16sp" />
+            android:textSize="18sp" />
 
         <CheckBox
             android:id="@+id/fav_checkbox"
@@ -179,7 +179,7 @@
     </LinearLayout>
 
     <LinearLayout
-        android:id="@+id/within_playback_btns"
+        android:id="@+id/playback_btns"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal"

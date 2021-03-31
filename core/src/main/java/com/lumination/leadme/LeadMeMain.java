@@ -153,6 +153,8 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     protected View overlayView;
 
     public boolean studentLockOn = true; //students start locked
+    public String lastLockState = LOCK_TAG;
+    public String lastAppID;
     public boolean autoInstallApps = false; //if true, missing apps on student devices get installed automatically
 
     //details about me to send to peers
@@ -1310,15 +1312,13 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         ((TextView) appLauncherScreen.findViewById(R.id.text_current_task)).setVisibility(View.GONE);
         ((ListView) startLearner.findViewById(R.id.leader_list_view)).setAdapter(getLeaderSelectAdapter());
 
-        ((ImageView) appLauncherScreen.findViewById(R.id.repush_btn)).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (lastLockState.equals(LOCK_TAG)) {
-                    getDispatcher().requestRemoteAppOpen(APP_TAG, lastAppID, String.valueOf(((TextView) appLauncherScreen.findViewById(R.id.text_current_task)).getText()), LOCK_TAG, getNearbyManager().getSelectedPeerIDsOrAll());
-                } else {
-                    getDispatcher().requestRemoteAppOpen(APP_TAG, lastAppID, String.valueOf(((TextView) appLauncherScreen.findViewById(R.id.text_current_task)).getText()), UNLOCK_TAG, getNearbyManager().getSelectedPeerIDsOrAll());
-                }
+        ((ImageView) appLauncherScreen.findViewById(R.id.repush_btn)).setOnClickListener((View.OnClickListener) v -> {
+            if (lastLockState != null && lastLockState.equals(LOCK_TAG)) {
+                getDispatcher().requestRemoteAppOpen(APP_TAG, lastAppID, String.valueOf(((TextView) appLauncherScreen.findViewById(R.id.text_current_task)).getText()), LOCK_TAG, getNearbyManager().getSelectedPeerIDsOrAll());
+            } else {
+                getDispatcher().requestRemoteAppOpen(APP_TAG, lastAppID, String.valueOf(((TextView) appLauncherScreen.findViewById(R.id.text_current_task)).getText()), UNLOCK_TAG, getNearbyManager().getSelectedPeerIDsOrAll());
             }
+            showConfirmPushDialog(true, false);
         });
 
         mainLeader.findViewById(R.id.url_core_btn).setOnClickListener(v -> getWebManager().showWebLaunchDialog(false, false));
@@ -1549,6 +1549,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         });
         mainLeader.findViewById(R.id.select_bar_repush).setOnClickListener(v -> {
             getDispatcher().repushApp(getNearbyManager().getSelectedPeerIDs());
+            getConnectedLearnersAdapter().selectAllPeers(false);
         });
 
 
@@ -2521,8 +2522,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     }
 
 
-    public String lastAppID;
-    public String lastLockState;
 
     public void updateLastTask(Drawable icon, String Name, String appID, String lock) {
         lastAppID = appID;

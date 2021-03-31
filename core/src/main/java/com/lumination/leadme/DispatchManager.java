@@ -26,6 +26,7 @@ public class DispatchManager {
 
     public void repushApp(Set<String> selectedPeerIDs) {
         requestRemoteAppOpen(tagRepush, packageNameRepush, appNameRepush, lockTagRepush, selectedPeerIDs);
+        main.showConfirmPushDialog(true, false);
     }
 
     protected void disableInteraction(final int status) {

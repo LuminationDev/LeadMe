@@ -1181,110 +1181,126 @@ public class WebManager {
 //        if (!(searchView.getQuery().length() > 0)) {
 //            web.setVisibility(View.GONE);
 //        }
+        searchDialogView.findViewById(R.id.search_btn).setOnClickListener(v -> searchText(searchView.getQuery().toString()));
+
+
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             //moved listener to end of search to avoid triggering recaptcha for rapid querys
             public boolean onQueryTextSubmit(String newText) {
-                if (newText.length() > 0) {
-                    searchWebView.setVisibility(View.VISIBLE);
-                }
-//                } else {
-//                    web.setVisibility(View.GONE);
-//                }
-
-                //filters the search results
-                if (searchYoutube) {
-                    searchWebView.loadUrl("https://www.google.com/search?q=" + newText + "&tbm=vid&as_sitesearch=youtube.com");
-
-                    //swap the above line with the one below to index youtube's site directly
-                    //NOTE - if this is used, will need to change triggers for when to show preview
-                    // (currently loads preview for anything that doesn't begin with google.com)
-                    //web.loadUrl("https://www.youtube.com/results?search_query="+newText);
-
-                } else {
-                    searchWebView.loadUrl("https://www.google.com/search?q=" + newText);
-                }
-
-
-                searchWebView.setWebViewClient(new WebViewClient() {
-                    /*
-                    Exists for the sole purpose of handling google's top stories news sites
-                    handles all resources as they load including fonts etc
-                     */
-                    public void onLoadResource(WebView view, String url) {
-                        Log.d(TAG, "onLoadResource: " + url);
-                        if (url.startsWith("https://www.google.com/gen_204") && url.contains("&url=")) { //avoid the preloaded link powered by amp
-                            //find the real url hidden in the url
-                            String[] parts = url.split("&");
-                            for (int i = 0; i < parts.length; i++) {
-                                if (parts[i].startsWith("url=")) {
-                                    url = parts[i].substring(4);
-                                }
-                            }
-                            Log.d(TAG, "onLoadResource valid: " + url);
-                            //searchDialog.hide();
-                            hideSearchDialog();
-                            showPreview(url);
-                        }
-                    }
-
-                    //
-                    public void onPageFinished(WebView view, String url) {
-                        //scrolls the page down to cut off the google rubbish at top
-                        if (url.startsWith("https://www.google.com")) {
-                            searchWebView.scrollTo(0, 400);
-                        }
-
-                        Log.d(TAG, "onPageFinished: " + url);
-                    }
-
-                    @Override
-                    /*
-                    Catches the page click event and redirects it to open up our popup instead of loading the link in the browser
-                     */
-                    public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
-                        //view.loadUrl(url);
-                        Log.d(TAG, "shouldOverrideUrlLoading: " + request.getUrl().toString());
-                        String URL = request.getUrl().toString();
-
-                        //remove intent tag, let each device handle it
-                        //however they see fit (otherwise end up with loop of crashes)
-                        if (URL.startsWith("intent:")) {
-                            URL = URL.substring(9);
-
-                            //hacky, but makes the "View in VR/AR" SceneViewer things work
-                            if (URL.contains("http://arvr.google.com/")) {
-                                URL = URL.replace("http://arvr.google.com/", "https://arvr.google.com/");
-                                if (URL.contains("&referrer=google.com")) {
-                                    URL = URL.split("&referrer=google.com")[0];
-                                }
-                            }
-                        }
-
-                        if (!URL.startsWith("https://www.google.com")) {
-                            //searchDialog.hide();
-                            hideSearchDialog();
-                            showPreview(URL);
-                            return true;
-                        }
-
-                        return false;
-                    }
-                });
-
-                return false;
+                return searchText(newText);
             }
 
             @Override
             public boolean onQueryTextChange(String newText) {
-                //removes the webview when text is cleared
-//                if (!(newText.length() > 0)) {
-//                    web.setVisibility(View.GONE);
-//                }
                 return false;
             }
         });
 
+    }
+
+    private boolean searchText(String newText) {
+
+
+        if (newText.length() > 0) {
+            searchWebView.setVisibility(View.VISIBLE);
+        }
+//
+        //filters the search results
+        if (searchYoutube) {
+            searchWebView.loadUrl("https://www.google.com/search?q=" + newText + "&tbm=vid&as_sitesearch=youtube.com");
+
+            //swap the above line with the one below to index youtube's site directly
+            //NOTE - if this is used, will need to change triggers for when to show preview
+            // (currently loads preview for anything that doesn't begin with google.com)
+            //web.loadUrl("https://www.youtube.com/results?search_query="+newText);
+
+        } else {
+            searchWebView.loadUrl("https://www.google.com/search?q=" + newText);
+        }
+
+
+        searchWebView.setWebViewClient(new WebViewClient() {
+            /*
+            Exists for the sole purpose of handling google's top stories news sites
+            handles all resources as they load including fonts etc
+             */
+            public void onLoadResource(WebView view, String url) {
+                Log.d(TAG, "onLoadResource: " + url);
+                if (url.startsWith("https://www.google.com/gen_204") && url.contains("&url=")) { //avoid the preloaded link powered by amp
+                    //find the real url hidden in the url
+                    String[] parts = url.split("&");
+                    for (int i = 0; i < parts.length; i++) {
+                        if (parts[i].startsWith("url=")) {
+                            url = parts[i].substring(4);
+                        }
+                    }
+                    Log.d(TAG, "onLoadResource valid: " + url);
+                    //searchDialog.hide();
+                    hideSearchDialog();
+                    showPreview(url);
+                }
+            }
+
+            //
+            public void onPageFinished(WebView view, String url) {
+                //scrolls the page down to cut off the google rubbish at top
+                if (url.startsWith("https://www.google.com")) {
+                    searchWebView.scrollTo(0, 400);
+                }
+
+                Log.d(TAG, "onPageFinished: " + url);
+            }
+
+            @Override
+                    /*
+                    Catches the page click event and redirects it to open up our popup instead of loading the link in the browser
+                     */
+            public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
+                //view.loadUrl(url);
+                Log.d(TAG, "shouldOverrideUrlLoading: " + request.getUrl().toString());
+                String URL = request.getUrl().toString();
+
+                //remove intent tag, let each device handle it
+                //however they see fit (otherwise end up with loop of crashes)
+                if (URL.startsWith("intent:")) {
+                    URL = URL.substring(9);
+
+                    //hacky, but makes the "View in VR/AR" SceneViewer things work
+                    if (URL.contains("http://arvr.google.com/")) {
+                        URL = URL.replace("http://arvr.google.com/", "https://arvr.google.com/");
+                        if (URL.contains("&referrer=google.com")) {
+                            URL = URL.split("&referrer=google.com")[0];
+                        }
+                    }
+                }
+
+                if (!URL.startsWith("https://www.google.com")) {
+                    //searchDialog.hide();
+                    hideSearchDialog();
+                    showPreview(URL);
+
+                    main.runOnUiThread(() -> {
+                        main.hideSystemUI();
+                        main.closeKeyboard();
+                    });
+                    return true;
+                }
+
+                main.runOnUiThread(() -> {
+                    main.hideSystemUI();
+                    main.closeKeyboard();
+                });
+                return false;
+            }
+        });
+
+        main.runOnUiThread(() -> {
+            main.hideSystemUI();
+            main.closeKeyboard();
+        });
+
+        return false;
     }
 
 }
