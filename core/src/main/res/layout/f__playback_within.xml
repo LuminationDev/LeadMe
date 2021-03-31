@@ -29,7 +29,8 @@
             android:layout_gravity="center_vertical"
             android:layout_marginEnd="15dp"
             android:foregroundGravity="center_vertical"
-            android:src="@drawable/arrow_icon" />
+            android:src="@drawable/arrow_icon"
+            android:visibility="invisible" />
 
         <TextView
             android:id="@+id/title"

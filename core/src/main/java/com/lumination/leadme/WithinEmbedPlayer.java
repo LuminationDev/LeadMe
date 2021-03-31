@@ -314,7 +314,7 @@ public class WithinEmbedPlayer {
             if (!v.getBackground().equals(disabledBg) && !foundURL.trim().equals("")) {
                 Log.i(TAG, "Loading " + foundTitle + " | " + foundURL);
                 if (favCheck.isChecked()) {
-                    main.getWebManager().getUrlFavouritesManager().addToFavourites(foundURL, foundTitle, null);
+                    main.getWebManager().getYouTubeFavouritesManager().addToFavourites(foundURL, foundTitle, null);
                 }
                 videoSearchDialog.dismiss();
                 showGuideController(true);
@@ -381,7 +381,7 @@ public class WithinEmbedPlayer {
         });
 
         repushBtn.setOnClickListener(v -> {
-            pushWithin(); //TODO see if this needs any changes
+            main.getDispatcher().repushApp(main.getNearbyManager().getSelectedPeerIDsOrAll());
         });
 
         pushBtn.setOnClickListener(v -> {
@@ -427,8 +427,8 @@ public class WithinEmbedPlayer {
     }
 
     public void showWithin() {
-        Log.w(TAG, "Showing WITHIN: " + attemptedURL);
-        if (attemptedURL.isEmpty()) {
+        Log.w(TAG, "Showing WITHIN: " + foundURL + ", " + main.getAppManager().withinURI);
+        if (foundURL.isEmpty()) {
             showWithinSearch();
         } else {
             showGuideController(false);
@@ -529,7 +529,7 @@ public class WithinEmbedPlayer {
         return output;
     }
 
-    private void resetControllerState() {
+    public void resetControllerState() {
         videoCurrentDisplayMode = STD_MODE;
         foundURL = "";
         foundTitle = "";

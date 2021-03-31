@@ -350,7 +350,7 @@ public class ConnectedLearnersAdapter extends BaseAdapter {
             convertView.setLongClickable(true);
             convertView.setOnLongClickListener(v -> {
                 lastClickedID = peer.getID();
-                //main.xrayManager.showXrayView(lastClickedID);
+                main.xrayManager.showXrayView(lastClickedID);
                 return true;
             });
 

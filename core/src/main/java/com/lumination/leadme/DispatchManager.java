@@ -19,14 +19,25 @@ public class DispatchManager {
     String packageNameRepush;
     String appNameRepush;
     String lockTagRepush;
+    String extraRepush;
+    boolean streamingRepush;
+    boolean vrModeRepush;
 
     public DispatchManager(LeadMeMain main) {
         this.main = main;
     }
 
     public void repushApp(Set<String> selectedPeerIDs) {
-        requestRemoteAppOpen(tagRepush, packageNameRepush, appNameRepush, lockTagRepush, selectedPeerIDs);
-        main.showConfirmPushDialog(true, false);
+        Log.w(TAG, "REPUSH: " + tagRepush + ", " + packageNameRepush + ", " + appNameRepush + ", " + lockTagRepush + ", " + extraRepush);
+
+
+        if (packageNameRepush.equals(main.getAppManager().withinPackage)) {
+            requestRemoteWithinLaunch(tagRepush, packageNameRepush, appNameRepush, lockTagRepush, extraRepush, streamingRepush, vrModeRepush, selectedPeerIDs);
+        } else {
+            requestRemoteAppOpen(tagRepush, packageNameRepush, appNameRepush, lockTagRepush, selectedPeerIDs);
+        }
+
+        main.runOnUiThread(() -> main.showConfirmPushDialog(true, false));
     }
 
     protected void disableInteraction(final int status) {
@@ -69,6 +80,9 @@ public class DispatchManager {
         packageNameRepush = packageName;
         appNameRepush = appName;
         lockTagRepush = lockTag;
+        extraRepush = extra;
+        streamingRepush = streaming;
+        vrModeRepush = vrMode;
         Parcel p = Parcel.obtain();
         byte[] bytes;
         p.writeString(tag);
@@ -81,6 +95,7 @@ public class DispatchManager {
         bytes = p.marshall();
         p.recycle();
         writeMessageToSelected(bytes, selectedPeerIDs);
+        main.updateLastTask(main.getAppManager().getAppIcon(packageName), main.getAppManager().getAppName(packageName), packageName, lockTag);
     }
 
     public void requestRemoteAppOpen(String tag, String packageName, String appName, String lockTag, Set<String> selectedPeerIDs) {
@@ -100,6 +115,10 @@ public class DispatchManager {
         p.recycle();
         writeMessageToSelected(bytes, selectedPeerIDs);
         main.updateLastTask(main.getAppManager().getAppIcon(packageName), main.getAppManager().getAppName(packageName), packageName, lockTag);
+
+        if (!packageName.equals(main.getAppManager().withinPackage)) {
+            main.getAppManager().getWithinPlayer().foundURL = "";
+        }
     }
 
     public synchronized void alertLogout() {
@@ -445,8 +464,10 @@ public class DispatchManager {
                         Log.d(TAG, "Setting streaming status, vrMode and URL for WITHIN VR " + extra + ", " + streaming + ", " + vrMode + ", (" + appInForeground + ")");
                     }
                 } else {
+                    Log.w(TAG, "No URI, reset state!");
                     //no URL was specified, so clear any previous info
-                    main.getAppManager().withinURI = null;
+                    //main.getAppManager().withinURI = null;
+                    main.getLumiAccessibilityConnector().resetState();
                 }
             }
 

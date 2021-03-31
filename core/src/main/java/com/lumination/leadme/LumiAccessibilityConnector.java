@@ -147,18 +147,18 @@ public class LumiAccessibilityConnector {
             return false;
         }
 
-//        if (event == null && rootInActiveWindow == null) { //lastEvent != null) {
-//            Log.w(TAG, "Revisiting previous event..."+lastEvent+" "+lastInfo);
-//            event = lastEvent;
-//            rootInActiveWindow = lastInfo;
-//            lastInfo = null; //we probably don't want to revisit these too many times
-//            lastEvent = null; //we probably don't want to revisit these too many times
-//
-//        } else
+        if (event == null && rootInActiveWindow == null) { //lastEvent != null) {
+            Log.w(TAG, "Revisiting previous event..." + lastEvent + " " + lastInfo);
+            event = lastEvent;
+            rootInActiveWindow = lastInfo;
+            lastInfo = null; //we probably don't want to revisit these too many times
+            lastEvent = null; //we probably don't want to revisit these too many times
 
-        if (event == null && rootInActiveWindow == null) {
-            Log.e(TAG, "No events here to act on");
-            return false;
+//       }
+//
+//        if (event == null && rootInActiveWindow == null) {
+//            Log.e(TAG, "No events here to act on");
+//            return false;
 
         } else {
             lastEvent = event;
@@ -180,9 +180,10 @@ public class LumiAccessibilityConnector {
                 Log.e(TAG, "SOURCE! >>>  " + event.getSource());
             }
 
+            AccessibilityEvent finalEvent = event;
+            AccessibilityNodeInfo finalRootInActiveWindow = rootInActiveWindow;
+
             if (!appInForeground && event.getSource() != null && event.getSource().getPackageName().toString().contains(main.getAppManager().withinPackage)) {
-                AccessibilityEvent finalEvent = event;
-                AccessibilityNodeInfo finalRootInActiveWindow = rootInActiveWindow;
                 executor.execute(() -> {
                     withinManager.manageWithinAccess(finalEvent, finalRootInActiveWindow);
                 });
@@ -190,7 +191,7 @@ public class LumiAccessibilityConnector {
             } else if (!appInForeground && event.getSource() != null && event.getSource().getPackageName().toString().contains(main.getAppManager().youtubePackage)) {
                 executor.execute(() -> {
                     //non-UI work here
-                    ytManager.manageYouTubeAccess(event, rootInActiveWindow);
+                    ytManager.manageYouTubeAccess(finalEvent, finalRootInActiveWindow);
                 });
 
             } else if (appInForeground && dispatcher.launchAppOnFocus == null

@@ -192,6 +192,8 @@ public class AppManager extends BaseAdapter {
             intent.setComponent(new ComponentName(withinPackage, withinPackage + ".activities.DeeplinkStartupActivity"));
             intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
             //intent.setPackage(packageName);
+        } else {
+            main.getLumiAccessibilityConnector().withinManager.cleanUpVideo(); //reset video state
         }
 
         if (actualAppPackage.equals(withinPackage)) {
