@@ -2091,6 +2091,13 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 //            }
         } else {
             codeEntered = true; //mark as true, since we don't need one
+            if (!nameEntered ) {
+            //alert to errors and exit
+            showLoginAlertMessage();
+            return false; //failed
+        } else {
+            return true; //succeeded
+        }
         }
         return false;
 //        if (!nameEntered || !codeEntered) {
