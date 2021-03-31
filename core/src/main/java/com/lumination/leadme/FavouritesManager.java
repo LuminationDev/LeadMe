@@ -676,11 +676,7 @@ public class FavouritesManager extends BaseAdapter {
             convertView.setClickable(true);
             convertView.setOnClickListener(v -> {
                 favAdding = false;
-                if (favPackage.equals(main.getAppManager().withinPackage)) {
-                    main.getAppManager().getWithinPlayer().showWithin(); //.showGuideController();
-                } else {
-                    main.showAppPushDialog(appName, appIcon, favPackage);
-                }
+                main.showAppPushDialog(appName, appIcon, favPackage);
             });
 
             convertView.setLongClickable(true);

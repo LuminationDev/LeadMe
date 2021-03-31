@@ -189,13 +189,19 @@ public class AppManager extends BaseAdapter {
             //intent = new Intent(Intent.ACTION_VIEW, withinURI);
             intent.setData(withinURI);
             intent.addCategory(Intent.CATEGORY_BROWSABLE);
-            intent.setComponent(new ComponentName("com.shakingearthdigital.vrsecardboard", "com.shakingearthdigital.vrsecardboard.activities.DeeplinkStartupActivity"));
+            intent.setComponent(new ComponentName(withinPackage, withinPackage + ".activities.DeeplinkStartupActivity"));
             intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
             //intent.setPackage(packageName);
         }
+
         if (actualAppPackage.equals(withinPackage)) {
             main.activityManager.killBackgroundProcesses(withinPackage);
         }
+
+        if (actualAppPackage.equals(youtubePackage)) {
+            main.activityManager.killBackgroundProcesses(youtubePackage);
+        }
+
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         main.startActivity(intent);
         lastApp = packageName;
@@ -207,7 +213,7 @@ public class AppManager extends BaseAdapter {
                 main.updateFollowerCurrentTask(actualAppPackage, appName, "Application", "", "");
             }
         }
-        Log.w(TAG, "Launching: " + appName + ", " + actualAppPackage + " " + withinPackage);
+        Log.w(TAG, "Launching: " + appName + ", " + actualAppPackage + " " + withinPackage + ", " + withinURI);
 
 
         main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.LAUNCH_SUCCESS + appName + ":" + main.getNearbyManager().getID() + ":" + actualAppPackage, main.getNearbyManager().getAllPeerIDs());

@@ -100,7 +100,7 @@
             </androidx.cardview.widget.CardView>
 
             <Button
-                android:id="@+id/new_video"
+                android:id="@+id/push_btn"
                 style="?android:attr/borderlessButtonStyle"
                 android:layout_width="@dimen/standard_btn_width"
                 android:layout_height="@dimen/standard_btn_height"

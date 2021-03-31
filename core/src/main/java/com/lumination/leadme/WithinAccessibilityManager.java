@@ -426,11 +426,11 @@ public class WithinAccessibilityManager {
                 schedTapTask.cancel(true);
                 scheduledExecutor.purge();
             }
-            scheduledExecutor.setCorePoolSize(1);
-            Log.w(TAG, "Scheduling next tap.");
-            schedTapTask = scheduledExecutor.schedule(() -> {
-                tapAndSchedule();
-            }, 15, SECONDS);
+//            scheduledExecutor.setCorePoolSize(1);
+//            Log.w(TAG, "Scheduling next tap.");
+//            schedTapTask = scheduledExecutor.schedule(() -> {
+//                tapAndSchedule();
+//            }, 15, SECONDS);
         }
     }
 

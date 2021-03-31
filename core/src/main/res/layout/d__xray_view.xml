@@ -173,6 +173,16 @@
 
                 <!--change layout and width to proportion of phone screen-->
 
+                <TextView
+                    android:id="@+id/textView5"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="10dp"
+                    android:fontFamily="@font/poppins_regular"
+                    android:text="Student monitoring coming soon!"
+                    android:textAlignment="center"
+                    android:textColor="@color/medium" />
+
                 <ImageView
                     android:id="@+id/monitor_popup_img"
                     android:layout_width="fill_parent"
@@ -181,7 +191,7 @@
                     android:layout_marginStart="20dp"
                     android:layout_marginEnd="20dp"
                     android:layout_marginBottom="20dp"
-                    android:background="@color/leadme_black"
+                    android:background="@color/medium"
                     android:elevation="5dp"
                     android:scaleType="fitCenter" />
 

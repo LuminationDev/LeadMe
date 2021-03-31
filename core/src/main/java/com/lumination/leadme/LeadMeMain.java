@@ -233,7 +233,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
     private boolean init = false;
 
-    //XrayManager xrayManager;
+    XrayManager xrayManager;
 
     SeekBar seekBar;
 
@@ -462,7 +462,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
         if (appPushMessageView == null) {
             appPushMessageView = appPushDialogView.findViewById(R.id.push_confirm_txt);
-            appPushBtn = appPushDialogView.findViewById(R.id.new_video);
+            appPushBtn = appPushDialogView.findViewById(R.id.push_btn);
         }
 
         if (!getConnectedLearnersAdapter().someoneIsSelected()) {
@@ -1023,7 +1023,12 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                 //if we're in lock mode and we should be in something other than LeadMe, relaunch it
                 if (studentLockOn && currentTaskPackageName != null && currentTaskPackageName != leadMePackageName) {
                     Log.e(TAG, "RELAUNCH?? " + currentTaskPackageName);
-                    getAppManager().relaunchLast();
+
+                    if (currentTaskPackageName.equals(getAppManager().withinPackage) || currentTaskPackageName.equals(getAppManager().youtubePackage)) {
+                        getAppManager().relaunchLast(currentTaskPackageName, currentTaskName, currentTaskType, currentTaskURL, currentTaskURLTitle);
+                    } else {
+                        getAppManager().relaunchLast();
+                    }
 
                     //if we have launched at least one thing previously, we might want to reset the task icon to LeadMe
                 } else if (currentTaskPackageName != null) {
@@ -1272,7 +1277,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         xrayScreen = View.inflate(context, R.layout.d__xray_view, null);
         appLauncherScreen = View.inflate(context, R.layout.d__app_list, null);
         learnerWaitingText = startLearner.findViewById(R.id.waiting_text);
-        //xrayManager = new XrayManager(this, xrayScreen);
+        xrayManager = new XrayManager(this, xrayScreen);
 
         //set up main page search
 
@@ -1323,7 +1328,10 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
         mainLeader.findViewById(R.id.url_core_btn).setOnClickListener(v -> getWebManager().showWebLaunchDialog(false, false));
 
-        mainLeader.findViewById(R.id.yt_core_btn).setOnClickListener(v -> getWebManager().showWebLaunchDialog(true, false));
+        mainLeader.findViewById(R.id.vr_core_btn).setOnClickListener(v -> {
+            getAppManager().getWithinPlayer().showWithin(); //launch within search
+            //getWebManager().showWebLaunchDialog(true, false)
+        });
 
 
         Button app_btn = mainLeader.findViewById(R.id.app_core_btn);
@@ -1338,11 +1346,11 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
 
         mainLeader.findViewById(R.id.xray_core_btn).setOnClickListener(v -> {
-//            if (getConnectedLearnersAdapter().getCount() > 0) {
-//                xrayManager.showXrayView("");
-//            } else {
-//                Toast.makeText(getApplicationContext(), "No students connected.", Toast.LENGTH_SHORT).show();
-//            }
+            if (getConnectedLearnersAdapter().getCount() > 0) {
+                xrayManager.showXrayView("");
+            } else {
+                Toast.makeText(getApplicationContext(), "No students connected.", Toast.LENGTH_SHORT).show();
+            }
         });
 
         studentAlertsView = View.inflate(context, R.layout.d__alerts_list, null);
@@ -1414,9 +1422,8 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         //set up back buttons
         appLauncherScreen.findViewById(R.id.back_btn).setOnClickListener(v -> leadmeAnimator.setDisplayedChild(ANIM_LEADER_INDEX));
 
-
         //prepare elements for app push dialog
-        appPushDialogView.findViewById(R.id.new_video).setOnClickListener(v -> {
+        appPushDialogView.findViewById(R.id.push_btn).setOnClickListener(v -> {
             appLaunchAdapter.launchApp(appPushPackageName, appPushTitle, false);
             Log.d(TAG, "LAUNCHING! " + appPushPackageName);
             hideAppPushDialogView();

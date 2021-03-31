@@ -86,9 +86,14 @@ public class XrayManager {
     }
 
     boolean screenCapPermission = false;
+    boolean debug = true;
 
     @SuppressLint("WrongConstant")
     public void manageResultsReturn(int requestCode, int resultCode, Intent data) {
+        if (debug) {
+            return;
+        }
+
         main.getPermissionsManager().waitingForPermission = false;
         Log.d(TAG, "RETURNED RESULT FROM SCREEN_CAPTURE! " + resultCode + ", " + data);
         MediaProjection mediaProjection = projectionManager.getMediaProjection(resultCode, data);
@@ -257,8 +262,8 @@ public class XrayManager {
     private int currentXrayStudentIndex = -1;
     private boolean xrayInit = false;
 
-    private void showXrayView(String peer) {
-        Log.w(TAG, "Showing xray view!");
+    public void showXrayView(String peer) {
+        Log.w(TAG, "Showing xray view for " + peer + "!");
         if (!xrayInit) {
             setupXrayView();
             xrayInit = true;

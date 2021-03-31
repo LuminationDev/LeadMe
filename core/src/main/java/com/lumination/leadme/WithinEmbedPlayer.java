@@ -72,7 +72,7 @@ public class WithinEmbedPlayer {
         this.main = main;
         withinSearchDialogView = View.inflate(main, R.layout.f__selection_popup_within, null);
         favCheck = withinSearchDialogView.findViewById(R.id.fav_checkbox);
-        searchWebView = withinSearchDialogView.findViewById(R.id.within_webview);
+        searchWebView = withinSearchDialogView.findViewById(R.id.within_webview_search);
         searchBackupParams = searchWebView.getLayoutParams();
         searchUnavailableMsg = withinSearchDialogView.findViewById(R.id.no_internet);
         searchUnavailableMsg.setOnClickListener(v -> searchWebView.reload());
@@ -218,20 +218,7 @@ public class WithinEmbedPlayer {
             public boolean onRenderProcessGone(WebView view, RenderProcessGoneDetail detail) {
 
                 //remove the offending view from the parent
-                if (view.equals(searchWebView)) { //search view
-                    ViewGroup webViewContainer = (ViewGroup) withinSearchDialogView.findViewById(R.id.preview_view);
-                    webViewContainer.removeView(searchWebView);
-                    searchWebView.destroy();
-                    searchWebView = null;
-
-                    //build it again
-                    searchWebView = new WebView(main);
-                    searchWebView.setLayoutParams(searchBackupParams);
-                    setupWebView(searchWebView);
-                    setupWebClient(searchWebView, true);
-                    webViewContainer.addView(searchWebView, 0);
-
-                } else if (view.equals(controllerWebView)) { //controller view
+                if (view.equals(controllerWebView)) { //controller view
                     ViewGroup webViewContainer = (ViewGroup) withinControllerDialogView.findViewById(R.id.preview_view);
                     webViewContainer.removeView(controllerWebView);
                     controllerWebView.destroy();
@@ -243,11 +230,26 @@ public class WithinEmbedPlayer {
                     setupWebView(controllerWebView);
                     setupWebClient(controllerWebView, false);
                     webViewContainer.addView(controllerWebView, 0);
+
+                } else {
+                    //if (view.equals(searchWebView)) { //search view
+                    ViewGroup webViewContainer = (ViewGroup) withinSearchDialogView.findViewById(R.id.preview_view);
+                    webViewContainer.removeView(searchWebView);
+                    searchWebView.destroy();
+                    searchWebView = null;
+
+                    //build it again
+                    searchWebView = new WebView(main);
+                    searchWebView.setLayoutParams(searchBackupParams);
+                    setupWebView(searchWebView);
+                    setupWebClient(searchWebView, true);
+                    webViewContainer.addView(searchWebView, 0);
                 }
 
                 // Renderer crashed because of an internal error, such as a memory
                 // access violation.
                 Log.e(TAG, "The WebView rendering process crashed!");
+                Log.e(TAG, "The WebView rendering process crashed! >> " + view + ", " + view.getTag() + ", " + view.getId() + ", " + view.getUrl() + ", " + withinControllerDialogView.isShown() + ", " + withinSearchDialogView.isShown());
 
                 return true; //true if app can continue to function
             }

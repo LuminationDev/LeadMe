@@ -205,7 +205,8 @@ public class YouTubeEmbedPlayer {
 
     private void setupGuideVideoControllerButtons() {
         //set up standard dialog buttons
-        videoControllerDialogView.findViewById(R.id.new_video).setOnClickListener(v -> {
+        //new_video New video button!
+        videoControllerDialogView.findViewById(R.id.push_btn).setOnClickListener(v -> {
 
             //clean any launch on focus items
             main.appIntentOnFocus = null;

@@ -80,7 +80,8 @@
             android:id="@+id/within_webview"
             android:layout_width="match_parent"
             android:layout_height="300dp"
-            android:background="@color/leadme_black">
+            android:background="@color/leadme_black"
+            android:tag="playback_webview">
 
         </WebView>
 

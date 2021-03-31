@@ -101,7 +101,7 @@
                     android:fontFamily="@font/poppins_semibold"
                     android:gravity="center_vertical"
                     android:includeFontPadding="false"
-                    android:text="Browse Favourites"
+                    android:text="Browse favourites"
                     android:textColor="@color/leadme_darkest_grey"
                     android:textSize="12sp" />
 

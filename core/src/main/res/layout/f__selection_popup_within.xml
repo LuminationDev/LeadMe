@@ -62,10 +62,11 @@
 
 
         <WebView
-            android:id="@+id/within_webview"
+            android:id="@+id/within_webview_search"
             android:layout_width="match_parent"
             android:layout_height="380dp"
-            android:background="@color/leadme_black">
+            android:background="@color/leadme_black"
+            android:tag="search_webview">
 
         </WebView>
 
