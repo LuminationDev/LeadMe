@@ -15,8 +15,7 @@
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_weight="1"
+        android:layout_height="50dp"
         android:gravity="center|center_horizontal"
         android:orientation="horizontal"
         android:paddingStart="10dp"
@@ -37,8 +36,6 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical"
-            android:layout_marginTop="18dp"
-            android:layout_marginBottom="18dp"
             android:layout_weight="1"
             android:fontFamily="@font/poppins_semibold"
             android:foregroundGravity="center_vertical"
@@ -276,6 +273,24 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:orientation="vertical">
+
+            <CheckBox
+                android:id="@+id/fav_checkbox_within"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginTop="20dp"
+                android:layout_weight="1"
+                android:button="@drawable/star_checkbox"
+                android:checked="false"
+                android:enabled="false"
+                android:fontFamily="@font/poppins_semibold"
+                android:includeFontPadding="false"
+                android:paddingStart="5dp"
+                android:paddingEnd="5dp"
+                android:text="@string/add_to_favourites"
+                android:textColor="@color/leadme_black"
+                android:textSize="14sp" />
 
             <LinearLayout
                 android:id="@+id/toggleBtnView"

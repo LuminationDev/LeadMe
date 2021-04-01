@@ -14,8 +14,7 @@
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_weight="1"
+        android:layout_height="50dp"
         android:gravity="center|center_horizontal"
         android:orientation="horizontal"
         android:paddingStart="10dp"
@@ -37,7 +36,6 @@
             android:foregroundGravity="center_vertical"
             android:gravity="center_horizontal|center_vertical"
             android:includeFontPadding="false"
-            android:padding="10dp"
             android:text="Search Within VR"
             android:textAlignment="center"
             android:textSize="16sp" />
@@ -89,30 +87,27 @@
 
     <LinearLayout
         android:id="@+id/playback_btns"
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="10dp"
         android:orientation="vertical"
         android:paddingBottom="10dp">
 
-        <CheckBox
-            android:id="@+id/fav_checkbox"
+        <TextView
+            android:id="@+id/open_favourites"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal"
             android:layout_marginTop="10dp"
             android:layout_marginBottom="20dp"
             android:layout_weight="1"
-            android:button="@drawable/star_checkbox"
-            android:checked="false"
-            android:enabled="false"
+            android:drawableLeft="@drawable/icon_fav_star_solid"
+            android:drawablePadding="5dp"
             android:fontFamily="@font/poppins_semibold"
             android:includeFontPadding="false"
-            android:paddingStart="5dp"
-            android:paddingEnd="5dp"
-            android:text="@string/add_to_favourites"
-            android:textColor="@color/leadme_black"
-            android:textSize="14sp" />
+            android:text="Browse favourites"
+            android:textColor="@color/leadme_darkest_grey"
+            android:textSize="12sp" />
 
         <Button
             android:id="@+id/select_btn"

@@ -71,7 +71,6 @@ public class WithinEmbedPlayer {
     public WithinEmbedPlayer(LeadMeMain main) {
         this.main = main;
         withinSearchDialogView = View.inflate(main, R.layout.f__selection_popup_within, null);
-        favCheck = withinSearchDialogView.findViewById(R.id.fav_checkbox);
         searchWebView = withinSearchDialogView.findViewById(R.id.within_webview_search);
         searchBackupParams = searchWebView.getLayoutParams();
         searchUnavailableMsg = withinSearchDialogView.findViewById(R.id.no_internet);
@@ -81,6 +80,7 @@ public class WithinEmbedPlayer {
         setupWithinSearchButtons();
 
         withinControllerDialogView = View.inflate(main, R.layout.f__playback_within, null);
+        favCheck = withinControllerDialogView.findViewById(R.id.fav_checkbox_within);
         vrModeBtn = withinControllerDialogView.findViewById(R.id.vr_mode_toggle);
         streamBtn = withinControllerDialogView.findViewById(R.id.stream_btn);
         downloadBtn = withinControllerDialogView.findViewById(R.id.download_btn);
@@ -95,6 +95,13 @@ public class WithinEmbedPlayer {
         setupWebView(controllerWebView);
         setupWebClient(controllerWebView, false);
         setupGuideVideoControllerButtons();
+
+        withinSearchDialogView.findViewById(R.id.open_favourites).setOnClickListener(v -> {
+            main.closeKeyboard();
+            main.hideSystemUI();
+            videoSearchDialog.hide();
+            main.getWebManager().launchUrlYtFavourites();
+        });
 
         withinSearchDialogView.findViewById(R.id.select_btn).setBackground(main.getResources().getDrawable(R.drawable.bg_active, null));
     }
@@ -216,9 +223,14 @@ public class WithinEmbedPlayer {
 
             @Override
             public boolean onRenderProcessGone(WebView view, RenderProcessGoneDetail detail) {
+                //try to work out which it is doesn't seem to be sufficient.
+                //so to be safe, just kill and rebuild both
+                Log.e(TAG, "The WebView rendering process crashed!");
 
-                //remove the offending view from the parent
-                if (view.equals(controllerWebView)) { //controller view
+                try {
+                    resetControllerState();
+
+                    //controller view
                     ViewGroup webViewContainer = (ViewGroup) withinControllerDialogView.findViewById(R.id.preview_view);
                     webViewContainer.removeView(controllerWebView);
                     controllerWebView.destroy();
@@ -231,9 +243,8 @@ public class WithinEmbedPlayer {
                     setupWebClient(controllerWebView, false);
                     webViewContainer.addView(controllerWebView, 0);
 
-                } else {
-                    //if (view.equals(searchWebView)) { //search view
-                    ViewGroup webViewContainer = (ViewGroup) withinSearchDialogView.findViewById(R.id.preview_view);
+                    //search view
+                    webViewContainer = (ViewGroup) withinSearchDialogView.findViewById(R.id.preview_view);
                     webViewContainer.removeView(searchWebView);
                     searchWebView.destroy();
                     searchWebView = null;
@@ -244,12 +255,13 @@ public class WithinEmbedPlayer {
                     setupWebView(searchWebView);
                     setupWebClient(searchWebView, true);
                     webViewContainer.addView(searchWebView, 0);
-                }
 
-                // Renderer crashed because of an internal error, such as a memory
-                // access violation.
-                Log.e(TAG, "The WebView rendering process crashed!");
-                Log.e(TAG, "The WebView rendering process crashed! >> " + view + ", " + view.getTag() + ", " + view.getId() + ", " + view.getUrl() + ", " + withinControllerDialogView.isShown() + ", " + withinSearchDialogView.isShown());
+                    // Renderer crashed because of an internal error, such as a memory access violation
+                    Log.e(TAG, "The WebView rendering process crashed! >> " + view + ", " + view.getTag() + ", " + view.getId() + ", " + view.getUrl() + ", " + withinControllerDialogView.isShown() + ", " + withinSearchDialogView.isShown());
+
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
 
                 return true; //true if app can continue to function
             }
@@ -261,10 +273,6 @@ public class WithinEmbedPlayer {
                     foundURL = urlPrefix + foundTitle;
                     withinSearchDialogView.findViewById(R.id.select_btn).setBackground(main.getResources().getDrawable(R.drawable.bg_active, null));
                     Log.w(TAG, "EXTRACTED! " + foundURL + ", " + main.getFavouritesManager().isInFavourites(foundURL));
-
-                    //update check if appropriate
-                    favCheck.setEnabled(true);
-                    favCheck.setChecked(main.getWebManager().getUrlFavouritesManager().isInFavourites(foundURL));
 
                 } else if (url.startsWith("https://cms.with.in/v1/category/all?page=")) {
                     view.stopLoading();
@@ -313,9 +321,6 @@ public class WithinEmbedPlayer {
         withinSearchDialogView.findViewById(R.id.select_btn).setOnClickListener(v -> {
             if (!v.getBackground().equals(disabledBg) && !foundURL.trim().equals("")) {
                 Log.i(TAG, "Loading " + foundTitle + " | " + foundURL);
-                if (favCheck.isChecked()) {
-                    main.getWebManager().getYouTubeFavouritesManager().addToFavourites(foundURL, foundTitle, null);
-                }
                 videoSearchDialog.dismiss();
                 showGuideController(true);
 
@@ -415,6 +420,11 @@ public class WithinEmbedPlayer {
         //update UI
         updateControllerUI(true);
 
+        //add to favourites
+        if (favCheck.isChecked()) {
+            main.getWebManager().getYouTubeFavouritesManager().addToFavourites(foundURL, foundTitle, null);
+        }
+
         if (vrMode) {
             //TODO AUTO PLAY VIDEO
             withinControllerDialogView.findViewById(R.id.vr_mode).setVisibility(View.VISIBLE);
@@ -439,8 +449,6 @@ public class WithinEmbedPlayer {
         foundURL = ""; //reset
         foundTitle = "";
         attemptedURL = "";
-        favCheck.setEnabled(false);
-        favCheck.setChecked(false);
         if (videoSearchDialog == null) {
             videoSearchDialog = new AlertDialog.Builder(main)
                     .setView(withinSearchDialogView)
@@ -500,6 +508,11 @@ public class WithinEmbedPlayer {
             controllerWebView.setVisibility(View.VISIBLE);
             Log.d(TAG, "Attempting to load " + url + " on controller");
             controllerWebView.loadDataWithBaseURL(null, getiFrameData(url), "text/html", "UTF-8", null);
+
+            //update check if appropriate
+            favCheck.setEnabled(true);
+            favCheck.setChecked(main.getWebManager().getYouTubeFavouritesManager().isInFavourites(foundURL));
+
         } else {
             internetUnavailableMsg.setVisibility(View.VISIBLE);
             controllerWebView.setVisibility(View.GONE);
