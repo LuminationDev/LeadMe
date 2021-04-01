@@ -30,5 +30,6 @@
     <color name="leadme_light_grey">#EEF3FF</color>
     <color name="leadme_white">#FFFFFF</color>
     <color name="leadme_blue">#1599F3</color>
+    <color name="leadme_red">#F54136</color>
 
 </resources>
