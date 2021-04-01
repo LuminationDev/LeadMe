@@ -41,6 +41,7 @@ public class PermissionManager {
         app_title = main.getResources().getString(R.string.app_title_with_brand);
 
         overlayPermissionListener = new PermissionListener() {
+
             @Override
             public void onPermissionGranted() {
                 overlayPermissionGranted = true; //all granted
@@ -120,6 +121,9 @@ public class PermissionManager {
 
         } else if (overlayPermissionGranted && main.getNearbyManager().isConnectedAsFollower()) {
             main.getDispatcher().alertGuidePermissionGranted(LeadMeMain.STUDENT_NO_OVERLAY, true);
+            if(!main.overlayInitialised){
+                main.initialiseOverlayView();
+            }
         }
 
         return overlayPermissionGranted;
@@ -142,8 +146,8 @@ public class PermissionManager {
                     .setPermissionListener(overlayPermissionListener)
                     .setPermissions(Manifest.permission.SYSTEM_ALERT_WINDOW)
                     .check();
-
-        } else if (!isAccessibilityGranted()) {
+        }
+        else if (!isAccessibilityGranted()) {
             requestAccessibilitySettingsOn();
         }
     }

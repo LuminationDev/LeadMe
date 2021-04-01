@@ -1563,6 +1563,30 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         View.OnClickListener menuListener = v -> {
             lastDisplayedIndex = leadmeAnimator.getDisplayedChild();
             leadmeAnimator.setDisplayedChild(ANIM_OPTIONS_INDEX);
+            if(getNearbyManager().isConnectedAsFollower() || getNearbyManager().isConnectedAsGuide()){
+                optionsScreen.findViewById(R.id.options_loginBtn).setVisibility(View.GONE);
+                optionsScreen.findViewById(R.id.options_notsigned).setVisibility(View.GONE);
+            }else{
+
+                if(mAuth.getCurrentUser()!=null){
+                    optionsScreen.findViewById(R.id.options_teacher).setVisibility(View.VISIBLE);
+                    optionsScreen.findViewById(R.id.options_endSess).setVisibility(View.VISIBLE);
+                    optionsScreen.findViewById(R.id.options_loginBtn).setVisibility(View.GONE);
+                    optionsScreen.findViewById(R.id.options_notsigned).setVisibility(View.GONE);
+                    ((TextView) optionsScreen.findViewById(R.id.options_signed_name)).setText(mAuth.getCurrentUser().getDisplayName());
+                }else{
+                    optionsScreen.findViewById(R.id.options_loginBtn).setVisibility(View.VISIBLE);
+                    optionsScreen.findViewById(R.id.options_notsigned).setVisibility(View.VISIBLE);
+                }
+            }
+            if(getNearbyManager().isConnectedAsGuide()){
+                optionsScreen.findViewById(R.id.options_teacher).setVisibility(View.VISIBLE);
+                optionsScreen.findViewById(R.id.options_endSess).setVisibility(View.VISIBLE);
+                ((TextView) optionsScreen.findViewById(R.id.options_signed_name)).setText(mAuth.getCurrentUser().getDisplayName());
+            }else if(getNearbyManager().isConnectedAsFollower()){
+                optionsScreen.findViewById(R.id.options_endSess).setVisibility(View.GONE);
+                optionsScreen.findViewById(R.id.options_teacher).setVisibility(View.GONE);
+            }
         };
 
 
@@ -1599,18 +1623,40 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                 leadmeAnimator.setDisplayedChild(lastDisplayedIndex);
             }
         });
-
+        optionsScreen.findViewById(R.id.options_loginBtn).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                showLoginDialog();
+            }
+        });
+        optionsScreen.findViewById(R.id.options_notsigned).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                buildloginsignup(0);
+            }
+        });
         optionsScreen.findViewById(R.id.how_to_use_btn).setOnClickListener(v -> Toast.makeText(getApplicationContext(), "Coming soon!", Toast.LENGTH_SHORT).show());
 
         optionsScreen.findViewById(R.id.help_support_btn).setOnClickListener(v -> Toast.makeText(getApplicationContext(), "Coming soon!", Toast.LENGTH_SHORT).show());
 
         optionsScreen.findViewById(R.id.logout_btn).setOnClickListener(v -> {
             if (isGuide || !getNearbyManager().isConnectedAsFollower()) {
+                mAuth.signOut();
+                currentUser= mAuth.getCurrentUser();
+                logoutAction();
+            } else {
+                Toast.makeText(getApplicationContext(), "Logout is unavailable.", Toast.LENGTH_SHORT).show();
+            }
+
+        });
+        optionsScreen.findViewById(R.id.options_endSess).setOnClickListener(view -> {
+            if (isGuide || !getNearbyManager().isConnectedAsFollower()) {
                 logoutAction();
             } else {
                 Toast.makeText(getApplicationContext(), "Logout is unavailable.", Toast.LENGTH_SHORT).show();
             }
         });
+
 
         optionsScreen.findViewById(R.id.connected_only_view).setVisibility(View.GONE);
         optionsScreen.findViewById(R.id.auto_install_checkbox).setVisibility(View.GONE);
@@ -1767,10 +1813,11 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         overlayView.findViewById(R.id.blocking_view).setVisibility(View.GONE); //default is this should be hidden
     }
 
-    private boolean overlayInitialised = false;
+    public boolean overlayInitialised = false;
 
-    private void initialiseOverlayView() {
-        if (overlayInitialised || !permissionManager.isOverlayPermissionGranted()) {
+    public void initialiseOverlayView() {
+        Log.d(TAG, "initialiseOverlayView: ");
+        if (overlayInitialised /*|| !permissionManager.isOverlayPermissionGranted()*/) {
             //   Log.d(TAG, "Not initialising right now - " + overlayInitialised + ", " + permissionManager.isOverlayPermissionGranted());
             return; //already done OR don't have permission
         }
@@ -1983,7 +2030,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         } else if (!isGuide) {
             //only need this if we're a follower
             if (!permissionManager.isOverlayPermissionGranted()) {
-                permissionManager.checkOverlayPermissions();
+                //permissionManager.checkOverlayPermissions();
             } else {
                 initialiseOverlayView();
             }
@@ -2203,7 +2250,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             ((TextView) optionsScreen.findViewById(R.id.connected_as_role)).setTextColor(getResources().getColor(R.color.medium, null));
 
             //refresh overlay
-            verifyOverlay();
+           // verifyOverlay();
 
         }
     }
@@ -2955,8 +3002,8 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         View.OnClickListener[] onClicks = {v -> {
             getPermissionsManager().requestAccessibilitySettingsOn();
         }, v -> {
+            Log.d(TAG, "setStudentOnBoard: checking");
             getPermissionsManager().checkOverlayPermissions();
-            setStudentOnBoard(2);
         }};
         Animation in = AnimationUtils.makeInAnimation(this, false);
         Animation out = AnimationUtils.makeOutAnimation(this, false);

@@ -59,6 +59,7 @@
                 android:layout_marginBottom="10dp"
                 android:fontFamily="@font/poppins_semibold"
                 android:text="@string/student_name"
+                android:textColor="@color/leadme_black"
                 android:textSize="24sp" />
 
             <LinearLayout
@@ -77,7 +78,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="10dp"
-                    android:layout_marginBottom="40dp"
+                    android:layout_marginBottom="10dp"
                     android:fontFamily="@font/poppins_semibold"
                     android:text="Connected as"
                     android:textColor="@color/leadme_medium_grey"
@@ -88,7 +89,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="5dp"
-                    android:layout_marginBottom="40dp"
+                    android:layout_marginBottom="10dp"
                     android:layout_weight="1"
                     android:fontFamily="@font/poppins_semibold"
                     android:text="UNKNOWN"
@@ -97,11 +98,22 @@
 
             </LinearLayout>
 
+            <Button
+                android:id="@+id/options_endSess"
+                android:layout_width="@dimen/standard_btn_width"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="30dp"
+                android:background="@drawable/bg_active"
+                android:fontFamily="@font/poppins_regular"
+                android:text="End Session"
+                android:textColor="@color/leadme_white"
+                android:visibility="gone" />
+
             <LinearLayout
                 android:id="@+id/capture_rate_display"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:visibility="gone">
+                android:visibility="visible">
 
                 <TextView
                     android:id="@+id/screen_capture"
@@ -188,16 +200,89 @@
             android:textColor="@color/leadme_black"
             android:textSize="16sp" />
 
-        <TextView
-            android:id="@+id/logout_btn"
+        <ImageView
             android:layout_width="match_parent"
+            android:layout_height="2dp"
+            android:layout_marginTop="20dp"
+            android:background="@color/leadme_dark_grey" />
+
+        <Button
+            android:id="@+id/options_loginBtn"
+            android:layout_width="@dimen/standard_btn_width"
             android:layout_height="wrap_content"
-            android:layout_marginTop="50dp"
+            android:layout_marginTop="20dp"
+            android:background="@drawable/bg_active"
             android:fontFamily="@font/poppins_semibold"
-            android:includeFontPadding="false"
-            android:text="Logout"
-            android:textColor="@color/light"
-            android:textSize="16sp" />
+            android:text="Login"
+            android:textColor="@color/leadme_white" />
+
+        <LinearLayout
+            android:id="@+id/options_notsigned"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginTop="20dp"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/textView7"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="0"
+                android:fontFamily="@font/poppins_semibold"
+                android:gravity="left"
+                android:text="Don’t have an account?" />
+
+            <TextView
+                android:id="@+id/option_login_signup"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginRight="10dp"
+                android:fontFamily="@font/poppins_semibold"
+                android:text=" Sign up"
+                android:textColor="@color/leadme_blue" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/options_teacher"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginTop="50dp"
+            android:orientation="horizontal"
+            android:visibility="visible"
+            tools:visibility="gone">
+
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/icon_select_peer" />
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="10dp"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/options_signed_name"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="@font/poppins_semibold"
+                    android:text="Anonymous"
+                    android:textColor="@color/leadme_black"
+                    android:textSize="16sp" />
+
+                <TextView
+                    android:id="@+id/logout_btn"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="@font/poppins_semibold"
+                    android:includeFontPadding="false"
+                    android:text="Logout"
+                    android:textColor="@color/light"
+                    android:textSize="16sp" />
+            </LinearLayout>
+
+        </LinearLayout>
 
     </LinearLayout>
 
