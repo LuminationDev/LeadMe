@@ -464,11 +464,16 @@ public class DispatchManager {
                         Log.d(TAG, "Setting streaming status, vrMode and URL for WITHIN VR " + extra + ", " + streaming + ", " + vrMode + ", (" + appInForeground + ")");
                     }
                 } else {
-                    Log.w(TAG, "No URI, reset state!");
+                    Log.w(TAG, "[1] No URI, reset state!");
                     //no URL was specified, so clear any previous info
-                    //main.getAppManager().withinURI = null;
+                    main.getAppManager().withinURI = null;
                     main.getLumiAccessibilityConnector().resetState();
                 }
+            } else {
+                Log.w(TAG, "[2] No URI, reset state!");
+                //no URL was specified, so clear any previous info
+                main.getAppManager().withinURI = null;
+                main.getLumiAccessibilityConnector().resetState();
             }
 
             if (!appInForeground) {//!main.getAppLaunchAdapter().lastApp.equals(packageName)) {
