@@ -40,6 +40,7 @@ dependencies {
 
 //    //for auto-updates
 //    implementation 'com.github.javiersantos:AppUpdater:2.7'
+    implementation 'com.github.scottyab:showhidepasswordedittext:0.8'
 
     //for screenshots
     implementation 'eu.bolt:screenshotty:1.0.3'

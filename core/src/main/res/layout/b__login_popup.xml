@@ -3,6 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="fill_parent"
     android:layout_height="wrap_content"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_centerInParent="true"
     android:layout_centerHorizontal="true"
     android:layout_centerVertical="true"
@@ -328,7 +329,8 @@
         android:layout_height="match_parent"
         android:background="@drawable/rounded_popup_white"
         android:orientation="vertical"
-        android:visibility="gone">
+        android:visibility="gone"
+        tools:visibility="visible">
 
         <TextView
             android:layout_width="wrap_content"
@@ -345,7 +347,7 @@
             android:id="@+id/error_text"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textColor="@android:color/holo_red_dark"
+            android:textColor="@color/leadme_red"
             android:visibility="gone" />
 
         <EditText
@@ -374,7 +376,7 @@
             android:visibility="visible"></EditText>
 
 
-        <EditText
+        <com.scottyab.showhidepasswordedittext.ShowHidePasswordEditText
             android:id="@+id/login_password"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -394,11 +396,14 @@
             android:maxLines="1"
             android:paddingLeft="10dp"
             android:paddingTop="10dp"
+            android:paddingRight="10dp"
             android:paddingBottom="10dp"
             android:singleLine="true"
             android:textColorHint="@color/leadme_medium_grey"
             android:textSize="16sp"
-            android:visibility="visible"></EditText>
+            android:visibility="visible"
+            app:tint_color="@color/leadme_blue"
+            ></com.scottyab.showhidepasswordedittext.ShowHidePasswordEditText>
 
         <TextView
             android:id="@+id/login_forgotten"
