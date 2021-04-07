@@ -4,6 +4,7 @@ import android.app.AlertDialog;
 import android.content.ClipboardManager;
 import android.content.ComponentName;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.pm.ApplicationInfo;
@@ -104,8 +105,9 @@ public class WebManager {
         searchSpinner = (Spinner) searchDialogView.findViewById(R.id.search_spinner);
         searchSpinnerItems = new String[2];
         searchSpinnerItems[0] = "Google search";
-        searchSpinnerItems[1] = "YouTube search";
-        Integer[] search_imgs = {R.drawable.search_google, R.drawable.search_yt};
+        //searchSpinnerItems[1] = "YouTube search";
+        searchSpinnerItems[1] = "Within Search";
+        Integer[] search_imgs = {R.drawable.search_google, /*R.drawable.search_yt,*/R.drawable.core_vr};
         LumiSpinnerAdapter search_adapter = new LumiSpinnerAdapter(main, R.layout.row_search_spinner, searchSpinnerItems, search_imgs);
         searchSpinner.setAdapter(search_adapter);
 
@@ -252,14 +254,14 @@ public class WebManager {
             isYouTube = true;
             Log.w(TAG, "YouTube add! " + isYouTube);
             showWebLaunchDialog(true);
-            urlYtFavDialog.hide();
+            urlYtFavDialog.dismiss();
         });
 
         webYouTubeFavView.findViewById(R.id.url_add_btn).setOnClickListener(v -> {
             isYouTube = false;
             Log.w(TAG, "URL add! " + isYouTube);
             showWebLaunchDialog(true);
-            urlYtFavDialog.hide();
+            urlYtFavDialog.dismiss();
         });
 
         webYouTubeFavView.findViewById(R.id.yt_del_btn).setOnClickListener(v -> showClearWebFavDialog(CLEAR_VID));
@@ -293,16 +295,22 @@ public class WebManager {
                     getUrlFavouritesManager().clearFavourites();
                     break;
             }
-            warningDialog.hide();
+            warningDialog.dismiss();
             getUrlFavouritesManager().notifyDataSetChanged();
             getYouTubeFavouritesManager().notifyDataSetChanged();
         });
 
-        warningDialogView.findViewById(R.id.back_btn).setOnClickListener(v -> warningDialog.hide());
+        warningDialogView.findViewById(R.id.back_btn).setOnClickListener(v -> warningDialog.dismiss());
 
         warningDialog = new AlertDialog.Builder(main)
                 .setView(warningDialogView)
                 .create();
+        warningDialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
+            @Override
+            public void onDismiss(DialogInterface dialog) {
+                main.hideSystemUI();
+            }
+        });
 
     }
 
@@ -456,7 +464,7 @@ public class WebManager {
         main.hideSystemUI();
 
         if (previewDialog != null) {
-            previewDialog.hide();
+            previewDialog.dismiss();
             error = false; //reset flag
         }
     }
@@ -466,7 +474,7 @@ public class WebManager {
         main.hideSystemUI();
 
         if (searchDialog != null) {
-            searchDialog.hide();
+            searchDialog.dismiss();
             error = false; //reset flag
         }
     }
@@ -679,6 +687,12 @@ public class WebManager {
             previewDialog = new AlertDialog.Builder(main)
                     .setView(previewDialogView)
                     .show();
+            previewDialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
+                @Override
+                public void onDismiss(DialogInterface dialog) {
+                    main.hideSystemUI();
+                }
+            });
         } else {
             previewDialog.show();
         }
@@ -701,6 +715,12 @@ public class WebManager {
             websiteLaunchDialog = new AlertDialog.Builder(main)
                     .setView(websiteLaunchDialogView)
                     .create();
+            websiteLaunchDialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
+                @Override
+                public void onDismiss(DialogInterface dialog) {
+                    main.hideSystemUI();
+                }
+            });
         }
 
         adding_to_fav = add_fav_mode;
@@ -710,7 +730,7 @@ public class WebManager {
     }
 
     private void setupWebLaunchDialog() {
-        ((TextView) websiteLaunchDialogView.findViewById(R.id.url_input_field)).setText("https://www.youtube.com/watch?v=sPyAQQklc1s"); //sample for testing
+        //((TextView) websiteLaunchDialogView.findViewById(R.id.url_input_field)).setText("https://www.youtube.com/watch?v=sPyAQQklc1s"); //sample for testing
         //((TextView) websiteLaunchDialogView.findViewById(R.id.url_input_field)).setText("https://www.youtube.com/w/SEbqkn1TWTA"); //sample for testing
 
         websiteLaunchDialogView.findViewById(R.id.paste_from_clipboard).setOnClickListener(v -> {
@@ -744,13 +764,13 @@ public class WebManager {
         websiteLaunchDialogView.findViewById(R.id.back_btn).setOnClickListener(v -> {
             main.closeKeyboard();
             main.hideSystemUI();
-            websiteLaunchDialog.hide();
+            websiteLaunchDialog.dismiss();
         });
 
         websiteLaunchDialogView.findViewById(R.id.open_favourites).setOnClickListener(v -> {
             main.closeKeyboard();
             main.hideSystemUI();
-            websiteLaunchDialog.hide();
+            websiteLaunchDialog.dismiss();
             launchUrlYtFavourites();
         });
 
@@ -867,7 +887,7 @@ public class WebManager {
     void hideFavDialog() {
         main.closeKeyboard();
         main.hideSystemUI();
-        urlYtFavDialog.hide();
+        urlYtFavDialog.dismiss();
     }
 
     void launchUrlYtFavourites() {
@@ -880,8 +900,14 @@ public class WebManager {
             urlYtFavDialog = new AlertDialog.Builder(main)
                     .setView(webYouTubeFavView)
                     .create();
+            urlYtFavDialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
+                @Override
+                public void onDismiss(DialogInterface dialog) {
+                    main.hideSystemUI();
+                }
+            });
 
-            webYouTubeFavView.findViewById(R.id.back_btn).setOnClickListener(v -> urlYtFavDialog.hide());
+            webYouTubeFavView.findViewById(R.id.back_btn).setOnClickListener(v -> urlYtFavDialog.dismiss());
         }
 
         urlYtFavDialog.show();
@@ -891,7 +917,7 @@ public class WebManager {
         main.closeKeyboard();
         main.hideSystemUI();
         if (websiteLaunchDialog != null) {
-            websiteLaunchDialog.hide();
+            websiteLaunchDialog.dismiss();
         }
     }
 
@@ -1102,7 +1128,12 @@ public class WebManager {
             searchDialog = new AlertDialog.Builder(main)
                     .setView(searchDialogView)
                     .show();
-
+            searchDialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
+                @Override
+                public void onDismiss(DialogInterface dialog) {
+                    main.hideSystemUI();
+                }
+            });
             DisplayMetrics displayMetrics = main.getResources().getDisplayMetrics();
             searchDialogView.getLayoutParams().width = displayMetrics.widthPixels - 140;
 
@@ -1131,13 +1162,17 @@ public class WebManager {
                 public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                     Log.d(TAG, "Search mode: " + searchSpinnerItems[position]);
 
-                    if (searchSpinnerItems[position].startsWith("YouTube")) {
+                    if (searchSpinnerItems[position].startsWith("YouTube")) { //todo. coming soon!
                         ((TextView) searchDialogView.findViewById(R.id.web_search_title)).setText("Search YouTube");
                         searchYoutube = true;
                         searchView.setQuery(searchView.getQuery(),true);
                     } else if (searchSpinnerItems[position].startsWith("Google")) {
                         ((TextView) searchDialogView.findViewById(R.id.web_search_title)).setText("Search the web");
                         searchYoutube = false;
+                        searchView.setQuery(searchView.getQuery(),true);
+                    }else if(searchSpinnerItems[position].startsWith("Within")){
+                        ((TextView) searchDialogView.findViewById(R.id.web_search_title)).setText("Search Within");
+                        searchYoutube = true;
                         searchView.setQuery(searchView.getQuery(),true);
                     }
 
@@ -1154,7 +1189,7 @@ public class WebManager {
             });
 
             searchDialog.findViewById(R.id.back_btn).setOnClickListener(v -> {
-                searchDialog.hide();
+                searchDialog.dismiss();
                 websiteLaunchDialog.show();
             });
 
@@ -1208,8 +1243,8 @@ public class WebManager {
 //
         //filters the search results
         if (searchYoutube) {
-            searchWebView.loadUrl("https://www.google.com/search?q=" + newText + "&tbm=vid&as_sitesearch=youtube.com");
-
+            // searchWebView.loadUrl("https://www.google.com/search?q=" + newText + "&tbm=vid&as_sitesearch=youtube.com"); //for youtube
+            searchWebView.loadUrl("https://www.google.com/search?q=" + newText + "&tbm=vid&as_sitesearch=with.in");
             //swap the above line with the one below to index youtube's site directly
             //NOTE - if this is used, will need to change triggers for when to show preview
             // (currently loads preview for anything that doesn't begin with google.com)
@@ -1236,7 +1271,7 @@ public class WebManager {
                         }
                     }
                     Log.d(TAG, "onLoadResource valid: " + url);
-                    //searchDialog.hide();
+                    //searchDialog.dismiss();
                     hideSearchDialog();
                     showPreview(url);
                 }
@@ -1276,7 +1311,7 @@ public class WebManager {
                 }
 
                 if (!URL.startsWith("https://www.google.com")) {
-                    //searchDialog.hide();
+                    //searchDialog.dismiss();
                     hideSearchDialog();
                     showPreview(URL);
 

@@ -57,14 +57,18 @@ public class PermissionManager {
                 Log.d(TAG, "Overlay Permission DENIED!");
                 overlayPermissionGranted = false; //not all granted
                 waitingForPermission = false; //no longer waiting
-                try {
-                    Thread.currentThread().sleep(100);
-                    if(isOverlayPermissionGranted()){
-                        main.setStudentOnBoard(2);
-                    }
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
+//                    Thread t = new Thread(() -> {
+//                        while(!isOverlayPermissionGranted()){
+//                            try {
+//                                Thread.currentThread().sleep(100);
+//                            } catch (InterruptedException e) {
+//                                e.printStackTrace();
+//                            }
+//                        }
+//                        main.setStudentOnBoard(2);
+//                    });
+//                    t.start();
+
 
             }
         };

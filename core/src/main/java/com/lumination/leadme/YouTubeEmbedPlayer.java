@@ -1,6 +1,7 @@
 package com.lumination.leadme;
 
 import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.net.http.SslError;
 import android.text.format.DateUtils;
 import android.util.Log;
@@ -214,7 +215,7 @@ public class YouTubeEmbedPlayer {
 
             main.getWebManager().reset();
             webManager.lastWasGuideView = false; //reset
-            videoControlDialog.hide();
+            videoControlDialog.dismiss();
             webManager.showWebLaunchDialog(false);
             main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.RETURN_TAG, main.getNearbyManager().getSelectedPeerIDsOrAll());
         });
@@ -418,6 +419,12 @@ public class YouTubeEmbedPlayer {
             videoControlDialog = new AlertDialog.Builder(main)
                     .setView(videoControllerDialogView)
                     .create();
+            videoControlDialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
+                @Override
+                public void onDismiss(DialogInterface dialog) {
+                    main.hideSystemUI();
+                }
+            });
         }
         pageLoaded = false; //reset flag
         Log.d(TAG, "Attempting to show video controller for " + attemptedURL);
@@ -482,7 +489,7 @@ public class YouTubeEmbedPlayer {
         });
 
         pauseVideo();
-        videoControlDialog.hide();
+        videoControlDialog.dismiss();
     }
 
     private String extractTime(String url) {
@@ -671,6 +678,12 @@ public class YouTubeEmbedPlayer {
             playbackSettingsDialog = new AlertDialog.Builder(main)
                     .setView(youtubeSettingsDialogView)
                     .show();
+            playbackSettingsDialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
+                @Override
+                public void onDismiss(DialogInterface dialog) {
+                    main.hideSystemUI();
+                }
+            });
         } else {
             playbackSettingsDialog.show();
         }

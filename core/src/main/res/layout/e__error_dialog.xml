@@ -65,8 +65,8 @@
 
         <androidx.cardview.widget.CardView
             android:id="@+id/error_dialog_spinner"
-            android:layout_width="45dp"
-            android:layout_height="40dp"
+            android:layout_width="22dp"
+            android:layout_height="30dp"
             android:layout_margin="5dp"
             android:layout_marginStart="-10dp"
             app:cardBackgroundColor="@color/leadme_white"
@@ -83,7 +83,7 @@
 
             <Spinner
                 android:id="@+id/push_spinner"
-                android:layout_width="60dp"
+                android:layout_width="30dp"
                 android:layout_height="@dimen/standard_btn_height"
                 android:layout_marginTop="-10dp"
                 android:background="@color/leadme_white"

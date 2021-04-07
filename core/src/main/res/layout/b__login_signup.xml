@@ -68,7 +68,7 @@
             android:accessibilityTraversalBefore="@id/back_btn"
             android:autofillHints=""
             android:background="@drawable/rounded_btn_highlight"
-            android:digits="0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ _"
+            android:digits="0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
             android:focusableInTouchMode="true"
             android:fontFamily="@font/poppins_regular"
             android:gravity="left"

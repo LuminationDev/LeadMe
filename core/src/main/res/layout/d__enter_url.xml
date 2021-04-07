@@ -76,6 +76,7 @@
                 android:focusableInTouchMode="true"
                 android:fontFamily="@font/poppins_regular"
                 android:gravity="center"
+                android:hint="www.lumination.com.au"
                 android:imeOptions="actionNext"
                 android:inputType="textUri"
                 android:maxLines="1"

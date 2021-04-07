@@ -2,6 +2,7 @@ package com.lumination.leadme;
 
 import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.graphics.drawable.Drawable;
 import android.util.ArraySet;
@@ -384,12 +385,18 @@ public class FavouritesManager extends BaseAdapter {
             } else {
                 deleteFromFavourites(favPackageName);
             }
-            favouritesDialog.hide();
+            favouritesDialog.dismiss();
         });
 
-        favBackBtn.setOnClickListener(v -> favouritesDialog.hide());
+        favBackBtn.setOnClickListener(v -> favouritesDialog.dismiss());
 
         favouritesDialog = new AlertDialog.Builder(main).setView(favouritesView).create();
+        favouritesDialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
+            @Override
+            public void onDismiss(DialogInterface dialog) {
+                main.hideSystemUI();
+            }
+        });
     }
 
     private void showAddFavDialog(String packageName) {

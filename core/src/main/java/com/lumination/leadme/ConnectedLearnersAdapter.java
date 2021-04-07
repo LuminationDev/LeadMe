@@ -1,6 +1,7 @@
 package com.lumination.leadme;
 
 import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.graphics.drawable.Drawable;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -281,7 +282,7 @@ public class ConnectedLearnersAdapter extends BaseAdapter {
 //
 //                Log.w(TAG, mData.size()+", "+main.xrayManager.clientSocketThreads.size() + ", " + main.xrayManager.clientRecentScreenshots.size());
 
-                logoutPrompt.hide();
+                logoutPrompt.dismiss();
                 if (main.getConnectedLearnersAdapter().mData.size() > 0) {
                     //main.xrayManager.showXrayView(""); //refresh this view
                 } else {
@@ -289,13 +290,19 @@ public class ConnectedLearnersAdapter extends BaseAdapter {
                 }
             });
 
-            back_btn.setOnClickListener(v1 -> logoutPrompt.hide());
+            back_btn.setOnClickListener(v1 -> logoutPrompt.dismiss());
         }
 
         if (logoutPrompt == null) {
             logoutPrompt = new AlertDialog.Builder(main)
                     .setView(studentLogoutView)
                     .show();
+            logoutPrompt.setOnDismissListener(new DialogInterface.OnDismissListener() {
+                @Override
+                public void onDismiss(DialogInterface dialog) {
+                    main.hideSystemUI();
+                }
+            });
         } else {
             logoutPrompt.show();
         }
@@ -371,16 +378,22 @@ public class ConnectedLearnersAdapter extends BaseAdapter {
                             main.getNearbyManager().networkAdapter.sendToSelectedClients("", "DISCONNECT", selected);
                             removeStudent(lastClickedID);
                             refresh();
-                            disconnectPrompt.hide();
+                            disconnectPrompt.dismiss();
                         });
 
-                        back_btn.setOnClickListener(v1 -> disconnectPrompt.hide());
+                        back_btn.setOnClickListener(v1 -> disconnectPrompt.dismiss());
                     }
 
                     if (disconnectPrompt == null) {
                         disconnectPrompt = new AlertDialog.Builder(main)
                                 .setView(studentDisconnectedView)
                                 .show();
+                        disconnectPrompt.setOnDismissListener(new DialogInterface.OnDismissListener() {
+                            @Override
+                            public void onDismiss(DialogInterface dialog) {
+                                main.hideSystemUI();
+                            }
+                        });
                     } else {
                         disconnectPrompt.show();
                     }

@@ -1,6 +1,7 @@
 package com.lumination.leadme;
 
 import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -357,6 +358,12 @@ public class StudentAlertsAdapter extends BaseAdapter {
                 .setView(OffTask)
                 .create();
         errors.show();
+        errors.setOnDismissListener(new DialogInterface.OnDismissListener() {
+            @Override
+            public void onDismiss(DialogInterface dialog) {
+                main.hideSystemUI();
+            }
+        });
         errorBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -389,13 +396,13 @@ public class StudentAlertsAdapter extends BaseAdapter {
                         AlertsByCategories.get(errorPos).get(i).hideAlerts(true);
                     }
                 }
-                errors.hide();
+                errors.dismiss();
             }
         });
         backBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                errors.hide();
+                errors.dismiss();
             }
         });
 

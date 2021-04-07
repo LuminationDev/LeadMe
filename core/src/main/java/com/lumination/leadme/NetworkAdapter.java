@@ -77,6 +77,7 @@ public class NetworkAdapter {
     boolean pingName = true;
     boolean closeSocket = false;
     int connectionIsActive = 0;
+    int timeOut= 2;
 
 
     public ArrayList<studentThread> clientThreadList = new ArrayList<>();
@@ -292,6 +293,7 @@ public class NetworkAdapter {
                 Log.d(TAG, "connectToServer: attempting to connect to " + serviceInfo.getHost() + ":" + serviceInfo.getPort());
                 socket = new Socket(serviceInfo.getHost(), serviceInfo.getPort());
             } catch (IOException e) {
+
                 e.printStackTrace();
             }
             if (socket != null) {
@@ -474,6 +476,9 @@ public class NetworkAdapter {
                                     if (socket != null) {
                                         socket.close();
                                     }
+                                    main.runOnUiThread(() -> {
+                                        main.setUIDisconnected();
+                                    });
                                     e.printStackTrace();
                                     Log.e(TAG, "FAILED! {1}");
                                     return;
@@ -583,7 +588,7 @@ public class NetworkAdapter {
 
             case "PING":
                 nearbyPeersManager.myID = inputList.get(1);
-                connectionIsActive = 3;
+                connectionIsActive = timeOut;
                 if (main.waitingDialog.isShowing()) {
                     main.getHandler().post(() -> main.closeWaitingDialog(true));
                 }

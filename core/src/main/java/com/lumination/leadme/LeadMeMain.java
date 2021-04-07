@@ -8,6 +8,7 @@ import android.app.ActivityManager;
 import android.app.AlertDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
@@ -51,6 +52,8 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowInsets;
+import android.view.WindowInsetsController;
 import android.view.WindowManager;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
@@ -75,6 +78,9 @@ import android.widget.ViewSwitcher;
 
 import androidx.annotation.NonNull;
 import androidx.core.content.res.ResourcesCompat;
+import androidx.core.view.WindowCompat;
+import androidx.core.view.WindowInsetsCompat;
+import androidx.core.view.WindowInsetsControllerCompat;
 import androidx.fragment.app.FragmentActivity;
 import androidx.lifecycle.Lifecycle;
 import androidx.lifecycle.LifecycleObserver;
@@ -85,6 +91,7 @@ import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInClient;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.common.api.ApiException;
+import com.google.android.gms.common.internal.Constants;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -286,7 +293,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     int pinCodeInd = 0;
     String regoCode = "";
     boolean hasScrolled = false;
-    boolean allowHide = true;
+    boolean allowHide = false;
 
 
     public Handler getHandler() {
@@ -543,6 +550,12 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             appPushDialog = new AlertDialog.Builder(this)
                     .setView(appPushDialogView)
                     .show();
+            appPushDialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
+                @Override
+                public void onDismiss(DialogInterface dialog) {
+                    hideSystemUI();
+                }
+            });
         } else {
             appPushDialog.show();
         }
@@ -552,7 +565,8 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     private void hideAppPushDialogView() {
         if (appPushDialog != null) {
             dialogShowing = false;
-            appPushDialog.hide();
+            appPushDialog.dismiss();
+
         }
     }
 
@@ -721,10 +735,12 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             loginDialogView.findViewById(R.id.login_signup_view).setVisibility(View.VISIBLE);
             loginDialogView.findViewById(R.id.wrong_code_view).setVisibility(View.GONE);
             loginDialogView.findViewById(R.id.name_code_entry_view).setVisibility(View.GONE);
+
         }else{
             loginDialogView.findViewById(R.id.login_signup_view).setVisibility(View.GONE);
             loginDialogView.findViewById(R.id.wrong_code_view).setVisibility(View.GONE);
             loginDialogView.findViewById(R.id.name_code_entry_view).setVisibility(View.VISIBLE);
+
             getNearbyManager().myName = mAuth.getCurrentUser().getDisplayName();
             getNameView().setText(mAuth.getCurrentUser().getDisplayName());
 
@@ -734,6 +750,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             //leader
             Log.d(TAG, "showLoginDialog: teacher");
             loginDialogView.findViewById(R.id.code_entry_view).setVisibility(View.VISIBLE);
+            loginDialogView.findViewById(R.id.student_teacher_view).setVisibility(View.GONE);
         } else {
             //learner
             Log.d(TAG, "showLoginDialog: learner");
@@ -741,6 +758,13 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             loginDialogView.findViewById(R.id.wrong_code_view).setVisibility(View.GONE);
             loginDialogView.findViewById(R.id.name_code_entry_view).setVisibility(View.VISIBLE);
             loginDialogView.findViewById(R.id.code_entry_view).setVisibility(View.GONE);
+            loginDialogView.findViewById(R.id.student_teacher_view).setVisibility(View.VISIBLE);
+            if(getNearbyManager().selectedLeader==null){
+                leaderLearnerSwitcher.setDisplayedChild(SWITCH_LEADER_INDEX);
+                showLoginDialog();
+                return;
+            }
+            ((TextView) loginDialogView.findViewById(R.id.teacher_name)).setText(getNearbyManager().selectedLeader.getDisplayName());
         }
 
         if (loginDialog == null) {
@@ -748,7 +772,12 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                     .setView(loginDialogView)
                     .create();
         }
-
+        loginDialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
+            @Override
+            public void onDismiss(DialogInterface dialog) {
+                hideSystemUI();
+            }
+        });
         loginDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
 
         EditText email = loginDialogView.findViewById(R.id.login_email);
@@ -777,14 +806,14 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         signup.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                loginDialog.hide();
+                loginDialog.dismiss();
                 buildloginsignup(0);
             }
         });
         backBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                loginDialog.hide();
+                loginDialog.dismiss();
             }
         });
         forgotPassword.setOnClickListener(new View.OnClickListener() {
@@ -835,6 +864,12 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             studentAlertsDialog = new AlertDialog.Builder(this)
                     .setView(studentAlertsView)
                     .create();
+            studentAlertsDialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
+                @Override
+                public void onDismiss(DialogInterface dialog) {
+                    hideSystemUI();
+                }
+            });
         }
 
         hideSystemUI();
@@ -1262,11 +1297,11 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         }
     }
 
-    public void hideSystemUI() {
+    public void hideSystemUIStudent() {
         // Enables regular immersive mode.
         // For "lean back" mode, remove SYSTEM_UI_FLAG_IMMERSIVE.
         // Or for "sticky immersive," replace it with SYSTEM_UI_FLAG_IMMERSIVE_STICKY
-
+        Log.d(TAG, "hideSystemUI: ");
         View decorView = getWindow().getDecorView();
         decorView.setSystemUiVisibility(
                 View.SYSTEM_UI_FLAG_IMMERSIVE
@@ -1279,16 +1314,43 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                         | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
                         | View.SYSTEM_UI_FLAG_FULLSCREEN
         );
+
         collapseStatus();
     }
-    private void showSystemUI() {
+//    private void showSystemUI() {
+////        View decorView = getWindow().getDecorView();
+////        decorView.setSystemUiVisibility(
+////                View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+////                        | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+////                        | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN);
+//    }
+
+    public void hideSystemUI() {
+        if(getNearbyManager().isConnectedAsFollower()){
+            return;
+        }
         View decorView = getWindow().getDecorView();
-        decorView.setSystemUiVisibility(
-                View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-                        | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-                        | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN);
+        int uiOptions = decorView.getSystemUiVisibility();
+        int newUiOptions = uiOptions;
+        newUiOptions |= View.SYSTEM_UI_FLAG_LOW_PROFILE;
+        newUiOptions |= View.SYSTEM_UI_FLAG_FULLSCREEN;
+        newUiOptions |= View.SYSTEM_UI_FLAG_HIDE_NAVIGATION;
+        newUiOptions |= View.SYSTEM_UI_FLAG_IMMERSIVE;
+        newUiOptions |= View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY;
+        decorView.setSystemUiVisibility(newUiOptions);
     }
 
+    public void showSystemUI() {
+        View decorView = getWindow().getDecorView();
+        int uiOptions = decorView.getSystemUiVisibility();
+        int newUiOptions = uiOptions;
+        newUiOptions &= ~View.SYSTEM_UI_FLAG_LOW_PROFILE;
+        newUiOptions &= ~View.SYSTEM_UI_FLAG_FULLSCREEN;
+        newUiOptions &= ~View.SYSTEM_UI_FLAG_HIDE_NAVIGATION;
+        newUiOptions &= ~View.SYSTEM_UI_FLAG_IMMERSIVE;
+        newUiOptions &= ~View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY;
+        decorView.setSystemUiVisibility(newUiOptions);
+    }
     public String getUUID() {
         return sessionUUID;
     }
@@ -1383,16 +1445,16 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         Log.d(TAG, "Adding System Visibility listener to window/decor");
         getWindow().getDecorView().setOnSystemUiVisibilityChangeListener(
                 visibility -> {
-                    //Log.d(TAG, "DECOR VIEW! " + getNearbyManager().isConnectedAsFollower() + ", " + dialogShowing);
+                    Log.d(TAG, "DECOR VIEW! " + getNearbyManager().isConnectedAsFollower() + ", " + dialogShowing);
                     if (getNearbyManager().isConnectedAsFollower()) {
                         if(allowHide) {
-                            handler.postDelayed(this::hideSystemUI, 0);
+                            handler.postDelayed(this::hideSystemUIStudent, 0);
                         }
                     } else {
                         //hide after short delay
-                        if(allowHide) {
-                            handler.postDelayed(this::hideSystemUI, 1500);
-                        }
+//                        if(allowHide) {
+//                            handler.postDelayed(this::hideSystemUI, 1500);
+//                        }
                     }
                 });
 
@@ -1901,6 +1963,12 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             confirmPushDialog = new AlertDialog.Builder(this)
                     .setView(confirmPushDialogView)
                     .show();
+            confirmPushDialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
+                @Override
+                public void onDismiss(DialogInterface dialog) {
+                    hideSystemUI();
+                }
+            });
         } else {
             confirmPushDialog.show();
         }
@@ -1964,7 +2032,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     public void hideConfirmPushDialog() {
         if (confirmPushDialog != null) {
             dialogShowing = false;
-            confirmPushDialog.hide();
+            confirmPushDialog.dismiss();
         }
         //return to main screen
         leadmeAnimator.setDisplayedChild(ANIM_LEADER_INDEX);
@@ -2052,6 +2120,12 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             waitingDialog = new AlertDialog.Builder(this)
                     .setView(waitingDialogView)
                     .create();
+            waitingDialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
+                @Override
+                public void onDismiss(DialogInterface dialog) {
+                    hideSystemUI();
+                }
+            });
         }
 
         loginDialog.dismiss();
@@ -2074,6 +2148,12 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         warningDialog = new AlertDialog.Builder(this)
                 .setView(warningDialogView)
                 .create();
+        warningDialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
+            @Override
+            public void onDismiss(DialogInterface dialog) {
+                hideSystemUI();
+            }
+        });
     }
 
     public void showLoginAlertMessage() {
@@ -2230,17 +2310,25 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
             SharedPreferences sharedPreferences = getSharedPreferences(getResources().getString(R.string.preference_file_key), Context.MODE_PRIVATE);
             //if a UUID exists, retrieve it
-            if (!sharedPreferences.contains("ONBOARD")) {
-                SharedPreferences.Editor editor = sharedPreferences.edit();
-                editor.putBoolean("ONBOARD", true);
-                editor.apply();
+//            if (!sharedPreferences.contains("ONBOARD")) {
+//                SharedPreferences.Editor editor = sharedPreferences.edit();
+//                editor.putBoolean("ONBOARD", true);
+//                editor.apply();
                 buildAndDisplayOnBoard();
-            }
+//            }
 
 
         } else {
             //display main student view
             leadmeAnimator.setDisplayedChild(ANIM_LEARNER_INDEX);
+            allowHide=true;
+            handler.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    hideSystemUIStudent();
+                }
+            },1000);
+
 
             //update options
             ((TextView) optionsScreen.findViewById(R.id.logout_btn)).setTextColor(getResources().getColor(R.color.leadme_medium_grey, null));
@@ -2521,12 +2609,12 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             recallView.findViewById(R.id.ok_btn).setOnClickListener(v -> {
                 returnToAppFromMainAction(returnEveryone);
                 dialogShowing = false;
-                recallPrompt.hide();
+                recallPrompt.dismiss();
             });
 
             recallView.findViewById(R.id.back_btn).setOnClickListener(v -> {
                 dialogShowing = false;
-                recallPrompt.hide();
+                recallPrompt.dismiss();
             });
 
             recallView.findViewById(R.id.selected_btn).setOnClickListener(v -> makeSelectedBtnActive());
@@ -2536,6 +2624,12 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             recallPrompt = new AlertDialog.Builder(this)
                     .setView(recallView)
                     .create();
+            recallPrompt.setOnDismissListener(new DialogInterface.OnDismissListener() {
+                @Override
+                public void onDismiss(DialogInterface dialog) {
+                    hideSystemUI();
+                }
+            });
         }
 
         if (getConnectedLearnersAdapter().someoneIsSelected() && (getNearbyManager().getSelectedPeerIDs().size() < getNearbyManager().getAllPeerIDs().size())) {
@@ -2994,6 +3088,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     }
 
     public void setStudentOnBoard(int page) {
+        hideSystemUI();
         Log.d(TAG, "setOnboardCurrent: ");
         String titleToShow[] = {"Allow Access", "Allow App Overlay"};
         String textToShow[] = {"LeadMe requires special access on this device. When promted, click ‘allow’, find ‘Services’ or ‘Downloaded Services’ and enable Lumination LeadMe.",
@@ -3003,6 +3098,9 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             getPermissionsManager().requestAccessibilitySettingsOn();
         }, v -> {
             Log.d(TAG, "setStudentOnBoard: checking");
+            if(getPermissionsManager().isOverlayPermissionGranted()){
+                setStudentOnBoard(2);
+            }
             getPermissionsManager().checkOverlayPermissions();
         }};
         Animation in = AnimationUtils.makeInAnimation(this, false);
@@ -3048,7 +3146,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     }
 
     public void buildloginsignup(int page, boolean signinVerif) {
-
+        showSystemUI();
         View Login = View.inflate(this, R.layout.b__login_signup, null);
         LinearLayout[] layoutPages = {Login.findViewById(R.id.rego_code), Login.findViewById(R.id.signup_page)
                 , Login.findViewById(R.id.terms_of_use), Login.findViewById(R.id.email_verification)
@@ -3130,35 +3228,21 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         setContentView(Login);
         switch (page) {
             case 0:
+                showSystemUI();
                 regoError.setVisibility(View.GONE);
                 //loginCode.requestFocus();
                 loginCode.setOnFocusChangeListener(new View.OnFocusChangeListener() {
                     @Override
                     public void onFocusChange(View v, boolean hasFocus) {
-                        if(hasFocus){
-                            Log.d(TAG, "onFocusChange: ");
-                            allowHide=false;
+                        if(hasFocus) {
                             showSystemUI();
-                        }else{
-                            allowHide=true;
-                            hideSystemUI();
                         }
-                    }
-                });
-                Login.setOnKeyListener(new View.OnKeyListener() {
-                    @Override
-                    public boolean onKey(View v, int keyCode, KeyEvent event) {
-                        Log.d(TAG, "onKey: back");
-                        if(keyCode==KeyEvent.KEYCODE_BACK){
-                            v.clearFocus();
-                        }
-                        return false;
                     }
                 });
                 loginCode.addTextChangedListener(new TextWatcher() {
                     @Override
                     public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-
+                        showSystemUI();
                     }
 
                     @Override
@@ -3177,35 +3261,39 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                 next.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        db.collection("signin_codes").document(loginCode.getText().toString())
-                                .get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
-                            @Override
-                            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                                if (task.isSuccessful()) {
-                                    Log.d(TAG, "buildloginsignup: database accessed");
-                                    if (task.getResult().exists()) {
-                                        //todo add email under signup code
+                        if(loginCode.getText().length()==6) {
+                            db.collection("signin_codes").document(loginCode.getText().toString())
+                                    .get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                                @Override
+                                public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                                    if (task.isSuccessful()) {
+                                        Log.d(TAG, "buildloginsignup: database accessed");
+                                        if (task.getResult().exists()) {
+                                            //todo add email under signup code
 //                                        if(task.getResult().get)
-                                        regoCode = loginCode.getText().toString();
-                                        buildloginsignup(1);
+                                            regoCode = loginCode.getText().toString();
+                                            buildloginsignup(1);
+                                        } else {
+                                            regoError.setVisibility(View.VISIBLE);
+                                        }
                                     } else {
-                                        regoError.setVisibility(View.VISIBLE);
+                                        Log.d(TAG, "buildloginsignup: unable to access database");
                                     }
-                                } else {
-                                    Log.d(TAG, "buildloginsignup: unable to access database");
                                 }
-                            }
-                        });
+                            });
+                        }
                     }
                 });
                 back.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
                         setContentView(leadmeAnimator);
+                        hideSystemUI();
                     }
                 });
                 break;
             case 1:
+                showSystemUI();
                 signupError.setVisibility(View.GONE);
                 marketingCheck.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
                     @Override
@@ -3218,6 +3306,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                     public void onClick(View v) {
                         if (signupPass.getText().toString().equals(signupConPass.getText().toString())) {
                             FirebaseEmailSignUp(signupEmail.getText().toString(), signupPass.getText().toString(), signupName.getText().toString(), marketingCheck.isChecked(), regoCode, signupError);
+                            hideSystemUI();
                         } else {
                             signupError.setText("Passwords do not match");
                             signupError.setVisibility(View.VISIBLE);
@@ -3228,10 +3317,18 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                     @Override
                     public void onClick(View v) {
                         buildloginsignup(0);
+                        hideSystemUI();
                     }
                 });
                 break;
             case 2:
+                hideSystemUI();
+                handler.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        hideSystemUI();
+                    }
+                },500);
                 errorText.setVisibility(View.GONE);
 //                terms.setOnScrollChangeListener(new View.OnScrollChangeListener() {
 //                    boolean scrolled = false;
@@ -3280,6 +3377,12 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                 break;
 
             case 3:
+                handler.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        hideSystemUI();
+                    }
+                },500);
                 Uri uri = Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.email_sent);
                 animation.setVideoURI(uri);
                 animation.setBackgroundColor(Color.WHITE);
@@ -3361,6 +3464,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                     });
 
                 }
+                showSystemUI();
                 next.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
@@ -3438,6 +3542,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                                                     Log.d(TAG, "handleSignInResult: new user created");
                                                     getNearbyManager().myName = account.getGivenName();
                                                     getNameView().setText(account.getGivenName());
+                                                    hideSystemUI();
                                                     loginAction();
                                                 })
                                                 .addOnFailureListener(new OnFailureListener() {

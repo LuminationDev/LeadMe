@@ -1,6 +1,7 @@
 package com.lumination.leadme;
 
 import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.util.Log;
@@ -99,7 +100,7 @@ public class WithinEmbedPlayer {
         withinSearchDialogView.findViewById(R.id.open_favourites).setOnClickListener(v -> {
             main.closeKeyboard();
             main.hideSystemUI();
-            videoSearchDialog.hide();
+            videoSearchDialog.dismiss();
             main.getWebManager().launchUrlYtFavourites();
         });
 
@@ -453,6 +454,12 @@ public class WithinEmbedPlayer {
             videoSearchDialog = new AlertDialog.Builder(main)
                     .setView(withinSearchDialogView)
                     .create();
+            videoSearchDialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
+                @Override
+                public void onDismiss(DialogInterface dialog) {
+                    main.hideSystemUI();
+                }
+            });
         }
         loadSearchView();
         videoSearchDialog.show();
@@ -474,6 +481,12 @@ public class WithinEmbedPlayer {
             videoControlDialog = new AlertDialog.Builder(main)
                     .setView(withinControllerDialogView)
                     .create();
+            videoControlDialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
+                @Override
+                public void onDismiss(DialogInterface dialog) {
+                    main.hideSystemUI();
+                }
+            });
         }
 
         if (isFresh) {
