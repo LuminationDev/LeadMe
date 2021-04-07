@@ -1645,6 +1645,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                 }else{
                     optionsScreen.findViewById(R.id.options_loginBtn).setVisibility(View.VISIBLE);
                     optionsScreen.findViewById(R.id.options_notsigned).setVisibility(View.VISIBLE);
+                    optionsScreen.findViewById(R.id.options_teacher).setVisibility(View.GONE);
                 }
             }
             if(getNearbyManager().isConnectedAsGuide()){
@@ -1711,6 +1712,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             if (isGuide || !getNearbyManager().isConnectedAsFollower()) {
                 mAuth.signOut();
                 currentUser= mAuth.getCurrentUser();
+                optionsScreen.findViewById(R.id.options_teacher).setVisibility(View.GONE);
                 logoutAction();
             } else {
                 Toast.makeText(getApplicationContext(), "Logout is unavailable.", Toast.LENGTH_SHORT).show();
@@ -3391,6 +3393,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                         hideSystemUI();
                     }
                 },500);
+                next.setVisibility(View.GONE);
                 Uri uri = Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.email_sent);
                 animation.setVideoURI(uri);
                 animation.setBackgroundColor(Color.WHITE);
@@ -3445,11 +3448,13 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                 back.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
+                        scheduledExecutorService.shutdown();
                         setContentView(leadmeAnimator);
                     }
                 });
                 break;
             case 4:
+                next.setVisibility(View.VISIBLE);
                 pinError.setText("Your email has been verified");
                 pinError.setTextColor(getColor(R.color.leadme_black));
                 pinErrorImg.setImageResource(R.drawable.icon_fav_star_check);

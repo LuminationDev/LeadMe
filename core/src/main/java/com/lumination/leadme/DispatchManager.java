@@ -30,11 +30,12 @@ public class DispatchManager {
     public void repushApp(Set<String> selectedPeerIDs) {
         Log.w(TAG, "REPUSH: " + tagRepush + ", " + packageNameRepush + ", " + appNameRepush + ", " + lockTagRepush + ", " + extraRepush);
 
-
-        if (packageNameRepush.equals(main.getAppManager().withinPackage)) {
-            requestRemoteWithinLaunch(tagRepush, packageNameRepush, appNameRepush, lockTagRepush, extraRepush, streamingRepush, vrModeRepush, selectedPeerIDs);
-        } else {
-            requestRemoteAppOpen(tagRepush, packageNameRepush, appNameRepush, lockTagRepush, selectedPeerIDs);
+        if(packageNameRepush!=null) {
+            if (packageNameRepush.equals(main.getAppManager().withinPackage)) {
+                requestRemoteWithinLaunch(tagRepush, packageNameRepush, appNameRepush, lockTagRepush, extraRepush, streamingRepush, vrModeRepush, selectedPeerIDs);
+            } else {
+                requestRemoteAppOpen(tagRepush, packageNameRepush, appNameRepush, lockTagRepush, selectedPeerIDs);
+            }
         }
 
         main.runOnUiThread(() -> main.showConfirmPushDialog(true, false));
@@ -126,6 +127,7 @@ public class DispatchManager {
     }
 
     public synchronized void sendActionToSelected(String actionTag, String action, Set<String> selectedPeerIDs) {
+        
         Parcel p = Parcel.obtain();
         byte[] bytes;
         p.writeString(actionTag);
