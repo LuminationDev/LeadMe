@@ -104,6 +104,8 @@ import com.google.firebase.auth.GoogleAuthProvider;
 import com.google.firebase.auth.UserProfileChangeRequest;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.himanshurawat.hasher.HashType;
+import com.himanshurawat.hasher.Hasher;
 
 import org.w3c.dom.Text;
 
@@ -122,6 +124,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 
 public class LeadMeMain extends FragmentActivity implements Handler.Callback, SensorEventListener, LifecycleObserver {
@@ -294,6 +299,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     String regoCode = "";
     boolean hasScrolled = false;
     boolean allowHide = false;
+    ScheduledExecutorService scheduledExecutorService = new ScheduledThreadPoolExecutor(1);
 
 
     public Handler getHandler() {
@@ -2002,6 +2008,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     boolean isOpen = false;
 
     public void openKeyboard() {
+        showSystemUI();
         //Log.d(TAG, "Open keyboard! " + isOpen);
         if (isOpen) {
             return; //not needed
@@ -2011,6 +2018,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     }
 
     public void closeKeyboard() {
+        hideSystemUI();
         View view = this.getCurrentFocus();
         //Log.d(TAG, "Close keyboard! " + isOpen);
 
@@ -2198,7 +2206,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                 @Override
                 public void onComplete(@NonNull Task<DocumentSnapshot> task) {
                     if (task.isSuccessful()) {
-                        if(code.equals(task.getResult().getString("pin"))){
+                        if( Hasher.Companion.hash(code, HashType.SHA_256).equals(task.getResult().getString("pin"))){
                             codeEntered=true;
                             loginAction();
                         }else{
@@ -3403,7 +3411,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                             mAuth.getCurrentUser().sendEmailVerification().addOnSuccessListener(new OnSuccessListener<Void>() {
                                 @Override
                                 public void onSuccess(Void aVoid) {
-                                    Thread loopingCheck = new Thread(new Runnable() {
+                                    scheduledExecutorService.scheduleAtFixedRate(new Runnable() {
                                         @Override
                                         public void run() {
                                             mAuth.addAuthStateListener(new FirebaseAuth.AuthStateListener() {
@@ -3411,22 +3419,19 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                                                 public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
                                                     Log.d(TAG, "run: checking user verification");
                                                     //todo add waiting screen in here
-                                                    while (!mAuth.getCurrentUser().isEmailVerified()) {
+                                                    if (!mAuth.getCurrentUser().isEmailVerified()) {
                                                         mAuth.getCurrentUser().reload();
-                                                        try {
-                                                            Thread.currentThread().sleep(100);
-                                                        } catch (InterruptedException e) {
-                                                            e.printStackTrace();
-                                                        }
+                                                    }else {
+                                                        currentUser = mAuth.getCurrentUser();
+                                                        scheduledExecutorService.shutdown();
+                                                        runOnUiThread(()->{
+                                                            buildloginsignup(4);
+                                                        });
                                                     }
-                                                    currentUser = mAuth.getCurrentUser();
-                                                    buildloginsignup(4);
-
                                                 }
                                             });
                                         }
-                                    });
-                                    loopingCheck.start();
+                                    },100,100, TimeUnit.MILLISECONDS);
                                 }
                             });
 
@@ -3480,7 +3485,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                         if (pin.equals(confirmPin)) {
                             //todo save this data to users profile
                             Map<String, Object> userDet = new HashMap<>();
-                            userDet.put("pin", pin);
+                            userDet.put("pin", Hasher.Companion.hash(pin, HashType.SHA_256));
                             db.collection("users").document(mAuth.getCurrentUser().getUid()).update(userDet).addOnSuccessListener(new OnSuccessListener<Void>() {
                                 @Override
                                 public void onSuccess(Void aVoid) {
