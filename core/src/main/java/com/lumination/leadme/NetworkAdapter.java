@@ -146,7 +146,7 @@ public class NetworkAdapter {
                             public void run() {
                                 mNsdManager.resolveService(service, new resListener());
                                 try {
-                                    Thread.currentThread().sleep(50);
+                                    Thread.currentThread().sleep(100);
                                 } catch (InterruptedException e) {
                                     e.printStackTrace();
                                 }
@@ -303,7 +303,7 @@ public class NetworkAdapter {
                     Log.d(TAG, "connectToServer: connection successful");
                     Name = nearbyPeersManager.getName();
                     sendToServer(Name, "NAME"); //sends the student name to the teacher for a record
-
+                    stopDiscovery();
                     main.runOnUiThread(() -> {
                         main.findViewById(R.id.client_main).setVisibility(View.VISIBLE);
                         List<String> inputList = Arrays.asList(serviceInfo.getServiceName().split("#"));
@@ -446,7 +446,7 @@ public class NetworkAdapter {
             });
         }
     }
-
+    Thread recieveInput = null;
     //discovers services, is not continuous so will need to be called in a runnable to implement a scan
     public void startDiscovery() {
         discoveredLeaders = new ArrayList<>();
@@ -459,55 +459,58 @@ public class NetworkAdapter {
         //on the fly name changes are supported, client is identified by assigned ID
 
         //new Thread so server messages can be read from a while loop without impacting the UI
-        Thread thread = new Thread() {
-            @Override
-            public void run() {
-                while (allowInput) {
-                    if (socket != null) {
-                        if (!socket.isClosed() && !socket.isInputShutdown()) {
-                            BufferedReader in;
-                            String input = "";
-                            try {
-                                InputStreamReader inStream = new InputStreamReader(socket.getInputStream());
-                                in = new BufferedReader(inStream);
+        if(recieveInput==null) {
+            recieveInput = new Thread() {
+                @Override
+                public void run() {
+                    while (allowInput) {
+                        if (socket != null) {
+                            if (!socket.isClosed() && !socket.isInputShutdown()) {
+                                BufferedReader in;
+                                String input = "";
                                 try {
-                                    input = in.readLine();
-                                } catch (SocketException e) {
-                                    if (socket != null) {
-                                        socket.close();
+                                    InputStreamReader inStream = new InputStreamReader(socket.getInputStream());
+                                    in = new BufferedReader(inStream);
+                                    try {
+                                        input = in.readLine();
+                                    } catch (SocketException e) {
+                                        if (socket != null) {
+                                            socket.close();
+                                        }
+                                        main.runOnUiThread(() -> {
+                                            main.setUIDisconnected();
+                                        });
+                                        e.printStackTrace();
+                                        Log.e(TAG, "FAILED! {1}");
+                                        return;
                                     }
-                                    main.runOnUiThread(() -> {
-                                        main.setUIDisconnected();
-                                    });
-                                    e.printStackTrace();
-                                    Log.e(TAG, "FAILED! {1}");
-                                    return;
-                                }
 
-                                if (input != null) {
-                                    if (input.length() > 0) {
-                                        //Log.d(TAG, "run: server said: " + input);
-                                        netAdapt.messageReceivedFromServer(input);
+                                    if (input != null) {
+                                        if (input.length() > 0) {
+                                            //Log.d(TAG, "run: server said: " + input);
+                                            netAdapt.messageReceivedFromServer(input);
+                                        }
                                     }
+                                } catch (IOException e) {
+                                    e.printStackTrace();
+                                    Log.e(TAG, "FAILED! {2}");
                                 }
-                            } catch (IOException e) {
-                                e.printStackTrace();
-                                Log.e(TAG, "FAILED! {2}");
+                            } else {
+                                socket = null;
+                                main.runOnUiThread(() -> {
+                                    main.setUIDisconnected();
+                                });
+                                Log.e(TAG, "FAILED! {3}");
                             }
-                        } else {
-                            socket = null;
-                            main.runOnUiThread(() -> {
-                                main.setUIDisconnected();
-                            });
-                            Log.e(TAG, "FAILED! {3}");
                         }
                     }
+                    Log.e(TAG, "FAILED! {4}");
                 }
-                Log.e(TAG, "FAILED! {4}");
-            }
-        };
-        thread.setPriority(Thread.MAX_PRIORITY);
-        thread.start();
+            };
+
+            recieveInput.setPriority(Thread.MAX_PRIORITY);
+            recieveInput.start();
+        }
     }
 
     //stops any discovery processes that are in progress

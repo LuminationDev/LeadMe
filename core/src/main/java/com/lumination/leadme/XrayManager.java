@@ -36,7 +36,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
 
-import eu.bolt.screenshotty.ScreenshotManager;
+//import eu.bolt.screenshotty.ScreenshotManager;
 
 import static android.view.View.GONE;
 import static android.view.View.VISIBLE;
@@ -44,7 +44,7 @@ import static android.view.View.VISIBLE;
 public class XrayManager {
 
     //added-------
-    ScreenshotManager screenshotManager;
+    //ScreenshotManager screenshotManager;
 
     String ipAddress;
     Intent screen_share_intent = null;

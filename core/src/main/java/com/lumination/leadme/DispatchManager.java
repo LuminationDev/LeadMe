@@ -22,6 +22,9 @@ public class DispatchManager {
     String extraRepush;
     boolean streamingRepush;
     boolean vrModeRepush;
+    String mActionTag=null, mAction=null;
+    int lastEvent =0;
+
 
     public DispatchManager(LeadMeMain main) {
         this.main = main;
@@ -29,16 +32,29 @@ public class DispatchManager {
 
     public void repushApp(Set<String> selectedPeerIDs) {
         Log.w(TAG, "REPUSH: " + tagRepush + ", " + packageNameRepush + ", " + appNameRepush + ", " + lockTagRepush + ", " + extraRepush);
-
-        if(packageNameRepush!=null) {
-            if (packageNameRepush.equals(main.getAppManager().withinPackage)) {
+        switch(lastEvent){
+            case 1:
                 requestRemoteWithinLaunch(tagRepush, packageNameRepush, appNameRepush, lockTagRepush, extraRepush, streamingRepush, vrModeRepush, selectedPeerIDs);
-            } else {
+                break;
+            case 2:
                 requestRemoteAppOpen(tagRepush, packageNameRepush, appNameRepush, lockTagRepush, selectedPeerIDs);
-            }
+                break;
+            case 3:
+                sendActionToSelected(mActionTag,mAction,selectedPeerIDs);
+                break;
         }
 
-        main.runOnUiThread(() -> main.showConfirmPushDialog(true, false));
+//        if(packageNameRepush!=null) {
+//            if (packageNameRepush.equals(main.getAppManager().withinPackage)) {
+//                requestRemoteWithinLaunch(tagRepush, packageNameRepush, appNameRepush, lockTagRepush, extraRepush, streamingRepush, vrModeRepush, selectedPeerIDs);
+//            } else if(actionTag==null) {
+//                requestRemoteAppOpen(tagRepush, packageNameRepush, appNameRepush, lockTagRepush, selectedPeerIDs);
+//            }
+//        }else if(actionTag!=null){
+//            sendActionToSelected(actionTag,action,selectedPeerIDs);
+//        }
+
+        //main.runOnUiThread(() -> main.showConfirmPushDialog(true, false));
     }
 
     protected void disableInteraction(final int status) {
@@ -77,6 +93,8 @@ public class DispatchManager {
     }
 
     public void requestRemoteWithinLaunch(String tag, String packageName, String appName, String lockTag, String extra, boolean streaming, boolean vrMode, Set<String> selectedPeerIDs) {
+        Log.d(TAG, "requestRemoteWithinLaunch: ");
+        lastEvent=1;
         tagRepush = tag;
         packageNameRepush = packageName;
         appNameRepush = appName;
@@ -100,6 +118,8 @@ public class DispatchManager {
     }
 
     public void requestRemoteAppOpen(String tag, String packageName, String appName, String lockTag, Set<String> selectedPeerIDs) {
+        Log.d(TAG, "requestRemoteAppOpen: ");
+        lastEvent=2;
         tagRepush = tag;
         packageNameRepush = packageName;
         appNameRepush = appName;
@@ -127,7 +147,12 @@ public class DispatchManager {
     }
 
     public synchronized void sendActionToSelected(String actionTag, String action, Set<String> selectedPeerIDs) {
-        
+        if(action.contains(LeadMeMain.LAUNCH_URL) || action.contains(LeadMeMain.LAUNCH_YT)) {
+            Log.d(TAG, "sendActionToSelected: ");
+            lastEvent = 3;
+            mActionTag = actionTag;
+            mAction = action;
+        }
         Parcel p = Parcel.obtain();
         byte[] bytes;
         p.writeString(actionTag);
@@ -456,7 +481,7 @@ public class DispatchManager {
                 if (!extra.isEmpty()) {
                     // save all the info for a Within launch
                     Uri thisURI = Uri.parse(extra);
-                    if (main.getAppManager().withinURI != null && main.getAppManager().withinURI.equals(thisURI)) {
+                    if (main.getAppManager().withinURI != null && main.getAppManager().withinURI.equals(thisURI) && !main.isAppVisibleInForeground()) {
                         Log.w(TAG, "We're already playing " + thisURI.toString() + "! Ignoring...");
                         return true; //successfully extracted the details, no action needed
                     } else {

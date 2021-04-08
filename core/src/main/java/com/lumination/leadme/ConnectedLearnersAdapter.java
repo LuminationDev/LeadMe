@@ -448,7 +448,7 @@ public class ConnectedLearnersAdapter extends BaseAdapter {
             statusIcon.setImageDrawable(main.getResources().getDrawable(R.drawable.alert_blocked, null));
 
         } else if (!peer.hasWarning() && peer.isLocked()) {
-            statusIcon.setImageDrawable(main.getResources().getDrawable(R.drawable.alert_locked, null));
+            statusIcon.setImageDrawable(main.getResources().getDrawable(R.drawable.view_learneralert, null));
 
         } else if (!peer.hasWarning()) {
             statusIcon.setImageDrawable(null);
