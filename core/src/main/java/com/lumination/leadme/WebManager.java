@@ -10,13 +10,16 @@ import android.content.pm.ActivityInfo;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
+import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
+import android.os.Build;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.View;
 import android.webkit.URLUtil;
 import android.webkit.WebResourceRequest;
+import android.webkit.WebResourceResponse;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.AdapterView;
@@ -30,13 +33,18 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.koushikdutta.urlimageviewhelper.UrlImageViewHelper;
 import com.lumination.leadme.linkpreview.LinkPreviewCallback;
 import com.lumination.leadme.linkpreview.SourceContent;
 import com.lumination.leadme.linkpreview.TextCrawler;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -1328,6 +1336,68 @@ public class WebManager {
                 });
                 return false;
             }
+            @Override
+            public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request){
+                Log.d(TAG, "shouldInterceptRequest: ");
+                String url = request.getUrl().toString();
+                if(url==null){
+                    return super.shouldInterceptRequest(view,request);
+                }
+
+                if(url.toLowerCase().contains(".jpg") || url.toLowerCase().contains(".jpeg")){
+                    Bitmap bitmap = null;
+                    try {
+                        bitmap = Glide.with(searchWebView).asBitmap().diskCacheStrategy(DiskCacheStrategy.ALL).load(url).submit().get();
+                        Log.d(TAG, "shouldInterceptRequest: intercepted jpg");
+                    } catch (ExecutionException e) {
+                        e.printStackTrace();
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                    ByteArrayOutputStream bos = new ByteArrayOutputStream();
+                    bitmap.compress(Bitmap.CompressFormat.JPEG, 100 , bos);
+                    byte[] bitmapdata = bos.toByteArray();
+                    ByteArrayInputStream bs = new ByteArrayInputStream(bitmapdata);
+                    return new WebResourceResponse("image/jpg", "UTF-8",bs);
+                }else if(url.toLowerCase().contains(".png")){
+                    Bitmap bitmap = null;
+                    try {
+                        bitmap = Glide.with(searchWebView).asBitmap().diskCacheStrategy(DiskCacheStrategy.ALL).load(url).submit().get();
+                        Log.d(TAG, "shouldInterceptRequest: intercepted png");
+                    } catch (ExecutionException e) {
+                        e.printStackTrace();
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                    ByteArrayOutputStream bos = new ByteArrayOutputStream();
+                    bitmap.compress(Bitmap.CompressFormat.PNG, 100 , bos);
+                    byte[] bitmapdata = bos.toByteArray();
+                    ByteArrayInputStream bs = new ByteArrayInputStream(bitmapdata);
+                    return new WebResourceResponse("image/png", "UTF-8",bs);
+                }else if(url.toLowerCase().contains(".webp")){
+                    Bitmap bitmap = null;
+                    try {
+                        bitmap = Glide.with(searchWebView).asBitmap().diskCacheStrategy(DiskCacheStrategy.ALL).load(url).submit().get();
+                        Log.d(TAG, "shouldInterceptRequest: intercepted webp");
+                    } catch (ExecutionException e) {
+                        e.printStackTrace();
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                    ByteArrayOutputStream bos = new ByteArrayOutputStream();
+                    if(android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                        bitmap.compress(Bitmap.CompressFormat.WEBP_LOSSY, 100 , bos);
+                    }else{
+                        bitmap.compress(Bitmap.CompressFormat.WEBP, 100 , bos);
+                    }
+                    byte[] bitmapdata = bos.toByteArray();
+                    ByteArrayInputStream bs = new ByteArrayInputStream(bitmapdata);
+                    return new WebResourceResponse("image/webp", "UTF-8",bs);
+                }else{
+                   return super.shouldInterceptRequest(view,request);
+                }
+            }
+
         });
 
         main.runOnUiThread(() -> {

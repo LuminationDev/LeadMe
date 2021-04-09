@@ -12,7 +12,8 @@ android {
 
     buildTypes {
         release {
-            minifyEnabled false
+            minifyEnabled true
+            shrinkResources true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
         }
     }
@@ -46,6 +47,10 @@ dependencies {
     //for screenshots
     implementation 'eu.bolt:screenshotty:1.0.3'
     implementation 'com.github.karanvs:hiddenshot:v1.2'
+
+    implementation 'com.github.bumptech.glide:glide:4.11.0'
+    annotationProcessor 'com.github.bumptech.glide:compiler:4.11.0'
+    implementation 'com.github.Nikoloutsos:KLoadingSpin:1.1.0'
 
     //for firebase
     implementation platform('com.google.firebase:firebase-bom:26.7.0')

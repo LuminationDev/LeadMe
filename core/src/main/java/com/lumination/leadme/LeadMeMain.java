@@ -6,6 +6,7 @@ import android.accessibilityservice.GestureDescription;
 import android.annotation.SuppressLint;
 import android.app.ActivityManager;
 import android.app.AlertDialog;
+import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -66,6 +67,8 @@ import android.widget.GridView;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.ProgressBar;
+import android.widget.RelativeLayout;
 import android.widget.ScrollView;
 import android.widget.SearchView;
 import android.widget.SeekBar;
@@ -86,6 +89,7 @@ import androidx.lifecycle.Lifecycle;
 import androidx.lifecycle.LifecycleObserver;
 import androidx.lifecycle.OnLifecycleEvent;
 
+import com.example.kloadingspin.KLoadingSpin;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInClient;
@@ -128,6 +132,13 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
+/*
+    LeadMe Main:
+
+    • Handles most UI related events
+    • Initilises main classes
+    • Handles login/signup and authentication
+ */
 
 public class LeadMeMain extends FragmentActivity implements Handler.Callback, SensorEventListener, LifecycleObserver {
 
@@ -2204,12 +2215,20 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             code3.getText().clear();
             code4.getText().clear();
             Log.d(TAG, "Code entered: " + code);
+            // For showing
+            ProgressBar progressBar = loginDialogView.findViewById(R.id.indeterminateBar);
+            progressBar.setVisibility(View.VISIBLE);
+
+            // For hiding
+
             db.collection("users").document(mAuth.getCurrentUser().getUid()).get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
                 @Override
                 public void onComplete(@NonNull Task<DocumentSnapshot> task) {
                     if (task.isSuccessful()) {
                         if( Hasher.Companion.hash(code, HashType.SHA_256).equals(task.getResult().getString("pin"))){
                             codeEntered=true;
+
+                            progressBar.setVisibility(View.GONE);
                             loginAction();
                         }else{
                             codeEntered=false;
@@ -3163,6 +3182,8 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                 , Login.findViewById(R.id.set_pin), Login.findViewById(R.id.account_created)};
         Button next = Login.findViewById(R.id.signup_enter);
         Button back = Login.findViewById(R.id.signup_back);
+        ProgressBar progressBar = Login.findViewById(R.id.signup_indeterminate);
+        progressBar.setVisibility(View.GONE);
         //page 0
         EditText loginCode = Login.findViewById(R.id.rego_code_box);
         TextView regoLost = Login.findViewById(R.id.rego_lost_code);
@@ -3272,6 +3293,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                     @Override
                     public void onClick(View v) {
                         if(loginCode.getText().length()==6) {
+                            progressBar.setVisibility(View.VISIBLE);
                             db.collection("signin_codes").document(loginCode.getText().toString())
                                     .get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
                                 @Override
@@ -3315,11 +3337,13 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                     @Override
                     public void onClick(View v) {
                         if (signupPass.getText().toString().equals(signupConPass.getText().toString())) {
+                            progressBar.setVisibility(View.VISIBLE);
                             FirebaseEmailSignUp(signupEmail.getText().toString(), signupPass.getText().toString(), signupName.getText().toString(), marketingCheck.isChecked(), regoCode, signupError);
                             hideSystemUI();
                         } else {
                             signupError.setText("Passwords do not match");
                             signupError.setVisibility(View.VISIBLE);
+                            progressBar.setVisibility(View.GONE);
                         }
                     }
                 });
@@ -3459,11 +3483,13 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                 pinError.setTextColor(getColor(R.color.leadme_black));
                 pinErrorImg.setImageResource(R.drawable.icon_fav_star_check);
                 if (signinVerif) {
+                    progressBar.setVisibility(View.VISIBLE);
                     db.collection("users").document(mAuth.getCurrentUser().getUid()).get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
                         @Override
                         public void onComplete(@NonNull Task<DocumentSnapshot> task) {
                             if (task.getResult().exists()) {
                                 if (task.getResult().getString("pin").length() > 0) {
+                                    progressBar.setVisibility(View.GONE);
                                     getNearbyManager().myName = currentUser.getDisplayName();
                                     getNameView().setText(currentUser.getDisplayName());
                                     setContentView(leadmeAnimator);
@@ -3490,6 +3516,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                         if (pin.equals(confirmPin)) {
                             //todo save this data to users profile
                             Map<String, Object> userDet = new HashMap<>();
+                            progressBar.setVisibility(View.VISIBLE);
                             userDet.put("pin", Hasher.Companion.hash(pin, HashType.SHA_256));
                             db.collection("users").document(mAuth.getCurrentUser().getUid()).update(userDet).addOnSuccessListener(new OnSuccessListener<Void>() {
                                 @Override
@@ -3501,6 +3528,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                                 @Override
                                 public void onComplete(@NonNull Task<DocumentSnapshot> task) {
                                     if (task.isSuccessful()) {
+                                        progressBar.setVisibility(View.GONE);
                                         getNearbyManager().myName = task.getResult().getString("name");
                                         getNameView().setText(task.getResult().getString("name"));
                                         setContentView(leadmeAnimator);
@@ -3513,6 +3541,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                             pinError.setText("The pin's do not match");
                             pinError.setTextColor(getColor(R.color.leadme_red));
                             pinErrorImg.setImageResource(R.drawable.alert_error);
+                            progressBar.setVisibility(View.GONE);
                         }
 
                     }

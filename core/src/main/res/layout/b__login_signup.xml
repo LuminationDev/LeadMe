@@ -111,7 +111,8 @@
         android:visibility="gone"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/leadme_logo">
+        app:layout_constraintTop_toBottomOf="@+id/leadme_logo"
+        tools:visibility="visible">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -278,7 +279,8 @@
         app:layout_constraintBottom_toTopOf="@+id/linearLayout"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/leadme_logo">
+        app:layout_constraintTop_toBottomOf="@+id/leadme_logo"
+        tools:visibility="gone">
 
         <TextView
             android:id="@+id/tou_readtext"
@@ -749,5 +751,22 @@
             android:textSize="16sp" />
 
     </LinearLayout>
+
+    <ProgressBar
+        android:id="@+id/signup_indeterminate"
+        android:layout_width="80dp"
+        android:layout_height="80dp"
+        android:layout_gravity="center"
+        android:backgroundTint="@color/leadme_blue"
+        android:foregroundGravity="top"
+        android:indeterminateTint="@color/leadme_blue"
+        android:progressDrawable="@color/leadme_blue"
+        android:progressTint="@color/leadme_blue"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:visibility="visible" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

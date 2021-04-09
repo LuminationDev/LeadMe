@@ -24,7 +24,6 @@ public class TcpClient extends Thread {
     String TAG = "TcpClient: ";
     Socket client;
     String Name;
-    int counter = 0;
 
     NetworkAdapter parent;
 
