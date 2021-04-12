@@ -129,6 +129,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
@@ -174,6 +175,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
     static final String LAUNCH_URL = "LumiLaunch:::";
     static final String LAUNCH_YT = "LumiYT:::";
+    static final String LAUNCH_ACCESS = "LumiLaunchAccess";
 
     static final String AUTO_INSTALL_FAILED = "LumiAutoInstallFail:";
     static final String AUTO_INSTALL_ATTEMPT = "LumiAutoInstallAttempt:";
@@ -817,6 +819,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         enterBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                loginDialogView.findViewById(R.id.indeterminateBar).setVisibility(View.VISIBLE);
                 FirebaseEmailSignIn(email.getText().toString(), password.getText().toString(), errorText);
             }
         });
@@ -836,16 +839,9 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         forgotPassword.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                showForgottenPassword(loginDialog);
                 //todo send to forgotten password flow
-//                mAuth.sendPasswordResetEmail(emailAddress)
-//                        .addOnCompleteListener(new OnCompleteListener<Void>() {
-//                            @Override
-//                            public void onComplete(@NonNull Task<Void> task) {
-//                                if (task.isSuccessful()) {
-//                                    Log.d(TAG, "Email sent.");
-//                                }
-//                            }
-//                        });
+
 
             }
         });
@@ -855,6 +851,119 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         loginDialog.show();
         nameView.requestFocus();
         openKeyboard();
+    }
+
+    private void showForgottenPassword(AlertDialog previous) {
+        previous.dismiss();
+        View forgotten_view = View.inflate(context, R.layout.c__forgot_password, null);
+        AlertDialog forgottenDialog = new AlertDialog.Builder(this)
+                .setView(forgotten_view)
+                .create();
+        LinearLayout forgotten = forgotten_view.findViewById(R.id.forgot_layout);
+        LinearLayout email_sent = forgotten_view.findViewById(R.id.email_sent);
+        EditText email = forgotten_view.findViewById(R.id.forgot_email);
+        Button send = forgotten_view.findViewById(R.id.forgot_enter);
+        Button cancel = forgotten_view.findViewById(R.id.forgot_back);
+        forgotten.setVisibility(View.VISIBLE);
+        forgottenDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+        forgottenDialog.show();
+        send.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(email.getText().toString().length()>0){
+                    mAuth.sendPasswordResetEmail(email.getText().toString())
+                            .addOnCompleteListener(new OnCompleteListener<Void>() {
+                                @Override
+                                public void onComplete(@NonNull Task<Void> task) {
+                                    if (task.isSuccessful()) {
+                                        Log.d(TAG, "Email sent.");
+
+
+                                    }
+                                }
+                            });
+                    forgotten.setVisibility(View.GONE);
+                    email_sent.setVisibility(View.VISIBLE);
+                    send.setText("Done");
+                    send.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            forgottenDialog.dismiss();
+                        }
+                    });
+                    cancel.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            forgotten.setVisibility(View.VISIBLE);
+                            email_sent.setVisibility(View.GONE);
+                            send.setText("Send");
+                            send.setOnClickListener(new View.OnClickListener() {
+                                @Override
+                                public void onClick(View v) {
+                                    if(email.getText().toString().length()>0){
+                                        mAuth.sendPasswordResetEmail(email.getText().toString())
+                                                .addOnCompleteListener(new OnCompleteListener<Void>() {
+                                                    @Override
+                                                    public void onComplete(@NonNull Task<Void> task) {
+                                                        if (task.isSuccessful()) {
+                                                            Log.d(TAG, "Email sent.");
+
+
+                                                        }
+                                                    }
+                                                });
+                                        forgotten.setVisibility(View.GONE);
+                                        email_sent.setVisibility(View.VISIBLE);
+                                        send.setText("Done");
+                                        send.setOnClickListener(new View.OnClickListener() {
+                                            @Override
+                                            public void onClick(View v) {
+                                                forgottenDialog.dismiss();
+                                            }
+                                        });
+                                        cancel.setOnClickListener(new View.OnClickListener() {
+                                            @Override
+                                            public void onClick(View v) {
+                                                forgotten.setVisibility(View.VISIBLE);
+                                                email_sent.setVisibility(View.GONE);
+                                                send.setText("Send");
+                                                cancel.setOnClickListener(new View.OnClickListener() {
+                                                    @Override
+                                                    public void onClick(View v) {
+                                                        forgottenDialog.dismiss();
+                                                        previous.show();
+                                                    }
+                                                });
+                                            }
+                                        });
+                                    }else{
+                                        Toast toast=Toast.makeText(getApplicationContext(),"Please enter your email first",Toast.LENGTH_SHORT);
+                                        toast.show();
+                                    }
+                                }
+                            });
+                            cancel.setOnClickListener(new View.OnClickListener() {
+                                @Override
+                                public void onClick(View v) {
+                                    forgottenDialog.dismiss();
+                                    previous.show();
+                                }
+                            });
+                        }
+                    });
+                }else{
+                    Toast toast=Toast.makeText(getApplicationContext(),"Please enter your email first",Toast.LENGTH_SHORT);
+                    toast.show();
+                }
+            }
+        });
+        cancel.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                forgottenDialog.dismiss();
+                previous.show();
+            }
+        });
     }
 
     private void hideLoginDialog(boolean cancelled) {
@@ -973,11 +1082,11 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             handler.post(() -> {
                 //wait until layout update is actioned before trying to gesture
                 //while (currentTaskPackageName.equals(getAppManager().withinPackage) && overlayView.isLayoutRequested()) {
-                    try {
-                        Thread.sleep(200);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
+                try {
+                    Thread.sleep(200);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
                 //}
 
                 Log.w(TAG, "gesture completed");
@@ -1016,6 +1125,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             });
         }
     };
+
 
     public static void setAccessibilityService(LumiAccessibilityService service) {
         accessibilityService = service;
@@ -2178,6 +2288,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     }
 
     public void showLoginAlertMessage() {
+        loginDialogView.findViewById(R.id.indeterminateBar).setVisibility(View.GONE);
         loginDialogView.findViewById(R.id.name_code_entry_view).setVisibility(View.GONE);
         loginDialogView.findViewById(R.id.wrong_code_view).setVisibility(View.VISIBLE);
         closeKeyboard();
@@ -3445,7 +3556,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                                                 @Override
                                                 public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
                                                     Log.d(TAG, "run: checking user verification");
-                                                    //todo add waiting screen in here
                                                     if (!mAuth.getCurrentUser().isEmailVerified()) {
                                                         mAuth.getCurrentUser().reload();
                                                     }else {
@@ -3679,6 +3789,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                                             public void onComplete(@NonNull Task<DocumentSnapshot> task) {
                                                 Log.d(TAG, "onComplete: ");
                                                 if (task.isSuccessful()) {
+                                                    loginDialogView.findViewById(R.id.indeterminateBar).setVisibility(View.GONE);
                                                     getNearbyManager().myName = (String) task.getResult().get("name");
                                                     getNameView().setText((String) task.getResult().get("name"));
                                                     Log.d(TAG, "onComplete: name found: " + (String) task.getResult().get("name"));
@@ -3690,6 +3801,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                                     }
 
                                 } else {
+                                    loginDialogView.findViewById(R.id.indeterminateBar).setVisibility(View.GONE);
                                     // If sign in fails, display a message to the user.
                                     Log.w(TAG, "signInWithEmail:failure", task.getException());
                                     errorText.setVisibility(View.VISIBLE);

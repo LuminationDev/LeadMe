@@ -272,6 +272,9 @@ public class DispatchManager {
                     exitToast.show();
                     main.exitByGuide();
                     break;
+                case LeadMeMain.LAUNCH_ACCESS:
+                    main.getPermissionsManager().requestAccessibilitySettingsOn();
+                    break;
 
                 default:
                     if (action.startsWith(LeadMeMain.YOUR_ID_IS)) {

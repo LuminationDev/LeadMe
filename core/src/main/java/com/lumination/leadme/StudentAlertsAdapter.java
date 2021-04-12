@@ -303,9 +303,10 @@ public class StudentAlertsAdapter extends BaseAdapter {
                         "Make sure app is downloaded and installed on learner devices, then re-push task.");
                 break;
             case 2:
-                lockSpinnerItems = new String[1];
-                lockSpinnerItems[0] = "Clear";
-                push_imgs = new Integer[]{R.drawable.icon_clear};
+                lockSpinnerItems = new String[2];
+                lockSpinnerItems[1] = "Clear";
+                lockSpinnerItems[0] = "Launch";
+                push_imgs = new Integer[]{R.drawable.ic_settings,R.drawable.icon_clear};
                 errorTitle.setText("Accessibility Disabled");
                 errorText.setText("Learners have no enabled accessibility for LeadMe.\n" +
                         "\n" +
@@ -394,6 +395,15 @@ public class StudentAlertsAdapter extends BaseAdapter {
                 }else if(errorBtn.getText().equals("Clear")||errorBtn.getText().equals("Proceed Offline")){
                     for(int i=0; i<AlertsByCategories.get(errorPos).size();i++){
                         AlertsByCategories.get(errorPos).get(i).hideAlerts(true);
+                    }
+                }else if(errorBtn.getText().equals("Launch")) {
+                    ArrayList<String> ids = new ArrayList<>();
+                    for (int i = 0; i < AlertsByCategories.get(2).size(); i++) {
+                        ids.add(String.valueOf(AlertsByCategories.get(2).get(i).getID()));
+                    }
+                    if (ids.size() > 0) {
+                        Set<String> selectedPeerIDs = new HashSet<>(ids);
+                        main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG,LeadMeMain.LAUNCH_ACCESS,selectedPeerIDs);
                     }
                 }
                 errors.dismiss();

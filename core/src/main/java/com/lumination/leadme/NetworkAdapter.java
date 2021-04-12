@@ -22,7 +22,6 @@ import java.util.Arrays;
 import java.util.Base64;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Queue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -68,7 +67,7 @@ public class NetworkAdapter {
 
 
     ServerSocket mServerSocket = null; //server socket for server
-    Socket socket = null;//server socket for client
+    Socket clientsServerSocket = null;//server socket for client
     Thread mThread = null;
     public int localport = -1;
     public boolean allowConnections = true;
@@ -101,9 +100,7 @@ public class NetworkAdapter {
         this.main = main;
         mNsdManager = (NsdManager) context.getSystemService(Context.NSD_SERVICE);
         resolver = new resListener();
-        //
         startServer();
-        //main.startServer();
         serviceQueue = new ArrayList<>();
     }
 
@@ -137,16 +134,13 @@ public class NetworkAdapter {
 
                     } else if (service.getServiceName().contains("#Teacher")) {
                         Log.d(TAG, "onServiceFound: attempting to resolve " + service.getServiceName());
-                        //serviceQueue.add(service);
-//                        if(!resInProgress) {
-//                            resInProgress=true;
                         //fixes the resolve 3 error
                         executorService.submit(new Runnable() {
                             @Override
                             public void run() {
                                 mNsdManager.resolveService(service, new resListener());
                                 try {
-                                    Thread.currentThread().sleep(100);
+                                    Thread.currentThread().sleep(100); //sleeps thread
                                 } catch (InterruptedException e) {
                                     e.printStackTrace();
                                 }
@@ -274,8 +268,8 @@ public class NetworkAdapter {
     - socket will return true to isConnected if it has ever had a successful connection
      */
     public boolean isConnected() {
-        if (socket != null) {
-            return socket.isConnected();
+        if (clientsServerSocket != null) {
+            return clientsServerSocket.isConnected();
         }
         return false;
     }
@@ -288,16 +282,16 @@ public class NetworkAdapter {
     }
 
     public void connectToServer(NsdServiceInfo serviceInfo) {
-        if (socket == null) {
+        if (clientsServerSocket == null) {
             try {
                 Log.d(TAG, "connectToServer: attempting to connect to " + serviceInfo.getHost() + ":" + serviceInfo.getPort());
-                socket = new Socket(serviceInfo.getHost(), serviceInfo.getPort());
+                clientsServerSocket = new Socket(serviceInfo.getHost(), serviceInfo.getPort());
             } catch (IOException e) {
 
                 e.printStackTrace();
             }
-            if (socket != null) {
-                if (socket.isConnected()) {
+            if (clientsServerSocket != null) {
+                if (clientsServerSocket.isConnected()) {
                     connectionIsActive = 20;
                     allowInput = true;
                     Log.d(TAG, "connectToServer: connection successful");
@@ -312,25 +306,25 @@ public class NetworkAdapter {
                     });
                 }
             }
-        } else if (!socket.isConnected()) {
+        } else if (!clientsServerSocket.isConnected()) {
             Log.d(TAG, "connectToServer: Socket disconnected attempting to reconnect");
-            socket = null;
+            clientsServerSocket = null;
             if (tries <= 10) {
                 tries++;
                 connectToServer(serviceInfo);
             }
             Log.d(TAG, "connectToServer: reconnection unsuccessful");
 
-        } else if (socket.isConnected()) {
-            if (socket.getInetAddress().equals(serviceInfo.getHost()) && socket.getPort() == serviceInfo.getPort()) {
+        } else if (clientsServerSocket.isConnected()) {
+            if (clientsServerSocket.getInetAddress().equals(serviceInfo.getHost()) && clientsServerSocket.getPort() == serviceInfo.getPort()) {
                 Log.d(TAG, "connectToServer: socket already connected");
                 try {
-                    socket = new Socket(serviceInfo.getHost(), serviceInfo.getPort());
+                    clientsServerSocket = new Socket(serviceInfo.getHost(), serviceInfo.getPort());
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-                if (socket != null) {
-                    if (socket.isConnected()) {
+                if (clientsServerSocket != null) {
+                    if (clientsServerSocket.isConnected()) {
                         connectionIsActive = 20;
                         Log.d(TAG, "connectToServer: connection successful");
                         Name = nearbyPeersManager.getName();
@@ -345,10 +339,10 @@ public class NetworkAdapter {
                     }
                 }
             } else {
-                Log.d(TAG, "connectToServer: connected to : " + socket.getInetAddress() + ":" + socket.getPort());
+                Log.d(TAG, "connectToServer: connected to : " + clientsServerSocket.getInetAddress() + ":" + clientsServerSocket.getPort());
                 Log.d(TAG, "connectToServer: connecting to :" + serviceInfo.getHost() + ":" + serviceInfo.getPort());
                 try {
-                    socket = new Socket(serviceInfo.getHost(), serviceInfo.getPort());
+                    clientsServerSocket = new Socket(serviceInfo.getHost(), serviceInfo.getPort());
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -361,13 +355,13 @@ public class NetworkAdapter {
         scheduledExecutor.scheduleAtFixedRate(new Runnable() {
             @Override
             public void run() {
-                if (socket != null) {
-                    if (socket.isConnected()) {
+                if (clientsServerSocket != null) {
+                    if (clientsServerSocket.isConnected()) {
                         checkConnection();
                     }
                 }
-                if (socket != null && pingName) {
-                    if (socket.isConnected()) {
+                if (clientsServerSocket != null && pingName) {
+                    if (clientsServerSocket.isConnected()) {
                         //Log.d(TAG, "run: pinging parent");
                         Name = nearbyPeersManager.getName();
                         sendToServer(Name, "NAME");
@@ -381,12 +375,12 @@ public class NetworkAdapter {
     Sends message from student to Teacher
      */
     public void sendToServer(String message, String type) {
-        if (socket != null) {
-            if (socket.isConnected()) {
+        if (clientsServerSocket != null) {
+            if (clientsServerSocket.isConnected()) {
                 executorService.submit(() -> {
                     PrintWriter out;
                     try {
-                        out = new PrintWriter(socket.getOutputStream(), true);
+                        out = new PrintWriter(clientsServerSocket.getOutputStream(), true);
                         out.println(type + "," + message.replace("\n", "_").replace("\r", "|"));
                         Log.d(TAG, "sendToServer: message sent, type: " + type + " message: " + message);
                         return;
@@ -435,11 +429,11 @@ public class NetworkAdapter {
         } else if (connectionIsActive == 0) {
             main.runOnUiThread(() -> {
                 try {
-                    socket.close();
+                    clientsServerSocket.close();
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-                socket = null;
+                clientsServerSocket = null;
                 Log.d(TAG, "checkConnection: connection timed out");
                 main.setUIDisconnected();
                 connectionIsActive--;
@@ -464,18 +458,18 @@ public class NetworkAdapter {
                 @Override
                 public void run() {
                     while (allowInput) {
-                        if (socket != null) {
-                            if (!socket.isClosed() && !socket.isInputShutdown()) {
+                        if (clientsServerSocket != null) {
+                            if (!clientsServerSocket.isClosed() && !clientsServerSocket.isInputShutdown()) {
                                 BufferedReader in;
                                 String input = "";
                                 try {
-                                    InputStreamReader inStream = new InputStreamReader(socket.getInputStream());
+                                    InputStreamReader inStream = new InputStreamReader(clientsServerSocket.getInputStream());
                                     in = new BufferedReader(inStream);
                                     try {
                                         input = in.readLine();
                                     } catch (SocketException e) {
-                                        if (socket != null) {
-                                            socket.close();
+                                        if (clientsServerSocket != null) {
+                                            clientsServerSocket.close();
                                         }
                                         main.runOnUiThread(() -> {
                                             main.setUIDisconnected();
@@ -496,7 +490,7 @@ public class NetworkAdapter {
                                     Log.e(TAG, "FAILED! {2}");
                                 }
                             } else {
-                                socket = null;
+                                clientsServerSocket = null;
                                 main.runOnUiThread(() -> {
                                     main.setUIDisconnected();
                                 });
@@ -580,11 +574,11 @@ public class NetworkAdapter {
             case "DISCONNECT":
                 Log.w(TAG, "Disconnect. Guide? " + main.isGuide);
                 try {
-                    socket.close();
+                    clientsServerSocket.close();
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-                socket = null;
+                clientsServerSocket = null;
                 //main.xrayManager.stopScreenshotRunnable();
                 nearbyPeersManager.disconnectFromEndpoint("");
                 break;

@@ -175,8 +175,8 @@ public class NearbyPeersManager {
 
 
     protected final boolean isConnecting() {
-        if (networkAdapter.socket != null) {
-            return networkAdapter.socket.isConnected();
+        if (networkAdapter.clientsServerSocket != null) {
+            return networkAdapter.clientsServerSocket.isConnected();
         } else {
             return false;
         }
