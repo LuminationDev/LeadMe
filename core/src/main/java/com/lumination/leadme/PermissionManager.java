@@ -275,15 +275,21 @@ public class PermissionManager {
             try {
                 String host = Uri.parse(url).getHost();
 
-                Thread thread = new Thread(() -> {
-                    try {
-                        successfulPing = InetAddress.getByName(host).isReachable(1000);
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                        successfulPing = false;
+//                Thread thread = new Thread(() -> {
+                main.backgroudExecutor.submit(new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            successfulPing = InetAddress.getByName(host).isReachable(1000);
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                            successfulPing = false;
+                        }
                     }
                 });
-                thread.start();
+
+//                });
+//                thread.start();
 
                 //wait for isReachable to return
                 Thread.sleep(1200);

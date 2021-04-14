@@ -436,6 +436,7 @@ public class YouTubeEmbedPlayer {
     private TextView internetUnavailableMsg;
 
     private void loadVideoGuideURL(String url) {
+        Log.d(TAG, "loadVideoGuideURL: 1");
         init = false;
         attemptedURL = embedYouTubeURL(url);
         if (!webManager.lastWasGuideView) {
@@ -450,6 +451,7 @@ public class YouTubeEmbedPlayer {
             internetUnavailableMsg.setVisibility(View.VISIBLE);
             videoControls.setVisibility(View.GONE);
         }
+        Log.d(TAG, "loadVideoGuideURL: 2");
     }
 
     private void resetControllerState() {
@@ -648,6 +650,7 @@ public class YouTubeEmbedPlayer {
     boolean lastLockState = true;
 
     public void showPlaybackPreview(String url, String title) {
+        Log.d(TAG, "showPlaybackPreview: 1");
         main.runOnUiThread(() -> {
             main.closeKeyboard();
             main.hideSystemUI();
@@ -687,6 +690,7 @@ public class YouTubeEmbedPlayer {
         } else {
             playbackSettingsDialog.show();
         }
+        Log.d(TAG, "showPlaybackPreview: 2");
     }
 
 

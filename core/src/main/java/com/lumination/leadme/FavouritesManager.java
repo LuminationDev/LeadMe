@@ -601,9 +601,15 @@ public class FavouritesManager extends BaseAdapter {
 
             gettingPreviews.add(tmpUrl); //storing it here means we only try once per url
             crawlers.put(tmpUrl, tmpCrawler);
-            Thread previewThread = new Thread(() -> tmpCrawler.makePreview(linkPreviewCallback, tmpUrl)
-            );
-            previewThread.start();
+//            Thread previewThread = new Thread(() -> tmpCrawler.makePreview(linkPreviewCallback, tmpUrl)
+//            );
+//            previewThread.start();
+            main.backgroudExecutor.submit(new Runnable() {
+                @Override
+                public void run() {
+                    tmpCrawler.makePreview(linkPreviewCallback, tmpUrl);
+                }
+            });
         }
     }
 

@@ -128,6 +128,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
@@ -313,6 +315,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     boolean hasScrolled = false;
     boolean allowHide = false;
     ScheduledExecutorService scheduledExecutorService = new ScheduledThreadPoolExecutor(1);
+    public ExecutorService backgroudExecutor = Executors.newCachedThreadPool();
 
 
     public Handler getHandler() {
@@ -1021,7 +1024,9 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     private void moveAwayFromSplashScreen() {
         handler.postDelayed(() -> {
 //                leaderLearnerSwitcher.setDisplayedChild(SWITCH_LEADER_INDEX);
+            //leadmeAnimator.removeViewAt(ANIM_SPLASH_INDEX);
             leadmeAnimator.setDisplayedChild(ANIM_START_SWITCH_INDEX);
+
             init = true;
             startShakeDetection();
         }, 2000);
@@ -1158,7 +1163,12 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                     getWindowManager().updateViewLayout(overlayView, overlayParams);
 
                     //handler.post(() -> {
-                    new Thread(() -> {
+                    //new Thread(() -> {
+                    backgroudExecutor.submit(new Runnable() {
+                        @Override
+                        public void run() {
+
+
                         //wait until layout update is actioned before trying to gesture --> needs to be NON-UI thread or blocks
                         do {
                             try {
@@ -1174,7 +1184,9 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                             boolean success = accessibilityService.dispatchGesture(swipe, gestureResultCallback, getHandler());
                             Log.e(TAG, "Did I dispatch " + swipe + " to " + accessibilityService + "? " + success + " // " + overlayView.isAttachedToWindow() + " // " + overlayView.isLayoutRequested());
                         });
-                    }).start();
+                        }
+                    });
+                    //}).start();
                 }
 
             });
@@ -1363,6 +1375,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     public void onDestroy() {
         super.onDestroy();
         Log.w(TAG, "In onDestroy");
+        backgroudExecutor.shutdownNow();
         //subscription.dispose();
         destroyAndReset();
         //xrayManager.screenShot = false;
@@ -1672,7 +1685,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         mainLeader.findViewById(R.id.url_core_btn).setOnClickListener(v -> getWebManager().showWebLaunchDialog(false, false));
 
         mainLeader.findViewById(R.id.vr_core_btn).setOnClickListener(v -> {
-            getAppManager().getWithinPlayer().showWithin(); //launch within search
+                getAppManager().getWithinPlayer().showWithin(); //launch within search
             //getWebManager().showWebLaunchDialog(true, false)
         });
 
@@ -2439,6 +2452,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             //display main guide view
             leadmeAnimator.setDisplayedChild(ANIM_LEADER_INDEX);
 
+
             //update options
             //TODO re-implement these AUTO-INSTALL features later
 //            optionsScreen.findViewById(R.id.auto_install_checkbox).setVisibility(View.VISIBLE);
@@ -2495,6 +2509,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
         mainLeader.findViewById(R.id.block_selected_btn).setOnClickListener(v -> {
             blackoutFromMainAction();
+
         });
     }
 

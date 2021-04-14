@@ -89,6 +89,7 @@ public class WebManager {
 
     //this entire thing is in progress
     public WebManager(LeadMeMain main) {
+        Log.d(TAG, "WebManager: ");
         this.main = main;
         thread=Thread.currentThread();
         youTubeEmbedPlayer = new YouTubeEmbedPlayer(main, this);
@@ -146,6 +147,7 @@ public class WebManager {
         setupWebLaunchDialog();
     }
     private void setErrorPreview(String searchTerm){
+        Log.d(TAG, "setErrorPreview: ");
         final SearchView searchView= searchDialogView.findViewById(R.id.url_search_bar);
         searchView.setQuery(searchTerm,false);
         searchYoutube=false;
@@ -169,6 +171,7 @@ public class WebManager {
 
         @Override
         public void onPos(SourceContent sourceContent, boolean b) {
+            Log.d(TAG, "onPos: ");
             if (!sourceContent.isSuccess()) {
                 hidePreviewDialog();
                 String searchTerm = sourceContent.getUrl().replace("http://","").replace("https://","").replace("www.","").replace(".com/","");
@@ -258,6 +261,7 @@ public class WebManager {
     }
 
     private void setupViews() {
+        Log.d(TAG, "setupViews: ");
         webYouTubeFavView.findViewById(R.id.yt_add_btn).setOnClickListener(v -> {
             isYouTube = true;
             Log.w(TAG, "YouTube add! " + isYouTube);
@@ -285,6 +289,7 @@ public class WebManager {
     private AlertDialog warningDialog;
 
     private void setupWarningDialog() {
+        Log.d(TAG, "setupWarningDialog: ");
         View warningDialogView = View.inflate(main, R.layout.e__fav_clear_confirmation_popup, null);
         warningTextView = warningDialogView.findViewById(R.id.favclear_comment);
 
@@ -323,6 +328,7 @@ public class WebManager {
     }
 
     private void showClearWebFavDialog(int whatToClear) {
+        Log.d(TAG, "showClearWebFavDialog: ");
         String message = "";
         this.whatToClear = whatToClear;
         switch (whatToClear) {
@@ -344,6 +350,7 @@ public class WebManager {
     }
 
     private void setupPreviewDialog() {
+        Log.d(TAG, "setupPreviewDialog: ");
         previewImage = previewDialogView.findViewById(R.id.preview_image);
         previewTitle = previewDialogView.findViewById(R.id.popup_title);
         previewMessage = previewDialogView.findViewById(R.id.preview_message);
@@ -422,6 +429,7 @@ public class WebManager {
     }
 
     protected void setFreshPlay(boolean freshPlay) {
+        Log.d(TAG, "setFreshPlay: ");
         this.freshPlay = freshPlay;
         if (freshPlay) {
             //also reset the state
@@ -430,6 +438,7 @@ public class WebManager {
     }
 
     public void pushYouTube(String url, String urlTitle, int startFrom, boolean locked, boolean vrOn) {
+        Log.d(TAG, "pushYouTube: ");
         pushURL = url;
         pushTitle = urlTitle;
         main.getLumiAccessibilityConnector().resetState();
@@ -454,6 +463,7 @@ public class WebManager {
 
 
     public void pushURL(String url, String urlTitle) {
+        Log.d(TAG, "pushURL: ");
         //update lock status
         if (lockSpinner.getSelectedItem().toString().startsWith("View")) {
             //locked by default
@@ -468,6 +478,7 @@ public class WebManager {
     }
 
     private void hidePreviewDialog() {
+        Log.d(TAG, "hidePreviewDialog: ");
         main.closeKeyboard();
         main.hideSystemUI();
 
@@ -478,6 +489,7 @@ public class WebManager {
     }
 
     private void hideSearchDialog() {
+        Log.d(TAG, "hideSearchDialog: ");
         main.closeKeyboard();
         main.hideSystemUI();
 
@@ -488,28 +500,35 @@ public class WebManager {
     }
 
     public void launchWebsite(String url, String urlTitle, boolean updateCurrentTask) {
+        Log.d(TAG, "launchWebsite: ");
         String finalUrl = url;
         pushTitle = urlTitle;
         pushURL = url;
         freshPlay = true;
         lastWasGuideView = false;
         main.getLumiAccessibilityConnector().resetState();
-        new Thread(() -> {
-            if (!main.getPermissionsManager().isInternetConnectionAvailable()) {
-                Log.w(TAG, "No internet connection in LaunchWebsite");
-                main.getHandler().post(new Runnable() {
-                    @Override
-                    public void run() {
-                        //Toast.makeText(main, "Can't launch URL, no Internet connection.", Toast.LENGTH_SHORT).show();
-                        main.showWarningDialog("No Internet Connection",
-                                "Internet based functions are unavailable at this time. " +
-                                        "Please check your WiFi connection and try again.");
-                        main.getDispatcher().alertGuidePermissionGranted(LeadMeMain.STUDENT_NO_INTERNET, false);
-                        hideWebsiteLaunchDialog();
-                    }
-                });
+        //new Thread(() -> {
+        main.backgroudExecutor.submit(new Runnable() {
+            @Override
+            public void run() {
+                if (!main.getPermissionsManager().isInternetConnectionAvailable()) {
+                    Log.w(TAG, "No internet connection in LaunchWebsite");
+                    main.getHandler().post(new Runnable() {
+                        @Override
+                        public void run() {
+                            //Toast.makeText(main, "Can't launch URL, no Internet connection.", Toast.LENGTH_SHORT).show();
+                            main.showWarningDialog("No Internet Connection",
+                                    "Internet based functions are unavailable at this time. " +
+                                            "Please check your WiFi connection and try again.");
+                            main.getDispatcher().alertGuidePermissionGranted(LeadMeMain.STUDENT_NO_INTERNET, false);
+                            hideWebsiteLaunchDialog();
+                        }
+                    });
+                }
             }
-        }).start();
+        });
+
+//        }).start();
 
         main.getDispatcher().alertGuidePermissionGranted(LeadMeMain.STUDENT_NO_INTERNET, true); //reset it
 
@@ -582,6 +601,7 @@ public class WebManager {
     }
 
     Intent getBrowserIntent(String url) {
+        Log.d(TAG, "getBrowserIntent: ");
         PackageManager pm = main.getPackageManager();
         Intent browserIntent = new Intent(Intent.ACTION_VIEW);
         Uri uri = Uri.parse(url);
@@ -601,6 +621,7 @@ public class WebManager {
 
     @SuppressWarnings("SpellCheckingInspection")
     public String getYouTubeID(String youTubeUrl) {
+        Log.d(TAG, "getYouTubeID: ");
         if (!youTubeUrl.toLowerCase().contains("youtu.be") && !youTubeUrl.toLowerCase().contains("youtube.com") && !youTubeUrl.toLowerCase().contains("youtube-nocookie.com")) {
             Log.w(TAG, "Not a YouTube URL! " + youTubeUrl);
             return "";
@@ -627,6 +648,7 @@ public class WebManager {
     }
 
     private void showYouTubePreview(String url) {
+        Log.d(TAG, "showYouTubePreview: ");
         isYouTube = true;
         //first position is 'locked' - default for YouTube
         lockSpinner.setSelection(0);
@@ -634,6 +656,7 @@ public class WebManager {
     }
 
     private void showWebsitePreview(String url) {
+        Log.d(TAG, "showWebsitePreview: ");
         isYouTube = false;
         //second position is 'unlocked' - default for website
         lockSpinner.setSelection(1);
@@ -641,6 +664,7 @@ public class WebManager {
     }
 
     private void buildAndShowPreviewDialog(String url) {
+        Log.d(TAG, "buildAndShowPreviewDialog: ");
         if (error) {
             error = false; //reset error flag
             return;
@@ -709,11 +733,13 @@ public class WebManager {
     boolean adding_to_fav = false;
 
     void showWebLaunchDialog(boolean isYT, boolean add_fav_mode) {
+        Log.d(TAG, "showWebLaunchDialog: ");
         isYouTube = isYT;
         showWebLaunchDialog(add_fav_mode);
     }
 
     void showWebLaunchDialog(boolean add_fav_mode) {
+        Log.d(TAG, "showWebLaunchDialog: ");
         if (isYouTube && lastWasGuideView) {
             youTubeEmbedPlayer.showVideoController(); //null, null);
             return;
@@ -738,6 +764,7 @@ public class WebManager {
     }
 
     private void setupWebLaunchDialog() {
+        Log.d(TAG, "setupWebLaunchDialog: ");
         //((TextView) websiteLaunchDialogView.findViewById(R.id.url_input_field)).setText("https://www.youtube.com/watch?v=sPyAQQklc1s"); //sample for testing
         //((TextView) websiteLaunchDialogView.findViewById(R.id.url_input_field)).setText("https://www.youtube.com/w/SEbqkn1TWTA"); //sample for testing
 
@@ -785,19 +812,27 @@ public class WebManager {
     }
 
     protected void showPreview(String url) {
+        Log.d(TAG, "showPreview: ");
+        Log.d(TAG, "showPreview: ");
         main.closeKeyboard();
         main.hideSystemUI();
 
-        new Thread(() -> {
-            if (!main.getPermissionsManager().isInternetConnectionAvailable()) {
-                Log.w(TAG, "No internet connection in showPreview");
-                main.getHandler().post(() -> {
-                    main.showWarningDialog("No Internet Connection",
-                            "Internet based functions are unavailable at this time. " +
-                                    "Please check your WiFi connection and try again.");
-                });
+//        new Thread(() -> {
+        main.backgroudExecutor.submit(new Runnable() {
+            @Override
+            public void run() {
+                if (!main.getPermissionsManager().isInternetConnectionAvailable()) {
+                    Log.w(TAG, "No internet connection in showPreview");
+                    main.getHandler().post(() -> {
+                        main.showWarningDialog("No Internet Connection",
+                                "Internet based functions are unavailable at this time. " +
+                                        "Please check your WiFi connection and try again.");
+                    });
+                }
             }
-        }).start();
+        });
+
+//        }).start();
 
 
         url = assistWithUrl(url);
@@ -885,6 +920,7 @@ public class WebManager {
 
     @SuppressWarnings("SpellCheckingInspection")
     private String assistWithUrl(String origUrl) {
+        Log.d(TAG, "assistWithUrl: ");
         if (!origUrl.contains("edu.cospaces.io") && origUrl.contains("cospaces.io")) {
             return origUrl.replace("cospaces.io", "edu.cospaces.io");
         }
@@ -893,12 +929,14 @@ public class WebManager {
     }
 
     void hideFavDialog() {
+        Log.d(TAG, "hideFavDialog: ");
         main.closeKeyboard();
         main.hideSystemUI();
         urlYtFavDialog.dismiss();
     }
 
     void launchUrlYtFavourites() {
+        Log.d(TAG, "launchUrlYtFavourites: ");
         getUrlFavouritesManager().clearPreviews();
         getUrlFavouritesManager().notifyDataSetChanged();
         getYouTubeFavouritesManager().clearPreviews();
@@ -922,6 +960,7 @@ public class WebManager {
     }
 
     private void hideWebsiteLaunchDialog() {
+        Log.d(TAG, "hideWebsiteLaunchDialog: ");
         main.closeKeyboard();
         main.hideSystemUI();
         if (websiteLaunchDialog != null) {
@@ -930,6 +969,7 @@ public class WebManager {
     }
 
     public String cleanYouTubeURLWithoutStart(String url) {
+        Log.d(TAG, "cleanYouTubeURLWithoutStart: ");
         String id = getYouTubeID(url);
         //Log.i(TAG, "YouTube ID = " + id + " from " + url);
         if (id.isEmpty()) {
@@ -941,6 +981,7 @@ public class WebManager {
     }
 
     public String cleanYouTubeURL(String url) {
+        Log.d(TAG, "cleanYouTubeURL: ");
         String id = getYouTubeID(url);
         //Log.i(TAG, "YouTube ID = " + id + " from " + url);
         if (id.isEmpty()) {
@@ -990,18 +1031,24 @@ public class WebManager {
         pushTitle = urlTitle;
         main.getLumiAccessibilityConnector().resetState();
 
-        new Thread(() -> {
-            if (!main.getPermissionsManager().isInternetConnectionAvailable()) {
-                Log.w(TAG, "No internet connection in launchYouTube");
-                main.getHandler().post(() -> {
-                    main.showWarningDialog("No Internet Connection",
-                            "Internet based functions are unavailable at this time. " +
-                                    "Please check your WiFi connection and try again.");
-                    main.getDispatcher().alertGuidePermissionGranted(LeadMeMain.STUDENT_NO_INTERNET, false);
-                    hideWebsiteLaunchDialog();
-                });
+//        new Thread(() -> {
+        main.backgroudExecutor.submit(new Runnable() {
+            @Override
+            public void run() {
+                if (!main.getPermissionsManager().isInternetConnectionAvailable()) {
+                    Log.w(TAG, "No internet connection in launchYouTube");
+                    main.getHandler().post(() -> {
+                        main.showWarningDialog("No Internet Connection",
+                                "Internet based functions are unavailable at this time. " +
+                                        "Please check your WiFi connection and try again.");
+                        main.getDispatcher().alertGuidePermissionGranted(LeadMeMain.STUDENT_NO_INTERNET, false);
+                        hideWebsiteLaunchDialog();
+                    });
+                }
             }
-        }).start();
+        });
+
+//        }).start();
 
         launchingVR = vrOn; //activate auto-VR mode
         enteredVR = false;
@@ -1046,6 +1093,7 @@ public class WebManager {
 
         try {
             //schedule this to run as soon as remote brings this to the front
+            main.activityManager.killBackgroundProcesses(main.getAppManager().youtubePackage);
             scheduleActivityLaunch(appIntent, updateTask, youTubePackageName, "YouTube", "VR Video", pushURL, urlTitle);
 
             //alert other peers as needed
@@ -1059,6 +1107,7 @@ public class WebManager {
     }
 
     private void scheduleActivityLaunch(Intent appIntent) {
+        Log.d(TAG, "scheduleActivityLaunch: ");
         freshPlay = true;
         if (!main.isAppVisibleInForeground()) {
             Log.w(TAG, "Need focus, scheduling for later " + appIntent + ", " + main + ", " + main.getLifecycle().getCurrentState());
@@ -1073,6 +1122,7 @@ public class WebManager {
     }
 
     private void scheduleActivityLaunch(Intent appIntent, boolean updateTask, String packageName, String appName, String taskType, String url, String urlTitle) {
+        Log.d(TAG, "scheduleActivityLaunch: ");
         scheduleActivityLaunch(appIntent);
 
         if (updateTask) {
@@ -1081,6 +1131,7 @@ public class WebManager {
     }
 
     public void cleanUp() {
+        Log.d(TAG, "cleanUp: ");
         if (textCrawler != null)
             textCrawler.cancel();
 
@@ -1109,26 +1160,33 @@ public class WebManager {
     private WebView searchWebView;
 
     private void buildAndShowSearchDialog() {
+        Log.d(TAG, "buildAndShowSearchDialog: ");
         hideWebsiteLaunchDialog();
         searchDialogView.findViewById(R.id.web_search_title).setVisibility(View.VISIBLE);
         searchDialogView.findViewById(R.id.url_error_layout).setVisibility(View.GONE);
         //placeholder URL for testing connection
         String finalUrl = "https://google.com";
-        new Thread(() -> {
-            if (!main.getPermissionsManager().isInternetConnectionAvailable()) {
-                Log.w(TAG, "No internet connection in buildAndShowSearch");
-                main.getHandler().post(new Runnable() {
-                    @Override
-                    public void run() {
-                        //Toast.makeText(main, "Can't display preview, no Internet connection.", Toast.LENGTH_SHORT).show();
-                        main.showWarningDialog("No Internet Connection",
-                                "Internet based functions are unavailable at this time. " +
-                                        "Please check your WiFi connection and try again.");
-                        hideSearchDialog();
+//        new Thread(() -> {
+            main.backgroudExecutor.submit(new Runnable() {
+                @Override
+                public void run() {
+                    if (!main.getPermissionsManager().isInternetConnectionAvailable()) {
+                        Log.w(TAG, "No internet connection in buildAndShowSearch");
+                        main.getHandler().post(new Runnable() {
+                            @Override
+                            public void run() {
+                                //Toast.makeText(main, "Can't display preview, no Internet connection.", Toast.LENGTH_SHORT).show();
+                                main.showWarningDialog("No Internet Connection",
+                                        "Internet based functions are unavailable at this time. " +
+                                                "Please check your WiFi connection and try again.");
+                                hideSearchDialog();
+                            }
+                        });
                     }
-                });
-            }
-        }).start();
+                }
+            });
+
+//        }).start();
 
 
         //instantiates the search dialog popup if it does not already exist
@@ -1220,6 +1278,7 @@ public class WebManager {
     }
 
     private void populateSearch() {
+        Log.d(TAG, "populateSearch: ");
         final SearchView searchView = searchDialogView.findViewById(R.id.url_search_bar);
 //        if (!(searchView.getQuery().length() > 0)) {
 //            web.setVisibility(View.GONE);
@@ -1243,7 +1302,7 @@ public class WebManager {
     }
 
     private boolean searchText(String newText) {
-
+        Log.d(TAG, "searchText: ");
 
         if (newText.length() > 0) {
             searchWebView.setVisibility(View.VISIBLE);

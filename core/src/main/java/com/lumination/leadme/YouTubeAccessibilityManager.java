@@ -393,8 +393,8 @@ public class YouTubeAccessibilityManager {
 
     private String[] getVROffPhrases() {
         String[] selectedPhrases = new String[3];
-        selectedPhrases[0] = "Enter full screen"; //used for MiSE8
-        selectedPhrases[1] = "Enter fullscreen"; //used for Redmi7
+//        selectedPhrases[0] = "Enter full screen"; //used for MiSE8
+//        selectedPhrases[1] = "Enter fullscreen"; //used for Redmi7
         selectedPhrases[2] = "back";
         return selectedPhrases;
     }
@@ -454,9 +454,15 @@ public class YouTubeAccessibilityManager {
         Log.d(TAG, "CUED ACTIONS: " + cuedActions);
 
         if (connector.lastEvent != null && connector.lastInfo != null) {
-            new Thread(() -> {
-                manageYouTubeAccess(connector.lastEvent, connector.lastInfo); //re-try last event
-            }).start();
+            //new Thread(() -> {
+            main.backgroudExecutor.submit(new Runnable() {
+                @Override
+                public void run() {
+                    manageYouTubeAccess(connector.lastEvent, connector.lastInfo); //re-try last event
+                }
+            });
+
+            //}).start();
         }
     }
 

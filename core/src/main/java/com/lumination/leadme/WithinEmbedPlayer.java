@@ -306,75 +306,83 @@ public class WithinEmbedPlayer {
             }
             @Override
             public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request){
-                String url = request.getUrl().toString();
-                if(url==null){
-                    return super.shouldInterceptRequest(view,request);
-                }
-                //should in theory help improve load times for within
-                if(url.toLowerCase().contains(".jpg") || url.toLowerCase().contains(".jpeg")){
-                    Bitmap bitmap = null;
-                    try {
-                        bitmap = Glide.with(view).asBitmap().diskCacheStrategy(DiskCacheStrategy.RESOURCE).load(url).submit().get();
-                        Log.d(TAG, "shouldInterceptRequest: intercepted jpg");
-                    } catch (ExecutionException e) {
-                        e.printStackTrace();
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                    if(bitmap==null){
-                        return super.shouldInterceptRequest(view,request);
-                    }
-                    Log.d(TAG, "shouldInterceptRequest: loaded jpg");
-                    ByteArrayOutputStream bos = new ByteArrayOutputStream();
-                    bitmap.compress(Bitmap.CompressFormat.JPEG, 100 , bos);
-                    byte[] bitmapdata = bos.toByteArray();
-                    ByteArrayInputStream bs = new ByteArrayInputStream(bitmapdata);
-                    return new WebResourceResponse("image/jpg", "UTF-8",bs);
-                }else if(url.toLowerCase().contains(".png")){
-                    Bitmap bitmap = null;
-                    try {
-                        bitmap = Glide.with(view).asBitmap().diskCacheStrategy(DiskCacheStrategy.RESOURCE).load(url).submit().get();
-                        Log.d(TAG, "shouldInterceptRequest: intercepted png");
-                    } catch (ExecutionException e) {
-                        e.printStackTrace();
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                    if(bitmap==null){
-                        return super.shouldInterceptRequest(view,request);
-                    }
-                    Log.d(TAG, "shouldInterceptRequest: loaded png");
-                    ByteArrayOutputStream bos = new ByteArrayOutputStream();
-                    bitmap.compress(Bitmap.CompressFormat.PNG, 100 , bos);
-                    byte[] bitmapdata = bos.toByteArray();
-                    ByteArrayInputStream bs = new ByteArrayInputStream(bitmapdata);
-                    return new WebResourceResponse("image/png", "UTF-8",bs);
-                }else if(url.toLowerCase().contains(".webp")){
-                    Bitmap bitmap = null;
-                    try {
-                        bitmap = Glide.with(view).asBitmap().diskCacheStrategy(DiskCacheStrategy.RESOURCE).load(url).submit().get();
-                        Log.d(TAG, "shouldInterceptRequest: intercepted webp");
-                    } catch (ExecutionException e) {
-                        e.printStackTrace();
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                    if(bitmap==null){
-                        return super.shouldInterceptRequest(view,request);
-                    }
-                    Log.d(TAG, "shouldInterceptRequest: loaded webp");
-                    ByteArrayOutputStream bos = new ByteArrayOutputStream();
-                    if(android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                        bitmap.compress(Bitmap.CompressFormat.WEBP_LOSSY, 100 , bos);
-                    }else{
-                        bitmap.compress(Bitmap.CompressFormat.WEBP, 100 , bos);
-                    }
-                    byte[] bitmapdata = bos.toByteArray();
-                    ByteArrayInputStream bs = new ByteArrayInputStream(bitmapdata);
-                    return new WebResourceResponse("image/webp", "UTF-8",bs);
-                }else{
-                    return super.shouldInterceptRequest(view,request);
-                }
+                return super.shouldInterceptRequest(view,request);
+                //causes memory leak
+//                String url = request.getUrl().toString();
+//                if(url==null){
+//                    return super.shouldInterceptRequest(view,request);
+//                }
+//                //should in theory help improve load times for within
+//                if(url.toLowerCase().contains(".jpg") || url.toLowerCase().contains(".jpeg")){
+//                    Bitmap bitmap = null;
+//                    try {
+//                        bitmap = Glide.with(view).asBitmap().diskCacheStrategy(DiskCacheStrategy.RESOURCE).load(url).submit().get();
+//                        Log.d(TAG, "shouldInterceptRequest: intercepted jpg");
+//                    } catch (ExecutionException e) {
+//                        e.printStackTrace();
+//                    } catch (InterruptedException e) {
+//                        e.printStackTrace();
+//                    }
+//                    if(bitmap==null){
+//                        return super.shouldInterceptRequest(view,request);
+//                    }
+//                    Log.d(TAG, "shouldInterceptRequest: loaded jpg");
+//                    ByteArrayOutputStream bos = new ByteArrayOutputStream();
+//                    bitmap.compress(Bitmap.CompressFormat.JPEG, 50 , bos);
+//                    bitmap.recycle();
+//                    byte[] bitmapdata = bos.toByteArray();
+//                    bos.reset();
+//                    ByteArrayInputStream bs = new ByteArrayInputStream(bitmapdata);
+//                    return new WebResourceResponse("image/jpg", "UTF-8",bs);
+//                }else if(url.toLowerCase().contains(".png")){
+//                    Bitmap bitmap = null;
+//                    try {
+//                        bitmap = Glide.with(view).asBitmap().diskCacheStrategy(DiskCacheStrategy.RESOURCE).load(url).submit().get();
+//                        Log.d(TAG, "shouldInterceptRequest: intercepted png");
+//                    } catch (ExecutionException e) {
+//                        e.printStackTrace();
+//                    } catch (InterruptedException e) {
+//                        e.printStackTrace();
+//                    }
+//                    if(bitmap==null){
+//                        return super.shouldInterceptRequest(view,request);
+//                    }
+//                    Log.d(TAG, "shouldInterceptRequest: loaded png");
+//                    ByteArrayOutputStream bos = new ByteArrayOutputStream();
+//                    bitmap.compress(Bitmap.CompressFormat.PNG, 50 , bos);
+//                    bitmap.recycle();
+//                    byte[] bitmapdata = bos.toByteArray();
+//                    bos.reset();
+//                    ByteArrayInputStream bs = new ByteArrayInputStream(bitmapdata);
+//                    return new WebResourceResponse("image/png", "UTF-8",bs);
+//                }else if(url.toLowerCase().contains(".webp")){
+//                    Bitmap bitmap = null;
+//                    try {
+//                        bitmap = Glide.with(view).asBitmap().diskCacheStrategy(DiskCacheStrategy.RESOURCE).load(url).submit().get();
+//                        Log.d(TAG, "shouldInterceptRequest: intercepted webp");
+//                    } catch (ExecutionException e) {
+//                        e.printStackTrace();
+//                    } catch (InterruptedException e) {
+//                        e.printStackTrace();
+//                    }
+//                    if(bitmap==null){
+//                        return super.shouldInterceptRequest(view,request);
+//                    }
+//                    Log.d(TAG, "shouldInterceptRequest: loaded webp");
+//                    ByteArrayOutputStream bos = new ByteArrayOutputStream();
+//                    if(android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+//                        bitmap.compress(Bitmap.CompressFormat.WEBP_LOSSY, 50 , bos);
+//                    }else{
+//                        bitmap.compress(Bitmap.CompressFormat.WEBP, 50 , bos);
+//                    }
+//                    bitmap.recycle();
+//                    byte[] bitmapdata = bos.toByteArray();
+//                    bos.reset();
+//                    ByteArrayInputStream bs = new ByteArrayInputStream(bitmapdata);
+//                    return new WebResourceResponse("image/webp", "UTF-8",bs);
+//                }else{
+//                    return super.shouldInterceptRequest(view,request);
+//                }
             }
         });
     }
@@ -641,6 +649,27 @@ public class WithinEmbedPlayer {
         attemptedURL = "";
 
         withinSearchDialogView.findViewById(R.id.select_btn).setBackground(main.getResources().getDrawable(R.drawable.bg_disabled, null));
+    }
+    public void onDestroy(){
+        controllerWebView.clearHistory();
+        controllerWebView.clearCache(true);
+        controllerWebView.loadUrl("about:blank");
+        controllerWebView.onPause();
+        controllerWebView.removeAllViews();
+        controllerWebView.destroyDrawingCache();
+        controllerWebView.pauseTimers();
+        controllerWebView.destroy();
+        controllerWebView = null;
+
+        searchWebView.clearHistory();
+        searchWebView.clearCache(true);
+        searchWebView.loadUrl("about:blank");
+        searchWebView.onPause();
+        searchWebView.removeAllViews();
+        searchWebView.destroyDrawingCache();
+        searchWebView.pauseTimers();
+        searchWebView.destroy();
+        searchWebView = null;
     }
 
 }

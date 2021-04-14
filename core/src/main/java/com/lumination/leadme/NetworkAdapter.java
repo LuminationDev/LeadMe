@@ -24,6 +24,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.FutureTask;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -68,7 +70,9 @@ public class NetworkAdapter {
 
     ServerSocket mServerSocket = null; //server socket for server
     Socket clientsServerSocket = null;//server socket for client
-    Thread mThread = null;
+    //Thread mThread = null;
+    Future<?> Server = null;
+    Future<?> recieveInput = null;
     public int localport = -1;
     public boolean allowConnections = true;
     public boolean allowInput = true;
@@ -400,17 +404,10 @@ public class NetworkAdapter {
     }
 
     public void removeClient(int id) {
-        for (int i = 0; i < clientThreadList.size(); i++) {
-            if (clientThreadList.get(i).ID == id) {
                 ArrayList<Integer> selected = new ArrayList<>();
                 selected.add(id);
                 sendToSelectedClients("disconnect", "DISCONNECT", selected);
-                clientThreadList.get(i).t.interrupt();
-                clientThreadList.remove(i);
                 Log.d(TAG, "removeClient: client successfully removed");
-                break;
-            }
-        }
         for (int i = 0; i < currentClients.size(); i++) {
             if (currentClients.get(i).ID == id) {
                 //currentClients.remove(i);
@@ -440,7 +437,7 @@ public class NetworkAdapter {
             });
         }
     }
-    Thread recieveInput = null;
+
     //discovers services, is not continuous so will need to be called in a runnable to implement a scan
     public void startDiscovery() {
         discoveredLeaders = new ArrayList<>();
@@ -454,7 +451,8 @@ public class NetworkAdapter {
 
         //new Thread so server messages can be read from a while loop without impacting the UI
         if(recieveInput==null) {
-            recieveInput = new Thread() {
+            //recieveInput = new Thread() {
+            recieveInput =main.backgroudExecutor.submit(new Runnable() {
                 @Override
                 public void run() {
                     while (allowInput) {
@@ -500,10 +498,10 @@ public class NetworkAdapter {
                     }
                     Log.e(TAG, "FAILED! {4}");
                 }
-            };
+            });
 
-            recieveInput.setPriority(Thread.MAX_PRIORITY);
-            recieveInput.start();
+//            recieveInput.setPriority(Thread.MAX_PRIORITY);
+//            recieveInput.start();
         }
     }
 
@@ -663,14 +661,23 @@ public class NetworkAdapter {
                         throw new RuntimeException("Error creating client", e);
                     }
                     Log.d(TAG, "run: client connected");
-                    TcpClient tcp = new TcpClient(clientSocket, netAdapt, clientID);
-                    Thread client = new Thread(tcp); //new thread for every client
-                    studentThread st = new studentThread();
-                    st.t = client;
-                    st.ID = clientID;
-                    clientID++;
-                    clientThreadList.add(st); //threads are saved in an array incase they need to be accessed for any reason
-                    clientThreadList.get(clientThreadList.size() - 1).t.start();
+                    Socket finalClientSocket = clientSocket;
+                    Runnable clientRun = new Runnable(){
+                        @Override
+                        public void run() {
+                            new TcpClient(finalClientSocket, netAdapt, clientID);
+                            clientID++;
+                        }
+                    };
+                    main.backgroudExecutor.submit(clientRun);
+//                    TcpClient tcp = new TcpClient(clientSocket, netAdapt, clientID);
+//                    Thread client = new Thread(tcp); //new thread for every client
+//                    studentThread st = new studentThread();
+//                    st.t = client;
+//                    st.ID = clientID;
+//                    clientID++;
+//                    clientThreadList.add(st); //threads are saved in an array incase they need to be accessed for any reason
+//                    clientThreadList.get(clientThreadList.size() - 1).t.start();
                     Log.d(TAG, "Connected.");
                 }
                 //}
@@ -711,8 +718,9 @@ public class NetworkAdapter {
 
     //starts a new server thread as seen below
     public void startServer() {
-        mThread = new Thread(new ServerThread());
-        mThread.start();
+        Server = main.backgroudExecutor.submit(new ServerThread());
+//        mThread = new Thread();
+//        mThread.start();
     }
 
     /*
@@ -815,7 +823,8 @@ public class NetworkAdapter {
 
     //will drop all currently connected clients
     public void stopServer() {
-        mThread.interrupt();
+        Server.cancel(true);
+//        mThread.interrupt();
         try {
             mServerSocket.close();
         } catch (IOException ioe) {

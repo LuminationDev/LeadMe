@@ -51,7 +51,8 @@
         android:theme="@android:style/Theme.Holo.Light.NoActionBar.Fullscreen"
         android:hardwareAccelerated="true"
         android:usesCleartextTraffic="true"
-        android:largeHeap="true">
+        android:largeHeap="true"
+        >
 
         <activity
             android:name="com.lumination.leadme.LeadMeMain"

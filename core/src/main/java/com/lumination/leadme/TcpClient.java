@@ -17,7 +17,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-public class TcpClient extends Thread {
+public class TcpClient{
     public InetAddress IpAdress;
     public int port;
     public int ID;

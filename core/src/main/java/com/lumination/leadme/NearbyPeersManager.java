@@ -67,14 +67,20 @@ public class NearbyPeersManager {
             NsdServiceInfo info = (NsdServiceInfo) iterator.next();
             Log.d(TAG, "connectToSelectedLeader: " + info.getServiceName());
             if (info.getServiceName().equals(Name + "#Teacher")) {
-                Thread t = new Thread(new Runnable() {
+//                Thread t = new Thread(new Runnable() {
+//                    @Override
+//                    public void run() {
+                main.backgroudExecutor.submit(new Runnable() {
                     @Override
                     public void run() {
                         networkAdapter.connectToServer(info);
-                        return;
                     }
                 });
-                t.start();
+
+//                        return;
+//                    }
+//                });
+//                t.start();
 
             }
         }

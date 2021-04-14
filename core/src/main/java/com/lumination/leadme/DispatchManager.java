@@ -32,6 +32,7 @@ public class DispatchManager {
 
     public void repushApp(Set<String> selectedPeerIDs) {
         Log.w(TAG, "REPUSH: " + tagRepush + ", " + packageNameRepush + ", " + appNameRepush + ", " + lockTagRepush + ", " + extraRepush);
+        main.recallToLeadMe();
         switch(lastEvent){
             case 1:
                 requestRemoteWithinLaunch(tagRepush, packageNameRepush, appNameRepush, lockTagRepush, extraRepush, streamingRepush, vrModeRepush, selectedPeerIDs);
