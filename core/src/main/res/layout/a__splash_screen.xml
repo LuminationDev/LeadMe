@@ -50,11 +50,11 @@
             android:textSize="14sp" />
 
         <ImageView
+            android:id="@+id/lumi_logo"
             android:layout_width="match_parent"
             android:layout_height="40dp"
             android:layout_marginBottom="30dp"
-            android:contentDescription="@string/lumination_logo"
-            android:src="@mipmap/lumination_logo_reverse" />
+            android:contentDescription="@string/lumination_logo" />
     </LinearLayout>
 
 </FrameLayout>

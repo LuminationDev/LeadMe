@@ -74,6 +74,8 @@ public class XrayManager {
     public XrayManager(LeadMeMain main, View xrayScreen) {
         this.main = main;
         this.xrayScreen = xrayScreen;
+        xrayScreenshotView = xrayScreen.findViewById(R.id.monitor_popup_img);
+        xrayScreenshotView.setImageResource(R.color.transparent);
     }
 
     public void generateScreenshots(boolean isWatching) {
@@ -127,7 +129,7 @@ public class XrayManager {
         xrayStudentSelectedView = xrayScreen.findViewById(R.id.student_is_selected);
         nextXrayStudent = xrayScreen.findViewById(R.id.next_student_btn);
         prevXrayStudent = xrayScreen.findViewById(R.id.previous_student_btn);
-        xrayScreenshotView = xrayScreen.findViewById(R.id.monitor_popup_img);
+        xrayScreenshotView.setImageResource(R.drawable.core_xray);
         xrayButton = xrayScreen.findViewById(R.id.current_peer_btn);
         View xrayDropdown = xrayScreen.findViewById(R.id.dropdown_menu);
         xrayDropdown.setVisibility(GONE);

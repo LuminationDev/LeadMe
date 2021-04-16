@@ -32,10 +32,10 @@ import java.util.concurrent.TimeUnit;
 
 import static com.google.android.gms.nearby.connection.Payload.fromBytes;
 
-class studentThread {
-    Thread t;
-    int ID;
-}
+//class studentThread {
+//    Thread t;
+//    int ID;
+//}
 
 class client {
     String name;
@@ -83,7 +83,7 @@ public class NetworkAdapter {
     int timeOut= 2;
 
 
-    public ArrayList<studentThread> clientThreadList = new ArrayList<>();
+    //public ArrayList<studentThread> clientThreadList = new ArrayList<>();
     public ArrayList<client> currentClients = new ArrayList<>();
     public ArrayList<NsdServiceInfo> discoveredLeaders = new ArrayList<>();
 

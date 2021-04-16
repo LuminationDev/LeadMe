@@ -157,7 +157,6 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:closeIcon="@drawable/close"
                     android:commitIcon="@drawable/search_icon"
                     android:goIcon="@drawable/search_icon"
                     android:iconifiedByDefault="false"
@@ -166,6 +165,7 @@
                     android:searchIcon="@drawable/search_icon"
                     android:textStyle="bold"
                     android:theme="@style/LeadMeStyle_Search"
+                    android:visibility="visible"
                     app:iconifiedByDefault="false" />
             </LinearLayout>
 

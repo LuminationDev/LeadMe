@@ -103,10 +103,12 @@ public class YouTubeAccessibilityManager {
             titleNodes.addAll(connector.collectChildren(rootInActiveWindow, "title", 0));
 
             Log.d(TAG, "Has it started? " + videoPlayStarted + ", " + main.getWebManager().isFreshPlay() + ", " + titleNodes.size() + " for " + pushTitle);
+            tapVideoScreen();
             if (!titleNodes.isEmpty()) {
                 Log.e(TAG, "VIDEO STARTED!!");
                 videoPlayStarted = true;
             }
+            tapVideoScreen();
         }
 
         if (main.getWebManager().isFreshPlay()) {

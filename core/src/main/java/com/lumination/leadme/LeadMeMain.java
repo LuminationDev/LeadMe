@@ -258,6 +258,8 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     View xrayScreen;
     private TextView warningDialogTitle, warningDialogMessage, learnerWaitingText;
     private Button leader_toggle, learner_toggle;
+    ImageView logo;
+    ImageView studentImg;
 
     private GridView connectedStudentsView;
 
@@ -1022,9 +1024,11 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     }
 
     private void moveAwayFromSplashScreen() {
+
         handler.postDelayed(() -> {
 //                leaderLearnerSwitcher.setDisplayedChild(SWITCH_LEADER_INDEX);
             //leadmeAnimator.removeViewAt(ANIM_SPLASH_INDEX);
+            logo.setImageResource(android.R.color.transparent);
             leadmeAnimator.setDisplayedChild(ANIM_START_SWITCH_INDEX);
 
             init = true;
@@ -1625,6 +1629,8 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         Log.d(TAG, "Got animator: " + leadmeAnimator);
 
         View splashscreen = View.inflate(context, R.layout.a__splash_screen, null);
+        logo = splashscreen.findViewById(R.id.lumi_logo);
+        logo.setImageResource(R.mipmap.lumination_logo_reverse);
         View startLeader = View.inflate(context, R.layout.b__start_leader, null);
         View startLearner = View.inflate(context, R.layout.b__start_learner, null);
         mainLearner = View.inflate(context, R.layout.c__learner_main, null);
@@ -1940,6 +1946,8 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         if (!permissionManager.isNearbyPermissionsGranted()) {
             permissionManager.checkNearbyPermissions();
         }
+//        currentTaskIcon = mainLearner.findViewById(R.id.current_task_icon);
+//        currentTaskIcon.setImageResource(R.color.transparent);
 
 //        xrayManager.screenshotManager = new ScreenshotManagerBuilder(this).withPermissionRequestCode(REQUEST_SCREENSHOT_PERMISSION) //optional, 888 is the default
 //                .build();
@@ -2906,6 +2914,8 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
     public void displayLearnerMain(String leaderName) {
         TextView leaderTitle = mainLearner.findViewById(R.id.leader_name);
+
+        studentImg.setImageResource(R.drawable.connected_student);
         leaderTitle.setText(leaderName);
 
         TextView learnerTitle = mainLearner.findViewById(R.id.learner_title);
@@ -3212,6 +3222,9 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                 OnBoard.findViewById(R.id.onboard_ok_btn).setOnClickListener(v1 -> {
                     video.setBackgroundColor(Color.WHITE);
                     handler.postDelayed(() -> setContentView(leadmeAnimator), 50);
+                    video.suspend();
+                    OnBoard=null;
+
 
                 });
                 OnBoard.findViewById(R.id.onboard_moreinfo_btn).setOnClickListener(v1 -> setContentView(leadmeAnimator)); //TODO wire up this button to advanced support page
