@@ -91,7 +91,7 @@ public class WebManager {
     public WebManager(LeadMeMain main) {
         Log.d(TAG, "WebManager: ");
         this.main = main;
-        thread=Thread.currentThread();
+        thread = Thread.currentThread();
         youTubeEmbedPlayer = new YouTubeEmbedPlayer(main, this);
 
         websiteLaunchDialogView = View.inflate(main, R.layout.d__enter_url, null);
@@ -112,11 +112,11 @@ public class WebManager {
         //set up search spinner
         //TODO add Vimeo search
         searchSpinner = (Spinner) searchDialogView.findViewById(R.id.search_spinner);
-        searchSpinnerItems = new String[2];
+        searchSpinnerItems = new String[3];
         searchSpinnerItems[0] = "Google search";
-        //searchSpinnerItems[1] = "YouTube search";
-        searchSpinnerItems[1] = "Within Search";
-        Integer[] search_imgs = {R.drawable.search_google, /*R.drawable.search_yt,*/R.drawable.core_vr};
+        searchSpinnerItems[1] = "YouTube search";
+        searchSpinnerItems[2] = "Within search";
+        Integer[] search_imgs = {R.drawable.search_google, R.drawable.search_yt, R.drawable.search_within};
         LumiSpinnerAdapter search_adapter = new LumiSpinnerAdapter(main, R.layout.row_search_spinner, searchSpinnerItems, search_imgs);
         searchSpinner.setAdapter(search_adapter);
 
@@ -146,17 +146,20 @@ public class WebManager {
         setupPreviewDialog();
         setupWebLaunchDialog();
     }
-    private void setErrorPreview(String searchTerm){
+
+    private void setErrorPreview(String searchTerm) {
         Log.d(TAG, "setErrorPreview: ");
-        final SearchView searchView= searchDialogView.findViewById(R.id.url_search_bar);
-        searchView.setQuery(searchTerm,false);
-        searchYoutube=false;
+        final SearchView searchView = searchDialogView.findViewById(R.id.url_search_bar);
+        searchView.setQuery(searchTerm, false);
+        //searchYoutube=false;
         buildAndShowSearchDialog();
         searchDialogView.findViewById(R.id.web_search_title).setVisibility(View.GONE);
         searchDialogView.findViewById(R.id.url_error_layout).setVisibility(View.VISIBLE);
-        searchYoutube=false;
-        searchView.setQuery(searchTerm,true);
+        //searchYoutube=false;
+        searchType = SEARCH_WEB;
+        searchView.setQuery(searchTerm, true);
     }
+
     private boolean error = false;
     private boolean generatingPreview = false;
     // Create the callbacks to handle pre and post execution of the preview
@@ -174,9 +177,9 @@ public class WebManager {
             Log.d(TAG, "onPos: ");
             if (!sourceContent.isSuccess()) {
                 hidePreviewDialog();
-                String searchTerm = sourceContent.getUrl().replace("http://","").replace("https://","").replace("www.","").replace(".com/","");
-                Log.d(TAG, "UnknownHostHandler: search: "+searchTerm);
-                isYouTube=false;
+                String searchTerm = sourceContent.getUrl().replace("http://", "").replace("https://", "").replace("www.", "").replace(".com/", "");
+                Log.d(TAG, "UnknownHostHandler: search: " + searchTerm);
+                isYouTube = false;
                 setErrorPreview(searchTerm);
             } else {
                 generatingPreview = false;
@@ -508,7 +511,7 @@ public class WebManager {
         lastWasGuideView = false;
         main.getLumiAccessibilityConnector().resetState();
         //new Thread(() -> {
-        main.backgroudExecutor.submit(new Runnable() {
+        main.backgroundExecutor.submit(new Runnable() {
             @Override
             public void run() {
                 if (!main.getPermissionsManager().isInternetConnectionAvailable()) {
@@ -818,7 +821,7 @@ public class WebManager {
         main.hideSystemUI();
 
 //        new Thread(() -> {
-        main.backgroudExecutor.submit(new Runnable() {
+        main.backgroundExecutor.submit(new Runnable() {
             @Override
             public void run() {
                 if (!main.getPermissionsManager().isInternetConnectionAvailable()) {
@@ -838,18 +841,18 @@ public class WebManager {
         url = assistWithUrl(url);
 
         if (!URLUtil.isValidUrl(url)) {
-                if (url.contains(".")) {
-                    if (!url.startsWith("http")) {
-                        url = "http://" + url; //append a protocol
-                        //url=url.replace("www.","http://www.");
-                    }
-                    url = URLUtil.guessUrl(url); //do a bit more checking/auto-fixing
+            if (url.contains(".")) {
+                if (!url.startsWith("http")) {
+                    url = "http://" + url; //append a protocol
+                    //url=url.replace("www.","http://www.");
                 }
-            if (!URLUtil.isValidUrl(url) ) {
+                url = URLUtil.guessUrl(url); //do a bit more checking/auto-fixing
+            }
+            if (!URLUtil.isValidUrl(url)) {
                 hidePreviewDialog();
                 String searchTerm = url.replace("http://", "").replace("https://", "").replace("www.", "").replace(".com/", "");
                 Log.d(TAG, "UnknownHostHandler: search: " + searchTerm);
-                isYouTube=false;
+                isYouTube = false;
                 setErrorPreview(searchTerm);
                 return;
             }
@@ -1032,7 +1035,7 @@ public class WebManager {
         main.getLumiAccessibilityConnector().resetState();
 
 //        new Thread(() -> {
-        main.backgroudExecutor.submit(new Runnable() {
+        main.backgroundExecutor.submit(new Runnable() {
             @Override
             public void run() {
                 if (!main.getPermissionsManager().isInternetConnectionAvailable()) {
@@ -1156,7 +1159,11 @@ public class WebManager {
     // JAKE'S SEARCH CODE
     /////////////////////////////
 
-    private boolean searchYoutube = true;
+    //private boolean searchYoutube = true;
+    private final int SEARCH_WEB = 0;
+    private final int SEARCH_YOUTUBE = 1;
+    private final int SEARCH_WITHIN = 2;
+    private int searchType = SEARCH_YOUTUBE;
     private WebView searchWebView;
 
     private void buildAndShowSearchDialog() {
@@ -1167,24 +1174,24 @@ public class WebManager {
         //placeholder URL for testing connection
         String finalUrl = "https://google.com";
 //        new Thread(() -> {
-            main.backgroudExecutor.submit(new Runnable() {
-                @Override
-                public void run() {
-                    if (!main.getPermissionsManager().isInternetConnectionAvailable()) {
-                        Log.w(TAG, "No internet connection in buildAndShowSearch");
-                        main.getHandler().post(new Runnable() {
-                            @Override
-                            public void run() {
-                                //Toast.makeText(main, "Can't display preview, no Internet connection.", Toast.LENGTH_SHORT).show();
-                                main.showWarningDialog("No Internet Connection",
-                                        "Internet based functions are unavailable at this time. " +
-                                                "Please check your WiFi connection and try again.");
-                                hideSearchDialog();
-                            }
-                        });
-                    }
+        main.backgroundExecutor.submit(new Runnable() {
+            @Override
+            public void run() {
+                if (!main.getPermissionsManager().isInternetConnectionAvailable()) {
+                    Log.w(TAG, "No internet connection in buildAndShowSearch");
+                    main.getHandler().post(new Runnable() {
+                        @Override
+                        public void run() {
+                            //Toast.makeText(main, "Can't display preview, no Internet connection.", Toast.LENGTH_SHORT).show();
+                            main.showWarningDialog("No Internet Connection",
+                                    "Internet based functions are unavailable at this time. " +
+                                            "Please check your WiFi connection and try again.");
+                            hideSearchDialog();
+                        }
+                    });
                 }
-            });
+            }
+        });
 
 //        }).start();
 
@@ -1228,21 +1235,23 @@ public class WebManager {
                 public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                     Log.d(TAG, "Search mode: " + searchSpinnerItems[position]);
 
-                    if (searchSpinnerItems[position].startsWith("YouTube")) { //todo. coming soon!
+                    if (searchSpinnerItems[position].startsWith("YouTube")) {
                         ((TextView) searchDialogView.findViewById(R.id.web_search_title)).setText("Search YouTube");
-                        searchYoutube = true;
-                        searchView.setQuery(searchView.getQuery(),true);
+                        searchType = SEARCH_YOUTUBE;
+                        //searchView.setQuery(searchView.getQuery(), true);
+
                     } else if (searchSpinnerItems[position].startsWith("Google")) {
                         ((TextView) searchDialogView.findViewById(R.id.web_search_title)).setText("Search the web");
-                        searchYoutube = false;
-                        searchView.setQuery(searchView.getQuery(),true);
-                    }else if(searchSpinnerItems[position].startsWith("Within")){
-                        ((TextView) searchDialogView.findViewById(R.id.web_search_title)).setText("Search Within");
-                        searchYoutube = true;
-                        searchView.setQuery(searchView.getQuery(),true);
-                    }
+                        searchType = SEARCH_WEB;
+                        //searchView.setQuery(searchView.getQuery(), true);
 
-                    searchView.performClick();
+                    } else if (searchSpinnerItems[position].startsWith("Within")) {
+                        ((TextView) searchDialogView.findViewById(R.id.web_search_title)).setText("Search Within");
+                        searchType = SEARCH_WITHIN;
+                        //searchView.setQuery(searchView.getQuery(), true);
+                    }
+                    searchText(searchView.getQuery().toString());
+                    //searchView.performClick();
                     //populateSearch();
 
                 }
@@ -1286,7 +1295,6 @@ public class WebManager {
 //        }
         searchDialogView.findViewById(R.id.search_btn).setOnClickListener(v -> searchText(searchView.getQuery().toString()));
 
-
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             //moved listener to end of search to avoid triggering recaptcha for rapid querys
@@ -1303,20 +1311,22 @@ public class WebManager {
     }
 
     private boolean searchText(String newText) {
-        Log.d(TAG, "searchText: ");
+        Log.d(TAG, "searchText: " + newText + ", " + searchType);
 
         if (newText.length() > 0) {
             searchWebView.setVisibility(View.VISIBLE);
         }
 //
         //filters the search results
-        if (searchYoutube) {
-            // searchWebView.loadUrl("https://www.google.com/search?q=" + newText + "&tbm=vid&as_sitesearch=youtube.com"); //for youtube
-            searchWebView.loadUrl("https://www.google.com/search?q=" + newText + "&tbm=vid&as_sitesearch=with.in");
+        if (searchType == SEARCH_YOUTUBE) {
+            searchWebView.loadUrl("https://www.google.com/search?q=" + newText + "&tbm=vid&as_sitesearch=youtube.com"); //for youtube
             //swap the above line with the one below to index youtube's site directly
             //NOTE - if this is used, will need to change triggers for when to show preview
             // (currently loads preview for anything that doesn't begin with google.com)
             //web.loadUrl("https://www.youtube.com/results?search_query="+newText);
+
+        } else if (searchType == SEARCH_WITHIN) {
+            searchWebView.loadUrl("https://www.google.com/search?q=" + newText + "&tbm=vid&as_sitesearch=with.in");
 
         } else {
             searchWebView.loadUrl("https://www.google.com/search?q=" + newText);
@@ -1396,15 +1406,16 @@ public class WebManager {
                 });
                 return false;
             }
+
             @Override
-            public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request){
+            public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request) {
                 Log.d(TAG, "shouldInterceptRequest: ");
                 String url = request.getUrl().toString();
-                if(url==null){
-                    return super.shouldInterceptRequest(view,request);
+                if (url == null) {
+                    return super.shouldInterceptRequest(view, request);
                 }
 
-                if(url.toLowerCase().contains(".jpg") || url.toLowerCase().contains(".jpeg")){
+                if (url.toLowerCase().contains(".jpg") || url.toLowerCase().contains(".jpeg")) {
                     Bitmap bitmap = null;
                     try {
                         bitmap = Glide.with(searchWebView).asBitmap().diskCacheStrategy(DiskCacheStrategy.ALL).load(url).submit().get();
@@ -1415,11 +1426,11 @@ public class WebManager {
                         e.printStackTrace();
                     }
                     ByteArrayOutputStream bos = new ByteArrayOutputStream();
-                    bitmap.compress(Bitmap.CompressFormat.JPEG, 100 , bos);
+                    bitmap.compress(Bitmap.CompressFormat.JPEG, 100, bos);
                     byte[] bitmapdata = bos.toByteArray();
                     ByteArrayInputStream bs = new ByteArrayInputStream(bitmapdata);
-                    return new WebResourceResponse("image/jpg", "UTF-8",bs);
-                }else if(url.toLowerCase().contains(".png")){
+                    return new WebResourceResponse("image/jpg", "UTF-8", bs);
+                } else if (url.toLowerCase().contains(".png")) {
                     Bitmap bitmap = null;
                     try {
                         bitmap = Glide.with(searchWebView).asBitmap().diskCacheStrategy(DiskCacheStrategy.ALL).load(url).submit().get();
@@ -1430,11 +1441,11 @@ public class WebManager {
                         e.printStackTrace();
                     }
                     ByteArrayOutputStream bos = new ByteArrayOutputStream();
-                    bitmap.compress(Bitmap.CompressFormat.PNG, 100 , bos);
+                    bitmap.compress(Bitmap.CompressFormat.PNG, 100, bos);
                     byte[] bitmapdata = bos.toByteArray();
                     ByteArrayInputStream bs = new ByteArrayInputStream(bitmapdata);
-                    return new WebResourceResponse("image/png", "UTF-8",bs);
-                }else if(url.toLowerCase().contains(".webp")){
+                    return new WebResourceResponse("image/png", "UTF-8", bs);
+                } else if (url.toLowerCase().contains(".webp")) {
                     Bitmap bitmap = null;
                     try {
                         bitmap = Glide.with(searchWebView).asBitmap().diskCacheStrategy(DiskCacheStrategy.ALL).load(url).submit().get();
@@ -1445,16 +1456,16 @@ public class WebManager {
                         e.printStackTrace();
                     }
                     ByteArrayOutputStream bos = new ByteArrayOutputStream();
-                    if(android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                        bitmap.compress(Bitmap.CompressFormat.WEBP_LOSSY, 100 , bos);
-                    }else{
-                        bitmap.compress(Bitmap.CompressFormat.WEBP, 100 , bos);
+                    if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                        bitmap.compress(Bitmap.CompressFormat.WEBP_LOSSY, 100, bos);
+                    } else {
+                        bitmap.compress(Bitmap.CompressFormat.WEBP, 100, bos);
                     }
                     byte[] bitmapdata = bos.toByteArray();
                     ByteArrayInputStream bs = new ByteArrayInputStream(bitmapdata);
-                    return new WebResourceResponse("image/webp", "UTF-8",bs);
-                }else{
-                   return super.shouldInterceptRequest(view,request);
+                    return new WebResourceResponse("image/webp", "UTF-8", bs);
+                } else {
+                    return super.shouldInterceptRequest(view, request);
                 }
             }
 

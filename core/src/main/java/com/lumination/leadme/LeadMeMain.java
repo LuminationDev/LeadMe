@@ -6,10 +6,8 @@ import android.accessibilityservice.GestureDescription;
 import android.annotation.SuppressLint;
 import android.app.ActivityManager;
 import android.app.AlertDialog;
-import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
@@ -26,13 +24,6 @@ import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.hardware.display.DisplayManager;
 import android.media.AudioManager;
-
-import android.media.Image;
-import android.media.ImageReader;
-import android.media.MediaPlayer;
-import android.media.projection.MediaProjection;
-import android.media.projection.MediaProjectionManager;
-
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -53,8 +44,6 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.WindowInsets;
-import android.view.WindowInsetsController;
 import android.view.WindowManager;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
@@ -68,7 +57,6 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.ProgressBar;
-import android.widget.RelativeLayout;
 import android.widget.ScrollView;
 import android.widget.SearchView;
 import android.widget.SeekBar;
@@ -79,26 +67,18 @@ import android.widget.VideoView;
 import android.widget.ViewAnimator;
 import android.widget.ViewSwitcher;
 
-import androidx.annotation.NonNull;
 import androidx.core.content.res.ResourcesCompat;
-import androidx.core.view.WindowCompat;
-import androidx.core.view.WindowInsetsCompat;
-import androidx.core.view.WindowInsetsControllerCompat;
 import androidx.fragment.app.FragmentActivity;
 import androidx.lifecycle.Lifecycle;
 import androidx.lifecycle.LifecycleObserver;
 import androidx.lifecycle.OnLifecycleEvent;
 
-import com.example.kloadingspin.KLoadingSpin;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInClient;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.common.api.ApiException;
-import com.google.android.gms.common.internal.Constants;
 import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthCredential;
 import com.google.firebase.auth.AuthResult;
@@ -111,18 +91,6 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.himanshurawat.hasher.HashType;
 import com.himanshurawat.hasher.Hasher;
 
-import org.w3c.dom.Text;
-
-import java.io.ByteArrayOutputStream;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
-import java.net.InetAddress;
-import java.net.ServerSocket;
-import java.net.Socket;
-import java.net.URI;
-import java.nio.ByteBuffer;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -131,7 +99,6 @@ import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
@@ -317,7 +284,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     boolean hasScrolled = false;
     boolean allowHide = false;
     ScheduledExecutorService scheduledExecutorService = new ScheduledThreadPoolExecutor(1);
-    public ExecutorService backgroudExecutor = Executors.newCachedThreadPool();
+    public ExecutorService backgroundExecutor = Executors.newCachedThreadPool();
 
 
     public Handler getHandler() {
@@ -547,6 +514,28 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         leadmeAnimator.setDisplayedChild(ANIM_APP_LAUNCH_INDEX);
     }
 
+    private void setSelectedOrEveryoneBtn(boolean selected) {
+        currentlySelectedOnly = selected;
+        if (!selected) {
+            appPushDialogView.findViewById(R.id.everyone_btn).setBackground(getResources().getDrawable(R.drawable.bg_passive_left, null));
+            ((Button) appPushDialogView.findViewById(R.id.everyone_btn)).setCompoundDrawablesRelativeWithIntrinsicBounds(R.drawable.icon_fav_star_check, 0, 0, 0);
+
+            appPushDialogView.findViewById(R.id.selected_btn).setBackground(getResources().getDrawable(R.drawable.bg_passive_right_white, null));
+            ((Button) appPushDialogView.findViewById(R.id.selected_btn)).setCompoundDrawablesWithIntrinsicBounds(0, 0, 0, 0);
+            appPushBtn.setText(getResources().getString(R.string.push_this_to_everyone));
+
+        } else {
+            appPushDialogView.findViewById(R.id.everyone_btn).setBackground(getResources().getDrawable(R.drawable.bg_passive_left_white, null));
+            ((Button) appPushDialogView.findViewById(R.id.everyone_btn)).setCompoundDrawablesWithIntrinsicBounds(0, 0, 0, 0);
+
+            appPushDialogView.findViewById(R.id.selected_btn).setBackground(getResources().getDrawable(R.drawable.bg_passive_right, null));
+            ((Button) appPushDialogView.findViewById(R.id.selected_btn)).setCompoundDrawablesWithIntrinsicBounds(R.drawable.icon_fav_star_check, 0, 0, 0);
+            appPushBtn.setText(getResources().getString(R.string.push_this_to_selected));
+        }
+    }
+
+    boolean currentlySelectedOnly = false;
+
     public void showAppPushDialog(String title, Drawable icon, String packageName) {
         //TODO include display a message if errors occur
         appPushPackageName = packageName; //keep track of what should launch
@@ -559,14 +548,31 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         if (appPushMessageView == null) {
             appPushMessageView = appPushDialogView.findViewById(R.id.push_confirm_txt);
             appPushBtn = appPushDialogView.findViewById(R.id.push_btn);
+
+            appPushDialogView.findViewById(R.id.everyone_btn).setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    setSelectedOrEveryoneBtn(false);
+                }
+            });
+
+            appPushDialogView.findViewById(R.id.selected_btn).setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    setSelectedOrEveryoneBtn(true);
+                }
+            });
         }
+
+        //selected_btn
+        //everyone_btn
 
         if (!getConnectedLearnersAdapter().someoneIsSelected()) {
             //if no-one is selected, prompt to push to everyone
-            appPushBtn.setText(getResources().getString(R.string.push_this_to_everyone));
+            setSelectedOrEveryoneBtn(true);
         } else {
             //if someone is selected, prompt to push to selected
-            appPushBtn.setText(getResources().getString(R.string.push_this_to_selected));
+            setSelectedOrEveryoneBtn(false);
         }
 
         //display push
@@ -574,12 +580,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             appPushDialog = new AlertDialog.Builder(this)
                     .setView(appPushDialogView)
                     .show();
-            appPushDialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
-                @Override
-                public void onDismiss(DialogInterface dialog) {
-                    hideSystemUI();
-                }
-            });
+            appPushDialog.setOnDismissListener(dialog -> hideSystemUI());
         } else {
             appPushDialog.show();
         }
@@ -603,15 +604,12 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             readyBtn = loginDialogView.findViewById(R.id.connect_btn);
         }
 
-        loginDialogView.findViewById(R.id.clear_code_btn).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                code1.getText().clear();
-                code2.getText().clear();
-                code3.getText().clear();
-                code4.getText().clear();
-                code1.requestFocus();
-            }
+        loginDialogView.findViewById(R.id.clear_code_btn).setOnClickListener(v -> {
+            code1.getText().clear();
+            code2.getText().clear();
+            code3.getText().clear();
+            code4.getText().clear();
+            code1.requestFocus();
         });
 
         loginDialogView.findViewById(R.id.close_login_alert_btn).setOnClickListener(v -> {
@@ -796,12 +794,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                     .setView(loginDialogView)
                     .create();
         }
-        loginDialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
-            @Override
-            public void onDismiss(DialogInterface dialog) {
-                hideSystemUI();
-            }
-        });
+        loginDialog.setOnDismissListener(dialog -> hideSystemUI());
         loginDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
 
         EditText email = loginDialogView.findViewById(R.id.login_email);
@@ -813,42 +806,34 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         Button backBtn = loginDialogView.findViewById(R.id.login_back);
         TextView signup = loginDialogView.findViewById(R.id.login_signup);
 
-
-        googleSignin.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent signInIntent = mGoogleSignInClient.getSignInIntent();
-                startActivityForResult(signInIntent, RC_SIGN_IN);
+        password.setOnFocusChangeListener((v, hasFocus) -> {
+            if (hasFocus) {
+                imm.showSoftInput(v, InputMethodManager.SHOW_FORCED);
             }
         });
-        enterBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                loginDialogView.findViewById(R.id.indeterminateBar).setVisibility(View.VISIBLE);
-                FirebaseEmailSignIn(email.getText().toString(), password.getText().toString(), errorText);
-            }
-        });
-        signup.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                loginDialog.dismiss();
-                buildloginsignup(0);
-            }
-        });
-        backBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                loginDialog.dismiss();
-            }
-        });
-        forgotPassword.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                showForgottenPassword(loginDialog);
-                //todo send to forgotten password flow
 
 
-            }
+        googleSignin.setOnClickListener(v -> {
+            Intent signInIntent = mGoogleSignInClient.getSignInIntent();
+            startActivityForResult(signInIntent, RC_SIGN_IN);
+        });
+
+        enterBtn.setOnClickListener(v -> {
+            loginDialogView.findViewById(R.id.indeterminateBar).setVisibility(View.VISIBLE);
+            FirebaseEmailSignIn(email.getText().toString(), password.getText().toString(), errorText);
+        });
+
+        signup.setOnClickListener(v -> {
+            loginDialog.dismiss();
+            buildloginsignup(0);
+        });
+
+        backBtn.setOnClickListener(v -> loginDialog.dismiss());
+        forgotPassword.setOnClickListener(v -> {
+            showForgottenPassword(loginDialog);
+            //todo send to forgotten password flow
+
+
         });
         //hideSystemUI();
         initPermissions = false; //reset this to ask once more
@@ -872,102 +857,65 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         forgotten.setVisibility(View.VISIBLE);
         forgottenDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
         forgottenDialog.show();
-        send.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if(email.getText().toString().length()>0){
-                    mAuth.sendPasswordResetEmail(email.getText().toString())
-                            .addOnCompleteListener(new OnCompleteListener<Void>() {
-                                @Override
-                                public void onComplete(@NonNull Task<Void> task) {
-                                    if (task.isSuccessful()) {
-                                        Log.d(TAG, "Email sent.");
+        send.setOnClickListener(v -> {
+            if (email.getText().toString().length() > 0) {
+                mAuth.sendPasswordResetEmail(email.getText().toString())
+                        .addOnCompleteListener(task -> {
+                            if (task.isSuccessful()) {
+                                Log.d(TAG, "Email sent.");
 
 
-                                    }
-                                }
-                            });
-                    forgotten.setVisibility(View.GONE);
-                    email_sent.setVisibility(View.VISIBLE);
-                    send.setText("Done");
-                    send.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View v) {
-                            forgottenDialog.dismiss();
-                        }
-                    });
-                    cancel.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View v) {
-                            forgotten.setVisibility(View.VISIBLE);
-                            email_sent.setVisibility(View.GONE);
-                            send.setText("Send");
-                            send.setOnClickListener(new View.OnClickListener() {
-                                @Override
-                                public void onClick(View v) {
-                                    if(email.getText().toString().length()>0){
-                                        mAuth.sendPasswordResetEmail(email.getText().toString())
-                                                .addOnCompleteListener(new OnCompleteListener<Void>() {
-                                                    @Override
-                                                    public void onComplete(@NonNull Task<Void> task) {
-                                                        if (task.isSuccessful()) {
-                                                            Log.d(TAG, "Email sent.");
+                            }
+                        });
+                forgotten.setVisibility(View.GONE);
+                email_sent.setVisibility(View.VISIBLE);
+                send.setText("Done");
+                send.setOnClickListener(v17 -> forgottenDialog.dismiss());
+                cancel.setOnClickListener(v16 -> {
+                    forgotten.setVisibility(View.VISIBLE);
+                    email_sent.setVisibility(View.GONE);
+                    send.setText("Send");
+                    send.setOnClickListener(v15 -> {
+                        if (email.getText().toString().length() > 0) {
+                            mAuth.sendPasswordResetEmail(email.getText().toString())
+                                    .addOnCompleteListener(task -> {
+                                        if (task.isSuccessful()) {
+                                            Log.d(TAG, "Email sent.");
 
 
-                                                        }
-                                                    }
-                                                });
-                                        forgotten.setVisibility(View.GONE);
-                                        email_sent.setVisibility(View.VISIBLE);
-                                        send.setText("Done");
-                                        send.setOnClickListener(new View.OnClickListener() {
-                                            @Override
-                                            public void onClick(View v) {
-                                                forgottenDialog.dismiss();
-                                            }
-                                        });
-                                        cancel.setOnClickListener(new View.OnClickListener() {
-                                            @Override
-                                            public void onClick(View v) {
-                                                forgotten.setVisibility(View.VISIBLE);
-                                                email_sent.setVisibility(View.GONE);
-                                                send.setText("Send");
-                                                cancel.setOnClickListener(new View.OnClickListener() {
-                                                    @Override
-                                                    public void onClick(View v) {
-                                                        forgottenDialog.dismiss();
-                                                        previous.show();
-                                                    }
-                                                });
-                                            }
-                                        });
-                                    }else{
-                                        Toast toast=Toast.makeText(getApplicationContext(),"Please enter your email first",Toast.LENGTH_SHORT);
-                                        toast.show();
-                                    }
-                                }
-                            });
-                            cancel.setOnClickListener(new View.OnClickListener() {
-                                @Override
-                                public void onClick(View v) {
+                                        }
+                                    });
+                            forgotten.setVisibility(View.GONE);
+                            email_sent.setVisibility(View.VISIBLE);
+                            send.setText("Done");
+                            send.setOnClickListener(v14 -> forgottenDialog.dismiss());
+                            cancel.setOnClickListener(v13 -> {
+                                forgotten.setVisibility(View.VISIBLE);
+                                email_sent.setVisibility(View.GONE);
+                                send.setText("Send");
+                                cancel.setOnClickListener(v12 -> {
                                     forgottenDialog.dismiss();
                                     previous.show();
-                                }
+                                });
                             });
+                        } else {
+                            Toast toast = Toast.makeText(getApplicationContext(), "Please enter your email first", Toast.LENGTH_SHORT);
+                            toast.show();
                         }
                     });
-                }else{
-                    Toast toast=Toast.makeText(getApplicationContext(),"Please enter your email first",Toast.LENGTH_SHORT);
-                    toast.show();
-                }
+                    cancel.setOnClickListener(v1 -> {
+                        forgottenDialog.dismiss();
+                        previous.show();
+                    });
+                });
+            } else {
+                Toast toast = Toast.makeText(getApplicationContext(), "Please enter your email first", Toast.LENGTH_SHORT);
+                toast.show();
             }
         });
-        cancel.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                forgottenDialog.dismiss();
-                previous.show();
-            }
+        cancel.setOnClickListener(v -> {
+            forgottenDialog.dismiss();
+            previous.show();
         });
     }
 
@@ -995,12 +943,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             studentAlertsDialog = new AlertDialog.Builder(this)
                     .setView(studentAlertsView)
                     .create();
-            studentAlertsDialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
-                @Override
-                public void onDismiss(DialogInterface dialog) {
-                    hideSystemUI();
-                }
-            });
+            studentAlertsDialog.setOnDismissListener(dialog -> hideSystemUI());
         }
 
         hideSystemUI();
@@ -1023,11 +966,14 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         //not needed
     }
 
+    private void showSplashScreen() {
+        logo.setImageResource(R.mipmap.lumination_logo_reverse);
+        leadmeAnimator.setDisplayedChild(ANIM_SPLASH_INDEX);
+    }
+
     private void moveAwayFromSplashScreen() {
 
         handler.postDelayed(() -> {
-//                leaderLearnerSwitcher.setDisplayedChild(SWITCH_LEADER_INDEX);
-            //leadmeAnimator.removeViewAt(ANIM_SPLASH_INDEX);
             logo.setImageResource(android.R.color.transparent);
             leadmeAnimator.setDisplayedChild(ANIM_START_SWITCH_INDEX);
 
@@ -1168,9 +1114,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
                     //handler.post(() -> {
                     //new Thread(() -> {
-                    backgroudExecutor.submit(new Runnable() {
-                        @Override
-                        public void run() {
+                    backgroundExecutor.submit(() -> {
 
 
                         //wait until layout update is actioned before trying to gesture --> needs to be NON-UI thread or blocks
@@ -1188,7 +1132,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                             boolean success = accessibilityService.dispatchGesture(swipe, gestureResultCallback, getHandler());
                             Log.e(TAG, "Did I dispatch " + swipe + " to " + accessibilityService + "? " + success + " // " + overlayView.isAttachedToWindow() + " // " + overlayView.isLayoutRequested());
                         });
-                        }
                     });
                     //}).start();
                 }
@@ -1313,7 +1256,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         if (appHasFocus && !init) {
             //TODO call     mSensorManager.unregisterListener(this);
             Log.d(TAG, "Moving away from splash...");
-            leadmeAnimator.setDisplayedChild(ANIM_SPLASH_INDEX);
+            showSplashScreen();
             moveAwayFromSplashScreen();
         }
 
@@ -1379,7 +1322,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     public void onDestroy() {
         super.onDestroy();
         Log.w(TAG, "In onDestroy");
-        backgroudExecutor.shutdownNow();
+        backgroundExecutor.shutdownNow();
         //subscription.dispose();
         destroyAndReset();
         //xrayManager.screenShot = false;
@@ -1691,19 +1634,16 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         mainLeader.findViewById(R.id.url_core_btn).setOnClickListener(v -> getWebManager().showWebLaunchDialog(false, false));
 
         mainLeader.findViewById(R.id.vr_core_btn).setOnClickListener(v -> {
-                getAppManager().getWithinPlayer().showWithin(); //launch within search
+            getAppManager().getWithinPlayer().showWithin(); //launch within search
             //getWebManager().showWebLaunchDialog(true, false)
         });
 
 
         Button app_btn = mainLeader.findViewById(R.id.app_core_btn);
         //app_btn.setOnClickListener(v -> showAppLaunchScreen());
-        app_btn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                showAppLaunchScreen();
-                ((ScrollView) appLauncherScreen.findViewById(R.id.app_scroll_view)).scrollTo(0, 0);
-            }
+        app_btn.setOnClickListener((View.OnClickListener) v -> {
+            showAppLaunchScreen();
+            ((ScrollView) appLauncherScreen.findViewById(R.id.app_scroll_view)).scrollTo(0, 0);
         });
 
 
@@ -1763,7 +1703,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         leadmeAnimator.addView(optionsScreen);
         leadmeAnimator.addView(xrayScreen);
 
-        leadmeAnimator.setDisplayedChild(ANIM_SPLASH_INDEX);
+        showSplashScreen();
 
         setContentView(leadmeAnimator);
 
@@ -1832,18 +1772,8 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                 leadmeAnimator.setDisplayedChild(lastDisplayedIndex);
             }
         });
-        optionsScreen.findViewById(R.id.options_loginBtn).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                showLoginDialog();
-            }
-        });
-        optionsScreen.findViewById(R.id.options_notsigned).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                buildloginsignup(0);
-            }
-        });
+        optionsScreen.findViewById(R.id.options_loginBtn).setOnClickListener(view -> showLoginDialog());
+        optionsScreen.findViewById(R.id.options_notsigned).setOnClickListener(view -> buildloginsignup(0));
         optionsScreen.findViewById(R.id.how_to_use_btn).setOnClickListener(v -> Toast.makeText(getApplicationContext(), "Coming soon!", Toast.LENGTH_SHORT).show());
 
         optionsScreen.findViewById(R.id.help_support_btn).setOnClickListener(v -> Toast.makeText(getApplicationContext(), "Coming soon!", Toast.LENGTH_SHORT).show());
@@ -1851,7 +1781,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         optionsScreen.findViewById(R.id.logout_btn).setOnClickListener(v -> {
             if (isGuide || !getNearbyManager().isConnectedAsFollower()) {
                 mAuth.signOut();
-                currentUser= mAuth.getCurrentUser();
+                currentUser = mAuth.getCurrentUser();
                 optionsScreen.findViewById(R.id.options_teacher).setVisibility(View.GONE);
                 logoutAction();
             } else {
@@ -2124,12 +2054,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             confirmPushDialog = new AlertDialog.Builder(this)
                     .setView(confirmPushDialogView)
                     .show();
-            confirmPushDialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
-                @Override
-                public void onDismiss(DialogInterface dialog) {
-                    hideSystemUI();
-                }
-            });
+            confirmPushDialog.setOnDismissListener(dialog -> hideSystemUI());
         } else {
             confirmPushDialog.show();
         }
@@ -2169,7 +2094,13 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             return; //not needed
         }
         isOpen = true;
-        imm.toggleSoftInput(InputMethodManager.SHOW_FORCED, 0);
+
+        View view = this.getCurrentFocus();
+        if (view == null) {
+            imm.toggleSoftInput(InputMethodManager.SHOW_FORCED, 0);
+        } else {
+            imm.showSoftInput(view, InputMethodManager.SHOW_FORCED);
+        }
     }
 
     public void closeKeyboard() {
@@ -2283,12 +2214,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             waitingDialog = new AlertDialog.Builder(this)
                     .setView(waitingDialogView)
                     .create();
-            waitingDialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
-                @Override
-                public void onDismiss(DialogInterface dialog) {
-                    hideSystemUI();
-                }
-            });
+            waitingDialog.setOnDismissListener(dialog -> hideSystemUI());
         }
 
         loginDialog.dismiss();
@@ -2311,12 +2237,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         warningDialog = new AlertDialog.Builder(this)
                 .setView(warningDialogView)
                 .create();
-        warningDialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
-            @Override
-            public void onDismiss(DialogInterface dialog) {
-                hideSystemUI();
-            }
-        });
+        warningDialog.setOnDismissListener(dialog -> hideSystemUI());
     }
 
     public void showLoginAlertMessage() {
@@ -2364,22 +2285,19 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
             // For hiding
 
-            db.collection("users").document(mAuth.getCurrentUser().getUid()).get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
-                @Override
-                public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                    if (task.isSuccessful()) {
-                        if( Hasher.Companion.hash(code, HashType.SHA_256).equals(task.getResult().getString("pin"))){
-                            codeEntered=true;
+            db.collection("users").document(mAuth.getCurrentUser().getUid()).get().addOnCompleteListener(task -> {
+                if (task.isSuccessful()) {
+                    if (Hasher.Companion.hash(code, HashType.SHA_256).equals(task.getResult().getString("pin"))) {
+                        codeEntered = true;
 
-                            progressBar.setVisibility(View.GONE);
-                            loginAction();
-                        }else{
-                            codeEntered=false;
-                            showLoginAlertMessage();
-                            loginDialogView.findViewById(R.id.wrong_code_message).setVisibility(View.VISIBLE);
-                        }
-
+                        progressBar.setVisibility(View.GONE);
+                        loginAction();
+                    } else {
+                        codeEntered = false;
+                        showLoginAlertMessage();
+                        loginDialogView.findViewById(R.id.wrong_code_message).setVisibility(View.VISIBLE);
                     }
+
                 }
             });
 //            if (code.equals(teacherCode)) { //correct code
@@ -2423,7 +2341,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         getNearbyManager().disconnectFromAllEndpoints(); //disconnect everyone
         getLeaderSelectAdapter().setLeaderList(new ArrayList<>()); //empty the list
         setUIDisconnected();
-        leadmeAnimator.setDisplayedChild(ANIM_SPLASH_INDEX);
+        showSplashScreen();
         moveAwayFromSplashScreen();
     }
 
@@ -2494,13 +2412,8 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         } else {
             //display main student view
             leadmeAnimator.setDisplayedChild(ANIM_LEARNER_INDEX);
-            allowHide=true;
-            handler.postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    hideSystemUIStudent();
-                }
-            },1000);
+            allowHide = true;
+            handler.postDelayed(() -> hideSystemUIStudent(), 1000);
 
 
             //update options
@@ -2638,7 +2551,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         Log.d(TAG, "Is locked? " + studentLockOn + ", " + prevStatus + " vs " + status);
 
         //don't need to alert to anything, already in this state
-        if (prevStatus != status) {
+        if (prevStatus != status && getNearbyManager().isConnectedAsFollower()) {
             prevStatus = status;
 
             String statusMsg;
@@ -2798,12 +2711,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             recallPrompt = new AlertDialog.Builder(this)
                     .setView(recallView)
                     .create();
-            recallPrompt.setOnDismissListener(new DialogInterface.OnDismissListener() {
-                @Override
-                public void onDismiss(DialogInterface dialog) {
-                    hideSystemUI();
-                }
-            });
+            recallPrompt.setOnDismissListener(dialog -> hideSystemUI());
         }
 
         if (getConnectedLearnersAdapter().someoneIsSelected() && (getNearbyManager().getSelectedPeerIDs().size() < getNearbyManager().getAllPeerIDs().size())) {
@@ -3132,20 +3040,9 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             });
         }
         ImageView nextButton = OnBoard.findViewById(R.id.next_button);
-        nextButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                setOnboardCurrent(onBoardPage + 1);
-
-            }
-        });
+        nextButton.setOnClickListener(v -> setOnboardCurrent(onBoardPage + 1));
         TextView skipIntro = OnBoard.findViewById(R.id.skip_intro);
-        skipIntro.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                setContentView(leadmeAnimator);
-            }
-        });
+        skipIntro.setOnClickListener(v -> setContentView(leadmeAnimator));
         setOnboardCurrent(0);
         this.setContentView(OnBoard);
     }
@@ -3411,12 +3308,9 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                 showSystemUI();
                 regoError.setVisibility(View.GONE);
                 //loginCode.requestFocus();
-                loginCode.setOnFocusChangeListener(new View.OnFocusChangeListener() {
-                    @Override
-                    public void onFocusChange(View v, boolean hasFocus) {
-                        if(hasFocus) {
-                            showSystemUI();
-                        }
+                loginCode.setOnFocusChangeListener((v, hasFocus) -> {
+                    if (hasFocus) {
+                        showSystemUI();
                     }
                 });
                 loginCode.addTextChangedListener(new TextWatcher() {
@@ -3438,80 +3332,55 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
                     }
                 });
-                next.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        if(loginCode.getText().length()==6) {
-                            progressBar.setVisibility(View.VISIBLE);
-                            db.collection("signin_codes").document(loginCode.getText().toString())
-                                    .get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
-                                @Override
-                                public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                                    if (task.isSuccessful()) {
-                                        Log.d(TAG, "buildloginsignup: database accessed");
-                                        if (task.getResult().exists()) {
-                                            //todo add email under signup code
+                next.setOnClickListener(v -> {
+                    if (loginCode.getText().length() == 6) {
+                        progressBar.setVisibility(View.VISIBLE);
+                        db.collection("signin_codes").document(loginCode.getText().toString())
+                                .get().addOnCompleteListener(task -> {
+                            if (task.isSuccessful()) {
+                                Log.d(TAG, "buildloginsignup: database accessed");
+                                if (task.getResult().exists()) {
+                                    //todo add email under signup code
 //                                        if(task.getResult().get)
-                                            regoCode = loginCode.getText().toString();
-                                            buildloginsignup(1);
-                                        } else {
-                                            regoError.setVisibility(View.VISIBLE);
-                                        }
-                                    } else {
-                                        Log.d(TAG, "buildloginsignup: unable to access database");
-                                    }
+                                    regoCode = loginCode.getText().toString();
+                                    buildloginsignup(1);
+                                } else {
+                                    regoError.setVisibility(View.VISIBLE);
                                 }
-                            });
-                        }
+                            } else {
+                                Log.d(TAG, "buildloginsignup: unable to access database");
+                            }
+                        });
                     }
                 });
-                back.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        setContentView(leadmeAnimator);
-                        hideSystemUI();
-                    }
+                back.setOnClickListener(v -> {
+                    setContentView(leadmeAnimator);
+                    hideSystemUI();
                 });
                 break;
             case 1:
                 showSystemUI();
                 signupError.setVisibility(View.GONE);
-                marketingCheck.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-                    @Override
-                    public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                        closeKeyboard();
-                    }
-                });
-                next.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        if (signupPass.getText().toString().equals(signupConPass.getText().toString())) {
-                            progressBar.setVisibility(View.VISIBLE);
-                            FirebaseEmailSignUp(signupEmail.getText().toString(), signupPass.getText().toString(), signupName.getText().toString(), marketingCheck.isChecked(), regoCode, signupError);
-                            hideSystemUI();
-                        } else {
-                            signupError.setText("Passwords do not match");
-                            signupError.setVisibility(View.VISIBLE);
-                            progressBar.setVisibility(View.GONE);
-                        }
-                    }
-                });
-                back.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        buildloginsignup(0);
+                marketingCheck.setOnCheckedChangeListener((buttonView, isChecked) -> closeKeyboard());
+                next.setOnClickListener(v -> {
+                    if (signupPass.getText().toString().equals(signupConPass.getText().toString())) {
+                        progressBar.setVisibility(View.VISIBLE);
+                        FirebaseEmailSignUp(signupEmail.getText().toString(), signupPass.getText().toString(), signupName.getText().toString(), marketingCheck.isChecked(), regoCode, signupError);
                         hideSystemUI();
+                    } else {
+                        signupError.setText("Passwords do not match");
+                        signupError.setVisibility(View.VISIBLE);
+                        progressBar.setVisibility(View.GONE);
                     }
+                });
+                back.setOnClickListener(v -> {
+                    buildloginsignup(0);
+                    hideSystemUI();
                 });
                 break;
             case 2:
                 hideSystemUI();
-                handler.postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        hideSystemUI();
-                    }
-                },500);
+                handler.postDelayed(() -> hideSystemUI(), 500);
                 errorText.setVisibility(View.GONE);
 //                terms.setOnScrollChangeListener(new View.OnScrollChangeListener() {
 //                    boolean scrolled = false;
@@ -3521,108 +3390,67 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 //                    }
 //                });
                 hasScrolled = false;
-                touScroll.setOnScrollChangeListener(new View.OnScrollChangeListener() {
-                    @Override
-                    public void onScrollChange(View v, int scrollX, int scrollY, int oldScrollX, int oldScrollY) {
-                        if (touScroll.getChildAt(0).getBottom()
-                                <= (touScroll.getHeight() + touScroll.getScrollY())) {
-                            hasScrolled = true;
-                        }
+                touScroll.setOnScrollChangeListener((v, scrollX, scrollY, oldScrollX, oldScrollY) -> {
+                    if (touScroll.getChildAt(0).getBottom()
+                            <= (touScroll.getHeight() + touScroll.getScrollY())) {
+                        hasScrolled = true;
                     }
                 });
-                touAgree.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-                    @Override
-                    public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                        if (isChecked && !hasScrolled) {
-                            touAgree.setChecked(false);
-                            errorText.setVisibility(View.VISIBLE);
-                            errorText.setText("Please read all of the terms of use");
-                        }
+                touAgree.setOnCheckedChangeListener((buttonView, isChecked) -> {
+                    if (isChecked && !hasScrolled) {
+                        touAgree.setChecked(false);
+                        errorText.setVisibility(View.VISIBLE);
+                        errorText.setText("Please read all of the terms of use");
                     }
                 });
 
-                next.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        if (touAgree.isChecked()) {
-                            buildloginsignup(3);
-                        } else {
-                            errorText.setVisibility(View.VISIBLE);
-                        }
+                next.setOnClickListener(v -> {
+                    if (touAgree.isChecked()) {
+                        buildloginsignup(3);
+                    } else {
+                        errorText.setVisibility(View.VISIBLE);
                     }
                 });
-                back.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        buildloginsignup(1);
-                    }
-                });
+                back.setOnClickListener(v -> buildloginsignup(1));
                 break;
 
             case 3:
-                handler.postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        hideSystemUI();
-                    }
-                },500);
+                handler.postDelayed(() -> hideSystemUI(), 500);
                 next.setVisibility(View.GONE);
                 Uri uri = Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.email_sent);
                 animation.setVideoURI(uri);
                 animation.setBackgroundColor(Color.WHITE);
                 Log.d(TAG, "buildloginsignup: here");
-                animation.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
-                    @Override
-                    public void onPrepared(MediaPlayer mp) {
-                        mp.setLooping(true);
-                        animation.start();
-                        handler.postDelayed(() -> animation.setBackgroundColor(Color.TRANSPARENT), 100);
-                    }
+                animation.setOnPreparedListener(mp -> {
+                    mp.setLooping(true);
+                    animation.start();
+                    handler.postDelayed(() -> animation.setBackgroundColor(Color.TRANSPARENT), 100);
                 });
-                mAuth.addAuthStateListener(new FirebaseAuth.AuthStateListener() {
-                    @Override
-                    public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
-                        if (!mAuth.getCurrentUser().isEmailVerified()) {
-                            Log.d(TAG, "buildloginsignup: email verification sent");
-                            mAuth.getCurrentUser().sendEmailVerification().addOnSuccessListener(new OnSuccessListener<Void>() {
-                                @Override
-                                public void onSuccess(Void aVoid) {
-                                    scheduledExecutorService.scheduleAtFixedRate(new Runnable() {
-                                        @Override
-                                        public void run() {
-                                            mAuth.addAuthStateListener(new FirebaseAuth.AuthStateListener() {
-                                                @Override
-                                                public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
-                                                    Log.d(TAG, "run: checking user verification");
-                                                    if (!mAuth.getCurrentUser().isEmailVerified()) {
-                                                        mAuth.getCurrentUser().reload();
-                                                    }else {
-                                                        currentUser = mAuth.getCurrentUser();
-                                                        scheduledExecutorService.shutdown();
-                                                        runOnUiThread(()->{
-                                                            buildloginsignup(4);
-                                                        });
-                                                    }
-                                                }
-                                            });
-                                        }
-                                    },100,100, TimeUnit.MILLISECONDS);
-                                }
-                            });
+                mAuth.addAuthStateListener(firebaseAuth -> {
+                    if (!mAuth.getCurrentUser().isEmailVerified()) {
+                        Log.d(TAG, "buildloginsignup: email verification sent");
+                        mAuth.getCurrentUser().sendEmailVerification().addOnSuccessListener(aVoid -> scheduledExecutorService.scheduleAtFixedRate(() -> mAuth.addAuthStateListener(firebaseAuth1 -> {
+                            Log.d(TAG, "run: checking user verification");
+                            if (!mAuth.getCurrentUser().isEmailVerified()) {
+                                mAuth.getCurrentUser().reload();
+                            } else {
+                                currentUser = mAuth.getCurrentUser();
+                                scheduledExecutorService.shutdown();
+                                runOnUiThread(() -> {
+                                    buildloginsignup(4);
+                                });
+                            }
+                        }), 100, 100, TimeUnit.MILLISECONDS));
 
-                        } else {
-                            Log.d(TAG, "buildloginsignup: user is already verified");
-                        }
+                    } else {
+                        Log.d(TAG, "buildloginsignup: user is already verified");
                     }
                 });
 
                 Log.d(TAG, "buildloginsignup: and here");
-                back.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        scheduledExecutorService.shutdown();
-                        setContentView(leadmeAnimator);
-                    }
+                back.setOnClickListener(v -> {
+                    scheduledExecutorService.shutdown();
+                    setContentView(leadmeAnimator);
                 });
                 break;
             case 4:
@@ -3632,67 +3460,53 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                 pinErrorImg.setImageResource(R.drawable.icon_fav_star_check);
                 if (signinVerif) {
                     progressBar.setVisibility(View.VISIBLE);
-                    db.collection("users").document(mAuth.getCurrentUser().getUid()).get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
-                        @Override
-                        public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                            if (task.getResult().exists()) {
-                                if (task.getResult().getString("pin").length() > 0) {
-                                    progressBar.setVisibility(View.GONE);
-                                    getNearbyManager().myName = currentUser.getDisplayName();
-                                    getNameView().setText(currentUser.getDisplayName());
-                                    setContentView(leadmeAnimator);
-                                    loginAction();
-                                }
+                    db.collection("users").document(mAuth.getCurrentUser().getUid()).get().addOnCompleteListener(task -> {
+                        if (task.getResult().exists()) {
+                            if (task.getResult().getString("pin").length() > 0) {
+                                progressBar.setVisibility(View.GONE);
+                                getNearbyManager().myName = currentUser.getDisplayName();
+                                getNameView().setText(currentUser.getDisplayName());
+                                setContentView(leadmeAnimator);
+                                loginAction();
                             }
                         }
                     });
 
                 }
                 showSystemUI();
-                next.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        String pin = "";
-                        String confirmPin = "";
-                        for (int i = 0; i < 8; i++) {
-                            if (i < 4) {
-                                pin += codes[i].getText().toString();
-                            } else {
-                                confirmPin += codes[i].getText().toString();
-                            }
-                        }
-                        if (pin.equals(confirmPin)) {
-                            //todo save this data to users profile
-                            Map<String, Object> userDet = new HashMap<>();
-                            progressBar.setVisibility(View.VISIBLE);
-                            userDet.put("pin", Hasher.Companion.hash(pin, HashType.SHA_256));
-                            db.collection("users").document(mAuth.getCurrentUser().getUid()).update(userDet).addOnSuccessListener(new OnSuccessListener<Void>() {
-                                @Override
-                                public void onSuccess(Void aVoid) {
-                                    Log.d(TAG, "onSuccess: pin saved to account");
-                                }
-                            });
-                            db.collection("users").document(mAuth.getCurrentUser().getUid()).get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
-                                @Override
-                                public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                                    if (task.isSuccessful()) {
-                                        progressBar.setVisibility(View.GONE);
-                                        getNearbyManager().myName = task.getResult().getString("name");
-                                        getNameView().setText(task.getResult().getString("name"));
-                                        setContentView(leadmeAnimator);
-                                        loginAction();
-                                    }
-                                }
-                            });
-
+                next.setOnClickListener(v -> {
+                    String pin = "";
+                    String confirmPin = "";
+                    for (int i = 0; i < 8; i++) {
+                        if (i < 4) {
+                            pin += codes[i].getText().toString();
                         } else {
-                            pinError.setText("The pin's do not match");
-                            pinError.setTextColor(getColor(R.color.leadme_red));
-                            pinErrorImg.setImageResource(R.drawable.alert_error);
-                            progressBar.setVisibility(View.GONE);
+                            confirmPin += codes[i].getText().toString();
                         }
-
                     }
+                    if (pin.equals(confirmPin)) {
+                        //todo save this data to users profile
+                        Map<String, Object> userDet = new HashMap<>();
+                        progressBar.setVisibility(View.VISIBLE);
+                        userDet.put("pin", Hasher.Companion.hash(pin, HashType.SHA_256));
+                        db.collection("users").document(mAuth.getCurrentUser().getUid()).update(userDet).addOnSuccessListener(aVoid -> Log.d(TAG, "onSuccess: pin saved to account"));
+                        db.collection("users").document(mAuth.getCurrentUser().getUid()).get().addOnCompleteListener(task -> {
+                            if (task.isSuccessful()) {
+                                progressBar.setVisibility(View.GONE);
+                                getNearbyManager().myName = task.getResult().getString("name");
+                                getNameView().setText(task.getResult().getString("name"));
+                                setContentView(leadmeAnimator);
+                                loginAction();
+                            }
+                        });
+
+                    } else {
+                        pinError.setText("The pin's do not match");
+                        pinError.setTextColor(getColor(R.color.leadme_red));
+                        pinErrorImg.setImageResource(R.drawable.alert_error);
+                        progressBar.setVisibility(View.GONE);
+                    }
+
                 });
                 break;
             default:
@@ -3710,36 +3524,28 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                 mAuth.addAuthStateListener(firebaseAuth -> {
                     if (currentUser != null) {
                         db.collection("users").document(currentUser.getUid())
-                                .get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
-                            @Override
-                            public void onComplete(@NonNull Task<DocumentSnapshot> task1) {
-                                if (task1.isSuccessful()) {
-                                    if (task1.getResult().exists()) {
-                                        Log.d(TAG, "handleSignInResult: user found");
-                                        getNearbyManager().myName = account.getGivenName();
-                                        getNameView().setText(account.getGivenName());
-                                        loginAction();
-                                    } else {
-                                        Log.d(TAG, "handleSignInResult: new user");
-                                        Map<String, Object> userDet = new HashMap<>();
-                                        userDet.put("name", account.getGivenName() + " " + account.getFamilyName());
-                                        userDet.put("email", currentUser.getEmail());
-                                        db.collection("users").document(currentUser.getUid()).set(userDet)
-                                                .addOnSuccessListener(aVoid -> {
-                                                    Log.d(TAG, "handleSignInResult: new user created");
-                                                    getNearbyManager().myName = account.getGivenName();
-                                                    getNameView().setText(account.getGivenName());
-                                                    hideSystemUI();
-                                                    loginAction();
-                                                })
-                                                .addOnFailureListener(new OnFailureListener() {
-                                                    @Override
-                                                    public void onFailure(@NonNull Exception e) {
-                                                        Log.d(TAG, "handleSignInResult: failed to create new user please check internet");
-                                                    }
-                                                });
+                                .get().addOnCompleteListener(task1 -> {
+                            if (task1.isSuccessful()) {
+                                if (task1.getResult().exists()) {
+                                    Log.d(TAG, "handleSignInResult: user found");
+                                    getNearbyManager().myName = account.getGivenName();
+                                    getNameView().setText(account.getGivenName());
+                                    loginAction();
+                                } else {
+                                    Log.d(TAG, "handleSignInResult: new user");
+                                    Map<String, Object> userDet = new HashMap<>();
+                                    userDet.put("name", account.getGivenName() + " " + account.getFamilyName());
+                                    userDet.put("email", currentUser.getEmail());
+                                    db.collection("users").document(currentUser.getUid()).set(userDet)
+                                            .addOnSuccessListener(aVoid -> {
+                                                Log.d(TAG, "handleSignInResult: new user created");
+                                                getNearbyManager().myName = account.getGivenName();
+                                                getNameView().setText(account.getGivenName());
+                                                hideSystemUI();
+                                                loginAction();
+                                            })
+                                            .addOnFailureListener(e -> Log.d(TAG, "handleSignInResult: failed to create new user please check internet"));
 
-                                    }
                                 }
                             }
                         });
@@ -3758,49 +3564,40 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     private void FirebaseEmailSignUp(String email, String password, String name, boolean marketing, String regoCode, TextView errorText) {
 
         mAuth.createUserWithEmailAndPassword(email, password)
-                .addOnCompleteListener(LeadMeMain.this, new OnCompleteListener<AuthResult>() {
-                    @Override
-                    public void onComplete(@NonNull Task<AuthResult> task) {
-                        if (task.isSuccessful()) {
-                            // Sign in success, update UI with the signed-in user's information
-                            Log.d(TAG, "createUserWithEmail:success");
-                            currentUser = task.getResult().getUser();
-                            UserProfileChangeRequest profileUpdates = new UserProfileChangeRequest.Builder()
-                                    .setDisplayName(name)
-                                    .build();
-                            currentUser.updateProfile(profileUpdates);
-                            Map<String, Object> userDet = new HashMap<>();
-                            userDet.put("name", name);
-                            userDet.put("email", email);
-                            userDet.put("marketing", marketing);
-                            userDet.put("rego_code", regoCode);
-                            db.collection("users").document(mAuth.getCurrentUser().getUid()).get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
-                                @Override
-                                public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                                    if (task.getResult().exists()) {
-                                        Log.d(TAG, "user data exists but user is deleted, updating user info");
-                                    }
-                                    db.collection("users").document(mAuth.getCurrentUser().getUid()).set(userDet)
-                                            .addOnSuccessListener(aVoid -> {
-                                                Log.d(TAG, "buildloginsignup: new user created");
-                                            })
-                                            .addOnFailureListener(new OnFailureListener() {
-                                                @Override
-                                                public void onFailure(@NonNull Exception e) {
-                                                    errorText.setVisibility(View.VISIBLE);
-                                                    errorText.setText("Error failed to save account details");
-                                                    Log.d(TAG, "buildloginsignup: failed to create new user please check internet");
-                                                }
-                                            });
-                                }
-                            });
-                            buildloginsignup(2);
-                        } else {
-                            // If sign in fails, display a message to the user.
-                            Log.w(TAG, "createUserWithEmail:failure", task.getException());
-                            errorText.setVisibility(View.VISIBLE);
-                            errorText.setText(task.getException().getMessage());
-                        }
+                .addOnCompleteListener(LeadMeMain.this, task -> {
+                    if (task.isSuccessful()) {
+                        // Sign in success, update UI with the signed-in user's information
+                        Log.d(TAG, "createUserWithEmail:success");
+                        currentUser = task.getResult().getUser();
+                        UserProfileChangeRequest profileUpdates = new UserProfileChangeRequest.Builder()
+                                .setDisplayName(name)
+                                .build();
+                        currentUser.updateProfile(profileUpdates);
+                        Map<String, Object> userDet = new HashMap<>();
+                        userDet.put("name", name);
+                        userDet.put("email", email);
+                        userDet.put("marketing", marketing);
+                        userDet.put("rego_code", regoCode);
+                        db.collection("users").document(mAuth.getCurrentUser().getUid()).get().addOnCompleteListener(task1 -> {
+                            if (task1.getResult().exists()) {
+                                Log.d(TAG, "user data exists but user is deleted, updating user info");
+                            }
+                            db.collection("users").document(mAuth.getCurrentUser().getUid()).set(userDet)
+                                    .addOnSuccessListener(aVoid -> {
+                                        Log.d(TAG, "buildloginsignup: new user created");
+                                    })
+                                    .addOnFailureListener(e -> {
+                                        errorText.setVisibility(View.VISIBLE);
+                                        errorText.setText("Error failed to save account details");
+                                        Log.d(TAG, "buildloginsignup: failed to create new user please check internet");
+                                    });
+                        });
+                        buildloginsignup(2);
+                    } else {
+                        // If sign in fails, display a message to the user.
+                        Log.w(TAG, "createUserWithEmail:failure", task.getException());
+                        errorText.setVisibility(View.VISIBLE);
+                        errorText.setText(task.getException().getMessage());
                     }
                 });
 
@@ -3812,39 +3609,33 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         if (email != null && password != null) {
             if (email.length()>0 && password.length()>0) {
                 mAuth.signInWithEmailAndPassword(email, password)
-                        .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
-                            @Override
-                            public void onComplete(@NonNull Task<AuthResult> task) {
-                                if (task.isSuccessful()) {
-                                    // Sign in success, update UI with the signed-in user's information
-                                    Log.d(TAG, "signInWithEmail:success");
-                                    currentUser = task.getResult().getUser();
-                                    if (!currentUser.isEmailVerified()) {
-                                        buildloginsignup(3, true);
-                                    } else {
-                                        db.collection("users").document(mAuth.getCurrentUser().getUid()).get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
-                                            @Override
-                                            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                                                Log.d(TAG, "onComplete: ");
-                                                if (task.isSuccessful()) {
-                                                    loginDialogView.findViewById(R.id.indeterminateBar).setVisibility(View.GONE);
-                                                    getNearbyManager().myName = (String) task.getResult().get("name");
-                                                    getNameView().setText((String) task.getResult().get("name"));
-                                                    Log.d(TAG, "onComplete: name found: " + (String) task.getResult().get("name"));
-                                                    setContentView(leadmeAnimator);
-                                                    loginAction();
-                                                }
-                                            }
-                                        });
-                                    }
-
+                        .addOnCompleteListener(this, (OnCompleteListener<AuthResult>) task -> {
+                            if (task.isSuccessful()) {
+                                // Sign in success, update UI with the signed-in user's information
+                                Log.d(TAG, "signInWithEmail:success");
+                                currentUser = task.getResult().getUser();
+                                if (!currentUser.isEmailVerified()) {
+                                    buildloginsignup(3, true);
                                 } else {
-                                    loginDialogView.findViewById(R.id.indeterminateBar).setVisibility(View.GONE);
-                                    // If sign in fails, display a message to the user.
-                                    Log.w(TAG, "signInWithEmail:failure", task.getException());
-                                    errorText.setVisibility(View.VISIBLE);
-                                    errorText.setText(task.getException().getMessage());
+                                    db.collection("users").document(mAuth.getCurrentUser().getUid()).get().addOnCompleteListener((OnCompleteListener<DocumentSnapshot>) task1 -> {
+                                        Log.d(TAG, "onComplete: ");
+                                        if (task1.isSuccessful()) {
+                                            loginDialogView.findViewById(R.id.indeterminateBar).setVisibility(View.GONE);
+                                            getNearbyManager().myName = (String) task1.getResult().get("name");
+                                            getNameView().setText((String) task1.getResult().get("name"));
+                                            Log.d(TAG, "onComplete: name found: " + (String) task1.getResult().get("name"));
+                                            setContentView(leadmeAnimator);
+                                            loginAction();
+                                        }
+                                    });
                                 }
+
+                            } else {
+                                loginDialogView.findViewById(R.id.indeterminateBar).setVisibility(View.GONE);
+                                // If sign in fails, display a message to the user.
+                                Log.w(TAG, "signInWithEmail:failure", task.getException());
+                                errorText.setVisibility(View.VISIBLE);
+                                errorText.setText(task.getException().getMessage());
                             }
                         });
             }

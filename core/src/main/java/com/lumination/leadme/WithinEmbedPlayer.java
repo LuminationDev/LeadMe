@@ -2,7 +2,6 @@ package com.lumination.leadme;
 
 import android.app.AlertDialog;
 import android.content.DialogInterface;
-import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.util.Log;
@@ -25,14 +24,8 @@ import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.bumptech.glide.Glide;
-import com.bumptech.glide.load.engine.DiskCacheStrategy;
-
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.util.Scanner;
-import java.util.concurrent.ExecutionException;
 
 public class WithinEmbedPlayer {
 
@@ -392,15 +385,15 @@ public class WithinEmbedPlayer {
     private void setupWithinSearchButtons() {
         disabledBg = main.getResources().getDrawable(R.drawable.bg_disabled, null);
         //set up standard dialog buttons
-        withinSearchDialogView.findViewById(R.id.web_back_btn).setOnClickListener(v -> {
-            if (foundURL.isEmpty()) {
-                //if no experience is selected, close the popup
-                videoSearchDialog.dismiss();
-            } else {
-                //otherwise, go back
-                searchWebView.goBack();
-            }
-        });
+//        withinSearchDialogView.findViewById(R.id.web_back_btn).setOnClickListener(v -> {
+//            if (foundURL.isEmpty()) {
+//                //if no experience is selected, close the popup
+//                videoSearchDialog.dismiss();
+//            } else {
+//                //otherwise, go back
+//                searchWebView.goBack();
+//            }
+//        });
 
         withinSearchDialogView.findViewById(R.id.within_back).setOnClickListener(v -> {
             videoSearchDialog.dismiss();

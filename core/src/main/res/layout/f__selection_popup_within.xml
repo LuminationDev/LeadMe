@@ -20,12 +20,6 @@
         android:paddingStart="10dp"
         android:paddingEnd="10dp">
 
-        <ImageView
-            android:id="@+id/web_back_btn"
-            android:layout_width="30dp"
-            android:layout_height="30dp"
-            android:src="@drawable/arrow_icon" />
-
         <TextView
             android:id="@+id/title"
             android:layout_width="wrap_content"
@@ -36,16 +30,9 @@
             android:foregroundGravity="center_vertical"
             android:gravity="center_horizontal|center_vertical"
             android:includeFontPadding="false"
-            android:text="Search Within VR"
+            android:text="Browsing Within VR"
             android:textAlignment="center"
             android:textSize="16sp" />
-
-        <ImageView
-            android:id="@+id/spacer"
-            android:layout_width="30dp"
-            android:layout_height="30dp"
-            android:src="@drawable/arrow_icon"
-            android:visibility="invisible" />
 
     </LinearLayout>
 
@@ -62,7 +49,7 @@
         <WebView
             android:id="@+id/within_webview_search"
             android:layout_width="match_parent"
-            android:layout_height="380dp"
+            android:layout_height="360dp"
             android:background="@color/leadme_black"
             android:tag="search_webview">
 
@@ -118,7 +105,7 @@
             android:background="@drawable/bg_disabled"
             android:focusable="true"
             android:fontFamily="@font/poppins_semibold"
-            android:text="Select"
+            android:text="@string/next"
             android:textAllCaps="false"
             android:textColor="@color/leadme_white"
             android:textSize="16sp"
@@ -140,7 +127,7 @@
             android:clickable="true"
             android:focusable="true"
             android:fontFamily="@font/poppins_semibold"
-            android:text="Close"
+            android:text="@string/back"
             android:textAllCaps="false"
             android:textColor="@color/leadme_darkest_grey"
             android:textSize="16sp" />

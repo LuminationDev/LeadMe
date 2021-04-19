@@ -20,11 +20,14 @@
             android:layout_width="60dp"
             android:layout_height="match_parent"
             android:layout_marginEnd="10dp"
+            android:adjustViewBounds="false"
             android:contentDescription="@string/logo_txt"
+            android:cropToPadding="false"
             android:foregroundGravity="center"
             android:minWidth="3dp"
-            android:padding="10dp"
-            android:scaleType="centerCrop"
+            android:paddingTop="8dp"
+            android:paddingBottom="3dp"
+            android:scaleType="fitCenter"
             android:src="@drawable/ic_recall_text"
             tools:src="@drawable/ic_recall_text" />
 
@@ -458,8 +461,8 @@
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
                     android:src="@drawable/controls_play"
-                    android:tint="@color/leadme_purple"
-                    android:visibility="gone" />
+                    android:visibility="gone"
+                    app:tint="@color/leadme_purple" />
 
                 <TextView
                     android:id="@+id/unlock_text"
@@ -533,8 +536,7 @@
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
                     android:layout_marginStart="5dp"
-                    android:src="@drawable/controls_block"
-                    android:tint="@color/leadme_white" />
+                    android:src="@drawable/controls_block_white" />
 
                 <TextView
                     android:id="@+id/block_text"

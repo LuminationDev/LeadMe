@@ -457,7 +457,7 @@ public class YouTubeAccessibilityManager {
 
         if (connector.lastEvent != null && connector.lastInfo != null) {
             //new Thread(() -> {
-            main.backgroudExecutor.submit(new Runnable() {
+            main.backgroundExecutor.submit(new Runnable() {
                 @Override
                 public void run() {
                     manageYouTubeAccess(connector.lastEvent, connector.lastInfo); //re-try last event

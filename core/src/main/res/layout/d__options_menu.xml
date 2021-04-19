@@ -104,8 +104,9 @@
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="30dp"
                 android:background="@drawable/bg_active"
-                android:fontFamily="@font/poppins_regular"
+                android:fontFamily="@font/poppins_semibold"
                 android:text="End Session"
+                android:textAllCaps="false"
                 android:textColor="@color/leadme_white"
                 android:visibility="gone" />
 
@@ -202,7 +203,7 @@
 
         <ImageView
             android:layout_width="match_parent"
-            android:layout_height="2dp"
+            android:layout_height="1dp"
             android:layout_marginTop="20dp"
             android:background="@color/leadme_dark_grey" />
 

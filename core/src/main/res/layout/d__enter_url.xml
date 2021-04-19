@@ -44,15 +44,15 @@
                     android:includeFontPadding="false"
                     android:text="Please enter URL"
                     android:textColor="@color/leadme_black"
-                    android:textSize="18sp" />
+                    android:textSize="16sp" />
 
                 <TextView
-                    android:id="@+id/textView3"
                     android:layout_width="wrap_content"
                     android:layout_height="35dp"
                     android:fontFamily="@font/poppins_semibold"
                     android:gravity="center|right"
-                    android:text="Search Web" />
+                    android:text="Search Web"
+                    android:textSize="12sp" />
 
                 <ImageView
                     android:id="@+id/url_search_btn"

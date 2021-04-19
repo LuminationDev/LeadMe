@@ -604,7 +604,7 @@ public class FavouritesManager extends BaseAdapter {
 //            Thread previewThread = new Thread(() -> tmpCrawler.makePreview(linkPreviewCallback, tmpUrl)
 //            );
 //            previewThread.start();
-            main.backgroudExecutor.submit(new Runnable() {
+            main.backgroundExecutor.submit(new Runnable() {
                 @Override
                 public void run() {
                     tmpCrawler.makePreview(linkPreviewCallback, tmpUrl);

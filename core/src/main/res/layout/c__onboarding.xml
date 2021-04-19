@@ -24,21 +24,21 @@
             android:id="@+id/animation_view"
             android:layout_width="250dp"
             android:layout_height="250dp"
-            android:layout_gravity="center"
+            android:layout_gravity="bottom|center_horizontal"
             android:layout_marginTop="20dp"
-            android:layout_marginBottom="50dp"
+            android:layout_marginBottom="10dp"
             android:drawingCacheQuality="high"
             tools:visibility="invisible" />
 
-<!--        <TextView-->
-<!--            android:id="@+id/onBoard_title"-->
-<!--            android:layout_width="match_parent"-->
-<!--            android:layout_height="wrap_content"-->
-<!--            android:layout_margin="10dp"-->
-<!--            android:fontFamily="@font/poppins_semibold"-->
-<!--            android:gravity="center"-->
-<!--            android:text="Welcome to LeadMe"-->
-<!--            android:textSize="18sp" />-->
+        <!--        <TextView-->
+        <!--            android:id="@+id/onBoard_title"-->
+        <!--            android:layout_width="match_parent"-->
+        <!--            android:layout_height="wrap_content"-->
+        <!--            android:layout_margin="10dp"-->
+        <!--            android:fontFamily="@font/poppins_semibold"-->
+        <!--            android:gravity="center"-->
+        <!--            android:text="Welcome to LeadMe"-->
+        <!--            android:textSize="18sp" />-->
 
         <TextSwitcher
             android:id="@+id/onBoard_title"
@@ -76,15 +76,14 @@
             android:layout_weight="1">
 
             <TextView
-                android:layout_width="250dp"
+                android:layout_width="300dp"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_horizontal"
-                android:layout_marginLeft="30dp"
-                android:layout_marginRight="30dp"
-                android:layout_marginBottom="20dp"
+                android:layout_marginLeft="20dp"
+                android:layout_marginRight="20dp"
                 android:fontFamily="@font/poppins_regular"
                 android:gravity="center_horizontal"
-                android:maxWidth="350dp"
+                android:lines="5"
                 android:text="The class management tool that connects leaders and learners for a managed digital learning environment." />
 
             <TextView
@@ -100,40 +99,40 @@
         </TextSwitcher>
 
         <!--        <TextView-->
-<!--            android:id="@+id/onBoard_content"-->
-<!--            android:layout_width="match_parent"-->
-<!--            android:layout_height="wrap_content"-->
-<!--            android:layout_marginBottom="20dp"-->
-<!--            android:fontFamily="@font/poppins_regular"-->
-<!--            android:gravity="center"-->
-<!--            android:paddingLeft="25dp"-->
-<!--            android:paddingRight="25dp"-->
-<!--            android:paddingBottom="20dp"-->
-<!--            android:text="The class management tool that connects leaders and learners for a managed digital learning environment." />-->
+        <!--            android:id="@+id/onBoard_content"-->
+        <!--            android:layout_width="match_parent"-->
+        <!--            android:layout_height="wrap_content"-->
+        <!--            android:layout_marginBottom="20dp"-->
+        <!--            android:fontFamily="@font/poppins_regular"-->
+        <!--            android:gravity="center"-->
+        <!--            android:paddingLeft="25dp"-->
+        <!--            android:paddingRight="25dp"-->
+        <!--            android:paddingBottom="20dp"-->
+        <!--            android:text="The class management tool that connects leaders and learners for a managed digital learning environment." />-->
 
 
-<!--        <ImageSwitcher-->
-<!--            android:id="@+id/page_indicator"-->
-<!--            android:layout_width="match_parent"-->
-<!--            android:layout_height="wrap_content"-->
-<!--            android:layout_gravity="center"-->
-<!--            android:src="@drawable/ic_pages_1"-->
-<!--            tools:visibility="gone">-->
+        <!--        <ImageSwitcher-->
+        <!--            android:id="@+id/page_indicator"-->
+        <!--            android:layout_width="match_parent"-->
+        <!--            android:layout_height="wrap_content"-->
+        <!--            android:layout_gravity="center"-->
+        <!--            android:src="@drawable/ic_pages_1"-->
+        <!--            tools:visibility="gone">-->
 
-<!--            <ImageView-->
-<!--                android:id="@+id/imageView5"-->
-<!--                android:layout_width="wrap_content"-->
-<!--                android:layout_height="wrap_content"-->
-<!--                android:layout_gravity="center"-->
-<!--                app:srcCompat="@drawable/ic_pages_1" />-->
+        <!--            <ImageView-->
+        <!--                android:id="@+id/imageView5"-->
+        <!--                android:layout_width="wrap_content"-->
+        <!--                android:layout_height="wrap_content"-->
+        <!--                android:layout_gravity="center"-->
+        <!--                app:srcCompat="@drawable/ic_pages_1" />-->
 
-<!--            <ImageView-->
-<!--                android:id="@+id/imageView6"-->
-<!--                android:layout_width="wrap_content"-->
-<!--                android:layout_height="wrap_content"-->
-<!--                android:layout_gravity="center"-->
-<!--                app:srcCompat="@drawable/ic_pages__2" />-->
-<!--        </ImageSwitcher>-->
+        <!--            <ImageView-->
+        <!--                android:id="@+id/imageView6"-->
+        <!--                android:layout_width="wrap_content"-->
+        <!--                android:layout_height="wrap_content"-->
+        <!--                android:layout_gravity="center"-->
+        <!--                app:srcCompat="@drawable/ic_pages__2" />-->
+        <!--        </ImageSwitcher>-->
 
         <LinearLayout
             android:layout_width="wrap_content"
@@ -224,8 +223,8 @@
             android:elevation="5dp"
             android:scaleType="center"
             android:src="@drawable/ic_roundbutton_shadow"
-            app:shapeAppearanceOverlay="@style/circleImageView"
-            tools:visibility="visible" />
+            android:visibility="visible"
+            app:shapeAppearanceOverlay="@style/circleImageView" />
 
         <TextView
             android:id="@+id/skip_intro"
@@ -236,7 +235,7 @@
             android:fontFamily="@font/poppins_semibold"
             android:text="Skip Intro"
             android:textColor="@color/leadme_blue"
-            tools:visibility="visible" />
+            android:visibility="visible" />
 
         <LinearLayout
             android:id="@+id/onboard_buttons"
@@ -244,9 +243,8 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center"
             android:layout_margin="15dp"
-            android:layout_weight="1"
             android:orientation="vertical"
-            tools:visibility="gone">
+            android:visibility="gone">
 
             <Button
                 android:id="@+id/onboard_ok_btn"

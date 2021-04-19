@@ -178,7 +178,7 @@
                     android:layout_width="200dp"
                     android:layout_height="200dp"
                     android:layout_gravity="center"
-                    android:layout_marginStart="40dp"
+                    android:layout_marginStart="60dp"
                     android:layout_marginTop="60dp"
                     android:layout_marginEnd="40dp"
                     android:layout_marginBottom="40dp"
@@ -198,6 +198,7 @@
                     android:textSize="18sp" />
 
             </LinearLayout>
+
 
             <LinearLayout
                 android:id="@+id/lock_action_bar"
@@ -230,7 +231,9 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_gravity="center"
-                        android:src="@drawable/controls_play" />
+                        android:src="@drawable/controls_play"
+                        app:tint="@color/leadme_purple"
+                        android:visibility="gone" />
 
                     <TextView
                         android:id="@+id/unlock_text"
@@ -240,8 +243,8 @@
                         android:layout_marginStart="8dp"
                         android:fontFamily="@font/poppins_semibold"
                         android:includeFontPadding="false"
-                        android:text="@string/unlock"
-                        android:textColor="@color/light"
+                        android:text="Unblock"
+                        android:textColor="@color/leadme_purple"
                         android:textSize="14sp" />
                 </LinearLayout>
 
@@ -258,7 +261,8 @@
                     android:background="@drawable/rounded_btn_white"
                     android:elevation="5dp"
                     android:gravity="center_horizontal"
-                    android:orientation="horizontal">
+                    android:orientation="horizontal"
+                    android:visibility="gone">
 
                     <ImageView
                         android:id="@+id/lock_icon"
@@ -292,6 +296,7 @@
                     android:layout_marginBottom="10dp"
                     android:layout_weight="1"
                     android:background="@drawable/rounded_btn_white"
+                    android:backgroundTint="@color/leadme_purple"
                     android:elevation="5dp"
                     android:gravity="center_horizontal"
                     android:orientation="horizontal">
@@ -302,7 +307,7 @@
                         android:layout_height="wrap_content"
                         android:layout_gravity="center"
                         android:layout_marginStart="5dp"
-                        android:src="@drawable/controls_block" />
+                        android:src="@drawable/controls_block_white" />
 
                     <TextView
                         android:id="@+id/block_text"
@@ -313,11 +318,10 @@
                         android:fontFamily="@font/poppins_semibold"
                         android:includeFontPadding="false"
                         android:text="@string/block"
-                        android:textColor="@color/light"
+                        android:textColor="@color/leadme_white"
                         android:textSize="14sp" />
                 </LinearLayout>
             </LinearLayout>
-
         </LinearLayout>
 
 

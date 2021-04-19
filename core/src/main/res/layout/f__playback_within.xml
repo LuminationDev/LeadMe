@@ -77,7 +77,7 @@
         <WebView
             android:id="@+id/within_webview"
             android:layout_width="match_parent"
-            android:layout_height="300dp"
+            android:layout_height="280dp"
             android:background="@color/leadme_black"
             android:tag="playback_webview">
 
@@ -280,7 +280,6 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_horizontal"
                 android:layout_marginTop="20dp"
-                android:layout_weight="1"
                 android:button="@drawable/star_checkbox"
                 android:checked="false"
                 android:enabled="false"

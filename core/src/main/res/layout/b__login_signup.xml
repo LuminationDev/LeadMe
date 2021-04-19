@@ -15,7 +15,7 @@
         android:id="@+id/leadme_logo"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="50dp"
+        android:layout_marginTop="20dp"
         android:padding="30dp"
         android:scaleX="1.5"
         android:scaleY="1.5"

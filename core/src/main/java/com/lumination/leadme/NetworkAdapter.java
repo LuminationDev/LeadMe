@@ -25,7 +25,6 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.concurrent.FutureTask;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -452,7 +451,7 @@ public class NetworkAdapter {
         //new Thread so server messages can be read from a while loop without impacting the UI
         if(recieveInput==null) {
             //recieveInput = new Thread() {
-            recieveInput =main.backgroudExecutor.submit(new Runnable() {
+            recieveInput = main.backgroundExecutor.submit(new Runnable() {
                 @Override
                 public void run() {
                     while (allowInput) {
@@ -718,7 +717,7 @@ public class NetworkAdapter {
 
     //starts a new server thread as seen below
     public void startServer() {
-        Server = main.backgroudExecutor.submit(new ServerThread());
+        Server = main.backgroundExecutor.submit(new ServerThread());
 //        mThread = new Thread();
 //        mThread.start();
     }

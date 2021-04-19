@@ -9,8 +9,6 @@ import android.content.pm.PackageManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
-import android.os.Build;
-import android.os.PowerManager;
 import android.provider.Settings;
 import android.util.Log;
 import android.widget.Toast;
@@ -276,7 +274,7 @@ public class PermissionManager {
                 String host = Uri.parse(url).getHost();
 
 //                Thread thread = new Thread(() -> {
-                main.backgroudExecutor.submit(new Runnable() {
+                main.backgroundExecutor.submit(new Runnable() {
                     @Override
                     public void run() {
                         try {

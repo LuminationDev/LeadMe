@@ -346,7 +346,7 @@ public class AppManager extends BaseAdapter {
                 return true; //true if event is consumed
             });
 
-        } catch (PackageManager.NameNotFoundException e) {
+        } catch (Exception e) {
             e.printStackTrace();
             return null;
         }

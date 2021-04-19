@@ -70,7 +70,7 @@ public class NearbyPeersManager {
 //                Thread t = new Thread(new Runnable() {
 //                    @Override
 //                    public void run() {
-                main.backgroudExecutor.submit(new Runnable() {
+                main.backgroundExecutor.submit(new Runnable() {
                     @Override
                     public void run() {
                         networkAdapter.connectToServer(info);
