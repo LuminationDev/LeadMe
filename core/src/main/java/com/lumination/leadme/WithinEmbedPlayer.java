@@ -16,6 +16,7 @@ import android.webkit.WebResourceResponse;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.ImageView;
@@ -51,6 +52,8 @@ public class WithinEmbedPlayer {
     private final Switch vrModeBtn;
     private final ImageView vrIcon;
     private final Spinner lockSpinner;
+    private final Spinner searchSpinner;
+    private String[] searchSpinnerItems;
 
     private String attemptedURL = "";
     boolean pageLoaded = false;
@@ -102,6 +105,37 @@ public class WithinEmbedPlayer {
             main.hideSystemUI();
             videoSearchDialog.dismiss();
             main.getWebManager().launchUrlYtFavourites();
+        });
+
+        searchSpinner = (Spinner) withinSearchDialogView.findViewById(R.id.search_spinner);
+        searchSpinnerItems = new String[3];
+        searchSpinnerItems[0] = "Default";
+        searchSpinnerItems[1] = "Within search";
+        searchSpinnerItems[2] = "YouTube search";
+        Integer[] search_imgs = {R.drawable.search_icon_larger, R.drawable.search_within, R.drawable.search_yt};
+        LumiSpinnerAdapter search_adapter = new LumiSpinnerAdapter(main, R.layout.row_search_spinner, searchSpinnerItems, search_imgs);
+        searchSpinner.setAdapter(search_adapter);
+
+        searchSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                switch (position) {
+                    case 2: //youtube search
+                        main.closeKeyboard();
+                        main.hideSystemUI();
+                        videoSearchDialog.dismiss();
+                        main.getWebManager().buildAndShowSearchDialog(true);
+                        break;
+                    default: //default / within
+                        //do nothing, we're already here?
+                        break;
+                }
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+
+            }
         });
 
         withinSearchDialogView.findViewById(R.id.select_btn).setBackground(main.getResources().getDrawable(R.drawable.bg_active, null));
@@ -297,9 +331,10 @@ public class WithinEmbedPlayer {
                 Log.d(TAG, "WITHIN GUIDE] Received HTTP error: " + errorResponse.getReasonPhrase() + ", " + errorResponse.getData());
                 Log.d(TAG, "WITHIN GUIDE] ER " + request.toString() + ", " + request.getMethod() + ", " + request.getRequestHeaders());
             }
+
             @Override
-            public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request){
-                return super.shouldInterceptRequest(view,request);
+            public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request) {
+                return super.shouldInterceptRequest(view, request);
                 //causes memory leak
 //                String url = request.getUrl().toString();
 //                if(url==null){
@@ -530,6 +565,7 @@ public class WithinEmbedPlayer {
         foundURL = ""; //reset
         foundTitle = "";
         attemptedURL = "";
+        searchSpinner.setSelection(0);
         if (videoSearchDialog == null) {
             videoSearchDialog = new AlertDialog.Builder(main)
                     .setView(withinSearchDialogView)
@@ -643,7 +679,8 @@ public class WithinEmbedPlayer {
 
         withinSearchDialogView.findViewById(R.id.select_btn).setBackground(main.getResources().getDrawable(R.drawable.bg_disabled, null));
     }
-    public void onDestroy(){
+
+    public void onDestroy() {
         controllerWebView.clearHistory();
         controllerWebView.clearCache(true);
         controllerWebView.loadUrl("about:blank");

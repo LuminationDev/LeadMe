@@ -1,22 +1,22 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <svg xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#"
-	xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://www.w3.org/2000/svg"
-	xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
-	xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape" version="1.1" id="Layer_1" x="0px"
-	y="0px" viewBox="0 0 154.8 155" xml:space="preserve" sodipodi:docname="within-logo-edit.svg"
-	width="154.8" height="155" inkscape:version="1.0.1 (3bc2e813f5, 2020-09-07)"><metadata
+    xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://www.w3.org/2000/svg"
+    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape" version="1.1" id="Layer_1" x="0px"
+    y="0px" viewBox="0 0 154.8 155" xml:space="preserve" sodipodi:docname="within-logo-edit.svg"
+    width="154.8" height="155" inkscape:version="1.0.1 (3bc2e813f5, 2020-09-07)"><metadata
    id="metadata94"><rdf:RDF><cc:Work
        rdf:about=""><dc:format>image/svg+xml</dc:format><dc:type
-	rdf:resource="http://purl.org/dc/dcmitype/StillImage" /><dc:title></dc:title></cc:Work></rdf:RDF></metadata>
-	<defs id="defs92" />
-	<sodipodi:namedview pagecolor="#ffffff" bordercolor="#666666" borderopacity="1"
-		objecttolerance="10" gridtolerance="10" guidetolerance="10" inkscape:pageopacity="0"
-		inkscape:pageshadow="2" inkscape:window-width="1920" inkscape:window-height="1017"
-		id="namedview90" showgrid="false" fit-margin-top="0" fit-margin-left="0"
-		fit-margin-right="0" fit-margin-bottom="0" inkscape:zoom="3.4530592" inkscape:cx="200.95"
-		inkscape:cy="38.25" inkscape:window-x="-8" inkscape:window-y="-8"
-		inkscape:window-maximized="1" inkscape:current-layer="Layer_1" />
-	<style type="text/css" id="style53">
+    rdf:resource="http://purl.org/dc/dcmitype/StillImage" /><dc:title></dc:title></cc:Work></rdf:RDF></metadata>
+    <defs id="defs92" />
+    <sodipodi:namedview pagecolor="#ffffff" bordercolor="#666666" borderopacity="1"
+        objecttolerance="10" gridtolerance="10" guidetolerance="10" inkscape:pageopacity="0"
+        inkscape:pageshadow="2" inkscape:window-width="1920" inkscape:window-height="1017"
+        id="namedview90" showgrid="false" fit-margin-top="0" fit-margin-left="0"
+        fit-margin-right="0" fit-margin-bottom="0" inkscape:zoom="3.4530592" inkscape:cx="200.95"
+        inkscape:cy="38.25" inkscape:window-x="-8" inkscape:window-y="-8"
+        inkscape:window-maximized="1" inkscape:current-layer="Layer_1" />
+    <style type="text/css" id="style53">
 	.st0{fill:#F4F495;}
 	.st1{fill:#7050A1;}
 	.st2{fill:#C36CC4;}
@@ -28,29 +28,29 @@
 	.st8{fill:#3D3D5E;}
 	.st9{fill:#D8D2C0;}
 </style>
-	<g id="g73" transform="matrix(0.9625842,0,0,0.95830391,1.7400587,30.415237)">
+    <g id="g73" transform="matrix(0.9625842,0,0,0.95830391,1.7400587,30.415237)">
 	<polyline class="st0" points="70.9,58.8 85.7,58.8 78.3,44.2 70.9,58.8  " id="polyline55" />
-		<polyline class="st1"
-			points="106.5,80.4 117,91.2 78.3,14.8 39.6,91.2 50,80.4 78.3,24.6 106.5,80.4  "
-			id="polyline57" />
-		<polyline class="st2"
-			points="78.3,24.6 50,80.4 60.4,69.6 78.3,34.4 96.1,69.6 106.5,80.4 78.3,24.6  "
-			id="polyline59" />
-		<polyline class="st3"
-			points="60.4,69.6 70.9,58.8 70.9,58.8 78.3,44.2 85.7,58.8 85.7,58.8 96.1,69.6 78.3,34.4 60.4,69.6  "
-			id="polyline61" />
-		<polyline class="st4" points="70.9,58.8 70.9,58.8 60.4,69.6 50,80.4 39.6,91.2 70.9,58.8  "
-			id="polyline63" />
-		<polyline class="st5" points="78.3,14.8 39.6,91.2 50,80.4 78.3,24.6 78.3,24.6 78.3,14.8  "
-			id="polyline65" />
-		<polyline class="st6"
-			points="78.3,24.6 50,80.4 60.4,69.6 78.3,34.4 78.3,34.4 78.3,24.6 78.3,24.6  "
-			id="polyline67" />
-		<polyline class="st7"
-			points="78.3,34.4 60.4,69.6 70.9,58.8 70.9,58.8 78.3,44.2 78.3,34.4 78.3,34.4  "
-			id="polyline69" />
-		<polygon class="st8" points="78.3,14.8 117,91.2 155.7,14.8 78.3,14.8 0.9,14.8 39.6,91.2 "
-			id="polygon71" />
+        <polyline class="st1"
+            points="106.5,80.4 117,91.2 78.3,14.8 39.6,91.2 50,80.4 78.3,24.6 106.5,80.4  "
+            id="polyline57" />
+        <polyline class="st2"
+            points="78.3,24.6 50,80.4 60.4,69.6 78.3,34.4 96.1,69.6 106.5,80.4 78.3,24.6  "
+            id="polyline59" />
+        <polyline class="st3"
+            points="60.4,69.6 70.9,58.8 70.9,58.8 78.3,44.2 85.7,58.8 85.7,58.8 96.1,69.6 78.3,34.4 60.4,69.6  "
+            id="polyline61" />
+        <polyline class="st4" points="70.9,58.8 70.9,58.8 60.4,69.6 50,80.4 39.6,91.2 70.9,58.8  "
+            id="polyline63" />
+        <polyline class="st5" points="78.3,14.8 39.6,91.2 50,80.4 78.3,24.6 78.3,24.6 78.3,14.8  "
+            id="polyline65" />
+        <polyline class="st6"
+            points="78.3,24.6 50,80.4 60.4,69.6 78.3,34.4 78.3,34.4 78.3,24.6 78.3,24.6  "
+            id="polyline67" />
+        <polyline class="st7"
+            points="78.3,34.4 60.4,69.6 70.9,58.8 70.9,58.8 78.3,44.2 78.3,34.4 78.3,34.4  "
+            id="polyline69" />
+        <polygon class="st8" points="78.3,14.8 117,91.2 155.7,14.8 78.3,14.8 0.9,14.8 39.6,91.2 "
+            id="polygon71" />
 </g>
 
 </svg>

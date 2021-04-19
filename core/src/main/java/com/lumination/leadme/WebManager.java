@@ -1166,6 +1166,17 @@ public class WebManager {
     private int searchType = SEARCH_YOUTUBE;
     private WebView searchWebView;
 
+    public void buildAndShowSearchDialog(boolean isYT) {
+        if (isYT) {
+            isYouTube = true;
+            searchType = SEARCH_YOUTUBE;
+        } else {
+            isYouTube = false;
+            searchType = SEARCH_WEB;
+        }
+        buildAndShowSearchDialog();
+    }
+
     private void buildAndShowSearchDialog() {
         Log.d(TAG, "buildAndShowSearchDialog: ");
         hideWebsiteLaunchDialog();
@@ -1248,6 +1259,11 @@ public class WebManager {
                     } else if (searchSpinnerItems[position].startsWith("Within")) {
                         ((TextView) searchDialogView.findViewById(R.id.web_search_title)).setText("Search Within");
                         searchType = SEARCH_WITHIN;
+
+                        /*searchWebView.clearCache(false);
+                        searchDialog.dismiss();
+                        main.getAppManager().getWithinPlayer().showWithin();*/
+
                         //searchView.setQuery(searchView.getQuery(), true);
                     }
                     searchText(searchView.getQuery().toString());

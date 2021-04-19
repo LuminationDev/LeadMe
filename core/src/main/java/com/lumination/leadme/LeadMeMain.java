@@ -535,7 +535,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     }
 
     boolean currentlySelectedOnly = false;
-
     public void showAppPushDialog(String title, Drawable icon, String packageName) {
         //TODO include display a message if errors occur
         appPushPackageName = packageName; //keep track of what should launch
