@@ -19,13 +19,14 @@
             android:id="@+id/leadme_icon"
             android:layout_width="60dp"
             android:layout_height="match_parent"
-            android:layout_marginStart="5dp"
             android:layout_marginEnd="10dp"
             android:contentDescription="@string/logo_txt"
             android:foregroundGravity="center"
             android:minWidth="3dp"
             android:padding="10dp"
-            android:src="@drawable/leadme_icon" />
+            android:scaleType="centerCrop"
+            android:src="@drawable/ic_recall_text"
+            tools:src="@drawable/ic_recall_text" />
 
         <TextView
             android:id="@+id/leader_title"
@@ -195,17 +196,18 @@
                 android:background="@drawable/bg_white_roundeduppercorners">
 
                 <TextView
+                    android:id="@+id/learners_txt"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_gravity="bottom|clip_horizontal"
+                    android:layout_gravity="clip_horizontal"
                     android:layout_weight="1"
                     android:fontFamily="@font/poppins_semibold"
                     android:gravity="center_vertical"
                     android:paddingStart="25dp"
-                    android:paddingTop="30dp"
+                    android:paddingTop="15dp"
                     android:paddingEnd="25dp"
                     android:paddingBottom="10dp"
-                    android:text="@string/label_students"
+                    android:text="All Learners"
                     android:textColor="@color/leadme_black"
                     android:textSize="16sp" />
 
@@ -214,13 +216,24 @@
                     android:layout_height="match_parent"
                     android:layout_weight="1" />
 
+                <ProgressBar
+                    android:id="@+id/leader_loading"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:layout_gravity="center"
+                    android:backgroundTint="@color/leadme_blue"
+                    android:indeterminateTint="@color/leadme_blue"
+                    android:progressDrawable="@color/leadme_blue"
+                    android:progressTint="@color/leadme_blue"
+                    android:visibility="invisible" />
+
                 <Button
                     android:id="@+id/alerts_button"
                     style="@style/Widget.AppCompat.Button.Borderless"
                     android:layout_width="wrap_content"
                     android:layout_height="40dp"
                     android:layout_gravity="top"
-                    android:layout_marginTop="10dp"
+                    android:layout_marginTop="5dp"
                     android:layout_marginEnd="20dp"
                     android:background="@drawable/bg_passive"
                     android:drawableStart="@drawable/alert_offtask_learner"
@@ -243,6 +256,7 @@
                     android:layout_marginTop="10dp"
                     android:layout_weight="0"
                     android:background="@drawable/search_icon"
+                    android:visibility="gone"
                     tools:visibility="gone" />
 
             </LinearLayout>
@@ -255,7 +269,8 @@
                 android:orientation="vertical"
                 android:paddingStart="10dp"
                 android:paddingEnd="20dp"
-                android:visibility="gone">
+                android:visibility="gone"
+                tools:visibility="visible">
 
                 <View
                     android:id="@+id/divider"
@@ -269,8 +284,6 @@
                     android:layout_height="match_parent"
                     android:background="@color/leadme_white"
                     android:orientation="horizontal"
-                    android:paddingTop="10dp"
-                    android:paddingBottom="10dp"
                     android:visibility="visible">
 
                     <ImageView
@@ -280,6 +293,7 @@
                         android:layout_gravity="center_vertical"
                         android:layout_margin="5dp"
                         android:layout_weight="0"
+                        android:padding="5dp"
                         android:src="@drawable/arrow_icon_dark" />
 
                     <TextView
@@ -287,6 +301,8 @@
                         android:layout_height="wrap_content"
                         android:layout_gravity="center_vertical"
                         android:layout_marginStart="5dp"
+                        android:layout_marginTop="10dp"
+                        android:layout_marginBottom="10dp"
                         android:layout_weight="0"
                         android:fontFamily="@font/poppins_semibold"
                         android:gravity="center"
@@ -441,7 +457,9 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
-                    android:src="@drawable/controls_play" />
+                    android:src="@drawable/controls_play"
+                    android:tint="@color/leadme_purple"
+                    android:visibility="gone" />
 
                 <TextView
                     android:id="@+id/unlock_text"
@@ -451,8 +469,8 @@
                     android:layout_marginStart="8dp"
                     android:fontFamily="@font/poppins_semibold"
                     android:includeFontPadding="false"
-                    android:text="@string/unlock"
-                    android:textColor="@color/light"
+                    android:text="Unblock"
+                    android:textColor="@color/leadme_purple"
                     android:textSize="14sp" />
             </LinearLayout>
 
@@ -469,7 +487,8 @@
                 android:background="@drawable/rounded_btn_white"
                 android:elevation="5dp"
                 android:gravity="center_horizontal"
-                android:orientation="horizontal">
+                android:orientation="horizontal"
+                android:visibility="gone">
 
                 <ImageView
                     android:id="@+id/lock_icon"
@@ -503,6 +522,7 @@
                 android:layout_marginBottom="10dp"
                 android:layout_weight="1"
                 android:background="@drawable/rounded_btn_white"
+                android:backgroundTint="@color/leadme_purple"
                 android:elevation="5dp"
                 android:gravity="center_horizontal"
                 android:orientation="horizontal">
@@ -513,7 +533,8 @@
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
                     android:layout_marginStart="5dp"
-                    android:src="@drawable/controls_block" />
+                    android:src="@drawable/controls_block"
+                    android:tint="@color/leadme_white" />
 
                 <TextView
                     android:id="@+id/block_text"
@@ -524,7 +545,7 @@
                     android:fontFamily="@font/poppins_semibold"
                     android:includeFontPadding="false"
                     android:text="@string/block"
-                    android:textColor="@color/light"
+                    android:textColor="@color/leadme_white"
                     android:textSize="14sp" />
             </LinearLayout>
         </LinearLayout>

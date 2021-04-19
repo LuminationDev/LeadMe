@@ -1659,7 +1659,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
         alertsBtn = mainLeader.findViewById(R.id.alerts_button);
         alertsBtn.setOnClickListener(v -> showAlertsDialog());
-        alertsBtn.setVisibility(View.GONE); //by default, hide this
+        //alertsBtn.setVisibility(View.GONE); //by default, hide this
 
         //initialise window manager for shared use
         windowManager = (WindowManager) getSystemService(WINDOW_SERVICE);
@@ -2015,8 +2015,19 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
     Button alertsBtn;
 
+    public ProgressBar setProgressTimer(int Time){
+        ProgressBar indeterminate =mainLeader.findViewById(R.id.leader_loading);
+        if(indeterminate!=null) {
+            if (Time > 0) {
+                indeterminate.setVisibility(View.VISIBLE);
+                scheduledExecutorService.schedule((Runnable) () -> runOnUiThread(() -> indeterminate.setVisibility(View.INVISIBLE)), (long) Time, TimeUnit.MILLISECONDS);
+            }
+        }
+        return indeterminate;
+    }
+
     public void setAlertsBtnVisibility(int visibility) {
-        alertsBtn.setVisibility(visibility);
+        alertsBtn.setVisibility(View.VISIBLE);
     }
 
     protected void buildOverlay() {
@@ -2820,7 +2831,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         returnEveryone = true;
         selectedBtn.setBackground(ResourcesCompat.getDrawable(getResources(), R.drawable.bg_passive_right, null));
         everyoneBtn.setBackground(ResourcesCompat.getDrawable(getResources(), R.drawable.bg_active_left, null));
-
         everyoneBtn.setTextColor(getResources().getColor(R.color.leadme_light_grey, null));
         selectedBtn.setTextColor(getResources().getColor(R.color.light, null));
     }

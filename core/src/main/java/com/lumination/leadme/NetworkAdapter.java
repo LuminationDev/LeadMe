@@ -32,10 +32,10 @@ import java.util.concurrent.TimeUnit;
 
 import static com.google.android.gms.nearby.connection.Payload.fromBytes;
 
-//class studentThread {
-//    Thread t;
-//    int ID;
-//}
+class studentThread {
+    Thread t;
+    int ID;
+}
 
 class client {
     String name;
@@ -70,7 +70,7 @@ public class NetworkAdapter {
 
     ServerSocket mServerSocket = null; //server socket for server
     Socket clientsServerSocket = null;//server socket for client
-    //Thread mThread = null;
+    Thread mThread = null;
     Future<?> Server = null;
     Future<?> recieveInput = null;
     public int localport = -1;
@@ -83,7 +83,7 @@ public class NetworkAdapter {
     int timeOut= 2;
 
 
-    //public ArrayList<studentThread> clientThreadList = new ArrayList<>();
+    public ArrayList<studentThread> clientThreadList = new ArrayList<>();
     public ArrayList<client> currentClients = new ArrayList<>();
     public ArrayList<NsdServiceInfo> discoveredLeaders = new ArrayList<>();
 
@@ -588,7 +588,7 @@ public class NetworkAdapter {
                     main.getHandler().post(() -> main.closeWaitingDialog(true));
                 }
                 pingName = false;
-                //Log.d(TAG, "messageReceivedFromServer: received ping and subsequently ignoring it");
+                Log.d(TAG, "messageReceivedFromServer: received ping and subsequently ignoring it");
                 break;
 
             case "MONITOR":
@@ -662,22 +662,22 @@ public class NetworkAdapter {
                     }
                     Log.d(TAG, "run: client connected");
                     Socket finalClientSocket = clientSocket;
-                    Runnable clientRun = new Runnable(){
-                        @Override
-                        public void run() {
-                            new TcpClient(finalClientSocket, netAdapt, clientID);
-                            clientID++;
-                        }
-                    };
-                    main.backgroudExecutor.submit(clientRun);
-//                    TcpClient tcp = new TcpClient(clientSocket, netAdapt, clientID);
-//                    Thread client = new Thread(tcp); //new thread for every client
-//                    studentThread st = new studentThread();
-//                    st.t = client;
-//                    st.ID = clientID;
-//                    clientID++;
-//                    clientThreadList.add(st); //threads are saved in an array incase they need to be accessed for any reason
-//                    clientThreadList.get(clientThreadList.size() - 1).t.start();
+//                    Runnable clientRun = new Runnable(){
+//                        @Override
+//                        public void run() {
+//                            new TcpClient(finalClientSocket, netAdapt, clientID);
+//                            clientID++;
+//                        }
+//                    };
+//                    main.backgroudExecutor.submit(clientRun);
+                    TcpClient tcp = new TcpClient(clientSocket, netAdapt, clientID);
+                    Thread client = new Thread(tcp); //new thread for every client
+                    studentThread st = new studentThread();
+                    st.t = client;
+                    st.ID = clientID;
+                    clientID++;
+                    clientThreadList.add(st); //threads are saved in an array incase they need to be accessed for any reason
+                    clientThreadList.get(clientThreadList.size() - 1).t.start();
                     Log.d(TAG, "Connected.");
                 }
                 //}

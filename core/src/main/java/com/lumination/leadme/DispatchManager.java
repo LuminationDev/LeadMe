@@ -3,6 +3,7 @@ package com.lumination.leadme;
 import android.net.Uri;
 import android.os.Parcel;
 import android.util.Log;
+import android.view.View;
 import android.view.WindowManager;
 import android.widget.Toast;
 
@@ -119,6 +120,7 @@ public class DispatchManager {
     }
 
     public void requestRemoteAppOpen(String tag, String packageName, String appName, String lockTag, Set<String> selectedPeerIDs) {
+        main.setProgressTimer(2000);
         Log.d(TAG, "requestRemoteAppOpen: ");
         lastEvent=2;
         tagRepush = tag;
@@ -148,6 +150,7 @@ public class DispatchManager {
     }
 
     public synchronized void sendActionToSelected(String actionTag, String action, Set<String> selectedPeerIDs) {
+        main.setProgressTimer(2000);
         if(action.contains(LeadMeMain.LAUNCH_URL) || action.contains(LeadMeMain.LAUNCH_YT)) {
             Log.d(TAG, "sendActionToSelected: ");
             lastEvent = 3;
@@ -180,6 +183,7 @@ public class DispatchManager {
     }
 
     public synchronized void sendBoolToSelected(String actionTag, String action, boolean value, Set<String> selectedPeerIDs) {
+        main.setProgressTimer(2000);
         Parcel p = Parcel.obtain();
         byte[] bytes;
         p.writeString(actionTag);
@@ -226,6 +230,9 @@ public class DispatchManager {
     }
 
     public synchronized boolean readAction(byte[] bytes) {
+        if(main.setProgressTimer(-1)!=null){
+            main.setProgressTimer(-1).setVisibility(View.INVISIBLE);
+        }
         Parcel p = Parcel.obtain();
 
         p.unmarshall(bytes, 0, bytes.length);

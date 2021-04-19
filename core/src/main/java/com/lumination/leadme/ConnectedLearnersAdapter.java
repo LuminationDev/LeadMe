@@ -49,6 +49,7 @@ public class ConnectedLearnersAdapter extends BaseAdapter {
         } else {
             main.setAlertsBtnVisibility(View.VISIBLE);
         }
+        main.alertsBtn.setText("Alerts ("+peersWithWarnings.size()+")");
         alertsAdapter.setData(peersWithWarnings);
         alertsAdapter.notifyDataSetChanged();
     }
@@ -57,6 +58,7 @@ public class ConnectedLearnersAdapter extends BaseAdapter {
         refreshAlertsView();
         notifyDataSetChanged();
         super.notifyDataSetChanged();
+        ((TextView)main.findViewById(R.id.learners_txt)).setText("All Learners ("+getCount()+")");
         main.displaySelectBar(getSelectedCount());
     }
 

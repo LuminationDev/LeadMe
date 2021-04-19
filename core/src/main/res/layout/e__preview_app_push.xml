@@ -61,6 +61,44 @@
         android:orientation="vertical">
 
         <LinearLayout
+            android:id="@+id/toggleBtnView"
+            style="@style/EmptyStyle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginBottom="30dp"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/selected_btn"
+                android:layout_width="@dimen/half_standard_btn_width"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:background="@drawable/bg_passive_right"
+                android:fontFamily="@font/poppins_semibold"
+                android:padding="10dp"
+                android:text="Selected"
+                android:textAlignment="center"
+                android:textAllCaps="false"
+                android:textColor="@color/light"
+                android:textSize="14sp" />
+
+            <Button
+                android:id="@+id/everyone_btn"
+                android:layout_width="@dimen/half_standard_btn_width"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:background="@drawable/bg_passive_left"
+                android:fontFamily="@font/poppins_semibold"
+                android:padding="10dp"
+                android:text="Everyone"
+                android:textAlignment="center"
+                android:textAllCaps="false"
+                android:textColor="@color/light"
+                android:textSize="14sp" />
+        </LinearLayout>
+
+        <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
             android:layout_gravity="center_horizontal"
@@ -71,6 +109,7 @@
                 android:layout_height="40dp"
                 android:layout_margin="5dp"
                 android:layout_marginStart="-10dp"
+                android:visibility="invisible"
                 app:cardBackgroundColor="@color/leadme_white"
                 app:cardElevation="5dp"
                 app:layout_gravity="center_vertical">

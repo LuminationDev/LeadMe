@@ -193,32 +193,48 @@ public class StudentAlertsAdapter extends BaseAdapter {
     private String lastClickedID = "";
     ArrayList<View> nullViews = new ArrayList<>();
     String Types[] = {"Disconnected","Last App Didn't Launch","Accessibility is Disabled","Overlay is Disabled","No internet connection","Student May Be Off Task","Uncategorised Warnings"};
+    String Desc[] ={"Learners have disconnected from LeadMe.\n",
+            "The application that was pushed does not exist on learner devices.\n",
+            "Learners have no enabled accessibility for LeadMe.\n",
+            "Learner has not enabled screen overlay for LeadMe.\n",
+            "Task may have not launched successfully as learners are not connected to the internet.\n",
+            "Learners have exited the current task and may be using the wrong application.\n",
+            "To be completely honest, I'm not really sure how we got here.\n"
+    };
+    String buttonTxt[] = {"Clear","Re-push","Launch","Clear","Proceed Offline","Re-push","Clear"};
+    int button_icons[] = {R.drawable.icon_clear,R.drawable.icon_repush,R.drawable.ic_settings,R.drawable.icon_clear,R.drawable.icon_clear,R.drawable.icon_repush,R.drawable.icon_clear};
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
-
         //if (convertView == null) {
         convertView = mInflater.inflate(R.layout.row_student_alert, parent, false);
         //}
 
         TextView alertType = convertView.findViewById(R.id.list_alert_type);
         ImageView listIcon = convertView.findViewById(R.id.list_drop_icon);
-        ImageView infoIcon = convertView.findViewById(R.id.list_info_button);
+        //ImageView infoIcon = convertView.findViewById(R.id.list_info_button);
         TextView alertList = convertView.findViewById(R.id.warning_list);
+        TextView alertDesc = convertView.findViewById(R.id.warning_desc);
+        Button alertBtn = convertView.findViewById(R.id.warning_button);
+
         convertView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 if(alertList.getVisibility() == View.VISIBLE){
                     alertList.setVisibility(View.GONE);
+                    alertDesc.setVisibility(View.GONE);
+                    alertBtn.setVisibility(View.GONE);
                     listIcon.setImageResource(R.drawable.icon_list_right);
                 }else{
                     alertList.setVisibility(View.VISIBLE);
+                    alertDesc.setVisibility(View.VISIBLE);
+                    alertBtn.setVisibility(View.VISIBLE);
                     listIcon.setImageResource(R.drawable.icon_list_down);
                 }
             }
         });
 
         Log.d(TAG, "getView: "+position);
-        String nameList="";
+        String nameList="Affected Students:\n";
         int index = -1;
         int count =0;
         for(int i=0; i<AlertsByCategories.size(); i++) {
@@ -232,27 +248,81 @@ public class StudentAlertsAdapter extends BaseAdapter {
                         numStud++;
                     }
                     alertType.setText(Types[i]+" ("+numStud+")");
+                    alertDesc.setText(Desc[i]);
+                    alertBtn.setText(buttonTxt[i]);
+                    alertBtn.setCompoundDrawablesWithIntrinsicBounds(button_icons[i], 0, 0, 0);
+
+
                 }
                 count++;
             }
         }
         final int finalcount =index;
-        infoIcon.setOnClickListener(new View.OnClickListener() {
-            int counter=finalcount;
+        alertBtn.setOnClickListener(new View.OnClickListener() {
+            int position = finalcount;
             @Override
             public void onClick(View v) {
-//                Toast toast=Toast.makeText(main.getApplicationContext(),"Working",Toast.LENGTH_LONG);
-//                toast.setMargin(50,50);
-//                toast.show();
-                buildAndShowError(counter);
-
+                if(alertBtn.getText().equals("Re-push")){
+                    Log.d(TAG, "onClick: "+alertBtn);
+                    ArrayList<String> ids = new ArrayList<>();
+                    for(int i=0; i<AlertsByCategories.get(5).size();i++){
+                        ids.add(String.valueOf(AlertsByCategories.get(5).get(i).getID()));
+                    }
+                    if(ids.size()>0) {
+                        Set<String> selectedPeerIDs = new HashSet<>(ids);
+                        main.getDispatcher().repushApp(selectedPeerIDs);
+                    }
+                }else if(alertBtn.getText().equals("Recall")){
+                    main.getConnectedLearnersAdapter().selectAllPeers(false);
+                    for(int i=0; i<AlertsByCategories.get(position).size();i++){
+                        main.getConnectedLearnersAdapter().selectPeer(AlertsByCategories.get(position).get(i).getID(),true);
+                    }
+                    main.returnToAppFromMainAction(false);
+                    main.getConnectedLearnersAdapter().selectAllPeers(false);
+                }else if(alertBtn.getText().equals("Block")){
+                    main.getConnectedLearnersAdapter().selectAllPeers(false);
+                    for(int i=0; i<AlertsByCategories.get(position).size();i++){
+                        main.getConnectedLearnersAdapter().selectPeer(AlertsByCategories.get(position).get(i).getID(),true);
+                    }
+                    main.blackoutFromMainAction();
+                    main.getConnectedLearnersAdapter().selectAllPeers(false);
+                }else if(alertBtn.getText().equals("Clear")||alertBtn.getText().equals("Proceed Offline")){
+                    hideCurrentAlerts();
+//                    for(int i=0; i<AlertsByCategories.get(position).size();i++){
+//                        AlertsByCategories.get(position).get(i).hideAlerts(true);
+//                    }
+                }else if(alertBtn.getText().equals("Launch")) {
+                    ArrayList<String> ids = new ArrayList<>();
+                    for (int i = 0; i < AlertsByCategories.get(2).size(); i++) {
+                        ids.add(String.valueOf(AlertsByCategories.get(2).get(i).getID()));
+                    }
+                    if (ids.size() > 0) {
+                        Set<String> selectedPeerIDs = new HashSet<>(ids);
+                        main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG,LeadMeMain.LAUNCH_ACCESS,selectedPeerIDs);
+                    }
+                }
             }
         });
+
+//        infoIcon.setOnClickListener(new View.OnClickListener() {
+//            int counter=finalcount;
+//            @Override
+//            public void onClick(View v) {
+////                Toast toast=Toast.makeText(main.getApplicationContext(),"Working",Toast.LENGTH_LONG);
+////                toast.setMargin(50,50);
+////                toast.show();
+//                buildAndShowError(counter);
+//
+//            }
+//        });
         Log.d(TAG, "getView: "+nameList);
         alertList.setText(nameList);
         //refresh();
         return convertView;
     }
+    /*
+    /////////////////////////////////Deprecated////////////////////////////////
+
     public void buildAndShowError(int errorPos){
         View OffTask = View.inflate(main, R.layout.e__error_dialog, null);
         Spinner lockSpinner;
@@ -417,4 +487,6 @@ public class StudentAlertsAdapter extends BaseAdapter {
         });
 
     }
+     */
+
 }

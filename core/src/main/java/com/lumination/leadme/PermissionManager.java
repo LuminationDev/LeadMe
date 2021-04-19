@@ -165,7 +165,7 @@ public class PermissionManager {
         TedPermission.with(main)
                 .setPermissionListener(miscPermissionListener)
                 .setPermissions(Manifest.permission.INTERNET, Manifest.permission.REORDER_TASKS,
-                        Manifest.permission.NFC,
+                       // Manifest.permission.NFC,
                         Manifest.permission.ACCESS_WIFI_STATE, Manifest.permission.CHANGE_WIFI_STATE,
                         Manifest.permission.BLUETOOTH, Manifest.permission.BLUETOOTH_ADMIN,
                         Manifest.permission.EXPAND_STATUS_BAR) //only learners/students need a system alert window
@@ -302,18 +302,19 @@ public class PermissionManager {
         }
         return connected;
     }
-    public void requestBatteryOptimisation(){
-        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            Intent intent = new Intent();
-            String packageName = main.getPackageName();
-            PowerManager pm = (PowerManager) main.getSystemService(main.POWER_SERVICE);
-            if (!pm.isIgnoringBatteryOptimizations(packageName)) {
-                intent.setAction(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS);
-                intent.setData(Uri.parse("package:" + packageName));
-                main.startActivity(intent);
-            }
-        }
-    }
+    //doubtful that this will get past play's review so commented for now
+//    public void requestBatteryOptimisation(){
+//        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+//            Intent intent = new Intent();
+//            String packageName = main.getPackageName();
+//            PowerManager pm = (PowerManager) main.getSystemService(main.POWER_SERVICE);
+//            if (!pm.isIgnoringBatteryOptimizations(packageName)) {
+//                intent.setAction(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS);
+//                intent.setData(Uri.parse("package:" + packageName));
+//                main.startActivity(intent);
+//            }
+//        }
+//    }
 
 }
 

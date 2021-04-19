@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/alert_layout"
     android:layout_width="fill_parent"
     android:layout_height="wrap_content"
@@ -64,8 +65,25 @@
                     android:layout_height="match_parent"
                     android:layout_gravity="right"
                     android:layout_weight="1"
-                    android:src="@drawable/icon_info" />
+                    android:src="@drawable/icon_info"
+                    android:visibility="gone" />
+
             </LinearLayout>
+
+            <TextView
+                android:id="@+id/warning_desc"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:breakStrategy="simple"
+                android:ellipsize="end"
+                android:fontFamily="@font/poppins_regular"
+                android:gravity="start|top"
+                android:hyphenationFrequency="none"
+                android:singleLine="false"
+                android:text="• Student name(s) appear here"
+                android:textColor="@color/leadme_black"
+                android:textSize="13sp"
+                android:visibility="gone" />
 
             <TextView
                 android:id="@+id/warning_list"
@@ -81,6 +99,25 @@
                 android:textColor="@color/leadme_black"
                 android:textSize="13sp"
                 android:visibility="gone" />
+
+            <Button
+                android:id="@+id/warning_button"
+                android:layout_width="wrap_content"
+                android:layout_height="45dp"
+                android:background="@drawable/bg_active"
+                android:drawableLeft="@drawable/icon_repush"
+                android:drawablePadding="10dp"
+                android:drawableTint="@color/leadme_white"
+                android:elevation="15dp"
+                android:fontFamily="@font/poppins_semibold"
+                android:gravity="center"
+                android:paddingLeft="10dp"
+                android:paddingRight="10dp"
+                android:text="Re-Push"
+                android:textAllCaps="false"
+                android:textColor="@color/leadme_white"
+                android:visibility="gone"
+                tools:visibility="gone" />
 
         </LinearLayout>
 

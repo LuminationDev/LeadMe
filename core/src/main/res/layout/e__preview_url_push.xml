@@ -192,6 +192,7 @@
             android:layout_height="40dp"
             android:layout_margin="5dp"
             android:layout_marginStart="-10dp"
+            android:visibility="invisible"
             app:cardBackgroundColor="@color/leadme_white"
             app:cardElevation="5dp"
             app:layout_gravity="center_vertical">

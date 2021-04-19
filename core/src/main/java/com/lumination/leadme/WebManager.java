@@ -1255,6 +1255,7 @@ public class WebManager {
             });
 
             searchDialog.findViewById(R.id.back_btn).setOnClickListener(v -> {
+                searchWebView.clearCache(false);
                 searchDialog.dismiss();
                 websiteLaunchDialog.show();
             });
