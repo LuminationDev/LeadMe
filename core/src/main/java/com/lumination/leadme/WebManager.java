@@ -1168,10 +1168,8 @@ public class WebManager {
 
     public void buildAndShowSearchDialog(boolean isYT) {
         if (isYT) {
-            isYouTube = true;
             searchType = SEARCH_YOUTUBE;
         } else {
-            isYouTube = false;
             searchType = SEARCH_WEB;
         }
         buildAndShowSearchDialog();

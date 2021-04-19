@@ -1,19 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="fill_parent"
-    android:layout_height="wrap_content"
-    android:layout_centerInParent="true"
-    android:layout_centerHorizontal="true"
-    android:layout_centerVertical="true"
-    android:background="@drawable/rounded_popup_white"
-    android:gravity="center"
-    android:orientation="vertical"
-    android:showDividers="middle|beginning|end">
-
+    android:layout_height="match_parent"
+    android:layout_width="match_parent">
 
     <LinearLayout
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:layout_centerHorizontal="true"
+        android:layout_centerVertical="true"
+        android:background="@drawable/rounded_popup_white"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:showDividers="middle|beginning|end">
+
+
+        <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="50dp"
         android:gravity="center|center_horizontal"
@@ -175,4 +179,14 @@
 
     </LinearLayout>
 
-</LinearLayout>
+    </LinearLayout>
+
+    <Button
+        android:id="@+id/within_back_btn"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_marginLeft="10dp"
+        android:layout_marginTop="60dp"
+        android:background="@drawable/back_circle"
+        android:contentDescription="Back" />
+</FrameLayout>

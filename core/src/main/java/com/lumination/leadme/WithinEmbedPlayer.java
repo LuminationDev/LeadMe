@@ -81,6 +81,7 @@ public class WithinEmbedPlayer {
         searchUnavailableMsg.setOnClickListener(v -> searchWebView.reload());
         setupWebView(searchWebView);
         setupWebClient(searchWebView, true);
+        withinBackBtn = withinSearchDialogView.findViewById(R.id.within_back_btn);
         setupWithinSearchButtons();
 
         withinControllerDialogView = View.inflate(main, R.layout.f__playback_within, null);
@@ -303,6 +304,7 @@ public class WithinEmbedPlayer {
 
             public void onLoadResource(WebView view, String url) {
                 //Log.d(TAG, "WITHIN GUIDE] onLoadResource: " + url + " (" + attemptedURL + ")");
+
                 if (searchView && url.startsWith(foundPrefix) && url.endsWith(foundSuffix)) {
                     foundTitle = url.replace(foundPrefix, "").replace(foundSuffix, "");
                     foundURL = urlPrefix + foundTitle;
@@ -417,18 +419,14 @@ public class WithinEmbedPlayer {
 
     Drawable disabledBg;
 
+    private Button withinBackBtn;
+
     private void setupWithinSearchButtons() {
         disabledBg = main.getResources().getDrawable(R.drawable.bg_disabled, null);
         //set up standard dialog buttons
-//        withinSearchDialogView.findViewById(R.id.web_back_btn).setOnClickListener(v -> {
-//            if (foundURL.isEmpty()) {
-//                //if no experience is selected, close the popup
-//                videoSearchDialog.dismiss();
-//            } else {
-//                //otherwise, go back
-//                searchWebView.goBack();
-//            }
-//        });
+        withinBackBtn.setOnClickListener(v -> {
+            searchWebView.goBack();
+        });
 
         withinSearchDialogView.findViewById(R.id.within_back).setOnClickListener(v -> {
             videoSearchDialog.dismiss();
@@ -553,8 +551,8 @@ public class WithinEmbedPlayer {
     }
 
     public void showWithin() {
-        Log.w(TAG, "Showing WITHIN: " + foundURL + ", " + main.getAppManager().withinURI);
-        if (foundURL.isEmpty()) {
+        Log.w(TAG, "Showing WITHIN: " + attemptedURL + ", " + foundURL + ", " + main.getAppManager().withinURI);
+        if (attemptedURL.isEmpty()) {
             showWithinSearch();
         } else {
             showGuideController(false);
@@ -597,12 +595,7 @@ public class WithinEmbedPlayer {
             videoControlDialog = new AlertDialog.Builder(main)
                     .setView(withinControllerDialogView)
                     .create();
-            videoControlDialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
-                @Override
-                public void onDismiss(DialogInterface dialog) {
-                    main.hideSystemUI();
-                }
-            });
+            videoControlDialog.setOnDismissListener(dialog -> main.hideSystemUI());
         }
 
         if (isFresh) {
