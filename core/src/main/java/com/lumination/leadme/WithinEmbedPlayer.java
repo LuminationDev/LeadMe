@@ -2,6 +2,7 @@ package com.lumination.leadme;
 
 import android.app.AlertDialog;
 import android.content.DialogInterface;
+import android.content.res.ColorStateList;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.util.Log;
@@ -19,14 +20,18 @@ import android.webkit.WebViewClient;
 import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.ImageView;
 import android.widget.Spinner;
 import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
-
 import java.io.InputStream;
 import java.util.Scanner;
+
+import androidx.core.content.ContextCompat;
+import androidx.core.widget.ImageViewCompat;
+
 
 public class WithinEmbedPlayer {
 
@@ -48,8 +53,8 @@ public class WithinEmbedPlayer {
     private final TextView internetUnavailableMsg;
     private final TextView searchUnavailableMsg;
     private WebView controllerWebView, searchWebView;
-    private final TextView streamBtn, downloadBtn;
-    private final Switch vrModeBtn;
+   // private final TextView streamBtn, downloadBtn;
+    private final Switch vrModeBtn, downModeBtn;
     private final ImageView vrIcon;
     private final Spinner lockSpinner;
     private final Spinner searchSpinner;
@@ -87,8 +92,9 @@ public class WithinEmbedPlayer {
         withinControllerDialogView = View.inflate(main, R.layout.f__playback_within, null);
         favCheck = withinControllerDialogView.findViewById(R.id.fav_checkbox_within);
         vrModeBtn = withinControllerDialogView.findViewById(R.id.vr_mode_toggle);
-        streamBtn = withinControllerDialogView.findViewById(R.id.stream_btn);
-        downloadBtn = withinControllerDialogView.findViewById(R.id.download_btn);
+//        streamBtn = withinControllerDialogView.findViewById(R.id.stream_btn);
+//        downloadBtn = withinControllerDialogView.findViewById(R.id.download_btn);
+        downModeBtn = withinControllerDialogView.findViewById(R.id.down_mode_toggle);
         lockSpinner = (Spinner) withinControllerDialogView.findViewById(R.id.push_spinner);
         pushBtn = withinControllerDialogView.findViewById(R.id.push_btn);
         repushBtn = withinControllerDialogView.findViewById(R.id.push_again_btn);
@@ -200,20 +206,20 @@ public class WithinEmbedPlayer {
         webView.reload();
     }
 
-    private void toggleStreamBtn() {
-        if (stream) {
-            streamBtn.setBackground(main.getResources().getDrawable(R.drawable.bg_passive_right, null));
-            downloadBtn.setBackground(main.getResources().getDrawable(R.drawable.bg_passive_left_white, null));
-            streamBtn.setElevation(2);
-            downloadBtn.setElevation(3);
-
-        } else {
-            streamBtn.setBackground(main.getResources().getDrawable(R.drawable.bg_passive_right_white, null));
-            downloadBtn.setBackground(main.getResources().getDrawable(R.drawable.bg_passive_left, null));
-            streamBtn.setElevation(3);
-            downloadBtn.setElevation(2);
-        }
-    }
+//    private void toggleStreamBtn() {
+//        if (stream) {
+//            streamBtn.setBackground(main.getResources().getDrawable(R.drawable.bg_passive_right, null));
+//            downloadBtn.setBackground(main.getResources().getDrawable(R.drawable.bg_passive_left_white, null));
+//            streamBtn.setElevation(2);
+//            downloadBtn.setElevation(3);
+//
+//        } else {
+//            streamBtn.setBackground(main.getResources().getDrawable(R.drawable.bg_passive_right_white, null));
+//            downloadBtn.setBackground(main.getResources().getDrawable(R.drawable.bg_passive_left, null));
+//            streamBtn.setElevation(3);
+//            downloadBtn.setElevation(2);
+//        }
+//    }
 
     private void toggleVRBtn() {
         if (vrMode) {
@@ -333,87 +339,6 @@ public class WithinEmbedPlayer {
                 Log.d(TAG, "WITHIN GUIDE] Received HTTP error: " + errorResponse.getReasonPhrase() + ", " + errorResponse.getData());
                 Log.d(TAG, "WITHIN GUIDE] ER " + request.toString() + ", " + request.getMethod() + ", " + request.getRequestHeaders());
             }
-
-            @Override
-            public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request) {
-                return super.shouldInterceptRequest(view, request);
-                //causes memory leak
-//                String url = request.getUrl().toString();
-//                if(url==null){
-//                    return super.shouldInterceptRequest(view,request);
-//                }
-//                //should in theory help improve load times for within
-//                if(url.toLowerCase().contains(".jpg") || url.toLowerCase().contains(".jpeg")){
-//                    Bitmap bitmap = null;
-//                    try {
-//                        bitmap = Glide.with(view).asBitmap().diskCacheStrategy(DiskCacheStrategy.RESOURCE).load(url).submit().get();
-//                        Log.d(TAG, "shouldInterceptRequest: intercepted jpg");
-//                    } catch (ExecutionException e) {
-//                        e.printStackTrace();
-//                    } catch (InterruptedException e) {
-//                        e.printStackTrace();
-//                    }
-//                    if(bitmap==null){
-//                        return super.shouldInterceptRequest(view,request);
-//                    }
-//                    Log.d(TAG, "shouldInterceptRequest: loaded jpg");
-//                    ByteArrayOutputStream bos = new ByteArrayOutputStream();
-//                    bitmap.compress(Bitmap.CompressFormat.JPEG, 50 , bos);
-//                    bitmap.recycle();
-//                    byte[] bitmapdata = bos.toByteArray();
-//                    bos.reset();
-//                    ByteArrayInputStream bs = new ByteArrayInputStream(bitmapdata);
-//                    return new WebResourceResponse("image/jpg", "UTF-8",bs);
-//                }else if(url.toLowerCase().contains(".png")){
-//                    Bitmap bitmap = null;
-//                    try {
-//                        bitmap = Glide.with(view).asBitmap().diskCacheStrategy(DiskCacheStrategy.RESOURCE).load(url).submit().get();
-//                        Log.d(TAG, "shouldInterceptRequest: intercepted png");
-//                    } catch (ExecutionException e) {
-//                        e.printStackTrace();
-//                    } catch (InterruptedException e) {
-//                        e.printStackTrace();
-//                    }
-//                    if(bitmap==null){
-//                        return super.shouldInterceptRequest(view,request);
-//                    }
-//                    Log.d(TAG, "shouldInterceptRequest: loaded png");
-//                    ByteArrayOutputStream bos = new ByteArrayOutputStream();
-//                    bitmap.compress(Bitmap.CompressFormat.PNG, 50 , bos);
-//                    bitmap.recycle();
-//                    byte[] bitmapdata = bos.toByteArray();
-//                    bos.reset();
-//                    ByteArrayInputStream bs = new ByteArrayInputStream(bitmapdata);
-//                    return new WebResourceResponse("image/png", "UTF-8",bs);
-//                }else if(url.toLowerCase().contains(".webp")){
-//                    Bitmap bitmap = null;
-//                    try {
-//                        bitmap = Glide.with(view).asBitmap().diskCacheStrategy(DiskCacheStrategy.RESOURCE).load(url).submit().get();
-//                        Log.d(TAG, "shouldInterceptRequest: intercepted webp");
-//                    } catch (ExecutionException e) {
-//                        e.printStackTrace();
-//                    } catch (InterruptedException e) {
-//                        e.printStackTrace();
-//                    }
-//                    if(bitmap==null){
-//                        return super.shouldInterceptRequest(view,request);
-//                    }
-//                    Log.d(TAG, "shouldInterceptRequest: loaded webp");
-//                    ByteArrayOutputStream bos = new ByteArrayOutputStream();
-//                    if(android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-//                        bitmap.compress(Bitmap.CompressFormat.WEBP_LOSSY, 50 , bos);
-//                    }else{
-//                        bitmap.compress(Bitmap.CompressFormat.WEBP, 50 , bos);
-//                    }
-//                    bitmap.recycle();
-//                    byte[] bitmapdata = bos.toByteArray();
-//                    bos.reset();
-//                    ByteArrayInputStream bs = new ByteArrayInputStream(bitmapdata);
-//                    return new WebResourceResponse("image/webp", "UTF-8",bs);
-//                }else{
-//                    return super.shouldInterceptRequest(view,request);
-//                }
-            }
         });
     }
 
@@ -447,6 +372,7 @@ public class WithinEmbedPlayer {
 
     private void updateControllerUI(boolean isPlaybackController) {
         if (isPlaybackController) {
+            withinControllerDialogView.findViewById(R.id.download_buttons).setVisibility(View.GONE);
             withinControllerDialogView.findViewById(R.id.basic_controls).setVisibility(View.VISIBLE);
             withinControllerDialogView.findViewById(R.id.vr_selection).setVisibility(View.GONE);
 
@@ -457,6 +383,7 @@ public class WithinEmbedPlayer {
             ((TextView) withinControllerDialogView.findViewById(R.id.title)).setText(main.getResources().getText(R.string.playback_controls_title));
 
         } else {
+            withinControllerDialogView.findViewById(R.id.download_buttons).setVisibility(View.VISIBLE);
             withinControllerDialogView.findViewById(R.id.basic_controls).setVisibility(View.GONE);
             withinControllerDialogView.findViewById(R.id.vr_selection).setVisibility(View.VISIBLE);
 
@@ -511,16 +438,31 @@ public class WithinEmbedPlayer {
             vrMode = isChecked;
             toggleVRBtn();
         });
+        downModeBtn.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if(isChecked){
+                    downModeBtn.setText("Predownload ON");
+                    ImageViewCompat.setImageTintList(withinControllerDialogView.findViewById(R.id.download_icon), ColorStateList.valueOf(ContextCompat.getColor(main, R.color.leadme_blue)));
 
-        streamBtn.setOnClickListener(v -> {
-            stream = true;
-            toggleStreamBtn();
+                    stream=false;
+                }else{
+                    ImageViewCompat.setImageTintList(withinControllerDialogView.findViewById(R.id.download_icon), ColorStateList.valueOf(ContextCompat.getColor(main, R.color.leadme_medium_grey)));
+                    downModeBtn.setText("Predownload OFF");
+                    stream=true;
+                }
+            }
         });
 
-        downloadBtn.setOnClickListener(v -> {
-            stream = false;
-            toggleStreamBtn();
-        });
+//        streamBtn.setOnClickListener(v -> {
+//            stream = true;
+//            toggleStreamBtn();
+//        });
+//
+//        downloadBtn.setOnClickListener(v -> {
+//            stream = false;
+//            toggleStreamBtn();
+//        });
 
     }
 
@@ -538,15 +480,21 @@ public class WithinEmbedPlayer {
         if (favCheck.isChecked()) {
             main.getWebManager().getYouTubeFavouritesManager().addToFavourites(foundURL, foundTitle, null);
         }
-
+//        TextView vr_mode = withinControllerDialogView.findViewById(R.id.vr_mode);
         if (vrMode) {
             //TODO AUTO PLAY VIDEO
             withinControllerDialogView.findViewById(R.id.vr_mode).setVisibility(View.VISIBLE);
             withinControllerDialogView.findViewById(R.id.phone_mode).setVisibility(View.GONE);
-
         } else {
             withinControllerDialogView.findViewById(R.id.vr_mode).setVisibility(View.GONE);
             withinControllerDialogView.findViewById(R.id.phone_mode).setVisibility(View.VISIBLE);
+        }
+        if(stream){
+            withinControllerDialogView.findViewById(R.id.stream_mode).setVisibility(View.VISIBLE);
+            withinControllerDialogView.findViewById(R.id.download_mode).setVisibility(View.GONE);
+        }else{
+            withinControllerDialogView.findViewById(R.id.stream_mode).setVisibility(View.GONE);
+            withinControllerDialogView.findViewById(R.id.download_mode).setVisibility(View.VISIBLE);
         }
     }
 
@@ -577,6 +525,7 @@ public class WithinEmbedPlayer {
         }
         loadSearchView();
         videoSearchDialog.show();
+
     }
 
     //for web manager to call when URL contains with.in/watch
@@ -608,18 +557,22 @@ public class WithinEmbedPlayer {
                 pushBtn.setText(main.getResources().getString(R.string.push_this_to_selected));
             }
 
-            stream = true;
-            toggleStreamBtn();
+            downModeBtn.setChecked(false);
+            //stream = true;
+            //toggleStreamBtn();
 
             vrMode = true;
             toggleVRBtn();
 
             pageLoaded = false; //reset flag
-            loadVideoGuideURL(foundURL.replace("/watch/", "/embed/")); //display embedded version
+            foundURL = foundURL.replace("/watch/", "/embed/");
+            foundURL = foundURL.replace("https", "http");
+            loadVideoGuideURL(foundURL); //display embedded version
             //controllerWebView.scrollTo(0, 200);
         }
 
         videoControlDialog.show();
+        updateControllerUI(false);
         //return to main screen
         main.hideConfirmPushDialog();
     }
@@ -630,7 +583,6 @@ public class WithinEmbedPlayer {
             controllerWebView.setVisibility(View.VISIBLE);
             Log.d(TAG, "Attempting to load " + url + " on controller");
             controllerWebView.loadDataWithBaseURL(null, getiFrameData(url), "text/html", "UTF-8", null);
-
             //update check if appropriate
             favCheck.setEnabled(true);
             favCheck.setChecked(main.getWebManager().getYouTubeFavouritesManager().isInFavourites(foundURL));
@@ -694,5 +646,6 @@ public class WithinEmbedPlayer {
         searchWebView.destroy();
         searchWebView = null;
     }
+
 
 }

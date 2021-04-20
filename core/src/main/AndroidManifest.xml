@@ -36,13 +36,13 @@
     <!-- for youtube -->
     <uses-permission android:name="android.permission.INTERNET" />
 
-    <!-- Google Play filtering -->
-    <uses-feature
-        android:name="android.hardware.wifi.direct"
-        android:required="true" />
-    <uses-feature
-        android:name="android.hardware.nfc"
-        android:required="true" />
+<!--    &lt;!&ndash; Google Play filtering &ndash;&gt;-->
+<!--    <uses-feature-->
+<!--        android:name="android.hardware.wifi.direct"-->
+<!--        android:required="true" />-->
+<!--    <uses-feature-->
+<!--        android:name="android.hardware.nfc"-->
+<!--        android:required="true" />-->
 
     <!-- hardware acceleration needed for YouTube playback in WebView -->
     <application
