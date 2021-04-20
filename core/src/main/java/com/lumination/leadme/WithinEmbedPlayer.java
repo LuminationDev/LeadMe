@@ -6,6 +6,7 @@ import android.content.res.ColorStateList;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.util.Log;
+import android.util.TypedValue;
 import android.view.View;
 import android.view.ViewGroup;
 import android.webkit.JavascriptInterface;
@@ -106,7 +107,7 @@ public class WithinEmbedPlayer {
         setupWebView(controllerWebView);
         setupWebClient(controllerWebView, false);
         setupGuideVideoControllerButtons();
-
+        setupPushToggle();
         withinSearchDialogView.findViewById(R.id.open_favourites).setOnClickListener(v -> {
             main.closeKeyboard();
             main.hideSystemUI();
@@ -146,6 +147,44 @@ public class WithinEmbedPlayer {
         });
 
         withinSearchDialogView.findViewById(R.id.select_btn).setBackground(main.getResources().getDrawable(R.drawable.bg_active, null));
+    }
+
+    boolean selectedOnly=false;
+    private void setupPushToggle() {
+        Button leftToggle = withinControllerDialogView.findViewById(R.id.selected_btn);
+        Button rightToggle = withinControllerDialogView.findViewById(R.id.everyone_btn);
+        leftToggle.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                selectedOnly=true;
+                withinControllerDialogView.findViewById(R.id.everyone_btn).setBackground(main.getResources().getDrawable(R.drawable.bg_passive_left_white, null));
+                ((Button) withinControllerDialogView.findViewById(R.id.everyone_btn)).setCompoundDrawablesWithIntrinsicBounds(0, 0, 0, 0);
+
+                withinControllerDialogView.findViewById(R.id.selected_btn).setBackground(main.getResources().getDrawable(R.drawable.bg_passive_right, null));
+                ((Button) withinControllerDialogView.findViewById(R.id.selected_btn)).setCompoundDrawablesWithIntrinsicBounds(R.drawable.icon_fav_star_check, 0, 0, 0);
+                pushBtn.setText(main.getResources().getString(R.string.push_this_to_selected));
+                ((Button) withinControllerDialogView.findViewById(R.id.everyone_btn)).setElevation(Math.round(TypedValue.applyDimension(
+                        TypedValue.COMPLEX_UNIT_DIP, 5,main.getResources().getDisplayMetrics())));
+                ((Button) withinControllerDialogView.findViewById(R.id.selected_btn)).setElevation(0);
+
+            }
+        });
+        rightToggle.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                selectedOnly=false;
+                withinControllerDialogView.findViewById(R.id.everyone_btn).setBackground(main.getResources().getDrawable(R.drawable.bg_passive_left, null));
+                ((Button) withinControllerDialogView.findViewById(R.id.everyone_btn)).setCompoundDrawablesRelativeWithIntrinsicBounds(R.drawable.icon_fav_star_check, 0, 0, 0);
+
+                withinControllerDialogView.findViewById(R.id.selected_btn).setBackground(main.getResources().getDrawable(R.drawable.bg_passive_right_white, null));
+                ((Button) withinControllerDialogView.findViewById(R.id.selected_btn)).setCompoundDrawablesWithIntrinsicBounds(0, 0, 0, 0);
+                pushBtn.setText(main.getResources().getString(R.string.push_this_to_everyone));
+                ((Button) withinControllerDialogView.findViewById(R.id.selected_btn)).setElevation(Math.round(TypedValue.applyDimension(
+                        TypedValue.COMPLEX_UNIT_DIP, 5,main.getResources().getDisplayMetrics())));
+                ((Button) withinControllerDialogView.findViewById(R.id.everyone_btn)).setElevation(0);
+            }
+        });
+        leftToggle.callOnClick();
     }
 
     private void setupWebView(WebView tmpWebView) {
@@ -469,7 +508,7 @@ public class WithinEmbedPlayer {
     private void pushWithin() {
         attemptedURL = foundURL;
         Log.d(TAG, "Launching WithinVR for students: " + attemptedURL + ", [STR] " + stream + ", [VR] " + vrMode);
-        main.getAppManager().launchWithin(attemptedURL, stream, vrMode);
+        main.getAppManager().launchWithin(attemptedURL, stream, vrMode, selectedOnly);
         main.updateFollowerCurrentTask(main.getAppManager().withinPackage, "Within VR", "VR Video", attemptedURL, foundTitle);
         //String packageName, String appName, String taskType, String url, String urlTitle)
 

@@ -195,7 +195,6 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal"
             android:layout_marginTop="5dp"
-            android:layout_marginBottom="20dp"
             android:button="@drawable/star_checkbox"
             android:checked="false"
             android:fontFamily="@font/poppins_semibold"
@@ -205,6 +204,63 @@
             android:text="@string/add_to_favourites"
             android:textColor="@color/leadme_black"
             android:textSize="14sp" />
+
+        <LinearLayout
+            android:id="@+id/toggleBtnView"
+            style="@style/EmptyStyle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginBottom="10dp"
+            android:orientation="horizontal">
+
+
+            <Button
+                android:id="@+id/selected_btn"
+                android:layout_width="140dp"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="10dp"
+                android:layout_marginTop="10dp"
+                android:layout_marginBottom="10dp"
+                android:layout_weight="1"
+                android:background="@drawable/bg_passive_right_white"
+                android:elevation="5dp"
+                android:fontFamily="@font/poppins_semibold"
+                android:includeFontPadding="false"
+                android:paddingStart="10dp"
+                android:paddingTop="10dp"
+                android:paddingEnd="10dp"
+                android:paddingBottom="10dp"
+                android:text="Selected"
+                android:textAlignment="center"
+                android:textAllCaps="false"
+                android:textColor="@color/leadme_black"
+                android:textSize="16sp" />
+
+            <Button
+                android:id="@+id/everyone_btn"
+                android:layout_width="140dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="1dp"
+                android:layout_marginTop="10dp"
+                android:layout_marginEnd="10dp"
+                android:layout_marginBottom="10dp"
+                android:layout_weight="1"
+                android:background="@drawable/bg_passive_left"
+                android:drawableLeft="@drawable/icon_fav_star_check"
+                android:elevation="5dp"
+                android:fontFamily="@font/poppins_semibold"
+                android:includeFontPadding="false"
+                android:paddingStart="10dp"
+                android:paddingTop="10dp"
+                android:paddingEnd="10dp"
+                android:paddingBottom="10dp"
+                android:text="Everyone"
+                android:textAlignment="center"
+                android:textAllCaps="false"
+                android:textColor="@color/leadme_black"
+                android:textSize="16sp" />
+        </LinearLayout>
 
         <LinearLayout
             android:layout_width="wrap_content"
@@ -223,6 +279,7 @@
                     android:layout_height="40dp"
                     android:layout_margin="5dp"
                     android:layout_marginStart="-10dp"
+                    android:visibility="gone"
                     app:cardBackgroundColor="@color/leadme_white"
                     app:cardElevation="5dp"
                     app:layout_gravity="center_vertical">
@@ -270,7 +327,8 @@
 
                 <Space
                     android:layout_width="52dp"
-                    android:layout_height="match_parent" />
+                    android:layout_height="match_parent"
+                    android:visibility="gone" />
 
             </LinearLayout>
         </LinearLayout>

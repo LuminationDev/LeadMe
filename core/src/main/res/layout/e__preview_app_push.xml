@@ -128,7 +128,8 @@
                 android:visibility="gone"
                 app:cardBackgroundColor="@color/leadme_white"
                 app:cardElevation="5dp"
-                app:layout_gravity="center_vertical">
+                app:layout_gravity="center_vertical"
+                tools:visibility="gone">
 
                 <ImageView
                     android:id="@+id/down_arrow"

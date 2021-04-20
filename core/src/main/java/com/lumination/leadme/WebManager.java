@@ -16,6 +16,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.util.DisplayMetrics;
 import android.util.Log;
+import android.util.TypedValue;
 import android.view.View;
 import android.webkit.URLUtil;
 import android.webkit.WebResourceRequest;
@@ -124,6 +125,7 @@ public class WebManager {
         webYouTubeFavView = View.inflate(main, R.layout.d__url_yt_favourites, null);
         favCheckbox = previewDialogView.findViewById(R.id.fav_checkbox);
         setupWarningDialog();
+
 
         websiteLaunchDialogView.findViewById(R.id.url_search_btn).setOnClickListener(v -> {
             hidePreviewDialog();
@@ -361,7 +363,7 @@ public class WebManager {
         previewPushBtn = previewDialogView.findViewById(R.id.push_btn);
 
         final CheckBox saveWebToFav = previewDialogView.findViewById(R.id.fav_checkbox);
-
+        setupPushToggle();
         previewPushBtn.setOnClickListener(v -> {
             //save to favourites if needed
             if (adding_to_fav || saveWebToFav.isChecked()) {
@@ -440,7 +442,7 @@ public class WebManager {
         }
     }
 
-    public void pushYouTube(String url, String urlTitle, int startFrom, boolean locked, boolean vrOn) {
+    public void pushYouTube(String url, String urlTitle, int startFrom, boolean locked, boolean vrOn, boolean selectedOnly) {
         Log.d(TAG, "pushYouTube: ");
         pushURL = url;
         pushTitle = urlTitle;
@@ -452,16 +454,28 @@ public class WebManager {
 
         //update lock status
         if (locked) {
-            //locked by default
-            main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.LOCK_TAG, main.getNearbyManager().getSelectedPeerIDsOrAll());
+            if(selectedOnly) {
+                main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.LOCK_TAG, main.getNearbyManager().getSelectedPeerIDsOrAll());
+            }else{
+                main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.LOCK_TAG, main.getNearbyManager().getAllPeerIDs());
+            }
         } else {
             //unlocked if selected
-            main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.UNLOCK_TAG, main.getNearbyManager().getSelectedPeerIDsOrAll());
+            if(selectedOnly) {
+                main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.UNLOCK_TAG, main.getNearbyManager().getSelectedPeerIDsOrAll());
+            }else{
+                main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.UNLOCK_TAG, main.getNearbyManager().getAllPeerIDs());
+            }
         }
 
         //push the right instruction to the receivers
-        main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.LAUNCH_YT + url + "&start=" + startFrom + ":::" + urlTitle + ":::" + vrOn,
-                main.getNearbyManager().getSelectedPeerIDsOrAll());
+        if(selectedOnly) {
+            main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.LAUNCH_YT + url + "&start=" + startFrom + ":::" + urlTitle + ":::" + vrOn,
+                    main.getNearbyManager().getSelectedPeerIDsOrAll());
+        }else{
+            main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.LAUNCH_YT + url + "&start=" + startFrom + ":::" + urlTitle + ":::" + vrOn,
+                    main.getNearbyManager().getAllPeerIDs());
+        }
     }
 
 
@@ -470,14 +484,26 @@ public class WebManager {
         //update lock status
         if (lockSpinner.getSelectedItem().toString().startsWith("View")) {
             //locked by default
-            main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.LOCK_TAG, main.getNearbyManager().getSelectedPeerIDsOrAll());
+            if(selectedOnly) {
+                main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.LOCK_TAG, main.getNearbyManager().getSelectedPeerIDsOrAll());
+            }else{
+                main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.LOCK_TAG, main.getNearbyManager().getAllPeerIDs());
+            }
         } else {
             //unlocked if selected
-            main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.UNLOCK_TAG, main.getNearbyManager().getSelectedPeerIDsOrAll());
+            if(selectedOnly) {
+                main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.UNLOCK_TAG, main.getNearbyManager().getSelectedPeerIDsOrAll());
+            }else{
+                main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.UNLOCK_TAG, main.getNearbyManager().getAllPeerIDs());
+            }
         }
 
         //push the right instruction to the receivers
-        main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.LAUNCH_URL + url + ":::" + urlTitle, main.getNearbyManager().getSelectedPeerIDsOrAll());
+        if(selectedOnly) {
+            main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.LAUNCH_URL + url + ":::" + urlTitle, main.getNearbyManager().getSelectedPeerIDsOrAll());
+        }else{
+            main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.LAUNCH_URL + url + ":::" + urlTitle, main.getNearbyManager().getAllPeerIDs());
+        }
     }
 
     private void hidePreviewDialog() {
@@ -697,7 +723,7 @@ public class WebManager {
 
         //set up preview to appear correctly
         if (adding_to_fav) {
-            lockSpinnerParent.setVisibility(View.INVISIBLE);
+           // lockSpinnerParent.setVisibility(View.INVISIBLE);
             previewPushBtn.setText(main.getResources().getString(R.string.add_this_app_to_favourites));
             favCheckbox.setChecked(true);
             favCheckbox.setVisibility(View.GONE);
@@ -708,7 +734,7 @@ public class WebManager {
             return;
 
         } else {
-            lockSpinnerParent.setVisibility(View.VISIBLE);
+            //lockSpinnerParent.setVisibility(View.VISIBLE);
             if (main.getConnectedLearnersAdapter().someoneIsSelected()) {
                 previewPushBtn.setText(main.getResources().getString(R.string.push_this_to_selected));
             } else {
@@ -1491,6 +1517,41 @@ public class WebManager {
         });
 
         return false;
+    }
+    boolean selectedOnly=false;
+    private void setupPushToggle() {
+        Button leftToggle = previewDialogView.findViewById(R.id.selected_btn);
+        Button rightToggle = previewDialogView.findViewById(R.id.everyone_btn);
+        leftToggle.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                selectedOnly=true;
+                previewDialogView.findViewById(R.id.everyone_btn).setBackground(main.getResources().getDrawable(R.drawable.bg_passive_left_white, null));
+                ((Button) previewDialogView.findViewById(R.id.everyone_btn)).setCompoundDrawablesWithIntrinsicBounds(0, 0, 0, 0);
+                ((Button) previewDialogView.findViewById(R.id.everyone_btn)).setElevation(Math.round(TypedValue.applyDimension(
+                        TypedValue.COMPLEX_UNIT_DIP, 5,main.getResources().getDisplayMetrics())));
+                ((Button) previewDialogView.findViewById(R.id.selected_btn)).setElevation(0);
+                previewDialogView.findViewById(R.id.selected_btn).setBackground(main.getResources().getDrawable(R.drawable.bg_passive_right, null));
+                ((Button) previewDialogView.findViewById(R.id.selected_btn)).setCompoundDrawablesWithIntrinsicBounds(R.drawable.icon_fav_star_check, 0, 0, 0);
+                previewPushBtn.setText(main.getResources().getString(R.string.push_this_to_selected));
+            }
+        });
+        rightToggle.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                selectedOnly=false;
+                previewDialogView.findViewById(R.id.everyone_btn).setBackground(main.getResources().getDrawable(R.drawable.bg_passive_left, null));
+                ((Button) previewDialogView.findViewById(R.id.everyone_btn)).setCompoundDrawablesRelativeWithIntrinsicBounds(R.drawable.icon_fav_star_check, 0, 0, 0);
+
+                previewDialogView.findViewById(R.id.selected_btn).setBackground(main.getResources().getDrawable(R.drawable.bg_passive_right_white, null));
+                ((Button) previewDialogView.findViewById(R.id.selected_btn)).setCompoundDrawablesWithIntrinsicBounds(0, 0, 0, 0);
+                previewPushBtn.setText(main.getResources().getString(R.string.push_this_to_everyone));
+                ((Button) previewDialogView.findViewById(R.id.selected_btn)).setElevation(Math.round(TypedValue.applyDimension(
+                        TypedValue.COMPLEX_UNIT_DIP, 5,main.getResources().getDisplayMetrics())));
+                ((Button) previewDialogView.findViewById(R.id.everyone_btn)).setElevation(0);
+            }
+        });
+        leftToggle.callOnClick();
     }
 
 }

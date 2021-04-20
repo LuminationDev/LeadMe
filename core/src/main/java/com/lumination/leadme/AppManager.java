@@ -137,7 +137,7 @@ public class AppManager extends BaseAdapter {
                 break;
             case "VR Video":
                 if (packageName.equals(main.getAppManager().withinPackage)) {
-                    launchWithin(withinPlayer.foundURL, isStreaming, isVR);
+                    launchWithin(withinPlayer.foundURL, isStreaming, isVR,true);
                     break;
                 }
             case "YouTube":
@@ -276,7 +276,7 @@ public class AppManager extends BaseAdapter {
         return isVR;
     }
 
-    public void launchWithin(String url, boolean isStreaming, boolean isVR) {
+    public void launchWithin(String url, boolean isStreaming, boolean isVR, boolean selectedOnly) {
         Log.d(TAG, "launchWithin: " + isStreaming + ", " + isVR);
         this.isStreaming = isStreaming;
         this.isVR = isVR;
@@ -288,7 +288,11 @@ public class AppManager extends BaseAdapter {
             lockTag = LeadMeMain.UNLOCK_TAG;
         }
         //send launch request
-        main.getDispatcher().requestRemoteWithinLaunch(LeadMeMain.APP_TAG, withinPackage, "Within VR", lockTag, url, isStreaming, isVR, main.getNearbyManager().getSelectedPeerIDsOrAll());
+        if(selectedOnly) {
+            main.getDispatcher().requestRemoteWithinLaunch(LeadMeMain.APP_TAG, withinPackage, "Within VR", lockTag, url, isStreaming, isVR, main.getNearbyManager().getSelectedPeerIDsOrAll());
+        }else{
+            main.getDispatcher().requestRemoteWithinLaunch(LeadMeMain.APP_TAG, withinPackage, "Within VR", lockTag, url, isStreaming, isVR, main.getNearbyManager().getAllPeerIDs());
+        }
     }
 
 

@@ -81,43 +81,43 @@
 
     </LinearLayout>
 
-    <LinearLayout
-        android:id="@+id/preview_view"
-        android:layout_width="fill_parent"
-        android:layout_height="match_parent"
-        android:gravity="center"
-        android:orientation="vertical"
-        android:showDividers="middle|beginning|end"
-        android:visibility="visible">
-
-
-        <WebView
-            android:id="@+id/within_webview_search"
-            android:layout_width="match_parent"
-            android:layout_height="360dp"
-            android:background="@color/leadme_black"
-            android:tag="search_webview">
-
-        </WebView>
-
-        <TextView
-            android:id="@+id/no_internet"
+        <LinearLayout
+            android:id="@+id/preview_view"
             android:layout_width="fill_parent"
-            android:layout_height="350dp"
-            android:background="@color/leadme_darkest_grey"
-            android:drawableBottom="@drawable/icon_restart"
-            android:drawablePadding="20dp"
-            android:fontFamily="@font/poppins_semibold"
+            android:layout_height="match_parent"
             android:gravity="center"
-            android:padding="50dp"
-            android:text="Internet unavailable\n\nPlease check your connection and tap to retry."
-            android:textColor="@color/leadme_white"
-            android:textSize="16sp"
-            android:visibility="gone" />
+            android:orientation="vertical"
+            android:showDividers="middle|beginning|end"
+            android:visibility="visible">
 
-    </LinearLayout>
 
-    <LinearLayout
+            <WebView
+                android:id="@+id/within_webview_search"
+                android:layout_width="match_parent"
+                android:layout_height="360dp"
+                android:background="@color/leadme_black"
+                android:tag="search_webview">
+
+            </WebView>
+
+            <TextView
+                android:id="@+id/no_internet"
+                android:layout_width="fill_parent"
+                android:layout_height="350dp"
+                android:background="@color/leadme_darkest_grey"
+                android:drawableBottom="@drawable/icon_restart"
+                android:drawablePadding="20dp"
+                android:fontFamily="@font/poppins_semibold"
+                android:gravity="center"
+                android:padding="50dp"
+                android:text="Internet unavailable\n\nPlease check your connection and tap to retry."
+                android:textColor="@color/leadme_white"
+                android:textSize="16sp"
+                android:visibility="gone" />
+
+        </LinearLayout>
+
+        <LinearLayout
         android:id="@+id/playback_btns"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"

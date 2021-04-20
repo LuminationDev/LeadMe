@@ -34,6 +34,7 @@ import android.text.Editable;
 import android.text.Html;
 import android.text.TextWatcher;
 import android.util.Log;
+import android.util.TypedValue;
 import android.view.ActionMode;
 import android.view.Display;
 import android.view.GestureDetector;
@@ -523,6 +524,10 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             appPushDialogView.findViewById(R.id.selected_btn).setBackground(getResources().getDrawable(R.drawable.bg_passive_right_white, null));
             ((Button) appPushDialogView.findViewById(R.id.selected_btn)).setCompoundDrawablesWithIntrinsicBounds(0, 0, 0, 0);
             appPushBtn.setText(getResources().getString(R.string.push_this_to_everyone));
+            ((Button) appPushDialogView.findViewById(R.id.selected_btn)).setElevation(Math.round(TypedValue.applyDimension(
+                    TypedValue.COMPLEX_UNIT_DIP, 5,getResources().getDisplayMetrics())));
+            ((Button) appPushDialogView.findViewById(R.id.everyone_btn)).setElevation(0);
+
 
         } else {
             appPushDialogView.findViewById(R.id.everyone_btn).setBackground(getResources().getDrawable(R.drawable.bg_passive_left_white, null));
@@ -531,6 +536,9 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             appPushDialogView.findViewById(R.id.selected_btn).setBackground(getResources().getDrawable(R.drawable.bg_passive_right, null));
             ((Button) appPushDialogView.findViewById(R.id.selected_btn)).setCompoundDrawablesWithIntrinsicBounds(R.drawable.icon_fav_star_check, 0, 0, 0);
             appPushBtn.setText(getResources().getString(R.string.push_this_to_selected));
+            ((Button) appPushDialogView.findViewById(R.id.everyone_btn)).setElevation(Math.round(TypedValue.applyDimension(
+                    TypedValue.COMPLEX_UNIT_DIP, 5,getResources().getDisplayMetrics())));
+            ((Button) appPushDialogView.findViewById(R.id.selected_btn)).setElevation(0);
         }
     }
 
