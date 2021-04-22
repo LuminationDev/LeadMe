@@ -37,7 +37,7 @@
             android:id="@+id/status_icon"
             android:layout_width="@dimen/alerticon_size"
             android:layout_height="@dimen/alerticon_size"
-            android:layout_gravity="end"
+            android:layout_gravity="bottom|end"
             android:layout_margin="0dp"
             app:srcCompat="@drawable/alert_offtask_learner" />
 

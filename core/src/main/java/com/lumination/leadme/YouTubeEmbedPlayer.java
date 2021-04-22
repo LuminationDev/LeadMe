@@ -2,6 +2,7 @@ package com.lumination.leadme;
 
 import android.app.AlertDialog;
 import android.content.DialogInterface;
+import android.content.res.ColorStateList;
 import android.net.http.SslError;
 import android.text.format.DateUtils;
 import android.util.Log;
@@ -24,6 +25,9 @@ import android.widget.Spinner;
 import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import androidx.core.content.ContextCompat;
+import androidx.core.widget.ImageViewCompat;
 
 import java.io.InputStream;
 import java.util.Scanner;
@@ -264,7 +268,24 @@ public class YouTubeEmbedPlayer {
                 }
             }
         });
-
+        Switch viewModeToggle = videoControllerDialogView.findViewById(R.id.view_mode_toggle);
+        viewModeToggle.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if(isChecked){
+                    viewModeToggle.setText("View Mode ON");
+                    ImageViewCompat.setImageTintList(videoControllerDialogView.findViewById(R.id.view_mode_icon), ColorStateList.valueOf(ContextCompat.getColor(main, R.color.leadme_blue)));
+                    main.lockFromMainAction();
+//                    stream=false;
+                }else{
+                    ImageViewCompat.setImageTintList(videoControllerDialogView.findViewById(R.id.view_mode_icon), ColorStateList.valueOf(ContextCompat.getColor(main, R.color.leadme_medium_grey)));
+                    viewModeToggle.setText("View Mode OFF");
+                    main.unlockFromMainAction();
+//                    stream=true;
+                }
+            }
+        });
+        //viewModeToggle.setChecked(true);
 
         videoControllerDialogView.findViewById(R.id.mute_btn).setOnClickListener(v -> {
             main.muteAudio(); //this is managed by the main activity
@@ -728,7 +749,7 @@ public class YouTubeEmbedPlayer {
                 ((Button) youtubeSettingsDialogView.findViewById(R.id.everyone_btn)).setElevation(0);
             }
         });
-        leftToggle.callOnClick();
+        rightToggle.callOnClick();
     }
 
 }

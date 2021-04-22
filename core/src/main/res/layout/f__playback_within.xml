@@ -115,6 +115,46 @@
             android:padding="10dp">
 
             <LinearLayout
+                android:id="@+id/vr_selection"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:gravity="center_horizontal"
+                android:orientation="horizontal"
+                android:visibility="visible">
+
+                <ImageView
+                    android:id="@+id/vr_mode_icon"
+                    android:layout_width="50dp"
+                    android:layout_height="40dp"
+                    android:layout_weight="0"
+                    android:gravity="center_horizontal"
+                    android:src="@drawable/task_vr_icon" />
+
+                <Switch
+                    android:id="@+id/vr_mode_toggle"
+                    android:layout_width="220dp"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_horizontal|center_vertical"
+                    android:layout_marginStart="10dp"
+                    android:layout_marginEnd="10dp"
+                    android:layout_weight="0"
+                    android:checked="true"
+                    android:fontFamily="@font/poppins_semibold"
+                    android:gravity="left|center_vertical"
+                    android:includeFontPadding="false"
+                    android:showText="false"
+                    android:switchMinWidth="50dp"
+                    android:switchPadding="10dp"
+                    android:text="@string/vr_mode_on"
+                    android:textColor="@color/leadme_white"
+                    android:textSize="16sp"
+                    android:thumb="@drawable/toggle_thumb"
+                    android:track="@drawable/toggle_track" />
+
+            </LinearLayout>
+
+            <LinearLayout
                 android:id="@+id/basic_controls"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
@@ -223,31 +263,41 @@
 
             </LinearLayout>
 
-            <LinearLayout
-                android:id="@+id/vr_selection"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:gravity="center_horizontal"
-                android:orientation="horizontal"
-                android:visibility="visible">
+        </LinearLayout>
 
-                <ImageView
-                    android:id="@+id/vr_mode_icon"
-                    android:layout_width="50dp"
-                    android:layout_height="40dp"
-                    android:layout_weight="0"
-                    android:gravity="center_horizontal"
-                    android:src="@drawable/task_vr_icon" />
+        <LinearLayout
+            android:id="@+id/view_mode_controls"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_weight="1"
+            android:background="@color/leadme_darkest_grey"
+            android:gravity="center_horizontal"
+            android:orientation="horizontal"
+            android:paddingBottom="10dp"
+            android:visibility="gone">
+
+            <ImageView
+                android:id="@+id/view_mode_icon"
+                android:layout_width="60dp"
+                android:layout_height="match_parent"
+                android:gravity="end"
+                android:paddingBottom="10dp"
+                android:src="@drawable/controls_view"
+                android:tint="@color/leadme_blue" />
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="5dp"
+                android:orientation="vertical">
 
                 <Switch
-                    android:id="@+id/vr_mode_toggle"
-                    android:layout_width="220dp"
+                    android:id="@+id/view_mode_toggle"
+                    android:layout_width="180dp"
                     android:layout_height="wrap_content"
-                    android:layout_gravity="center_horizontal|center_vertical"
-                    android:layout_marginStart="10dp"
+                    android:layout_gravity="center_vertical"
                     android:layout_marginEnd="10dp"
-                    android:layout_weight="0"
                     android:checked="true"
                     android:fontFamily="@font/poppins_semibold"
                     android:gravity="center_vertical|end"
@@ -255,12 +305,18 @@
                     android:showText="false"
                     android:switchMinWidth="50dp"
                     android:switchPadding="10dp"
-                    android:text="@string/vr_mode_on"
+                    android:text="View Mode ON"
                     android:textColor="@color/leadme_white"
-                    android:textSize="16sp"
+                    android:textSize="14sp"
                     android:thumb="@drawable/toggle_thumb"
                     android:track="@drawable/toggle_track" />
 
+                <TextView
+                    android:id="@+id/textView3"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="*Touch screens disabled"
+                    android:textColor="@color/leadme_white" />
             </LinearLayout>
 
         </LinearLayout>
@@ -301,7 +357,7 @@
                     android:layout_weight="0"
                     android:checked="false"
                     android:fontFamily="@font/poppins_semibold"
-                    android:gravity="center_vertical|end"
+                    android:gravity="left|center_vertical"
                     android:includeFontPadding="false"
                     android:showText="false"
                     android:switchMinWidth="50dp"
@@ -403,7 +459,8 @@
                 android:layout_gravity="center_horizontal"
                 android:layout_marginTop="5dp"
                 android:layout_marginBottom="5dp"
-                android:orientation="horizontal">
+                android:orientation="horizontal"
+                android:visibility="gone">
 
 
                 <Button
@@ -457,6 +514,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_horizontal"
+                android:layout_marginTop="20dp"
                 android:gravity="center_horizontal"
                 android:orientation="horizontal">
 

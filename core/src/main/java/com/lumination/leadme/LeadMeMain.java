@@ -569,18 +569,19 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                     setSelectedOrEveryoneBtn(true);
                 }
             });
+            setSelectedOrEveryoneBtn(true);
         }
 
         //selected_btn
         //everyone_btn
 
-        if (!getConnectedLearnersAdapter().someoneIsSelected()) {
-            //if no-one is selected, prompt to push to everyone
-            setSelectedOrEveryoneBtn(true);
-        } else {
-            //if someone is selected, prompt to push to selected
-            setSelectedOrEveryoneBtn(false);
-        }
+//        if (!getConnectedLearnersAdapter().someoneIsSelected()) {
+//            //if no-one is selected, prompt to push to everyone
+//            setSelectedOrEveryoneBtn(true);
+//        } else {
+//            //if someone is selected, prompt to push to selected
+//            setSelectedOrEveryoneBtn(false);
+//        }
 
         //display push
         if (appPushDialog == null) {
@@ -601,6 +602,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
         }
     }
+
 
     private void setupLoginDialog() {
         if (code1 == null) {
@@ -1327,6 +1329,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
     @Override
     public void onDestroy() {
+        if(getAppManager().getWithinPlayer().controllerWebView != null) getAppManager().getWithinPlayer().controllerWebView.destroy();
         super.onDestroy();
         Log.w(TAG, "In onDestroy");
         backgroundExecutor.shutdownNow();
@@ -1939,6 +1942,15 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 //                            .penaltyLog().build());
 //        }
 
+//        if a UUID exists, retrieve it
+            if (!sharedPreferences.contains("FIRST")) {
+                SharedPreferences.Editor editor = sharedPreferences.edit();
+                editor.putBoolean("FIRST", true);
+                editor.apply();
+                AlertDialog alert =new AlertDialog.Builder(this)
+                        .setView(View.inflate(context, R.layout.e__confirm_popup, null))
+                        .show();
+            }
     }
 
 
@@ -2414,6 +2426,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 //                editor.apply();
                 buildAndDisplayOnBoard();
 //            }
+
 
 
         } else {
@@ -3370,7 +3383,26 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                 signupError.setVisibility(View.GONE);
                 marketingCheck.setOnCheckedChangeListener((buttonView, isChecked) -> closeKeyboard());
                 next.setOnClickListener(v -> {
+                    if(signupName.getText().toString().length()==0){
+                        signupError.setText("Please enter a name");
+                        signupError.setVisibility(View.VISIBLE);
+                        progressBar.setVisibility(View.GONE);
+                        return;
+                    }
+                    if(signupEmail.getText().toString().length()==0){
+                        signupError.setText("Please enter an email");
+                        signupError.setVisibility(View.VISIBLE);
+                        progressBar.setVisibility(View.GONE);
+                        return;
+                    }
+                    if(signupPass.getText().toString().length()==0){
+                        signupError.setText("Please enter a password");
+                        signupError.setVisibility(View.VISIBLE);
+                        progressBar.setVisibility(View.GONE);
+                        return;
+                    }
                     if (signupPass.getText().toString().equals(signupConPass.getText().toString())) {
+                        signupError.setVisibility(View.GONE);
                         progressBar.setVisibility(View.VISIBLE);
                         FirebaseEmailSignUp(signupEmail.getText().toString(), signupPass.getText().toString(), signupName.getText().toString(), marketingCheck.isChecked(), regoCode, signupError);
                         hideSystemUI();
@@ -3491,7 +3523,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                             confirmPin += codes[i].getText().toString();
                         }
                     }
-                    if (pin.equals(confirmPin)) {
+                    if (pin.equals(confirmPin) && pin.length()==4) {
                         //todo save this data to users profile
                         Map<String, Object> userDet = new HashMap<>();
                         progressBar.setVisibility(View.VISIBLE);
@@ -3616,7 +3648,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         if (email != null && password != null) {
             if (email.length()>0 && password.length()>0) {
                 mAuth.signInWithEmailAndPassword(email, password)
-                        .addOnCompleteListener(this, (OnCompleteListener<AuthResult>) task -> {
+                        .addOnCompleteListener(this, task -> {
                             if (task.isSuccessful()) {
                                 // Sign in success, update UI with the signed-in user's information
                                 Log.d(TAG, "signInWithEmail:success");
@@ -3628,6 +3660,10 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                                         Log.d(TAG, "onComplete: ");
                                         if (task1.isSuccessful()) {
                                             loginDialogView.findViewById(R.id.indeterminateBar).setVisibility(View.GONE);
+                                            if(task1.getResult().get("pin")==null){
+                                                buildloginsignup(4,false);
+                                                return;
+                                            }
                                             getNearbyManager().myName = (String) task1.getResult().get("name");
                                             getNameView().setText((String) task1.getResult().get("name"));
                                             Log.d(TAG, "onComplete: name found: " + (String) task1.getResult().get("name"));
@@ -3648,5 +3684,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             }
         }
     }
+
+
 }
 

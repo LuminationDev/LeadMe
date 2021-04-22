@@ -1551,7 +1551,7 @@ public class WebManager {
                 ((Button) previewDialogView.findViewById(R.id.everyone_btn)).setElevation(0);
             }
         });
-        leftToggle.callOnClick();
+        rightToggle.callOnClick();
     }
 
 }

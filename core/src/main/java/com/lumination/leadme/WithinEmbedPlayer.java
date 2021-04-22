@@ -53,7 +53,7 @@ public class WithinEmbedPlayer {
     private final View withinControllerDialogView, withinSearchDialogView;
     private final TextView internetUnavailableMsg;
     private final TextView searchUnavailableMsg;
-    private WebView controllerWebView, searchWebView;
+    public WebView controllerWebView, searchWebView;
    // private final TextView streamBtn, downloadBtn;
     private final Switch vrModeBtn, downModeBtn;
     private final ImageView vrIcon;
@@ -184,7 +184,7 @@ public class WithinEmbedPlayer {
                 ((Button) withinControllerDialogView.findViewById(R.id.everyone_btn)).setElevation(0);
             }
         });
-        leftToggle.callOnClick();
+        rightToggle.callOnClick();
     }
 
     private void setupWebView(WebView tmpWebView) {
@@ -414,7 +414,7 @@ public class WithinEmbedPlayer {
             withinControllerDialogView.findViewById(R.id.download_buttons).setVisibility(View.GONE);
             withinControllerDialogView.findViewById(R.id.basic_controls).setVisibility(View.VISIBLE);
             withinControllerDialogView.findViewById(R.id.vr_selection).setVisibility(View.GONE);
-
+            withinControllerDialogView.findViewById(R.id.view_mode_controls).setVisibility(View.VISIBLE);
             withinControllerDialogView.findViewById(R.id.playback_btns).setVisibility(View.VISIBLE);
             withinControllerDialogView.findViewById(R.id.within_select_btns).setVisibility(View.GONE);
 
@@ -425,6 +425,7 @@ public class WithinEmbedPlayer {
             withinControllerDialogView.findViewById(R.id.download_buttons).setVisibility(View.VISIBLE);
             withinControllerDialogView.findViewById(R.id.basic_controls).setVisibility(View.GONE);
             withinControllerDialogView.findViewById(R.id.vr_selection).setVisibility(View.VISIBLE);
+            withinControllerDialogView.findViewById(R.id.view_mode_controls).setVisibility(View.GONE);
 
             withinControllerDialogView.findViewById(R.id.playback_btns).setVisibility(View.GONE);
             withinControllerDialogView.findViewById(R.id.within_select_btns).setVisibility(View.VISIBLE);
@@ -489,6 +490,23 @@ public class WithinEmbedPlayer {
                     ImageViewCompat.setImageTintList(withinControllerDialogView.findViewById(R.id.download_icon), ColorStateList.valueOf(ContextCompat.getColor(main, R.color.leadme_medium_grey)));
                     downModeBtn.setText("Predownload OFF");
                     stream=true;
+                }
+            }
+        });
+        Switch viewModeToggle = withinControllerDialogView.findViewById(R.id.view_mode_toggle);
+        viewModeToggle.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if(isChecked){
+                    viewModeToggle.setText("View Mode ON");
+                    ImageViewCompat.setImageTintList(withinControllerDialogView.findViewById(R.id.view_mode_icon), ColorStateList.valueOf(ContextCompat.getColor(main, R.color.leadme_blue)));
+                    main.lockFromMainAction();
+//                    stream=false;
+                }else{
+                    ImageViewCompat.setImageTintList(withinControllerDialogView.findViewById(R.id.view_mode_icon), ColorStateList.valueOf(ContextCompat.getColor(main, R.color.leadme_medium_grey)));
+                    viewModeToggle.setText("View Mode OFF");
+                    main.unlockFromMainAction();
+//                    stream=true;
                 }
             }
         });

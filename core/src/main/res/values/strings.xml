@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_title">LeadMe</string>
-    <string name="app_title_with_brand">Lumination LeadMe</string>
+    <string name="app_title_with_brand">LeadMe Learning</string>
     <string name="leadme_learning">LeadMe Learning</string>
 
     <string name="default_browser_url">http://www.google.com/</string>

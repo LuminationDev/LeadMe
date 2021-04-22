@@ -11,11 +11,11 @@ android {
     }
 
     buildTypes {
-        debug {
-            minifyEnabled true
-            shrinkResources true
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
-        }
+//        debug {
+//            minifyEnabled true
+//            shrinkResources true
+//            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
+//        }
         release {
             minifyEnabled true
             shrinkResources true
@@ -46,6 +46,7 @@ dependencies {
 
     //for link preview library
     implementation 'com.koushikdutta.urlimageviewhelper:urlimageviewhelper:1.0.4'
+    implementation 'androidx.webkit:webkit:1.4.0'
 
 //    //for auto-updates
 //    implementation 'com.github.javiersantos:AppUpdater:2.7'
