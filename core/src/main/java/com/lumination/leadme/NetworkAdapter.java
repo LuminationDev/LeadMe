@@ -215,6 +215,7 @@ public class NetworkAdapter {
                 public void run() {
                     mService = serviceInfo;
                     if (!discoveredLeaders.contains(serviceInfo)) {
+                        Log.d(TAG, "run: added leader");
                         discoveredLeaders.add(serviceInfo);
                     }
                     List<String> leader = Arrays.asList(serviceInfo.getServiceName().split("#"));
@@ -439,6 +440,7 @@ public class NetworkAdapter {
 
     //discovers services, is not continuous so will need to be called in a runnable to implement a scan
     public void startDiscovery() {
+        Log.d(TAG, "startDiscovery: ");
         discoveredLeaders = new ArrayList<>();
         stopDiscovery();  // Cancel any existing discovery request
         initializeDiscoveryListener();

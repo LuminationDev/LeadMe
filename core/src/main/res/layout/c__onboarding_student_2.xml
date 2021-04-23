@@ -17,8 +17,10 @@
         <ImageView
             android:layout_width="100dp"
             android:layout_height="100dp"
+            android:layout_gravity="center"
             android:layout_marginTop="30dp"
-            android:src="@drawable/alert_warning" />
+            android:scaleType="fitCenter"
+            android:src="@drawable/icon_fav_star_check" />
 
 
         <TextView
@@ -27,7 +29,7 @@
             android:layout_marginTop="10dp"
             android:fontFamily="@font/poppins_semibold"
             android:gravity="center"
-            android:text="Setup Required"
+            android:text="Step 1 Success"
             android:textSize="24sp" />
 
         <TextView
@@ -35,7 +37,7 @@
             android:layout_height="wrap_content"
             android:fontFamily="@font/poppins_regular"
             android:gravity="center"
-            android:text="LeadMe requires special access on this device. See First Time Setup Guide for more info." />
+            android:text="Accessibility has been switched on for LeadMe. Continue to Step 2." />
 
         <ImageView
             android:layout_width="350dp"
@@ -50,7 +52,7 @@
             android:layout_marginTop="10dp"
             android:fontFamily="@font/poppins_semibold"
             android:gravity="center"
-            android:text="Step 01: Accessibility"
+            android:text="Step 02: App Overlay"
             android:textSize="24sp" />
 
         <LinearLayout
@@ -96,7 +98,7 @@
                     android:layout_height="wrap_content"
                     android:fontFamily="@font/poppins_regular"
                     android:gravity="left"
-                    android:text="Within the Accessibility page, find ‘Downloaded Services’ (may also be labelled ‘Downloaded Apps’, or ‘Services’)" />
+                    android:text="Within the ‘Display over other apps’ page, switch ‘Allow display over other apps’ to ON" />
             </LinearLayout>
 
             <LinearLayout
@@ -116,47 +118,7 @@
                     android:layout_height="wrap_content"
                     android:fontFamily="@font/poppins_regular"
                     android:gravity="left"
-                    android:text="Select ‘LeadMe Learning’" />
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:orientation="horizontal">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:fontFamily="@font/poppins_regular"
-                    android:gravity="left"
-                    android:text=" • " />
-
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:fontFamily="@font/poppins_regular"
-                    android:gravity="left"
-                    android:text="Switch accessibility ON" />
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:orientation="horizontal">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:fontFamily="@font/poppins_regular"
-                    android:gravity="left"
-                    android:text=" • " />
-
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:fontFamily="@font/poppins_regular"
-                    android:gravity="left"
-                    android:text="Accept, and hit the back button to return" />
+                    android:text="Hit the back button to return" />
             </LinearLayout>
 
         </LinearLayout>

@@ -163,7 +163,7 @@ public class LumiAccessibilityService extends android.accessibilityservice.Acces
         }
     }
     public void updateOnBoard(LeadMeMain main){
-        main.setStudentOnBoard(1);
+        main.setandDisplayStudentOnBoard(1);
     }
 
 }

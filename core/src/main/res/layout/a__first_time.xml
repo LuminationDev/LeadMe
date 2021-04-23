@@ -15,14 +15,12 @@
     android:showDividers="middle|beginning|end">
 
     <ImageView
-        android:id="@+id/imageView"
         android:layout_width="150dp"
         android:layout_height="150dp"
         android:layout_gravity="center_horizontal|top"
-        app:srcCompat="@drawable/alert_warning" />
+        android:src="@drawable/alert_warning" />
 
     <TextView
-        android:id="@+id/textView5"
         android:layout_width="300dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="10dp"
@@ -32,25 +30,54 @@
         android:textSize="24sp" />
 
     <TextView
-        android:id="@+id/textView8"
-        android:layout_width="match_parent"
+        android:layout_width="300dp"
         android:layout_height="wrap_content"
-        android:text="TextView" />
+        android:layout_marginTop="5dp"
+        android:fontFamily="@font/poppins_regular"
+        android:gravity="center"
+        android:text="Before first time use in the classroom, be sure to review our LeadMe Learning First-Time Setup Guide" />
 
     <Button
-        android:id="@+id/signup_enter2"
+        android:id="@+id/open_guide"
         style="?android:attr/borderlessButtonStyle"
-        android:layout_width="match_parent"
+        android:layout_width="@dimen/standard_btn_width"
         android:layout_height="@dimen/standard_btn_height"
         android:layout_gravity="center_horizontal"
+        android:layout_marginTop="20dp"
         android:accessibilityTraversalAfter="@id/back_btn"
         android:accessibilityTraversalBefore="@id/codeInput4"
         android:background="@drawable/bg_active"
         android:clickable="true"
         android:focusable="true"
         android:fontFamily="@font/poppins_semibold"
-        android:text="Enter"
+        android:text="Open Guide"
         android:textAllCaps="false"
         android:textColor="@color/leadme_white"
         android:textSize="16sp" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginTop="20dp"
+        android:orientation="horizontal">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:fontFamily="@font/poppins_semibold"
+            android:gravity="right"
+            android:text="I understand the setup - "
+            android:textSize="16sp" />
+
+        <TextView
+            android:id="@+id/skip_guide"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:fontFamily="@font/poppins_semibold"
+            android:text="Continue"
+            android:textColor="@color/leadme_blue"
+            android:textSize="16sp" />
+    </LinearLayout>
 </LinearLayout>
