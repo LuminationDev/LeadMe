@@ -642,7 +642,9 @@ public class YouTubeEmbedPlayer {
             if (favCheck.isChecked()) {
                 webManager.getYouTubeFavouritesManager().addCurrentPreviewToFavourites();
             }
-            showVideoController();
+
+//            showVideoController();
+            showPushConfirmed();
         }));
 
         youtubePreviewWebView.setWebChromeClient(new WebChromeClient());
@@ -660,7 +662,23 @@ public class YouTubeEmbedPlayer {
         lockSpinner.setAdapter(push_adapter);
         lockSpinner.setSelection(0); //default to locked
     }
+    private void showPushConfirmed() {
+        playbackSettingsDialog.dismiss();
+        View confirmPushDialogView = View.inflate(main, R.layout.e__confirm_popup, null);
+        AlertDialog confirmPopup = new AlertDialog.Builder(main)
+                .setView(confirmPushDialogView)
+                .show();
+        ((TextView)confirmPushDialogView.findViewById(R.id.push_success_comment)).setText("Your video was successfully launched.");
+        Button ok = confirmPushDialogView.findViewById(R.id.ok_btn);
+        ok.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                confirmPopup.dismiss();
+                showVideoController();
+            }
+        });
 
+    }
     public void updateTitle(String title) {
         youtubePreviewTitle.setText(title);
     }

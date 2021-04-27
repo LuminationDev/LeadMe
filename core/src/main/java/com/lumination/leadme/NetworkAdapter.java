@@ -595,27 +595,27 @@ public class NetworkAdapter {
             case "MONITOR":
                 if (inputList.get(1).contains(":")) {
                     List<String> inputList2 = Arrays.asList(inputList.get(1).split(":"));
-//                    if (inputList2.get(0).equals("START")) {
-//                        main.runOnUiThread(() -> {
-//                            Log.w(TAG, "Starting client monitoring server!");
-//                            main.getPermissionsManager().waitingForPermission = true;
-//                            main.xrayManager.startServer();
-//                            main.xrayManager.startScreenshotRunnable(socket.getInetAddress(), Integer.parseInt(inputList2.get(1)));
-//                            if (main.xrayScreen.getVisibility() != View.VISIBLE) {
-//                                main.xrayManager.screenshotPaused = true;
-//                            }
-//                        });
-//                    }
+                    if (inputList2.get(0).equals("START")) {
+                        main.runOnUiThread(() -> {
+                            Log.w(TAG, "Starting client monitoring server!");
+                            main.getPermissionsManager().waitingForPermission = true;
+                            main.xrayManager.startServer();
+                            main.xrayManager.startScreenshotRunnable(clientsServerSocket.getInetAddress(), Integer.parseInt(inputList2.get(1)));
+                            if (main.xrayScreen.getVisibility() != View.VISIBLE) {
+                                main.xrayManager.screenshotPaused = true;
+                            }
+                        });
+                    }
                     Log.d(TAG, "messageReceivedFromServer: [MONITOR] " + inputList.get(1));
 
                 } else {
-//                    if (inputList.get(1).equals("STOP")) {
-//                        //main.takeScreenshots=false;
-//                        main.xrayManager.stopServer();
-//                        main.xrayManager.stopScreenshotRunnable();
-//                    } else {
-//                        main.xrayManager.setScreenshotRate(Integer.parseInt(inputList.get(1)));
-//                    }
+                    if (inputList.get(1).equals("STOP")) {
+                        //main.takeScreenshots=false;
+                        main.xrayManager.stopServer();
+                        main.xrayManager.stopScreenshotRunnable();
+                    } else {
+                        main.xrayManager.setScreenshotRate(Integer.parseInt(inputList.get(1)));
+                    }
                 }
                 break;
 

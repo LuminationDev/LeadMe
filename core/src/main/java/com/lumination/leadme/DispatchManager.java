@@ -328,6 +328,8 @@ public class DispatchManager {
                         //I've been selected to toggle student lock
                         main.blackout(false);
                         disableInteraction(ConnectedPeer.STATUS_UNLOCK);
+//                        alertGuideStudentOffTask();
+                        main.getLumiAccessibilityConnector().manageAccessibilityEvent(null,null);
                         sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.LAUNCH_SUCCESS + "LOCKOFF" + ":" + main.getNearbyManager().getID() + ":" + main.leadMePackageName,
                                 main.getNearbyManager().getAllPeerIDs());
                         break;
@@ -406,7 +408,7 @@ public class DispatchManager {
 
                         } else if (split[1].equals("LOCKOFF")) {
                             main.getConnectedLearnersAdapter().updateStatus(split[2], ConnectedPeer.STATUS_UNLOCK);
-
+                            //main.getConnectedLearnersAdapter().refreshAlertsView();
                         } else if (split[1].equals("BLACKOUT")) {
                             main.getConnectedLearnersAdapter().updateStatus(split[2], ConnectedPeer.STATUS_BLACKOUT);
 

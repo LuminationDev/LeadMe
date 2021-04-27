@@ -29,7 +29,7 @@ public class ConnectedPeer {
     private Drawable icon = null;
 
     private int status = ConnectedPeer.STATUS_SUCCESS;
-    private boolean locked = true;
+    private boolean locked = false;
     private boolean blackedOut = false;
 
     //assume the best, update if the worst

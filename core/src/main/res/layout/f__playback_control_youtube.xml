@@ -270,7 +270,8 @@
 
         <Space
             android:layout_width="52dp"
-            android:layout_height="match_parent" />
+            android:layout_height="match_parent"
+            android:visibility="gone" />
 
         <Button
             android:id="@+id/video_back_btn"

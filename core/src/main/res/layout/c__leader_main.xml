@@ -38,7 +38,7 @@
             android:layout_weight="1"
             android:fontFamily="@font/poppins_semibold"
             android:gravity="center_horizontal|center_vertical"
-            android:text="@string/leadme_learning"
+            android:text="@string/app_title_with_brand"
             android:textColor="@color/leadme_black"
             android:textSize="18sp" />
 

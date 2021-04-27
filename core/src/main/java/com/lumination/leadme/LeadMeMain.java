@@ -105,6 +105,8 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
+import eu.bolt.screenshotty.ScreenshotManagerBuilder;
+
 /*
     LeadMe Main:
 
@@ -1010,7 +1012,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         if (overlayView == null) {
             return;
         }
-
         //update status and visibilities for overlay
         if (!getNearbyManager().isConnectedAsFollower()) {
             Log.d(TAG, "onLifecyclePause: this");
@@ -1195,7 +1196,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                 initialiseOverlayView();
             }
 
-
             if (overlayView != null && getNearbyManager().isConnectedAsFollower() && studentLockOn) {
                 setStudentLock(ConnectedPeer.STATUS_LOCK);
 
@@ -1285,7 +1285,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         if (appHasFocus && getNearbyManager().isConnectedAsFollower()) {
             //if we've got no delayed content, we're properly returning to LeadMe
             if (!getDispatcher().hasDelayedLaunchContent()) {
-
+                studentLockOn=false;
                 //if we're in lock mode and we should be in something other than LeadMe, relaunch it
                 if (studentLockOn && currentTaskPackageName != null && currentTaskPackageName != leadMePackageName) {
                     Log.e(TAG, "RELAUNCH?? " + currentTaskPackageName);
@@ -1523,7 +1523,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         registerReceiver(accessibilityReceiver, new IntentFilter(LumiAccessibilityConnector.PROPAGATE_ACTION));
 
         //details about me to send to peers
-        studentLockOn = true; //students start locked
+        studentLockOn = false; //students start unlocked
         isGuide = false;
         isReadyToConnect = false;
         loggingInAsLeader = true;
@@ -1894,30 +1894,30 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
 //        xrayManager.screenshotManager = new ScreenshotManagerBuilder(this).withPermissionRequestCode(REQUEST_SCREENSHOT_PERMISSION) //optional, 888 is the default
 //                .build();
-//        //start this
-//        //getForegroundActivity();
-//        seekBar = (SeekBar) findViewById(R.id.screen_capture_rate);
-//        seekBar.setProgress(20); //default value that seems to work with slowish phones
-//        seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-//            int rate;
-//
-//            @Override
-//            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-//                rate = progress;
-//                //Toast.makeText(getApplicationContext(),"seekbar progress: " + progress, Toast.LENGTH_SHORT).show();
-//            }
-//
-//            @Override
-//            public void onStartTrackingTouch(SeekBar seekBar) {
-//                //Toast.makeText(getApplicationContext(),"seekbar touch started!", Toast.LENGTH_SHORT).show();
-//            }
-//
-//            @Override
-//            public void onStopTrackingTouch(SeekBar seekBar) {
-//                xrayManager.screenshotRate = 1000 / rate * 10;
-//                Toast.makeText(getApplicationContext(), "Capture rate: " + rate + " fps", Toast.LENGTH_SHORT).show();
-//            }
-//        });
+        //start this
+        //getForegroundActivity();
+        seekBar = (SeekBar) findViewById(R.id.screen_capture_rate);
+        seekBar.setProgress(20); //default value that seems to work with slowish phones
+        seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            int rate;
+
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                rate = progress;
+                //Toast.makeText(getApplicationContext(),"seekbar progress: " + progress, Toast.LENGTH_SHORT).show();
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+                //Toast.makeText(getApplicationContext(),"seekbar touch started!", Toast.LENGTH_SHORT).show();
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+                xrayManager.screenshotRate = 1000 / rate * 10;
+                Toast.makeText(getApplicationContext(), "Capture rate: " + rate + " fps", Toast.LENGTH_SHORT).show();
+            }
+        });
 
 
         mainLeader.findViewById(R.id.select_bar_back).setOnClickListener(v -> {
@@ -2024,7 +2024,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         overlayInitialised = true; //must set this before calling disable interaction
 
         //set default state
-        getDispatcher().disableInteraction(ConnectedPeer.STATUS_LOCK);
+        getDispatcher().disableInteraction(ConnectedPeer.STATUS_UNLOCK);
 
     }
 
@@ -2432,13 +2432,13 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             ((TextView) optionsScreen.findViewById(R.id.connected_as_role)).setTextColor(getResources().getColor(R.color.accent, null));
 
             SharedPreferences sharedPreferences = getSharedPreferences(getResources().getString(R.string.preference_file_key), Context.MODE_PRIVATE);
-            //if a UUID exists, retrieve it
-//            if (!sharedPreferences.contains("ONBOARD")) {
-//                SharedPreferences.Editor editor = sharedPreferences.edit();
-//                editor.putBoolean("ONBOARD", true);
-//                editor.apply();
+//            if a UUID exists, retrieve it
+            if (!sharedPreferences.contains("ONBOARD")) {
+                SharedPreferences.Editor editor = sharedPreferences.edit();
+                editor.putBoolean("ONBOARD", true);
+                editor.apply();
             buildAndDisplayOnBoard();
-//            }
+            }
 
 
         } else {

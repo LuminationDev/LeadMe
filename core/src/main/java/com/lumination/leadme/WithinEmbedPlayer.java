@@ -33,6 +33,8 @@ import java.util.Scanner;
 import androidx.core.content.ContextCompat;
 import androidx.core.widget.ImageViewCompat;
 
+import com.google.gson.internal.$Gson$Preconditions;
+
 
 public class WithinEmbedPlayer {
 
@@ -386,6 +388,7 @@ public class WithinEmbedPlayer {
     private Button withinBackBtn;
 
     private void setupWithinSearchButtons() {
+
         disabledBg = main.getResources().getDrawable(R.drawable.bg_disabled, null);
         //set up standard dialog buttons
         withinBackBtn.setOnClickListener(v -> {
@@ -409,8 +412,27 @@ public class WithinEmbedPlayer {
 
     }
 
+    private void showPushConfirmed() {
+        videoControlDialog.hide();
+        View confirmPushDialogView = View.inflate(main, R.layout.e__confirm_popup, null);
+        AlertDialog confirmPopup = new AlertDialog.Builder(main)
+                .setView(confirmPushDialogView)
+                .show();
+        ((TextView)confirmPushDialogView.findViewById(R.id.push_success_comment)).setText("Your video was successfully launched.");
+        Button ok = confirmPushDialogView.findViewById(R.id.ok_btn);
+        ok.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                confirmPopup.dismiss();
+                updateControllerUI(true);
+            }
+        });
+
+    }
+
     private void updateControllerUI(boolean isPlaybackController) {
         if (isPlaybackController) {
+            videoControlDialog.show();
             withinControllerDialogView.findViewById(R.id.download_buttons).setVisibility(View.GONE);
             withinControllerDialogView.findViewById(R.id.basic_controls).setVisibility(View.VISIBLE);
             withinControllerDialogView.findViewById(R.id.vr_selection).setVisibility(View.GONE);
@@ -531,7 +553,8 @@ public class WithinEmbedPlayer {
         //String packageName, String appName, String taskType, String url, String urlTitle)
 
         //update UI
-        updateControllerUI(true);
+        showPushConfirmed();
+//        updateControllerUI(true);
 
         //add to favourites
         if (favCheck.isChecked()) {

@@ -22,7 +22,7 @@ import java.util.List;
 
 public class PermissionManager {
 
-    private String app_title = "Lumination LeadMe";
+    private String app_title;
     private final String TAG = "LumiPermissions";
 
     private LeadMeMain main;
@@ -36,7 +36,7 @@ public class PermissionManager {
     public PermissionManager(LeadMeMain main) {
         super();
         this.main = main;
-        app_title = main.getResources().getString(R.string.app_title_with_brand);
+        app_title = main.getString(R.string.app_title_with_brand);
 
         overlayPermissionListener = new PermissionListener() {
 

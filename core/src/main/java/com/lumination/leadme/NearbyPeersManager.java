@@ -74,6 +74,7 @@ public class NearbyPeersManager {
                     @Override
                     public void run() {
                         networkAdapter.connectToServer(info);
+
                     }
                 });
 

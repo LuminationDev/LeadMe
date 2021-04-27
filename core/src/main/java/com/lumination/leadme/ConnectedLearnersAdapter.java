@@ -215,6 +215,10 @@ public class ConnectedLearnersAdapter extends BaseAdapter {
         }
 
         Log.d(TAG, "Updating status for " + name + " to " + status + " (" + thisPeer + ")"); // with " + warningMessage);
+        Log.d(TAG, "updateStatus: current Status "+thisPeer.getStatus());
+        if(thisPeer.hasWarning() || thisPeer.getAlertsList().length()>0 ){
+            Log.d(TAG, "updateStatus: student has warning");
+        }
         thisPeer.setStatus(status);
         if (status == ConnectedPeer.STATUS_OFF_TASK || status == ConnectedPeer.STATUS_WARNING || status == ConnectedPeer.STATUS_ERROR || status == ConnectedPeer.STATUS_INSTALLING) {
             moveToFrontOfList(thisPeer);
