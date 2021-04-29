@@ -201,7 +201,6 @@ public class LumiAccessibilityConnector {
                 Log.i(TAG, "User VIEWED status bar in LeadMe! " + event.toString());
                 //main.recallToLeadMe();
                 main.collapseStatus();
-
             } else if (appInForeground && event.getEventType() == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED && event.getPackageName().toString().equals("com.lumination.leadme")) {
                 //if (showDebugMsg)
                 Log.i(TAG, "User RETURNED TO LEADME! [" + appInForeground + "] " + event.toString());
@@ -220,10 +219,10 @@ public class LumiAccessibilityConnector {
                 // if (showDebugMsg)
                 Log.i(TAG, "User clicked some kind of SYSTEM button! " + event.toString());
                 dispatcher.alertGuideStudentOffTask();
-                if (!main.studentLockOn) {
-                    if (showDebugMsg) Log.i(TAG, "It's OK, user is in free play mode");
-                    return true;
-                }
+//                if (!main.studentLockOn) {
+//                    if (showDebugMsg) Log.i(TAG, "It's OK, user is in free play mode");
+//                    return true;
+//                }
                 waitingForStateChange = false;
                 if (!appInForeground) {//!main.getAppLaunchAdapter().lastApp.equals(packageName)) {
                     dispatcher.launchAppOnFocus = new String[2];

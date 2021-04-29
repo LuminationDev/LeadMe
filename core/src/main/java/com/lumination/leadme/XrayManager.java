@@ -38,13 +38,15 @@ import java.util.Set;
 
 //import eu.bolt.screenshotty.ScreenshotManager;
 
+import eu.bolt.screenshotty.ScreenshotManager;
+
 import static android.view.View.GONE;
 import static android.view.View.VISIBLE;
 
 public class XrayManager {
 
     //added-------
-    //ScreenshotManager screenshotManager;
+    ScreenshotManager screenshotManager;
 
     String ipAddress;
     Intent screen_share_intent = null;
@@ -83,12 +85,12 @@ public class XrayManager {
 
         if (!screenCapPermission) {
             startServer();
-            startScreenshotRunnable(ip, Port);
+            //startScreenshotRunnable(ip, Port);
         }
     }
 
     boolean screenCapPermission = false;
-    boolean debug = true;
+    boolean debug = false;
 
     @SuppressLint("WrongConstant")
     public void manageResultsReturn(int requestCode, int resultCode, Intent data) {
@@ -408,8 +410,7 @@ public class XrayManager {
     private class ImageAvailableListener implements ImageReader.OnImageAvailableListener {
         @Override
         public void onImageAvailable(ImageReader reader) {
-            //Log.d(TAG, "onImageAvailable: image available");
-
+            Log.d(TAG, "onImageAvailable: image available");
             Bitmap bitmap = null;
             ByteArrayOutputStream stream = null;
             //Log.d(TAG, "onImageAvailable: ");
@@ -441,7 +442,11 @@ public class XrayManager {
                     bitmap = Bitmap.createBitmap(displayWidth + rowPadding / pixelStride,
                             displayHeight, Bitmap.Config.ARGB_8888);
                     bitmap.copyPixelsFromBuffer(buffer);
+                    if(bitmapToSend!=null){
+                        bitmapToSend.recycle();
+                    }
                     bitmapToSend = bitmap;
+                    //bitmap.recycle();
                     imagesProduced++;
                 }
             } catch (Exception e) {
@@ -509,17 +514,27 @@ public class XrayManager {
             //Log.w(TAG, buffer + ", " + response);
             if (buffer != null) {
                 Bitmap tmpBmp = BitmapFactory.decodeByteArray(buffer, 0, buffer.length);
+//                if(response!=null){
+//                    response.recycle();
+//                }
                 response = tmpBmp;
+
                 main.runOnUiThread(() -> {
                     Log.d(TAG, "Adding screenshot! " + monitoredPeer + " == " + imgPeer);
+//                    if(clientRecentScreenshots.get(imgPeer)!=null){
+//                        clientRecentScreenshots.get(imgPeer).recycle();
+//                    }
+
                     clientRecentScreenshots.put(imgPeer, tmpBmp); //store it
 
                     //I'm on display!
                     if (monitoredPeer.equals(imgPeer)) {
                         xrayScreenshotView.setImageBitmap(tmpBmp);
+                        tmpBmp.recycle();
                         Log.w(TAG, "Updated the image!");
                     }
                 });
+               // tmpBmp.recycle();
             } else {
                 try {
                     Thread.currentThread().sleep(1000);
@@ -541,7 +556,7 @@ public class XrayManager {
         Log.d(TAG, "Starting image client for " + peer);
         while (serverSocket == null) {
             try {
-                serverSocket = new ServerSocket(0);
+                serverSocket = new ServerSocket(54322);
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -613,6 +628,7 @@ public class XrayManager {
                     if (stream.toByteArray().length > 300000) {
                         bitmapToSend.compress(Bitmap.CompressFormat.JPEG, 0, stream);
                     }
+                    bitmapToSend.recycle();
                     bitmapToSend = null;
                     byte[] byteArray = stream.toByteArray();
                     try {

@@ -251,13 +251,13 @@ public class DispatchManager {
 
             switch (action) {
                 case LeadMeMain.XRAY_ON:
-                    Log.w(TAG, "I AM being watched! " + main.getNearbyManager().getName());
-                    //main.xrayManager.generateScreenshots(true);
+//                    Log.w(TAG, "I AM being watched! " + main.getNearbyManager().getName());
+//                    main.xrayManager.generateScreenshots(true);
                     break;
 
                 case LeadMeMain.XRAY_OFF:
-                    Log.w(TAG, "I'm NOT being watched! " + main.getNearbyManager().getName());
-                    //main.xrayManager.generateScreenshots(false);
+//                    Log.w(TAG, "I'm NOT being watched! " + main.getNearbyManager().getName());
+//                    main.xrayManager.generateScreenshots(false);
                     break;
 
                 case LeadMeMain.PING_ACTION:
@@ -401,8 +401,9 @@ public class DispatchManager {
                     } else if (action.startsWith(LeadMeMain.LAUNCH_SUCCESS)) {
                         //Log.i(TAG, "SUCCEEDED - " + action);
                         String[] split = action.split(":");
-                        main.getConnectedLearnersAdapter().updateStatus(split[2], ConnectedPeer.STATUS_SUCCESS, LeadMeMain.STUDENT_OFF_TASK_ALERT);
-
+//                        if(!split[3].equals("com.lumination.leadme")) {
+//
+//                        }
                         if (split[1].equals("LOCKON")) {
                             main.getConnectedLearnersAdapter().updateStatus(split[2], ConnectedPeer.STATUS_LOCK);
 
@@ -414,6 +415,7 @@ public class DispatchManager {
 
                         } else {
                             //Log.d(TAG, "Updating icon to " + split[3]);
+                            main.getConnectedLearnersAdapter().updateStatus(split[2], ConnectedPeer.STATUS_SUCCESS, LeadMeMain.STUDENT_OFF_TASK_ALERT);
                             main.getConnectedLearnersAdapter().appLaunchSuccess(split[2], split[1]);
                             //main.getConnectedLearnersAdapter().updateStatus(split[2], ConnectedPeer.STATUS_SUCCESS);
                             main.getConnectedLearnersAdapter().updateIcon(split[2], main.getAppManager().getAppIcon(split[3]));

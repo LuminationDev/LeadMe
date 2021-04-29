@@ -38,6 +38,7 @@ public class ConnectedLearnersAdapter extends BaseAdapter {
     }
 
     public void refreshAlertsView() {
+
         ArrayList<ConnectedPeer> peersWithWarnings = new ArrayList<>();
         for (ConnectedPeer peer : mData) {
             if (!peer.getAlertsList().isEmpty()) {
@@ -49,6 +50,7 @@ public class ConnectedLearnersAdapter extends BaseAdapter {
         } else {
             main.setAlertsBtnVisibility(View.VISIBLE);
         }
+        Log.d(TAG, "refreshAlertsView: size:"+peersWithWarnings.size());
         main.alertsBtn.setText("Alerts ("+peersWithWarnings.size()+")");
         alertsAdapter.setData(peersWithWarnings);
         alertsAdapter.notifyDataSetChanged();
@@ -198,8 +200,9 @@ public class ConnectedLearnersAdapter extends BaseAdapter {
             thisPeer.setWarning(msg, false);
 
         } else if (status == ConnectedPeer.STATUS_SUCCESS) {
+            Log.d(TAG, "updateStatus: message: "+msg);
             thisPeer.setWarning(msg, true);
-            warningMessage = msg;
+            //warningMessage = msg;
         }
 
         notifyDataSetChanged();
@@ -220,6 +223,7 @@ public class ConnectedLearnersAdapter extends BaseAdapter {
             Log.d(TAG, "updateStatus: student has warning");
         }
         thisPeer.setStatus(status);
+        Log.d(TAG, "updateStatus: new status :"+thisPeer.getStatus());
         if (status == ConnectedPeer.STATUS_OFF_TASK || status == ConnectedPeer.STATUS_WARNING || status == ConnectedPeer.STATUS_ERROR || status == ConnectedPeer.STATUS_INSTALLING) {
             moveToFrontOfList(thisPeer);
         }

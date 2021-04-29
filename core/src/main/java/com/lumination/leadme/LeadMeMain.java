@@ -344,7 +344,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                 break;
             //added------------
             case SCREEN_CAPTURE:
-                //xrayManager.manageResultsReturn(requestCode, resultCode, data);
+                xrayManager.manageResultsReturn(requestCode, resultCode, data);
                 break;
 
             case RC_SIGN_IN:
@@ -364,7 +364,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                 Log.d(TAG, "RETURNED FROM ?? with " + resultCode);
                 break;
         }
-        //xrayManager.screenshotManager.onActivityResult(requestCode, resultCode, data);
+        xrayManager.screenshotManager.onActivityResult(requestCode, resultCode, data);
     }
 
     public boolean handleMessage(Message msg) {
@@ -1892,8 +1892,8 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 //        currentTaskIcon = mainLearner.findViewById(R.id.current_task_icon);
 //        currentTaskIcon.setImageResource(R.color.transparent);
 
-//        xrayManager.screenshotManager = new ScreenshotManagerBuilder(this).withPermissionRequestCode(REQUEST_SCREENSHOT_PERMISSION) //optional, 888 is the default
-//                .build();
+        xrayManager.screenshotManager = new ScreenshotManagerBuilder(this).withPermissionRequestCode(REQUEST_SCREENSHOT_PERMISSION) //optional, 888 is the default
+                .build();
         //start this
         //getForegroundActivity();
         seekBar = (SeekBar) findViewById(R.id.screen_capture_rate);
