@@ -114,7 +114,7 @@
                 android:id="@+id/capture_rate_display"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:visibility="visible">
+                android:visibility="gone">
 
                 <TextView
                     android:id="@+id/screen_capture"
@@ -135,6 +135,7 @@
                     android:progress="1"
                     android:progressTint="@color/leadme_blue"
                     android:thumbTint="@color/leadme_blue"
+                    android:visibility="gone"
                     tools:visibility="visible" />
             </LinearLayout>
 

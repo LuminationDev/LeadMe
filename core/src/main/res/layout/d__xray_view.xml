@@ -175,11 +175,10 @@
 
                 <ImageView
                     android:id="@+id/monitor_popup_img"
-                    android:layout_width="300dp"
-                    android:layout_height="320dp"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
                     android:layout_gravity="center"
-                    android:layout_marginTop="40dp"
-                    android:background="@drawable/core_xray"
+                    android:layout_weight="1"
                     android:elevation="5dp"
                     android:scaleType="fitCenter"
                     android:visibility="visible" />
@@ -192,7 +191,7 @@
                     android:fontFamily="@font/poppins_semibold"
                     android:text="Live Monitoring Coming Soon"
                     android:textSize="18sp"
-                    android:visibility="visible" />
+                    android:visibility="gone" />
 
             </LinearLayout>
 

@@ -223,6 +223,7 @@ public class LumiAccessibilityConnector {
 //                    if (showDebugMsg) Log.i(TAG, "It's OK, user is in free play mode");
 //                    return true;
 //                }
+
                 waitingForStateChange = false;
                 if (!appInForeground) {//!main.getAppLaunchAdapter().lastApp.equals(packageName)) {
                     dispatcher.launchAppOnFocus = new String[2];

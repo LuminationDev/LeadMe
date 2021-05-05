@@ -209,7 +209,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     public boolean dialogShowing = false;
 
     private final Handler handler = new Handler(this);
-    private ViewAnimator leadmeAnimator;
+    public ViewAnimator leadmeAnimator;
     private ViewSwitcher leaderLearnerSwitcher;
     protected boolean loggingInAsLeader = true;
     public String leaderName = "Leader";
@@ -218,7 +218,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     private final int SWITCH_LEARNER_INDEX = 1;
 
     private final int ANIM_SPLASH_INDEX = 0;
-    private final int ANIM_START_SWITCH_INDEX = 1;
+    public final int ANIM_START_SWITCH_INDEX = 1;
     private final int ANIM_LEARNER_INDEX = 2;
     private final int ANIM_LEADER_INDEX = 3;
     private final int ANIM_APP_LAUNCH_INDEX = 4;
@@ -2790,6 +2790,9 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
 
     public void recallToLeadMe() {
+        if(leadmeAnimator.getDisplayedChild()==ANIM_START_SWITCH_INDEX){
+            return;
+        }
         getWebManager().reset();
         getLumiAccessibilityConnector().resetState();
 
