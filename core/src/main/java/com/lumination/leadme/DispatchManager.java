@@ -253,11 +253,17 @@ public class DispatchManager {
                 case LeadMeMain.XRAY_ON:
 //                    Log.w(TAG, "I AM being watched! " + main.getNearbyManager().getName());
 //                    main.xrayManager.generateScreenshots(true);
+                    if(main.screenCap.clientToServerSocket==null){
+                        main.screenCap.connectToServer();
+                    }
+                    main.screenCap.sendImages=true;
+
                     break;
 
                 case LeadMeMain.XRAY_OFF:
 //                    Log.w(TAG, "I'm NOT being watched! " + main.getNearbyManager().getName());
 //                    main.xrayManager.generateScreenshots(false);
+                    main.screenCap.sendImages=false;
                     break;
 
                 case LeadMeMain.PING_ACTION:

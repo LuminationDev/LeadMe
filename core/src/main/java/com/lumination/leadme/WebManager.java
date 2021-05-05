@@ -1192,12 +1192,8 @@ public class WebManager {
     private int searchType = SEARCH_YOUTUBE;
     private WebView searchWebView;
 
-    public void buildAndShowSearchDialog(boolean isYT) {
-        if (isYT) {
-            searchType = SEARCH_YOUTUBE;
-        } else {
-            searchType = SEARCH_WEB;
-        }
+    public void buildAndShowSearchDialog(int type) {
+        searchType=type;
         buildAndShowSearchDialog();
     }
 
@@ -1264,7 +1260,9 @@ public class WebManager {
                     searchWebView.loadUrl("https://www.google.com/search?q=" + searchView.getQuery());
                 }
             }
-
+            if(searchType== SEARCH_YOUTUBE){
+                searchSpinner.setSelection(1);
+            }
             searchSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
                 @Override
                 public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
@@ -1303,10 +1301,24 @@ public class WebManager {
                 }
             });
 
+            switch(searchType){
+                case SEARCH_WEB:
+                    searchSpinner.setSelection(0);
+                    break;
+                case SEARCH_YOUTUBE:
+                    searchSpinner.setSelection(1);
+                    break;
+                case SEARCH_WITHIN:
+                    searchSpinner.setSelection(2);
+                    break;
+            }
+
             searchDialog.findViewById(R.id.back_btn).setOnClickListener(v -> {
                 searchWebView.clearCache(false);
                 searchDialog.dismiss();
-                websiteLaunchDialog.show();
+                if(websiteLaunchDialog!=null) {
+                    websiteLaunchDialog.show();
+                }
             });
 
         } else {
@@ -1316,14 +1328,27 @@ public class WebManager {
 
 
         Log.w(TAG, "Is this from YouTube? " + isYouTube);
-        if (isYouTube) {
-            //default to YouTube search
-            searchSpinner.setSelection(1);
-        } else {
-            //default to web search
-            searchSpinner.setSelection(0);
+//        if (isYouTube) {
+//            //default to YouTube search
+//            searchSpinner.setSelection(1);
+//        } else {
+//            //default to web search
+//            searchSpinner.setSelection(0);
+//        }
+        switch(searchType){
+            case SEARCH_WEB:
+                isYouTube=false;
+                searchSpinner.setSelection(0);
+                break;
+            case SEARCH_YOUTUBE:
+                isYouTube=true;
+                searchSpinner.setSelection(1);
+                break;
+            case SEARCH_WITHIN:
+                isYouTube=false;
+                searchSpinner.setSelection(2);
+                break;
         }
-
         populateSearch();
     }
 

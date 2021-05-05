@@ -7,6 +7,7 @@ import android.annotation.SuppressLint;
 import android.app.ActivityManager;
 import android.app.AlertDialog;
 import android.content.BroadcastReceiver;
+import android.content.ComponentCallbacks2;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -43,12 +44,14 @@ import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.view.inputmethod.InputMethodManager;
+import android.webkit.WebView;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
@@ -68,6 +71,7 @@ import android.widget.VideoView;
 import android.widget.ViewAnimator;
 import android.widget.ViewSwitcher;
 
+import androidx.annotation.NonNull;
 import androidx.core.content.res.ResourcesCompat;
 import androidx.fragment.app.FragmentActivity;
 import androidx.lifecycle.Lifecycle;
@@ -83,6 +87,7 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthCredential;
 import com.google.firebase.auth.AuthResult;
+import com.google.firebase.auth.EmailAuthProvider;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.GoogleAuthProvider;
@@ -115,7 +120,7 @@ import eu.bolt.screenshotty.ScreenshotManagerBuilder;
     • Handles login/signup and authentication
  */
 
-public class LeadMeMain extends FragmentActivity implements Handler.Callback, SensorEventListener, LifecycleObserver {
+public class LeadMeMain extends FragmentActivity implements Handler.Callback, SensorEventListener, LifecycleObserver, ComponentCallbacks2 {
 
     //tag for debugging
     static final String TAG = "LeadMe";
@@ -290,7 +295,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     boolean allowHide = false;
     ScheduledExecutorService scheduledExecutorService = new ScheduledThreadPoolExecutor(1);
     public ExecutorService backgroundExecutor = Executors.newCachedThreadPool();
-
+    public ScreenCap screenCap;
 
     public Handler getHandler() {
         return handler;
@@ -344,7 +349,8 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                 break;
             //added------------
             case SCREEN_CAPTURE:
-                xrayManager.manageResultsReturn(requestCode, resultCode, data);
+               // xrayManager.manageResultsReturn(requestCode, resultCode, data);
+                screenCap.handleResultReturn(resultCode, data);
                 break;
 
             case RC_SIGN_IN:
@@ -780,6 +786,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             getNearbyManager().myName = mAuth.getCurrentUser().getDisplayName();
             getNameView().setText(mAuth.getCurrentUser().getDisplayName());
 
+
         }
         //set appropriate mode
         if (leaderLearnerSwitcher.getDisplayedChild() == SWITCH_LEADER_INDEX) {
@@ -787,6 +794,13 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             Log.d(TAG, "showLoginDialog: teacher");
             loginDialogView.findViewById(R.id.code_entry_view).setVisibility(View.VISIBLE);
             loginDialogView.findViewById(R.id.student_teacher_view).setVisibility(View.GONE);
+            TextView forgotPin = loginDialogView.findViewById(R.id.login_forgot_pin);
+            forgotPin.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    setAndDisplayPinReset(0);
+                }
+            });
         } else {
             //learner
             Log.d(TAG, "showLoginDialog: learner");
@@ -845,9 +859,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         backBtn.setOnClickListener(v -> loginDialog.dismiss());
         forgotPassword.setOnClickListener(v -> {
             showForgottenPassword(loginDialog);
-            //todo send to forgotten password flow
-
-
         });
         //hideSystemUI();
         initPermissions = false; //reset this to ask once more
@@ -858,6 +869,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     }
 
     private void showForgottenPassword(AlertDialog previous) {
+        boolean prevShow=previous.isShowing();
         previous.dismiss();
         View forgotten_view = View.inflate(context, R.layout.c__forgot_password, null);
         AlertDialog forgottenDialog = new AlertDialog.Builder(this)
@@ -929,7 +941,9 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         });
         cancel.setOnClickListener(v -> {
             forgottenDialog.dismiss();
-            previous.show();
+            if(prevShow) {
+                previous.show();
+            }
         });
     }
 
@@ -1461,7 +1475,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     public void onCreate(Bundle savedInstanceState) {
         //onCreate can get called when device rotated, keyboard opened/shut, etc
         super.onCreate(savedInstanceState);
-
+        screenCap = new ScreenCap(this);
 
         GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
                 .requestIdToken(getString(R.string.default_web_client_id))
@@ -2454,7 +2468,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             title.setText(name);
             ((TextView) optionsScreen.findViewById(R.id.connected_as_role)).setText(getResources().getText(R.string.learner));
             ((TextView) optionsScreen.findViewById(R.id.connected_as_role)).setTextColor(getResources().getColor(R.color.medium, null));
-
             //refresh overlay
             // verifyOverlay();
 
@@ -3233,6 +3246,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             loginAttemptInAction = false;
             getNearbyManager().connectToSelectedLeader();
             showWaitingForConnectDialog();
+            screenCap.startService();
         }
     }
 
@@ -3428,20 +3442,20 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 //                        if(scrollY==v.scr)
 //                    }
 //                });
-                hasScrolled = false;
-                touScroll.setOnScrollChangeListener((v, scrollX, scrollY, oldScrollX, oldScrollY) -> {
-                    if (touScroll.getChildAt(0).getBottom()
-                            <= (touScroll.getHeight() + touScroll.getScrollY())) {
-                        hasScrolled = true;
-                    }
-                });
-                touAgree.setOnCheckedChangeListener((buttonView, isChecked) -> {
-                    if (isChecked && !hasScrolled) {
-                        touAgree.setChecked(false);
-                        errorText.setVisibility(View.VISIBLE);
-                        errorText.setText("Please read all of the terms of use");
-                    }
-                });
+                hasScrolled = true;
+                WebView TOF = Login.findViewById(R.id.tof_webview);
+                TOF.getSettings().setJavaScriptEnabled(true);
+                String pdf = "https://raw.githubusercontent.com/jlundlumination/WebFiles/master/LeadMe%20Edu%20Terms%20and%20Conditions.pdf";
+                TOF.loadUrl("https://drive.google.com/viewerng/viewer?embedded=true&url=" + pdf);
+
+
+                        touAgree.setOnCheckedChangeListener((buttonView, isChecked) -> {
+                            if (isChecked && !hasScrolled) {
+                                touAgree.setChecked(false);
+                                errorText.setVisibility(View.VISIBLE);
+                                errorText.setText("Please read all of the terms of use");
+                            }
+                        });
 
                 next.setOnClickListener(v -> {
                     if (touAgree.isChecked()) {
@@ -3682,6 +3696,258 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                             }
                         });
             }
+        }
+    }
+    public void onTrimMemory(int level) {
+
+        // Determine which lifecycle or system event was raised.
+        switch (level) {
+
+            case ComponentCallbacks2.TRIM_MEMORY_UI_HIDDEN:
+
+                /*
+                   Release any UI objects that currently hold memory.
+
+                   The user interface has moved to the background.
+                */
+
+                break;
+
+            case ComponentCallbacks2.TRIM_MEMORY_RUNNING_MODERATE:
+            case ComponentCallbacks2.TRIM_MEMORY_RUNNING_LOW:
+            case ComponentCallbacks2.TRIM_MEMORY_RUNNING_CRITICAL:
+                screenCap.sendImages=false;
+                /*
+                   Release any memory that your app doesn't need to run.
+
+                   The device is running low on memory while the app is running.
+                   The event raised indicates the severity of the memory-related event.
+                   If the event is TRIM_MEMORY_RUNNING_CRITICAL, then the system will
+                   begin killing background processes.
+                */
+
+                break;
+
+            case ComponentCallbacks2.TRIM_MEMORY_BACKGROUND:
+            case ComponentCallbacks2.TRIM_MEMORY_MODERATE:
+            case ComponentCallbacks2.TRIM_MEMORY_COMPLETE:
+                recallToLeadMe();
+                /*
+                   Release as much memory as the process can.
+
+                   The app is on the LRU list and the system is running low on memory.
+                   The event raised indicates where the app sits within the LRU list.
+                   If the event is TRIM_MEMORY_COMPLETE, the process will be one of
+                   the first to be terminated.
+                */
+
+                break;
+
+            default:
+                /*
+                  Release any non-critical data structures.
+
+                  The app received an unrecognized memory level value
+                  from the system. Treat this as a generic low-memory message.
+                */
+                break;
+        }
+    }
+    public void setProgressSpinner(int Time, ProgressBar indeterminate) {
+        if (indeterminate != null) {
+            if (Time > 0) {
+                indeterminate.setVisibility(View.VISIBLE);
+                scheduledExecutorService.schedule(new Runnable() {
+                    @Override
+                    public void run() {
+                        if(indeterminate!=null){
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    indeterminate.setVisibility(View.INVISIBLE);
+                                }
+                            });
+
+                        }
+                    }
+                }, (long) Time, TimeUnit.MILLISECONDS);
+            }
+        }
+    }
+
+    int savedViewIndex=-1;
+    public void setAndDisplayPinReset(int page){
+        if(loginDialog!=null &&loginDialog.isShowing()) {
+            loginDialog.dismiss();
+        }
+        View resetPinView = View.inflate(this, R.layout.c__forgot_pin, null);
+        if(savedViewIndex==-1){
+            savedViewIndex= leadmeAnimator.getDisplayedChild();
+        }
+        leadmeAnimator.addView(resetPinView);
+        leadmeAnimator.setDisplayedChild(leadmeAnimator.getChildCount()-1);
+        Button confirm = resetPinView.findViewById(R.id.pin_reset_confirm);
+        Button cancel = resetPinView.findViewById(R.id.pin_reset_cancel);
+        View pages[] = {resetPinView.findViewById(R.id.pin_reset_pass_view),resetPinView.findViewById(R.id.set_pin),resetPinView.findViewById(R.id.pin_reset_finish_view)};
+        ProgressBar pBar = resetPinView.findViewById(R.id.pin_reset_spinner);
+        pBar.setVisibility(View.INVISIBLE);
+        switch(page){
+            case 0:
+                pages[0].setVisibility(View.VISIBLE);
+                pages[1].setVisibility(View.GONE);
+                pages[2].setVisibility(View.GONE);
+                TextView error = resetPinView.findViewById(R.id.pin_reset_error);
+                EditText Pass = resetPinView.findViewById(R.id.pin_reset_password);
+                TextView forgotPass = resetPinView.findViewById(R.id.pin_reset_forgot_password);
+                forgotPass.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        showForgottenPassword(loginDialog);
+                    }
+                });
+                confirm.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        setProgressSpinner(5000, pBar);
+                        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+                        AuthCredential credential = EmailAuthProvider.getCredential(user.getEmail(), Pass.getText().toString());
+                        user.reauthenticate(credential)
+                                .addOnCompleteListener(new OnCompleteListener<Void>() {
+                                    @Override
+                                    public void onComplete(@NonNull Task<Void> task) {
+                                       if(task.isSuccessful()){
+                                            setAndDisplayPinReset(1);
+                                       }else{
+                                            error.setVisibility(View.VISIBLE);
+                                           pBar.setVisibility(View.INVISIBLE);
+                                       }
+                                    }
+                                });
+                    }
+                });
+                cancel.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        pBar.setVisibility(View.INVISIBLE);
+                        leadmeAnimator.setDisplayedChild(savedViewIndex);
+                        savedViewIndex=-1;
+                        leadmeAnimator.removeView(resetPinView);
+                    }
+                });
+                break;
+            case 1:
+                pages[1].setVisibility(View.VISIBLE);
+                pages[0].setVisibility(View.GONE);
+                pages[2].setVisibility(View.GONE);
+                EditText[] codes = {resetPinView.findViewById(R.id.signup_pin1), resetPinView.findViewById(R.id.signup_pin2), resetPinView.findViewById(R.id.signup_pin3)
+                        , resetPinView.findViewById(R.id.signup_pin4), resetPinView.findViewById(R.id.signup_pin5), resetPinView.findViewById(R.id.signup_pin6)
+                        , resetPinView.findViewById(R.id.signup_pin7), resetPinView.findViewById(R.id.signup_pin8)};
+                TextWatcher pinWatcher = new TextWatcher() {
+                    @Override
+                    public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+                    }
+
+                    @Override
+                    public void onTextChanged(CharSequence s, int start, int before, int count) {
+                        if (s != null && s.length() == 1 && pinCodeInd < 7) {
+                            pinCodeInd++;
+                            codes[pinCodeInd].requestFocus();
+
+                        } else if (s != null && s.length() == 0 && pinCodeInd > 0) {
+                            pinCodeInd--;
+                            codes[pinCodeInd].requestFocus();
+                        }
+                    }
+
+                    @Override
+                    public void afterTextChanged(Editable s) {
+
+                    }
+                };
+                View.OnKeyListener codeKeyListener = (v, keyCode, event) -> {
+                    //View focus = null;
+                    if (keyCode == KeyEvent.KEYCODE_DEL || keyCode == KeyEvent.KEYCODE_BACK) {
+                        if (pinCodeInd > 0) {
+                            pinCodeInd--;
+                            codes[pinCodeInd].requestFocus();
+                        }
+                    }
+                    return false; //true if event consumed, false otherwise
+                };
+                for (int i = 0; i < codes.length; i++) {
+                    codes[i].addTextChangedListener(pinWatcher);
+                    codes[i].setOnKeyListener(codeKeyListener);
+                }
+                confirm.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        closeKeyboard();
+                        String pin = "";
+                        String confirmPin = "";
+                        for (int i = 0; i < 8; i++) {
+                            if (i < 4) {
+                                pin += codes[i].getText().toString();
+                            } else {
+                                confirmPin += codes[i].getText().toString();
+                            }
+                        }
+                        if(pin.equals(confirmPin)){
+                            setProgressSpinner(5000, pBar);
+                            Map<String, Object> userDet = new HashMap<>();
+                            //progressBar.setVisibility(View.VISIBLE);
+                            userDet.put("pin", Hasher.Companion.hash(pin, HashType.SHA_256));
+                            db.collection("users").document(mAuth.getCurrentUser().getUid()).update(userDet).addOnCompleteListener(new OnCompleteListener<Void>() {
+                                @Override
+                                public void onComplete(@NonNull Task<Void> task) {
+                                    if(task.isSuccessful()){
+                                        setAndDisplayPinReset(2);
+                                    }else{
+                                        pBar.setVisibility(View.INVISIBLE);
+                                    }
+                                }
+                            });
+                        }
+                    }
+                });
+                cancel.setText("Close");
+                cancel.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        leadmeAnimator.setDisplayedChild(savedViewIndex);
+                        savedViewIndex=-1;
+                        leadmeAnimator.removeView(resetPinView);
+                    }
+                });
+                break;
+            case 2:
+                pages[2].setVisibility(View.VISIBLE);
+                pages[1].setVisibility(View.GONE);
+                pages[0].setVisibility(View.GONE);
+                confirm.setText("Finish");
+                confirm.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        leadmeAnimator.setDisplayedChild(savedViewIndex);
+                        savedViewIndex=-1;
+                        leadmeAnimator.removeView(resetPinView);
+                    }
+                });
+                cancel.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        leadmeAnimator.setDisplayedChild(savedViewIndex);
+                        savedViewIndex=-1;
+                        leadmeAnimator.removeView(resetPinView);
+                    }
+                });
+                break;
+            default:
+
+                leadmeAnimator.setDisplayedChild(savedViewIndex);
+                savedViewIndex=-1;
+                leadmeAnimator.removeView(resetPinView);
+                break;
         }
     }
 

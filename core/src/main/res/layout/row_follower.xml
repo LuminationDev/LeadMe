@@ -24,6 +24,14 @@
             android:tintMode="src_atop" />
 
         <ImageView
+            android:id="@+id/student_warning_icon"
+            android:layout_width="@dimen/alerticon_size"
+            android:layout_height="@dimen/alerticon_size"
+            android:layout_gravity="top|end"
+            android:layout_margin="0dp"
+            app:srcCompat="@drawable/alert_offtask_learner" />
+
+        <ImageView
             android:id="@+id/selected_indicator"
             android:layout_width="@dimen/appicon_size_overlay"
             android:layout_height="@dimen/appicon_size_overlay"

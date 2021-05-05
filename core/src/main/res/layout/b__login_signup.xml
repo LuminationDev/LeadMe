@@ -291,13 +291,34 @@
             android:text="Please read the terms of use"
             android:textColor="@color/leadme_red" />
 
+        <WebView
+            android:id="@+id/tof_webview"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="20dp"
+            android:layout_marginRight="20dp"
+            android:layout_weight="1">
+
+        </WebView>
+
+        <CheckBox
+            android:id="@+id/tou_check"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="20dp"
+            android:layout_marginTop="10dp"
+            android:layout_marginRight="20dp"
+            android:layout_marginBottom="10dp"
+            android:text="I agree" />
+
         <ScrollView
             android:id="@+id/tou_scrollView"
             android:layout_width="wrap_content"
             android:layout_height="300dp"
             android:layout_marginLeft="20dp"
             android:layout_marginRight="20dp"
-            android:background="@drawable/bg_passive">
+            android:background="@drawable/bg_passive"
+            android:visibility="gone">
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -315,16 +336,6 @@
                     android:text="Terms of use text. Please read the terms of use. Terms of use text. Please read the terms of use. Terms of use text. Please read the terms of use. Terms of use text. Please read the terms of use.   Terms of use text. Please read the terms of use. Terms of use text. Please read the terms of use. Terms of use text. Please read the terms of use. Terms of use text. Please read the terms of use. Terms of use text. Please read the terms of use. Terms of use text. Please read the terms of use.   Terms of use text. Please read the terms of use. Terms of use text. Please read the terms of use. Terms of use text. Please read the terms of use. Terms of use text. Please read the terms of use. Terms of use text. Please read the terms of use. Terms of use text. Please read the terms of use.   Terms of use text. Please read the terms of use. Terms of use text. Please read the terms of use. Terms of use text. Please read the terms of use. Terms of use text. Please read the terms of use. Terms of use text. Please read the terms of use. Terms of use text. Please read the terms of use.   Terms of use text. Please read the terms of use. Terms of use text. Please read the terms of use. Terms of use text. Please read the terms of use. Terms of use text. Please read the terms of use. Terms of use text. Please read the terms of use. Terms of use text. Please read the terms of use.   Terms of use text. Please read the terms of use. Terms of use text. Please read the terms of use. " />
             </LinearLayout>
         </ScrollView>
-
-        <CheckBox
-            android:id="@+id/tou_check"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginLeft="20dp"
-            android:layout_marginTop="10dp"
-            android:layout_marginRight="20dp"
-            android:layout_marginBottom="10dp"
-            android:text="I agree" />
 
     </LinearLayout>
 

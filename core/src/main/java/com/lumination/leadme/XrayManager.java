@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.ImageFormat;
 import android.graphics.PixelFormat;
 import android.graphics.Point;
 import android.graphics.drawable.Drawable;
@@ -51,14 +52,10 @@ public class XrayManager {
     String ipAddress;
     Intent screen_share_intent = null;
     private MediaProjectionManager projectionManager = null;
-    private int displayWidth, displayHeight, imagesProduced = 0;
-    ImageReader imageReader;
 
     public Bitmap response;
-    public Bitmap bitmapToSend = null;
     Boolean monitorInProgress = false;
     ServerSocket serverSocket = null;
-    boolean screenShot = false;
     int screenshotRate = 200;
 
     private TextView xrayStudentSelectedView, xrayStudentDisplayNameView;
@@ -70,60 +67,15 @@ public class XrayManager {
 
     private final String TAG = "XrayManager";
 
-    private InetAddress ip;
-    private int Port;
-
     public XrayManager(LeadMeMain main, View xrayScreen) {
         this.main = main;
         this.xrayScreen = xrayScreen;
         xrayScreenshotView = xrayScreen.findViewById(R.id.monitor_popup_img);
         xrayScreenshotView.setImageResource(R.color.transparent);
-    }
 
-    public void generateScreenshots(boolean isWatching) {
-        screenshotPaused = !isWatching;
-
-        if (!screenCapPermission) {
-            startServer();
-            //startScreenshotRunnable(ip, Port);
-        }
     }
 
     boolean screenCapPermission = false;
-    boolean debug = false;
-
-    @SuppressLint("WrongConstant")
-    public void manageResultsReturn(int requestCode, int resultCode, Intent data) {
-        if (debug) {
-            return;
-        }
-
-        main.getPermissionsManager().waitingForPermission = false;
-        Log.d(TAG, "RETURNED RESULT FROM SCREEN_CAPTURE! " + resultCode + ", " + data);
-        MediaProjection mediaProjection = projectionManager.getMediaProjection(resultCode, data);
-        if (mediaProjection != null) {
-            screenCapPermission = true;
-            DisplayMetrics metrics = main.getResources().getDisplayMetrics();
-            int density = metrics.densityDpi;
-            int flags = DisplayManager.VIRTUAL_DISPLAY_FLAG_OWN_CONTENT_ONLY
-                    | DisplayManager.VIRTUAL_DISPLAY_FLAG_PUBLIC;
-
-            Point size = new Point();
-            size.y = metrics.heightPixels;
-            size.x = metrics.widthPixels;
-            displayHeight = size.y;
-            displayWidth = size.x;
-
-            imageReader = ImageReader.newInstance(size.x, size.y, PixelFormat.RGBA_8888, 2);
-
-            mediaProjection.createVirtualDisplay("screencap",
-                    size.x, size.y, density,
-                    flags, imageReader.getSurface(), null, main.getHandler());
-            imageReader.setOnImageAvailableListener(new ImageAvailableListener(), main.getHandler());
-        } else {
-            screenCapPermission = false;
-        }
-    }
 
     private void setupXrayView() {
         xrayStudentIcon = xrayScreen.findViewById(R.id.student_icon);
@@ -401,77 +353,6 @@ public class XrayManager {
         }
     }
 
-    public void stopServer() {
-        main.stopService(screen_share_intent);
-        ipAddress = null;
-        imagesProduced = 0;
-    }
-
-    private class ImageAvailableListener implements ImageReader.OnImageAvailableListener {
-        @Override
-        public void onImageAvailable(ImageReader reader) {
-            Log.d(TAG, "onImageAvailable: image available");
-            Bitmap bitmap = null;
-            ByteArrayOutputStream stream = null;
-            //Log.d(TAG, "onImageAvailable: ");
-            try (Image image = imageReader.acquireLatestImage()) {
-
-                if (main.getPermissionsManager().waitingForPermission) {
-                    main.getPermissionsManager().waitingForPermission = false;
-                    main.refreshOverlay();
-                }
-
-                //if (takeScreenshots) {
-                //Log.d(TAG, "onImageAvailable: image acquired");
-                //sleep allows control over how many screenshots are taken
-                //old/less powerful phones need this otherwise there is heavy lag (etc for >20 screen shots a second)
-                //newer phones can have this disabled for a faster display
-                if (screenshotRate > 0) Thread.sleep(screenshotRate);
-
-                if (image != null) {
-                    //Log.d(TAG, "onImageAvailable: image exists");
-                    Image.Plane[] planes = image.getPlanes();
-                    ByteBuffer buffer = planes[0].getBuffer();
-                    int pixelStride = planes[0].getPixelStride();
-                    int rowStride = planes[0].getRowStride();
-                    int rowPadding = rowStride - pixelStride * displayWidth;
-
-                    stream = new ByteArrayOutputStream();
-
-                    // create bitmap
-                    bitmap = Bitmap.createBitmap(displayWidth + rowPadding / pixelStride,
-                            displayHeight, Bitmap.Config.ARGB_8888);
-                    bitmap.copyPixelsFromBuffer(buffer);
-                    if(bitmapToSend!=null){
-                        bitmapToSend.recycle();
-                    }
-                    bitmapToSend = bitmap;
-                    //bitmap.recycle();
-                    imagesProduced++;
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            } finally {
-
-
-                if (main.getPermissionsManager().waitingForPermission) {
-                    main.getPermissionsManager().waitingForPermission = false;
-                    main.refreshOverlay();
-                }
-
-                if (stream != null) {
-                    try {
-                        stream.close();
-                    } catch (IOException ioe) {
-                        ioe.printStackTrace();
-                    }
-                }
-            }
-
-        }
-    }
-
-
     private void imageRunnableFunction(String imgPeer) {
         Log.e(TAG, "Starting imageRunnable: " + serverSocket.isClosed() + ", " + serverSocket.isBound());
         Socket socket;
@@ -514,27 +395,16 @@ public class XrayManager {
             //Log.w(TAG, buffer + ", " + response);
             if (buffer != null) {
                 Bitmap tmpBmp = BitmapFactory.decodeByteArray(buffer, 0, buffer.length);
-//                if(response!=null){
-//                    response.recycle();
-//                }
                 response = tmpBmp;
 
                 main.runOnUiThread(() -> {
                     Log.d(TAG, "Adding screenshot! " + monitoredPeer + " == " + imgPeer);
-//                    if(clientRecentScreenshots.get(imgPeer)!=null){
-//                        clientRecentScreenshots.get(imgPeer).recycle();
-//                    }
-
                     clientRecentScreenshots.put(imgPeer, tmpBmp); //store it
-
-                    //I'm on display!
                     if (monitoredPeer.equals(imgPeer)) {
                         xrayScreenshotView.setImageBitmap(tmpBmp);
-                        tmpBmp.recycle();
                         Log.w(TAG, "Updated the image!");
                     }
                 });
-               // tmpBmp.recycle();
             } else {
                 try {
                     Thread.currentThread().sleep(1000);
@@ -572,93 +442,7 @@ public class XrayManager {
             imageSocketThread.start();
             clientSocketThreads.put(peer, imageSocketThread); //store this
             Log.w(TAG, "Now have client sockets: " + clientSocketThreads.size() + " : " + peer);
-
-            main.getNearbyManager().networkAdapter.startMonitoring(Integer.parseInt(peer), serverSocket.getLocalPort());
         }
 
-    }
-
-    //will only have one of these at the client
-    //OK to store this way
-    Socket screenshotSocket = null;
-    public boolean screenshotPaused = false;
-    Thread screenShotRunner = null;
-
-    public void startScreenshotRunnable(InetAddress ip, int Port) {
-        screenShot = true;
-        this.ip = ip;
-        this.Port = Port;
-        if (screenshotSocket != null && screenshotSocket.isConnected()) {
-            Log.w(TAG, "Already have a screenshot runnable going!");
-            try {
-                screenshotSocket.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            //return; //already got one!
-        }
-
-        screenShotRunner = new Thread(() -> {
-            try {
-                Log.w(TAG, "creating CLIENT socket with " + ip + ", " + Port);
-                screenshotSocket = new Socket(ip, Port);
-
-            } catch (IOException e) {
-                e.printStackTrace();
-                Log.d(TAG, "startScreenShot: socket not connected");
-                main.getPermissionsManager().waitingForPermission = false;
-                main.refreshOverlay();
-                return;
-            }
-            while (screenShot) {
-                if (screenshotPaused) {
-                    //Log.w(TAG, "SCREENSHOT PAUSED!");
-                    try {
-                        screenShotRunner.sleep(3000); //how long until we should check again?
-                        continue;
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                }
-
-                //Log.w(TAG, "SCREENSHOT RUNNING!");
-                if (bitmapToSend != null && screenshotSocket.isConnected()) {
-                    ByteArrayOutputStream stream = new ByteArrayOutputStream();
-                    bitmapToSend.compress(Bitmap.CompressFormat.JPEG, 50, stream);
-                    if (stream.toByteArray().length > 300000) {
-                        bitmapToSend.compress(Bitmap.CompressFormat.JPEG, 0, stream);
-                    }
-                    bitmapToSend.recycle();
-                    bitmapToSend = null;
-                    byte[] byteArray = stream.toByteArray();
-                    try {
-                        DataOutputStream out = new DataOutputStream(screenshotSocket.getOutputStream());
-                        out.writeInt(byteArray.length);
-                        out.write(byteArray, 0, byteArray.length);
-                        Log.d(TAG, "run: image sent of size " + byteArray.length + " to " + screenshotSocket.getInetAddress() + ", from " + screenshotSocket.getLocalAddress());
-
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                    try {
-                        Thread.sleep(screenshotRate);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                        Log.d(TAG, "Thread: thread wouldn't sleep");
-                    }
-                }
-            }
-            Log.e(TAG, "Image send thread closed. " + screenShot);
-            screenShot = false;
-        });
-        screenShotRunner.start();
-    }
-
-    public void stopScreenshotRunnable() {
-        screenShot = false;
-    }
-
-    public void setScreenshotRate(int rate) {
-        screenshotRate = rate;
     }
 }

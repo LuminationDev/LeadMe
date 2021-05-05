@@ -554,6 +554,23 @@
                         android:src="@drawable/close" />
 
                 </LinearLayout>
+
+                <TextView
+                    android:id="@+id/login_forgot_pin"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="right"
+                    android:layout_marginTop="10dp"
+                    android:layout_marginRight="50dp"
+                    android:layout_weight="1"
+                    android:fontFamily="@font/poppins_semibold"
+                    android:includeFontPadding="false"
+                    android:padding="5dp"
+                    android:text="Forgot pin?"
+                    android:textAlignment="textEnd"
+                    android:textColor="@color/leadme_blue"
+                    android:textSize="13sp" />
+
             </LinearLayout>
 
             <Space

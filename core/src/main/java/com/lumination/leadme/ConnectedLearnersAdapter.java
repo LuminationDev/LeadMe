@@ -343,8 +343,8 @@ public class ConnectedLearnersAdapter extends BaseAdapter {
         TextView studentName = convertView.findViewById(R.id.student_name);
         ImageView selectedIndicator = convertView.findViewById(R.id.selected_indicator);
         ImageView studentIcon = convertView.findViewById(R.id.student_icon);
-        ImageView warningIcon = convertView.findViewById(R.id.status_icon);
-
+        ImageView warningIcon = convertView.findViewById(R.id.student_warning_icon);
+        ImageView statusIcon = convertView.findViewById(R.id.status_icon);
         final ConnectedPeer peer = mData.get(position);
         if (peer != null) {
             studentName.setText(peer.getDisplayName());
@@ -363,6 +363,7 @@ public class ConnectedLearnersAdapter extends BaseAdapter {
             //draw the student icon and status icon
             studentIcon.setImageDrawable(icon);
             drawAlertIcon(peer, warningIcon);
+            setLockStatus(peer, statusIcon);
 
             convertView.setLongClickable(true);
             convertView.setOnLongClickListener(v -> {
@@ -444,9 +445,12 @@ public class ConnectedLearnersAdapter extends BaseAdapter {
                 if (peer.hasWarning()) {
                     Log.d(TAG, peer.getDisplayName() + " has warning: " + peer.getAlertsList());
                     statusIcon.setImageDrawable(main.getResources().getDrawable(R.drawable.alert_warning, null));
-                } else {
-                    setLockStatus(peer, statusIcon);
+                }else{
+                    statusIcon.setImageDrawable(null);
                 }
+//                else {
+//                    setLockStatus(peer, statusIcon);
+//                }
                 break;
         }
     }
@@ -460,7 +464,7 @@ public class ConnectedLearnersAdapter extends BaseAdapter {
         } else if (!peer.hasWarning() && peer.isLocked()) {
             statusIcon.setImageDrawable(main.getResources().getDrawable(R.drawable.view_learneralert, null));
 
-        } else if (!peer.hasWarning()) {
+        } else if (!peer.isLocked() &&!peer.isBlackedOut() ) {
             statusIcon.setImageDrawable(null);
         }
     }

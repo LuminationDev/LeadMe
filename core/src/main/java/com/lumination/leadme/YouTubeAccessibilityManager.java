@@ -120,7 +120,7 @@ public class YouTubeAccessibilityManager {
             main.getWebManager().setFreshPlay(false); //done!
 //            if (!main.getWebManager().launchingVR) {
 //                Log.w(TAG, "Launching!!");
-            cueYouTubeAction(CUE_PAUSE + "");
+            //cueYouTubeAction(CUE_PAUSE + "");
             cueYouTubeAction(CUE_FS_ONLY + "");
 //            }
         } else if (!videoPlayStarted && !pushTitle.isEmpty() && titleNodes != null && !titleNodes.isEmpty()) {
@@ -214,7 +214,8 @@ public class YouTubeAccessibilityManager {
             if (cuedActions.contains(CUE_VR_OFF + "")) {
                 Log.i(TAG, "Exiting VR mode");
                 ArrayList<AccessibilityNodeInfo> vrNodes = connector.collectChildren(rootInActiveWindow, getVROnPhrases(), 0);
-                if (!vrNodes.isEmpty()) {// || !inVR) {
+                ArrayList<AccessibilityNodeInfo> vrNodes2 = connector.collectChildren(rootInActiveWindow, getVROffPhrases(), 0);
+                if (!vrNodes.isEmpty()||(vrNodes.isEmpty() && vrNodes2.isEmpty())) {// || !inVR) {
                     Log.i(TAG, "Already in FULLSCREEN mode");
                     inVR = false;
                     cuedActions.remove(CUE_VR_OFF + ""); //don't need to keep looking
@@ -515,7 +516,7 @@ public class YouTubeAccessibilityManager {
         ArrayList<AccessibilityNodeInfo> popupNodes = connector.collectChildren(rootInActiveWindow, skipAdsPhrases, 0);
 
         if (videoPlayStarted && !popupNodes.isEmpty() && videoPlayStarted) {
-            endOfVideo();
+           // endOfVideo();
             return;
         }
 

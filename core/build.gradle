@@ -55,9 +55,6 @@ dependencies {
     //for screenshots
     implementation 'eu.bolt:screenshotty:1.0.3'
     implementation 'com.github.karanvs:hiddenshot:v1.2'
-
-    implementation 'com.github.bumptech.glide:glide:4.11.0'
-    annotationProcessor 'com.github.bumptech.glide:compiler:4.11.0'
     implementation 'com.github.Nikoloutsos:KLoadingSpin:1.1.0'
 
     //for firebase
@@ -67,6 +64,9 @@ dependencies {
     implementation 'com.google.firebase:firebase-auth'
     implementation 'com.google.android.gms:play-services-auth:19.0.0'
     implementation 'com.github.1AboveAll:Hasher:1.2'
+
+    implementation 'com.github.bumptech.glide:glide:4.12.0'
+    annotationProcessor 'com.github.bumptech.glide:compiler:4.12.0'
 }
 
 configurations.all {
