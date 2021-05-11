@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="30dp">
+
+    <ImageView
+        android:layout_width="match_parent"
+        android:layout_height="120dp"
+        android:src="@drawable/ic_request"
+        android:tint="@color/leadme_blue" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:layout_marginBottom="10dp"
+        android:fontFamily="@font/poppins_semibold"
+        android:gravity="center"
+        android:text="Name Change Request"
+        android:textSize="18sp" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="20dp"
+        android:layout_marginRight="20dp"
+        android:layout_marginBottom="20dp"
+        android:fontFamily="@font/poppins_regular"
+        android:gravity="center"
+        android:text="The teacher has requested that you change your name, please enter a new one below." />
+
+    <EditText
+        android:id="@+id/name_request_newname"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:accessibilityTraversalAfter="@id/codeInput1"
+        android:accessibilityTraversalBefore="@id/back_btn"
+        android:autofillHints=""
+        android:background="@drawable/rounded_btn_highlight"
+        android:focusableInTouchMode="true"
+        android:fontFamily="@font/poppins_regular"
+        android:gravity="left"
+        android:hint="Enter new name"
+        android:imeOptions="actionNext"
+        android:inputType="textEmailAddress"
+        android:maxLines="1"
+        android:paddingLeft="10dp"
+        android:paddingTop="10dp"
+        android:paddingBottom="10dp"
+        android:singleLine="true"
+        android:textColorHint="@color/leadme_medium_grey"
+        android:textSize="16sp"
+        android:visibility="visible"></EditText>
+
+    <Button
+        android:id="@+id/name_request_confirm"
+        style="?android:attr/borderlessButtonStyle"
+        android:layout_width="@dimen/standard_btn_width"
+        android:layout_height="@dimen/standard_btn_height"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="20dp"
+        android:layout_marginBottom="20dp"
+        android:accessibilityTraversalAfter="@id/back_btn"
+        android:accessibilityTraversalBefore="@id/codeInput4"
+        android:background="@drawable/bg_active"
+        android:clickable="true"
+        android:focusable="true"
+        android:fontFamily="@font/poppins_semibold"
+        android:text="Confirm"
+        android:textAllCaps="false"
+        android:textColor="@color/leadme_white"
+        android:textSize="16sp" />
+
+</LinearLayout>

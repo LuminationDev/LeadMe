@@ -68,6 +68,10 @@ public class ConnectedPeer {
         return uuid;
     }
 
+    public void setName(String Name){
+        buddyName=Name;
+    }
+
     public void setWarning(String warning, boolean success) {
         //Log.w(TAG, "Setting warning state: " + warning + ", " + success);
 

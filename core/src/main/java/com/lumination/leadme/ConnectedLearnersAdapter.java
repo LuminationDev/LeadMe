@@ -2,19 +2,35 @@ package com.lumination.leadme;
 
 import android.app.AlertDialog;
 import android.content.DialogInterface;
+import android.content.res.ColorStateList;
 import android.graphics.drawable.Drawable;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewParent;
+import android.widget.AdapterView;
 import android.widget.BaseAdapter;
 import android.widget.Button;
+import android.widget.CompoundButton;
+import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.ListPopupWindow;
+import android.widget.PopupWindow;
+import android.widget.Spinner;
+import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.collection.ArraySet;
+import androidx.core.content.ContextCompat;
+import androidx.core.widget.ImageViewCompat;
+
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 public class ConnectedLearnersAdapter extends BaseAdapter {
 
@@ -332,7 +348,52 @@ public class ConnectedLearnersAdapter extends BaseAdapter {
     AlertDialog disconnectPrompt;
     AlertDialog logoutPrompt;
     private String lastClickedID = "";
+    protected void forceWrapContent(View v) {
+        // Start with the provided view
+        View current = v;
 
+        // Travel up the tree until fail, modifying the LayoutParams
+        do {
+            // Get the parent
+            ViewParent parent = current.getParent();
+
+            // Check if the parent exists
+            if (parent != null) {
+                // Get the view
+                try {
+                    current = (View) parent;
+                } catch (ClassCastException e) {
+                    // This will happen when at the top view, it cannot be cast to a View
+                    break;
+                }
+
+                // Modify the layout
+                current.getLayoutParams().width = ViewGroup.LayoutParams.WRAP_CONTENT;
+            }
+        } while (current.getParent() != null);
+
+        // Request a layout to be re-done
+        current.requestLayout();
+    }
+    public static void avoidSpinnerDropdownFocus(Spinner spinner) {
+        try {
+            Field listPopupField = Spinner.class.getDeclaredField("mPopup");
+            listPopupField.setAccessible(true);
+            Object listPopup = listPopupField.get(spinner);
+            if (listPopup instanceof ListPopupWindow) {
+                Field popupField = ListPopupWindow.class.getDeclaredField("mPopup");
+                popupField.setAccessible(true);
+                Object popup = popupField.get((ListPopupWindow) listPopup);
+                if (popup instanceof PopupWindow) {
+                    ((PopupWindow) popup).setFocusable(false);
+                }
+            }
+        } catch (NoSuchFieldException e) {
+            e.printStackTrace();
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        }
+    }
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
 
@@ -365,10 +426,43 @@ public class ConnectedLearnersAdapter extends BaseAdapter {
             drawAlertIcon(peer, warningIcon);
             setLockStatus(peer, statusIcon);
 
+            //spinner menu
+            Spinner menuSpinner = (Spinner) convertView.findViewById(R.id.student_menu_spin);
+            String menuSpinnerItems[] = new String[2];
+            menuSpinnerItems[0] = "Remove Learner";
+            menuSpinnerItems[1] = "Settings";
+            Integer[] menu_imgs = {R.drawable.alert_error, R.drawable.ic_settings_blue};
+            LumiSpinnerAdapter menu_adapter = new LumiSpinnerAdapter(main, R.layout.row_push_spinner, menuSpinnerItems, menu_imgs);
+            menuSpinner.setAdapter(menu_adapter);
+            menuSpinner.setSelection(0,false); //default to locked
+            avoidSpinnerDropdownFocus(menuSpinner); //stops nav bar from appearing
+
+            menuSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                @Override
+                public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                    if(position==0){
+                        Log.d(TAG, "[adapter] Removing student: " + lastClickedID);
+                        ArrayList<Integer> selected = new ArrayList<>();
+                        selected.add(Integer.valueOf(lastClickedID));
+                        main.getNearbyManager().networkAdapter.sendToSelectedClients("", "DISCONNECT", selected);
+                        removeStudent(lastClickedID);
+                        refresh();
+                    }else if(position==1){
+                        //todo settings dialog
+                        BuildAndDisplaySettings(peer);
+                    }
+                }
+
+                @Override
+                public void onNothingSelected(AdapterView<?> parent) {
+
+                }
+            });
+
             convertView.setLongClickable(true);
             convertView.setOnLongClickListener(v -> {
                 lastClickedID = peer.getID();
-                main.xrayManager.showXrayView(lastClickedID);
+                menuSpinner.performClick();
                 return true;
             });
 
@@ -418,6 +512,179 @@ public class ConnectedLearnersAdapter extends BaseAdapter {
         return convertView;
     }
 
+    private void BuildAndDisplaySettings(ConnectedPeer peer) {
+        View Settings = View.inflate(main, R.layout.d__student_settings, null);
+        TextView Name = Settings.findViewById(R.id.student_set_name);
+        TextView EditName = Settings.findViewById(R.id.student_set_edit_name);
+        Switch ViewToggle = Settings.findViewById(R.id.student_set_view_toggle);
+        Switch BlockToggle = Settings.findViewById(R.id.student_set_block_toggle);
+        TextView Disconnect = Settings.findViewById(R.id.student_set_disconnect);
+        Button Close = Settings.findViewById(R.id.student_set_close);
+
+        Name.setText(peer.getDisplayName());
+        AlertDialog studentSettingsDialog = new AlertDialog.Builder(main)
+                .setView(Settings)
+                .show();
+
+
+        ViewToggle.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if(isChecked){
+                    ViewToggle.setText("View Mode ON");
+                    ImageViewCompat.setImageTintList(Settings.findViewById(R.id.student_set_view_icon), ColorStateList.valueOf(ContextCompat.getColor(main, R.color.leadme_blue)));
+                    ((TextView) Settings.findViewById(R.id.student_set_view_text)).setVisibility(View.INVISIBLE);
+                    Set<String> student = new ArraySet<>();
+                    student.add(peer.getID());
+                    main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.LOCK_TAG, student);
+//                    stream=false;
+                }else{
+                    ImageViewCompat.setImageTintList(Settings.findViewById(R.id.student_set_view_icon), ColorStateList.valueOf(ContextCompat.getColor(main, R.color.leadme_medium_grey)));
+                    ((TextView) Settings.findViewById(R.id.student_set_view_text)).setVisibility(View.VISIBLE);
+                    ViewToggle.setText("View Mode OFF");
+                    Set<String> student = new ArraySet<>();
+                    student.add(peer.getID());
+                    main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.UNLOCK_TAG, student);
+//                    stream=true;
+                }
+
+            }
+        });
+        BlockToggle.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if(isChecked){
+                    BlockToggle.setText("View Mode ON");
+                    ImageViewCompat.setImageTintList(Settings.findViewById(R.id.student_set_block_icon), ColorStateList.valueOf(ContextCompat.getColor(main, R.color.leadme_blue)));
+                    ((TextView) Settings.findViewById(R.id.student_set_block_text)).setVisibility(View.INVISIBLE);
+                    Set<String> student = new ArraySet<>();
+                    student.add(peer.getID());
+                    main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.BLACKOUT_TAG, student);
+//                    stream=false;
+                }else{
+                    ImageViewCompat.setImageTintList(Settings.findViewById(R.id.student_set_block_icon), ColorStateList.valueOf(ContextCompat.getColor(main, R.color.leadme_medium_grey)));
+                    ((TextView) Settings.findViewById(R.id.student_set_block_text)).setVisibility(View.VISIBLE);
+                    BlockToggle.setText("View Mode OFF");
+                    Set<String> student = new ArraySet<>();
+                    student.add(peer.getID());
+                    main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.UNLOCK_TAG, student);
+//                    stream=true;
+                }
+            }
+        });
+        Disconnect.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Log.d(TAG, "[adapter] Removing student: " + lastClickedID);
+                ArrayList<Integer> selected = new ArrayList<>();
+                selected.add(Integer.valueOf(lastClickedID));
+                main.getNearbyManager().networkAdapter.sendToSelectedClients("", "DISCONNECT", selected);
+                removeStudent(lastClickedID);
+                refresh();
+                studentSettingsDialog.dismiss();
+                main.hideSystemUI();
+            }
+        });
+        Close.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                studentSettingsDialog.dismiss();
+                main.hideSystemUI();
+            }
+        });
+        EditName.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                BuildAndDisplayNameChange(studentSettingsDialog,peer);
+            }
+        });
+        studentSettingsDialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
+            @Override
+            public void onDismiss(DialogInterface dialog) {
+                main.hideSystemUI();
+            }
+        });
+
+    }
+
+    private void BuildAndDisplayNameChange(AlertDialog studentSettingsDialog, ConnectedPeer peer) {
+        View NameChange = View.inflate(main, R.layout.e__name_change, null);
+        TextView OldName = NameChange.findViewById(R.id.name_change_old);
+        EditText NewName = NameChange.findViewById(R.id.name_change_edit);
+        Button Confirm = NameChange.findViewById(R.id.name_change_confirm);
+        Button Request = NameChange.findViewById(R.id.name_change_request);
+        Button Back = NameChange.findViewById(R.id.name_change_back);
+        studentSettingsDialog.dismiss();
+        AlertDialog studentNameChange = new AlertDialog.Builder(main)
+                .setView(NameChange)
+                .show();
+        OldName.setText(peer.getDisplayName());
+        Confirm.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(NewName.getText()==null){
+                    return;
+                }
+                String newName = NewName.getText().toString();
+                if(newName.length()>0){
+                    //todo send name change
+                    Set<String> student = new ArraySet<>();
+                    student.add(peer.getID());
+                    main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.NAME_CHANGE+newName, student);
+                    peer.setName(newName);
+                    BuildAndDisplayNameConfirm(OldName.getText().toString(),newName,false);
+                    OldName.setText(newName);
+                    ((TextView)studentSettingsDialog.findViewById(R.id.student_set_name)).setText(newName);
+                    refresh();
+
+                }
+            }
+        });
+        Request.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Set<String> student = new ArraySet<>();
+                student.add(peer.getID());
+                main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.NAME_REQUEST, student);
+                studentNameChange.dismiss();
+                BuildAndDisplayNameConfirm(OldName.getText().toString(),"",true);
+            }
+        });
+        Back.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                studentNameChange.dismiss();
+                studentSettingsDialog.show();
+            }
+        });
+    studentNameChange.setOnDismissListener(new DialogInterface.OnDismissListener() {
+            @Override
+            public void onDismiss(DialogInterface dialog) {
+                main.hideSystemUI();
+            }
+        });
+    }
+    protected void BuildAndDisplayNameConfirm(String oldName, String newName, boolean request){
+        View NameChangedConfirm = View.inflate(main, R.layout.f__name_push_confirm, null);
+        AlertDialog studentNameConfirm = new AlertDialog.Builder(main)
+                .setView(NameChangedConfirm)
+                .show();
+        LinearLayout changed = NameChangedConfirm.findViewById(R.id.name_changed_view);
+        LinearLayout requested = NameChangedConfirm.findViewById(R.id.name_request_view);
+        if(request){
+            changed.setVisibility(View.GONE);
+            requested.setVisibility(View.VISIBLE);
+        }else{
+            changed.setVisibility(View.VISIBLE);
+            requested.setVisibility(View.GONE);
+            TextView nameChangedText = NameChangedConfirm.findViewById(R.id.name_changed_text);
+            nameChangedText.setText(oldName+" name was changed to "+newName);
+        }
+        Button confirm = NameChangedConfirm.findViewById(R.id.name_changed_confirm);
+        confirm.setOnClickListener(v -> studentNameConfirm.dismiss());
+        studentNameConfirm.setOnDismissListener(dialog -> main.hideSystemUI());
+
+    }
     protected void moveToFrontOfList(ConnectedPeer peer) {
         //only reorder if we haven't already
         if (reorderByStatus && peer.getPriority() != ConnectedPeer.PRIORITY_TOP) {

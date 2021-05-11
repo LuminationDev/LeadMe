@@ -168,6 +168,9 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     static final String XRAY_ON = "LumiXrayOn";
     static final String XRAY_OFF = "LumiXrayOff";
 
+    static final String NAME_CHANGE = "NameChange:";
+    static final String NAME_REQUEST = "NameRequest:";
+
     public final int OVERLAY_ON = 0;
     public final int ACCESSIBILITY_ON = 1;
     public final int BLUETOOTH_ON = 2;

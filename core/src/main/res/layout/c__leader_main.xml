@@ -423,7 +423,8 @@
                 android:numColumns="3"
                 android:verticalSpacing="15dp"
                 android:visibility="gone"
-                tools:listitem="@layout/row_follower">
+                tools:listitem="@layout/row_follower"
+                tools:visibility="visible">
 
             </GridView>
         </FrameLayout>

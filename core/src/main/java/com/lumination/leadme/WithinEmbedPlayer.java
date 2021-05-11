@@ -433,7 +433,6 @@ public class WithinEmbedPlayer {
                 updateControllerUI(true);
             }
         });
-
     }
 
     private void updateControllerUI(boolean isPlaybackController) {
@@ -445,7 +444,7 @@ public class WithinEmbedPlayer {
             withinControllerDialogView.findViewById(R.id.view_mode_controls).setVisibility(View.VISIBLE);
             withinControllerDialogView.findViewById(R.id.playback_btns).setVisibility(View.VISIBLE);
             withinControllerDialogView.findViewById(R.id.within_select_btns).setVisibility(View.GONE);
-
+            withinControllerDialogView.findViewById(R.id.vr_status_bar).setVisibility(View.VISIBLE);
             repushBtn.setVisibility(View.VISIBLE);
             ((TextView) withinControllerDialogView.findViewById(R.id.title)).setText(main.getResources().getText(R.string.playback_controls_title));
 
@@ -454,7 +453,7 @@ public class WithinEmbedPlayer {
             withinControllerDialogView.findViewById(R.id.basic_controls).setVisibility(View.GONE);
             withinControllerDialogView.findViewById(R.id.vr_selection).setVisibility(View.VISIBLE);
             withinControllerDialogView.findViewById(R.id.view_mode_controls).setVisibility(View.GONE);
-
+            withinControllerDialogView.findViewById(R.id.vr_status_bar).setVisibility(View.GONE);
             withinControllerDialogView.findViewById(R.id.playback_btns).setVisibility(View.GONE);
             withinControllerDialogView.findViewById(R.id.within_select_btns).setVisibility(View.VISIBLE);
 
@@ -574,13 +573,6 @@ public class WithinEmbedPlayer {
         } else {
             withinControllerDialogView.findViewById(R.id.vr_mode).setVisibility(View.GONE);
             withinControllerDialogView.findViewById(R.id.phone_mode).setVisibility(View.VISIBLE);
-        }
-        if(stream){
-            withinControllerDialogView.findViewById(R.id.stream_mode).setVisibility(View.VISIBLE);
-            withinControllerDialogView.findViewById(R.id.download_mode).setVisibility(View.GONE);
-        }else{
-            withinControllerDialogView.findViewById(R.id.stream_mode).setVisibility(View.GONE);
-            withinControllerDialogView.findViewById(R.id.download_mode).setVisibility(View.VISIBLE);
         }
     }
 

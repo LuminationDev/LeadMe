@@ -12,6 +12,14 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content">
 
+        <Spinner
+            android:id="@+id/student_menu_spin"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_gravity="bottom"
+            android:background="@color/leadme_white"
+            android:spinnerMode="dropdown" />
+
         <ImageView
             android:id="@+id/student_icon"
             android:layout_width="@dimen/appicon_size"

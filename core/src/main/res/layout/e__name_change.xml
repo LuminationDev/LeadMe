@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="30dp">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="20dp"
+        android:fontFamily="@font/poppins_semibold"
+        android:gravity="center"
+        android:text="Edit Name"
+        android:textSize="18sp" />
+
+    <TextView
+        android:id="@+id/name_change_old"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="10dp"
+        android:fontFamily="@font/poppins_semibold"
+        android:text="Old Name" />
+
+    <EditText
+        android:id="@+id/name_change_edit"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:accessibilityTraversalAfter="@id/codeInput1"
+        android:accessibilityTraversalBefore="@id/back_btn"
+        android:autofillHints=""
+        android:background="@drawable/rounded_btn_highlight"
+        android:focusableInTouchMode="true"
+        android:fontFamily="@font/poppins_regular"
+        android:gravity="left"
+        android:hint="Enter new name"
+        android:imeOptions="actionNext"
+        android:inputType="textEmailAddress"
+        android:maxLines="1"
+        android:paddingLeft="10dp"
+        android:paddingTop="10dp"
+        android:paddingBottom="10dp"
+        android:singleLine="true"
+        android:textColorHint="@color/leadme_medium_grey"
+        android:textSize="16sp"
+        android:visibility="visible"></EditText>
+
+    <Button
+        android:id="@+id/name_change_confirm"
+        style="?android:attr/borderlessButtonStyle"
+        android:layout_width="@dimen/standard_btn_width"
+        android:layout_height="@dimen/standard_btn_height"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="20dp"
+        android:layout_marginBottom="20dp"
+        android:accessibilityTraversalAfter="@id/back_btn"
+        android:accessibilityTraversalBefore="@id/codeInput4"
+        android:background="@drawable/bg_active"
+        android:clickable="true"
+        android:focusable="true"
+        android:fontFamily="@font/poppins_semibold"
+        android:text="Enter"
+        android:textAllCaps="false"
+        android:textColor="@color/leadme_white"
+        android:textSize="16sp" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:visibility="visible">
+
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="2dp"
+            android:layout_gravity="center"
+            android:layout_weight="1"
+            android:background="@color/leadme_dark_grey" />
+
+        <!--            <Space-->
+        <!--                android:layout_width="wrap_content"-->
+        <!--                android:layout_height="1dp"-->
+        <!--                android:layout_gravity="center"-->
+        <!--                android:layout_weight="1"-->
+        <!--                android:background="@color/leadme_darkest_grey"-->
+        <!--                android:backgroundTint="@color/leadme_darkest_grey"-->
+        <!--                android:foreground="@color/leadme_darkest_grey"-->
+        <!--                android:foregroundTint="@color/leadme_darkest_grey" />-->
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="10dp"
+            android:layout_marginRight="10dp"
+            android:fontFamily="@font/poppins_regular"
+            android:text="OR"
+            android:textColor="@color/leadme_dark_grey" />
+
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="2dp"
+            android:layout_gravity="center"
+            android:layout_weight="1"
+            android:background="@color/leadme_dark_grey" />
+
+    </LinearLayout>
+
+    <Button
+        android:id="@+id/name_change_request"
+        style="?android:attr/borderlessButtonStyle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="20dp"
+        android:layout_marginBottom="10dp"
+        android:accessibilityTraversalAfter="@id/back_btn"
+        android:accessibilityTraversalBefore="@id/codeInput4"
+        android:background="@drawable/bg_active"
+        android:clickable="true"
+        android:drawableLeft="@drawable/ic_request"
+        android:drawablePadding="10dp"
+        android:focusable="true"
+        android:fontFamily="@font/poppins_semibold"
+        android:paddingLeft="10dp"
+        android:paddingRight="10dp"
+        android:text="Send Request"
+        android:textAllCaps="false"
+        android:textColor="@color/leadme_white"
+        android:textSize="16sp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_marginBottom="20dp"
+        android:fontFamily="@font/poppins_regular"
+        android:text="Learner will be prompted to enter a new name" />
+
+    <Button
+        android:id="@+id/name_change_back"
+        style="?android:attr/borderlessButtonStyle"
+        android:layout_width="@dimen/standard_btn_width"
+        android:layout_height="@dimen/standard_btn_height"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="10dp"
+        android:background="@drawable/bg_passive"
+        android:clickable="true"
+        android:focusable="true"
+        android:fontFamily="@font/poppins_semibold"
+        android:text="Back"
+        android:textAllCaps="false"
+        android:textColor="@color/leadme_darkest_grey"
+        android:textSize="16sp" />
+</LinearLayout>

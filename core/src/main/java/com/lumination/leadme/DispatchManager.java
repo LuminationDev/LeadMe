@@ -1,10 +1,13 @@
 package com.lumination.leadme;
 
+import android.app.AlertDialog;
 import android.net.Uri;
 import android.os.Parcel;
 import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
+import android.widget.Button;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.nearby.connection.Payload;
@@ -175,7 +178,8 @@ public class DispatchManager {
                 action.startsWith(LeadMeMain.STUDENT_NO_ACCESSIBILITY) ||
                 action.startsWith(LeadMeMain.STUDENT_OFF_TASK_ALERT) ||
                 action.startsWith(LeadMeMain.PING_TAG) ||
-                action.startsWith(LeadMeMain.LAUNCH_SUCCESS)) {
+                action.startsWith(LeadMeMain.LAUNCH_SUCCESS) ||
+                action.startsWith(LeadMeMain.NAME_REQUEST)) {
             main.getNearbyManager().sendToSelected(Payload.fromBytes(bytes), selectedPeerIDs);
         } else {
             Log.i(TAG, "Sorry, you can't send actions!");
@@ -275,7 +279,7 @@ public class DispatchManager {
 
                 case LeadMeMain.RETURN_TAG:
                     Log.d(TAG, "Trying to return to " + main.leadMeAppName);
-                    main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.LAUNCH_SUCCESS + main.leadMePackageName
+                    main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.LAUNCH_SUCCESS + main.leadMePackageName//todo
                             + ":" + main.getNearbyManager().getID() + ":" + main.leadMePackageName, main.getNearbyManager().getAllPeerIDs());
                     main.updateFollowerCurrentTaskToLeadMe();
                     main.recallToLeadMe();
@@ -288,6 +292,28 @@ public class DispatchManager {
                     break;
                 case LeadMeMain.LAUNCH_ACCESS:
                     main.getPermissionsManager().requestAccessibilitySettingsOn();
+                    break;
+                case LeadMeMain.NAME_REQUEST:
+                    View NameChangeRequest = View.inflate(main, R.layout.d__name_change_request, null);
+                    AlertDialog studentNameChangeRequest = new AlertDialog.Builder(main)
+                            .setView(NameChangeRequest)
+                            .show();
+                    studentNameChangeRequest.setCancelable(false);
+                    studentNameChangeRequest.setCanceledOnTouchOutside(false);
+
+                    TextView newName = NameChangeRequest.findViewById(R.id.name_request_newname);
+                    Button confirm = NameChangeRequest.findViewById(R.id.name_request_confirm);
+                    confirm.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            if(newName.getText()!=null && newName.getText().toString().length()>0){
+                                TextView title = main.leadmeAnimator.getCurrentView().findViewById(R.id.learner_title);
+                                title.setText(newName.getText().toString());
+                                sendActionToSelected(LeadMeMain.ACTION_TAG,LeadMeMain.NAME_REQUEST+newName.getText().toString()+":"+main.getNearbyManager().getID(),main.getNearbyManager().getAllPeerIDs());
+                                studentNameChangeRequest.dismiss();
+                            }
+                        }
+                    });
                     break;
 
                 default:
@@ -303,7 +329,18 @@ public class DispatchManager {
                         }
                         break;
 
-                    } else if (action.startsWith(LeadMeMain.VID_MUTE_TAG)) {
+                    }else if(action.startsWith(LeadMeMain.NAME_CHANGE)) {
+                        String[] Strsplit = action.split(":");
+                        main.getNearbyManager().myName=Strsplit[1];
+                        TextView title = main.leadmeAnimator.getCurrentView().findViewById(R.id.learner_title);
+                        title.setText(Strsplit[1]);
+                    }else if(action.startsWith(LeadMeMain.NAME_REQUEST)){
+                        //teachers handler for name change
+                        String[] Strsplit = action.split(":");
+                        ConnectedPeer peer = main.getConnectedLearnersAdapter().getMatchingPeer(Strsplit[2]);
+                        peer.setName(Strsplit[1]);
+                        main.getConnectedLearnersAdapter().refresh();
+                    }else if (action.startsWith(LeadMeMain.VID_MUTE_TAG)) {
                         Log.d(TAG, "GOT MUTE");
                         main.muteAudio();
 

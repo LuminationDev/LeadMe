@@ -74,6 +74,44 @@
         android:visibility="visible">
 
 
+        <LinearLayout
+            android:id="@+id/vr_status_bar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:background="@color/leadme_darkest_grey"
+            android:orientation="vertical"
+            android:padding="10dp"
+            android:visibility="gone">
+
+            <TextView
+                android:id="@+id/vr_mode"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:drawableStart="@drawable/task_vr_icon"
+                android:drawablePadding="8dp"
+                android:fontFamily="@font/poppins_semibold"
+                android:includeFontPadding="false"
+                android:text="VR mode on"
+                android:textColor="@color/leadme_white"
+                android:textSize="14sp" />
+
+            <TextView
+                android:id="@+id/phone_mode"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:drawableLeft="@drawable/task_vr_icon_disabled"
+                android:drawablePadding="8dp"
+                android:fontFamily="@font/poppins_semibold"
+                android:includeFontPadding="false"
+                android:text="VR mode off"
+                android:textColor="@color/leadme_white"
+                android:textSize="14sp" />
+
+        </LinearLayout>
+
         <WebView
             android:id="@+id/within_webview"
             android:layout_width="match_parent"
@@ -112,7 +150,8 @@
             android:background="@color/leadme_darkest_grey"
             android:gravity="center"
             android:orientation="horizontal"
-            android:padding="10dp">
+            android:padding="10dp"
+            android:visibility="visible">
 
             <LinearLayout
                 android:id="@+id/vr_selection"
@@ -162,88 +201,19 @@
                 android:background="@color/leadme_darkest_grey"
                 android:gravity="center"
                 android:orientation="horizontal"
+                android:paddingTop="5dp"
                 android:visibility="gone">
-
-                <LinearLayout
-                    android:layout_width="180dp"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical">
-
-                    <TextView
-                        android:id="@+id/vr_mode"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginEnd="20dp"
-                        android:drawableStart="@drawable/task_vr_icon"
-                        android:drawablePadding="8dp"
-                        android:fontFamily="@font/poppins_semibold"
-                        android:includeFontPadding="false"
-                        android:text="VR mode on"
-                        android:textColor="@color/leadme_white"
-                        android:textSize="14sp" />
-
-                    <TextView
-                        android:id="@+id/phone_mode"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginEnd="20dp"
-                        android:drawableLeft="@drawable/task_vr_icon_disabled"
-                        android:drawablePadding="8dp"
-                        android:fontFamily="@font/poppins_semibold"
-                        android:includeFontPadding="false"
-                        android:text="VR mode off"
-                        android:textColor="@color/leadme_white"
-                        android:textSize="14sp"
-                        android:visibility="gone" />
-
-                    <TextView
-                        android:id="@+id/download_mode"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="5dp"
-                        android:layout_marginEnd="20dp"
-                        android:drawableStart="@drawable/ic_download"
-                        android:drawablePadding="13dp"
-                        android:drawableTint="@color/leadme_blue"
-                        android:drawableTintMode="src_in"
-                        android:fontFamily="@font/poppins_semibold"
-                        android:gravity="center"
-                        android:includeFontPadding="false"
-                        android:paddingLeft="5dp"
-                        android:text="Download on"
-                        android:textColor="@color/leadme_white"
-                        android:textSize="14sp" />
-
-                    <TextView
-                        android:id="@+id/stream_mode"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="5dp"
-                        android:layout_marginEnd="20dp"
-                        android:drawableStart="@drawable/ic_download"
-                        android:drawablePadding="13dp"
-                        android:drawableTint="@color/leadme_medium_grey"
-                        android:drawableTintMode="src_in"
-                        android:fontFamily="@font/poppins_semibold"
-                        android:gravity="center"
-                        android:includeFontPadding="false"
-                        android:paddingLeft="5dp"
-                        android:text="Download off"
-                        android:textColor="@color/leadme_white"
-                        android:textSize="14sp"
-                        android:visibility="gone" />
-
-                </LinearLayout>
 
                 <ImageView
                     android:id="@+id/mute_btn"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
-                    android:layout_margin="15dp"
+                    android:layout_marginRight="15dp"
                     android:fontFamily="@font/poppins_semibold"
                     android:gravity="center_horizontal"
                     android:includeFontPadding="false"
+                    android:padding="5dp"
                     android:src="@drawable/vid_mute"
                     android:textColor="@color/leadme_white"
                     android:textSize="12sp" />
@@ -253,10 +223,10 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
-                    android:layout_margin="15dp"
                     android:fontFamily="@font/poppins_semibold"
                     android:gravity="center_horizontal"
                     android:includeFontPadding="false"
+                    android:padding="5dp"
                     android:src="@drawable/vid_unmute"
                     android:textColor="@color/leadme_white"
                     android:textSize="12sp" />
