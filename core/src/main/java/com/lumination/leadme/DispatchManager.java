@@ -179,6 +179,7 @@ public class DispatchManager {
                 action.startsWith(LeadMeMain.STUDENT_OFF_TASK_ALERT) ||
                 action.startsWith(LeadMeMain.PING_TAG) ||
                 action.startsWith(LeadMeMain.LAUNCH_SUCCESS) ||
+                action.startsWith(LeadMeMain.STUDENT_NO_XRAY) ||
                 action.startsWith(LeadMeMain.NAME_REQUEST)) {
             main.getNearbyManager().sendToSelected(Payload.fromBytes(bytes), selectedPeerIDs);
         } else {
@@ -257,6 +258,10 @@ public class DispatchManager {
                 case LeadMeMain.XRAY_ON:
 //                    Log.w(TAG, "I AM being watched! " + main.getNearbyManager().getName());
 //                    main.xrayManager.generateScreenshots(true);
+                    if(main.screenCap.permissionGranted==false){
+                        main.screenCap.startService(true);
+                        break;
+                    }
                     if(main.screenCap.clientToServerSocket==null){
                         main.screenCap.connectToServer();
                     }
@@ -413,6 +418,14 @@ public class DispatchManager {
                             main.getConnectedLearnersAdapter().updateStatus(split[2], ConnectedPeer.STATUS_WARNING, LeadMeMain.STUDENT_NO_INTERNET);
                         }
                         break;
+
+                    }else if(action.startsWith(LeadMeMain.STUDENT_NO_XRAY)){
+                        String[] split = action.split(":");
+                        if (split[1].equalsIgnoreCase("OK")) {
+                            main.getConnectedLearnersAdapter().updateStatus(split[2], ConnectedPeer.STATUS_SUCCESS, LeadMeMain.STUDENT_NO_XRAY);
+                        } else {
+                            main.getConnectedLearnersAdapter().updateStatus(split[2], ConnectedPeer.STATUS_WARNING, LeadMeMain.STUDENT_NO_XRAY);
+                        }
 
                     } else if (action.startsWith(LeadMeMain.STUDENT_NO_ACCESSIBILITY)) {
                         String[] split = action.split(":");

@@ -29,8 +29,8 @@ public class ConnectedPeer {
     private Drawable icon = null;
 
     private int status = ConnectedPeer.STATUS_SUCCESS;
-    private boolean locked = false;
-    private boolean blackedOut = false;
+    public boolean locked = false;
+    public boolean blackedOut = false;
 
     //assume the best, update if the worst
     private boolean onTask = true;
@@ -38,6 +38,7 @@ public class ConnectedPeer {
     private boolean overlayEnabled = true;
     private boolean internetEnabled = true;
     private boolean lastAppLaunchSucceeded = true;
+    private boolean xray = true;
 
     private NearbyPeersManager.Endpoint myEndpoint;
 
@@ -100,6 +101,9 @@ public class ConnectedPeer {
                 hiddenAlerts.remove("onTask");
                 onTask = success;
                 break;
+            case LeadMeMain.STUDENT_NO_XRAY:
+                hiddenAlerts.remove("xrayOn");
+                xray=success;
         }
     }
 
@@ -129,6 +133,9 @@ public class ConnectedPeer {
         }
         if (!internetEnabled && !hiddenAlerts.contains("internetOn")) {
             res += "• No internet connection\n";
+        }
+        if(!xray && !hiddenAlerts.contains("xrayOn")){
+            res += "• Xray permission is disabled\n";
         }
         if (res.isEmpty() && status == STATUS_WARNING) {
             res += "• Unspecified warning\n";
@@ -231,6 +238,13 @@ public class ConnectedPeer {
                 hiddenAlerts.add("internetOn");
             } else {
                 hiddenAlerts.remove("internetOn");
+            }
+        }
+        if(!xray){
+            if(hide){
+                hiddenAlerts.add("xrayOn");
+            } else {
+                hiddenAlerts.remove("xrayOn");
             }
         }
     }

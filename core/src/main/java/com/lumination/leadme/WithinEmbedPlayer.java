@@ -40,6 +40,8 @@ public class WithinEmbedPlayer {
 
     private final static String TAG = "embedPlayerWithin";
 
+    public int resumeState = 0;
+
 
     //static variables
     private static final int VR_MODE = 1;
@@ -301,6 +303,7 @@ public class WithinEmbedPlayer {
     private String foundTitle = "";
 
     private void setupWebClient(WebView tmpWebView, boolean searchView) {
+        tmpWebView.setWebContentsDebuggingEnabled(true);
         tmpWebView.setWebViewClient(new WebViewClient() {
             @Override
             public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
@@ -420,6 +423,7 @@ public class WithinEmbedPlayer {
 
     private void showPushConfirmed() {
         videoControlDialog.hide();
+        main.hideSystemUI();
         View confirmPushDialogView = View.inflate(main, R.layout.e__confirm_popup, null);
         AlertDialog confirmPopup = new AlertDialog.Builder(main)
                 .setView(confirmPushDialogView)
@@ -476,11 +480,13 @@ public class WithinEmbedPlayer {
         });
 
         withinControllerDialogView.findViewById(R.id.video_back_btn).setOnClickListener(v -> {
-            videoControlDialog.dismiss();
+            videoControlDialog.hide();
+            main.hideSystemUI();
         });
 
         withinControllerDialogView.findViewById(R.id.within_back).setOnClickListener(v -> {
-            videoControlDialog.dismiss();
+            videoControlDialog.hide();
+            main.hideSystemUI();
         });
 
         withinControllerDialogView.findViewById(R.id.mute_btn).setOnClickListener(v -> {
@@ -650,7 +656,7 @@ public class WithinEmbedPlayer {
         }
 
         videoControlDialog.show();
-        updateControllerUI(false);
+        //updateControllerUI(false);
         //return to main screen
         main.hideConfirmPushDialog();
     }

@@ -33,6 +33,7 @@ public class ScreenCap {
     MediaProjectionManager projectionManager;
     MediaProjection mProjection;
     ImageReader mImageReader;
+    public boolean permissionGranted =false;
 
     public Socket clientToServerSocket=null;
     ExecutorService screenshotSender = Executors.newFixedThreadPool(1);
@@ -67,7 +68,9 @@ public class ScreenCap {
         }
 
     }
-    public void startService(){
+    boolean startImed = false;
+    public void startService(boolean StartOnReturn){
+        Log.d(TAG, "startService: ");
             projectionManager = (MediaProjectionManager) main.getSystemService(Context.MEDIA_PROJECTION_SERVICE);
             Intent screen_share_intent = new Intent(main.getApplicationContext(), ScreensharingService.class);
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -75,13 +78,33 @@ public class ScreenCap {
             } else {
                 main.startService(screen_share_intent);
             }
-            main.startActivityForResult(projectionManager.createScreenCaptureIntent(), main.SCREEN_CAPTURE);
+            if(StartOnReturn){
+                startImed=true;
+            }
+                main.startActivityForResult(projectionManager.createScreenCaptureIntent(), main.SCREEN_CAPTURE);
+
     }
     public void handleResultReturn(int resultCode, Intent data){
+        Log.d(TAG, "handleResultReturn: "+ resultCode);
+        if(resultCode==-1){
+            main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG,LeadMeMain.STUDENT_NO_XRAY+"OK:"+main.getNearbyManager().myID,main.getNearbyManager().getAllPeerIDs());
+            permissionGranted=true;
+        }else{
+            main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG,LeadMeMain.STUDENT_NO_XRAY+"BAD:"+main.getNearbyManager().myID,main.getNearbyManager().getAllPeerIDs());
+            return;
+        }
+
         mProjection = projectionManager.getMediaProjection(resultCode, data);
         Log.d(TAG, "handleResultReturn: service started");
         setupScreenCap();
         getBitmapsFromScreen();
+        if(startImed) {
+            if (clientToServerSocket == null) {
+                connectToServer();
+            }
+            sendImages = true;
+        }
+        startImed=false;
     }
     @SuppressLint("WrongConstant")
     public void setupScreenCap(){

@@ -168,8 +168,17 @@ public class StudentAlertsAdapter extends BaseAdapter {
                     Iterator<ConnectedPeer> iterator6 = mData.iterator();
                     while (iterator6.hasNext()) {
                         ConnectedPeer peer = iterator6.next();
-                        if (peer.getAlertsList().contains("Unspecified warning")) {
+                        if (peer.getAlertsList().contains("Xray permission is disabled")) {
                             AlertsByCategories.get(6).add(peer);
+                        }
+                    }
+                    break;
+                case 7:
+                    Iterator<ConnectedPeer> iterator7 = mData.iterator();
+                    while (iterator7.hasNext()) {
+                        ConnectedPeer peer = iterator7.next();
+                        if (peer.getAlertsList().contains("Unspecified warning")) {
+                            AlertsByCategories.get(7).add(peer);
                         }
                     }
                     break;
@@ -192,13 +201,14 @@ public class StudentAlertsAdapter extends BaseAdapter {
 
     private String lastClickedID = "";
     ArrayList<View> nullViews = new ArrayList<>();
-    String Types[] = {"Disconnected","Last App Didn't Launch","Accessibility is Disabled","Overlay is Disabled","No internet connection","Student May Be Off Task","Uncategorised Warnings"};
+    String Types[] = {"Disconnected","Last App Didn't Launch","Accessibility is Disabled","Overlay is Disabled","No internet connection","Student May Be Off Task","Xray is Disabled","Uncategorised Warnings"};
     String Desc[] ={"Learners have disconnected from LeadMe.\n",
             "The application that was pushed does not exist on learner devices.\n",
             "Learners have no enabled accessibility for LeadMe.\n",
             "Learner has not enabled screen overlay for LeadMe.\n",
             "Task may have not launched successfully as learners are not connected to the internet.\n",
             "Learners have exited the current task and may be using the wrong application.\n",
+            "The learner has not accepted the Xray permission. The prompt will be displayed again if you attempt to Xray them.\n",
             "To be completely honest, I'm not really sure how we got here.\n"
     };
     String buttonTxt[] = {"Clear","Re-push","Launch","Clear","Proceed Offline","Re-push","Clear"};

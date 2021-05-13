@@ -231,16 +231,16 @@ public class NearbyPeersManager {
     }
 
     public Set<String> getAllPeerIDs() {
-        Set<String> something = new HashSet();
+        Set<String> peerIDS = new HashSet();
         Iterator it = networkAdapter.currentClients.iterator();
         while (it.hasNext()) {
             client id = (client) it.next();
-            something.add(String.valueOf(id.ID));
+            peerIDS.add(String.valueOf(id.ID));
         }
         if (!main.isGuide) {
-            something.add("-1");
+            peerIDS.add("-1");
         }
-        return something;
+        return peerIDS;
     }
 
     void sendToSelected(Payload payload, Set<String> endpoints) {

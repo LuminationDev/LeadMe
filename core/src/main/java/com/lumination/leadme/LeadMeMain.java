@@ -162,6 +162,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     static final String STUDENT_NO_OVERLAY = "LumiOverlay:";
     static final String STUDENT_NO_ACCESSIBILITY = "LumiAccess:";
     static final String STUDENT_NO_INTERNET = "LumiInternet:";
+    static final String STUDENT_NO_XRAY = "LumiXray:";
     static final String LAUNCH_SUCCESS = "LumiSuccess:";
     final static String SESSION_UUID_TAG = "SessionUUID";
 
@@ -1275,6 +1276,10 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         //Toast.makeText(this, "LC Destroy", Toast.LENGTH_LONG).show();
         Log.d(TAG, "LC Destroy");
         appHasFocus = false;
+        Log.d(TAG, "onLifecycleDestroy: "+Build.MODEL);
+        if(Build.MODEL.equals("MI 8 SE")){
+            getAccessibilityService().disableSelf();
+        }
         destroyAndReset();
     }
 
@@ -1804,9 +1809,21 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         });
         optionsScreen.findViewById(R.id.options_loginBtn).setOnClickListener(view -> showLoginDialog());
         optionsScreen.findViewById(R.id.options_notsigned).setOnClickListener(view -> buildloginsignup(0));
-        optionsScreen.findViewById(R.id.how_to_use_btn).setOnClickListener(v -> Toast.makeText(getApplicationContext(), "Coming soon!", Toast.LENGTH_SHORT).show());
+        optionsScreen.findViewById(R.id.how_to_use_btn).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://drive.google.com/file/d/1LrbQ5I1jlf-OQyIgr2q3Tg3sCo00x5lu/view"));
+                startActivity(browserIntent);
+            }
+        });
 
-        optionsScreen.findViewById(R.id.help_support_btn).setOnClickListener(v -> Toast.makeText(getApplicationContext(), "Coming soon!", Toast.LENGTH_SHORT).show());
+        optionsScreen.findViewById(R.id.help_support_btn).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String email[] = {"dev@lumination.com.au"};
+                composeEmail(email,"LeadMe Support");
+            }
+        });
 
         optionsScreen.findViewById(R.id.logout_btn).setOnClickListener(v -> {
             if (isGuide || !getNearbyManager().isConnectedAsFollower()) {
@@ -1966,6 +1983,15 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         displayGuidePrompt(sharedPreferences);
 
     }
+    public void composeEmail(String[] addresses, String subject) {
+        Intent intent = new Intent(Intent.ACTION_SENDTO);
+        intent.setData(Uri.parse("mailto:")); // only email apps should handle this
+        intent.putExtra(Intent.EXTRA_EMAIL, addresses);
+        intent.putExtra(Intent.EXTRA_SUBJECT, subject);
+        if (intent.resolveActivity(getPackageManager()) != null) {
+            startActivity(intent);
+        }
+    }
 
     private void displayGuidePrompt(SharedPreferences sharedPreferences) {
         if (!sharedPreferences.contains("FIRST")) {
@@ -1979,6 +2005,8 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             firstDialog.findViewById(R.id.open_guide).setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
+                            Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://drive.google.com/file/d/1LrbQ5I1jlf-OQyIgr2q3Tg3sCo00x5lu/view"));
+                            startActivity(browserIntent);
                     //todo link to guide
                 }
             });
@@ -3185,7 +3213,13 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
 
                 });
-                OnBoard.findViewById(R.id.onboard_moreinfo_btn).setOnClickListener(v1 -> setContentView(leadmeAnimator)); //TODO wire up this button to advanced support page
+                OnBoard.findViewById(R.id.onboard_moreinfo_btn).setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://drive.google.com/file/d/1LrbQ5I1jlf-OQyIgr2q3Tg3sCo00x5lu/view"));
+                        startActivity(browserIntent);
+                    }
+                });
             } else {
                 skipIntro.setVisibility(View.VISIBLE);
                 nextButton.setVisibility(View.VISIBLE);
@@ -3208,6 +3242,13 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             Button okPermission = OnBoardPerm.findViewById(R.id.onboardperm_ok_btn);
             Button cancelPermission = OnBoardPerm.findViewById(R.id.onboardperm_cancel_btn);
             okPermission.setOnClickListener(v -> getPermissionsManager().requestAccessibilitySettingsOn());
+            support.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://drive.google.com/file/d/1LrbQ5I1jlf-OQyIgr2q3Tg3sCo00x5lu/view"));
+                    startActivity(browserIntent);
+                }
+            });
             cancelPermission.setOnClickListener(v -> {
                 leadmeAnimator.setDisplayedChild(ANIM_START_SWITCH_INDEX);
                 this.setContentView(leadmeAnimator);
@@ -3216,6 +3257,13 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         } else if (page == 1) {
             View OnBoardPerm = View.inflate(this, R.layout.c__onboarding_student_2, null);
             TextView support = OnBoardPerm.findViewById(R.id.onboardperm_support); //TODO support button link
+            support.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://drive.google.com/file/d/1LrbQ5I1jlf-OQyIgr2q3Tg3sCo00x5lu/view"));
+                    startActivity(browserIntent);
+                }
+            });
             Button okPermission = OnBoardPerm.findViewById(R.id.onboardperm_ok_btn);
             Button cancelPermission = OnBoardPerm.findViewById(R.id.onboardperm_cancel_btn);
             okPermission.setOnClickListener(new View.OnClickListener() {
@@ -3252,7 +3300,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             loginAttemptInAction = false;
             getNearbyManager().connectToSelectedLeader();
             showWaitingForConnectDialog();
-            screenCap.startService();
+            screenCap.startService(false);
         }
     }
 

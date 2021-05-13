@@ -55,19 +55,6 @@ public class PermissionManager {
                 Log.d(TAG, "Overlay Permission DENIED!");
                 overlayPermissionGranted = false; //not all granted
                 waitingForPermission = false; //no longer waiting
-//                    Thread t = new Thread(() -> {
-//                        while(!isOverlayPermissionGranted()){
-//                            try {
-//                                Thread.currentThread().sleep(100);
-//                            } catch (InterruptedException e) {
-//                                e.printStackTrace();
-//                            }
-//                        }
-//                        main.setStudentOnBoard(2);
-//                    });
-//                    t.start();
-
-
             }
         };
 
@@ -248,6 +235,11 @@ public class PermissionManager {
 
             if (enabledService != null && enabledService.equals(expectedComponentName)) {
                 Log.i(TAG, "***ACCESSIBILITY IS ENABLED, IS IT RUNNING? (" + isMyServiceRunning(LumiAccessibilityService.class) + ") ***");
+//                if(!isMyServiceRunning(LumiAccessibilityService.class)){
+//                    Intent mailAccessabilityIntent = new Intent(main, LumiAccessibilityService.class);
+//                    main.startService(mailAccessabilityIntent);
+//                    main.setAccessibilityService(mailAccessabilityIntent.);
+//                }
                 needsRecall = true;
                 waitingForPermission = false;
                 main.getDispatcher().alertGuidePermissionGranted(LeadMeMain.STUDENT_NO_ACCESSIBILITY, true);

@@ -85,6 +85,7 @@ public class YouTubeEmbedPlayer {
 
     private WebManager webManager;
     private LeadMeMain main;
+    Switch viewModeToggle;
 
     /**
      * USEFUL LINKS
@@ -242,6 +243,7 @@ public class YouTubeEmbedPlayer {
 
         ImageView vrIcon = videoControllerDialogView.findViewById(R.id.vr_mode_icon);
         vrModeBtn = (Switch) videoControllerDialogView.findViewById(R.id.vr_mode_toggle);
+        vrModeBtn.setChecked(false);
         ((Switch) videoControllerDialogView.findViewById(R.id.vr_mode_toggle)).setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
@@ -269,7 +271,8 @@ public class YouTubeEmbedPlayer {
                 }
             }
         });
-        Switch viewModeToggle = videoControllerDialogView.findViewById(R.id.view_mode_toggle);
+        viewModeToggle = videoControllerDialogView.findViewById(R.id.view_mode_toggle);
+        viewModeToggle.setChecked(true);
         viewModeToggle.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
@@ -449,6 +452,8 @@ public class YouTubeEmbedPlayer {
                 }
             });
         }
+        viewModeToggle.setChecked(true);
+        //vrModeBtn.setChecked(false);
         pageLoaded = false; //reset flag
         Log.d(TAG, "Attempting to show video controller for " + attemptedURL);
         loadVideoGuideURL(attemptedURL);

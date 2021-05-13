@@ -1189,7 +1189,7 @@ public class WebManager {
     private final int SEARCH_WEB = 0;
     private final int SEARCH_YOUTUBE = 1;
     private final int SEARCH_WITHIN = 2;
-    private int searchType = SEARCH_YOUTUBE;
+    private int searchType = SEARCH_WEB;
     private WebView searchWebView;
 
     public void buildAndShowSearchDialog(int type) {

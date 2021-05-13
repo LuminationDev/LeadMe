@@ -3,6 +3,7 @@ package com.lumination.leadme;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.res.ColorStateList;
+import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -17,6 +18,7 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListPopupWindow;
+import android.widget.PopupMenu;
 import android.widget.PopupWindow;
 import android.widget.Spinner;
 import android.widget.Switch;
@@ -29,8 +31,11 @@ import androidx.core.widget.ImageViewCompat;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 
 public class ConnectedLearnersAdapter extends BaseAdapter {
 
@@ -212,6 +217,8 @@ public class ConnectedLearnersAdapter extends BaseAdapter {
                 case LeadMeMain.STUDENT_OFF_TASK_ALERT:
                     warningMessage = "could be off task";
                     break;
+                case LeadMeMain.STUDENT_NO_XRAY:
+                    warningMessage = "xray popup was denied";
             }
             thisPeer.setWarning(msg, false);
 
@@ -375,25 +382,8 @@ public class ConnectedLearnersAdapter extends BaseAdapter {
         // Request a layout to be re-done
         current.requestLayout();
     }
-    public static void avoidSpinnerDropdownFocus(Spinner spinner) {
-        try {
-            Field listPopupField = Spinner.class.getDeclaredField("mPopup");
-            listPopupField.setAccessible(true);
-            Object listPopup = listPopupField.get(spinner);
-            if (listPopup instanceof ListPopupWindow) {
-                Field popupField = ListPopupWindow.class.getDeclaredField("mPopup");
-                popupField.setAccessible(true);
-                Object popup = popupField.get((ListPopupWindow) listPopup);
-                if (popup instanceof PopupWindow) {
-                    ((PopupWindow) popup).setFocusable(false);
-                }
-            }
-        } catch (NoSuchFieldException e) {
-            e.printStackTrace();
-        } catch (IllegalAccessException e) {
-            e.printStackTrace();
-        }
-    }
+
+
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
 
@@ -426,43 +416,52 @@ public class ConnectedLearnersAdapter extends BaseAdapter {
             drawAlertIcon(peer, warningIcon);
             setLockStatus(peer, statusIcon);
 
-            //spinner menu
-            Spinner menuSpinner = (Spinner) convertView.findViewById(R.id.student_menu_spin);
-            String menuSpinnerItems[] = new String[2];
-            menuSpinnerItems[0] = "Remove Learner";
-            menuSpinnerItems[1] = "Settings";
-            Integer[] menu_imgs = {R.drawable.alert_error, R.drawable.ic_settings_blue};
-            LumiSpinnerAdapter menu_adapter = new LumiSpinnerAdapter(main, R.layout.row_push_spinner, menuSpinnerItems, menu_imgs);
-            menuSpinner.setAdapter(menu_adapter);
-            menuSpinner.setSelection(0,false); //default to locked
-            avoidSpinnerDropdownFocus(menuSpinner); //stops nav bar from appearing
 
-            menuSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-                @Override
-                public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                    if(position==0){
+            convertView.setLongClickable(true);
+            View finalConvertView = convertView;
+            convertView.setOnLongClickListener(v -> {
+                lastClickedID = peer.getID();
+                final View popupView = View.inflate(main, R.layout.c__student_menu, null);
+                TextView disconnect = popupView.findViewById(R.id.remove_learner);
+                TextView settings = popupView.findViewById(R.id.student_settings);
+
+                PopupWindow popupWindow = new PopupWindow(
+                        popupView,
+                        ViewGroup.LayoutParams.WRAP_CONTENT,
+                        ViewGroup.LayoutParams.WRAP_CONTENT);
+
+                //popupWindow.setBackgroundDrawable(new BitmapDrawable());
+                popupWindow.setOutsideTouchable(true);
+                popupWindow.setElevation(10);
+                popupWindow.setOnDismissListener(new PopupWindow.OnDismissListener() {
+                    @Override
+                    public void onDismiss() {
+                        //TODO do sth here on dismiss
+                        main.hideSystemUI();
+                    }
+                });
+
+                popupWindow.showAsDropDown(v,200,-100);
+                disconnect.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
                         Log.d(TAG, "[adapter] Removing student: " + lastClickedID);
                         ArrayList<Integer> selected = new ArrayList<>();
                         selected.add(Integer.valueOf(lastClickedID));
                         main.getNearbyManager().networkAdapter.sendToSelectedClients("", "DISCONNECT", selected);
                         removeStudent(lastClickedID);
                         refresh();
-                    }else if(position==1){
-                        //todo settings dialog
-                        BuildAndDisplaySettings(peer);
+                        finalConvertView.setVisibility(View.GONE);
+                        popupWindow.dismiss();
                     }
-                }
-
-                @Override
-                public void onNothingSelected(AdapterView<?> parent) {
-
-                }
-            });
-
-            convertView.setLongClickable(true);
-            convertView.setOnLongClickListener(v -> {
-                lastClickedID = peer.getID();
-                menuSpinner.performClick();
+                });
+                settings.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        BuildAndDisplaySettings(peer);
+                        popupWindow.dismiss();
+                    }
+                });
                 return true;
             });
 
@@ -526,7 +525,12 @@ public class ConnectedLearnersAdapter extends BaseAdapter {
                 .setView(Settings)
                 .show();
 
-
+        if(peer.locked){
+            ViewToggle.setChecked(true);
+        }
+        if(peer.blackedOut){
+            BlockToggle.setChecked(true);
+        }
         ViewToggle.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
@@ -725,10 +729,10 @@ public class ConnectedLearnersAdapter extends BaseAdapter {
     private void setLockStatus(ConnectedPeer peer, ImageView statusIcon) {
         //Log.d(TAG, "Actually, is there a warning? "+peer.hasWarning()+", "+peer.isBlackedOut()+", "+peer.isLocked());
         //sometimes multiple status are possible.
-        if (!peer.hasWarning() && peer.isBlackedOut()) {
+        if ( peer.isBlackedOut()) {
             statusIcon.setImageDrawable(main.getResources().getDrawable(R.drawable.alert_blocked, null));
 
-        } else if (!peer.hasWarning() && peer.isLocked()) {
+        } else if ( peer.isLocked()) {
             statusIcon.setImageDrawable(main.getResources().getDrawable(R.drawable.view_learneralert, null));
 
         } else if (!peer.isLocked() &&!peer.isBlackedOut() ) {

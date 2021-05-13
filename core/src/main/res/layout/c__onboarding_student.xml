@@ -202,6 +202,7 @@
             android:layout_height="wrap_content"
             android:layout_gravity="bottom|center"
             android:layout_marginBottom="20dp"
+            android:autoLink="web"
             android:drawableLeft="@drawable/ic_question"
             android:drawablePadding="5dp"
             android:fontFamily="@font/poppins_semibold"
