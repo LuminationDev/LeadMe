@@ -16,6 +16,8 @@ import android.os.Build;
 import android.util.DisplayMetrics;
 import android.util.Log;
 
+import androidx.annotation.RequiresApi;
+
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -24,6 +26,8 @@ import java.nio.ByteBuffer;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 
 public class ScreenCap {
@@ -38,6 +42,7 @@ public class ScreenCap {
     public Socket clientToServerSocket=null;
     ExecutorService screenshotSender = Executors.newFixedThreadPool(1);
     public boolean sendImages = false;
+
 
     public ScreenCap(LeadMeMain main){
         this.main=main;
@@ -96,6 +101,13 @@ public class ScreenCap {
 
         mProjection = projectionManager.getMediaProjection(resultCode, data);
         Log.d(TAG, "handleResultReturn: service started");
+//        main.scheduledExecutorService.scheduleAtFixedRate(new Runnable() {
+//            @Override
+//            public void run() {
+//                setupScreenCap();
+//                getBitmapsFromScreen();
+//            }
+//        },0,5000, TimeUnit.MILLISECONDS);
         setupScreenCap();
         getBitmapsFromScreen();
         if(startImed) {
@@ -106,6 +118,7 @@ public class ScreenCap {
         }
         startImed=false;
     }
+
     @SuppressLint("WrongConstant")
     public void setupScreenCap(){
         mImageReader = ImageReader.newInstance(getScreenWidth(), getScreenHeight(), PixelFormat.RGBA_8888, 1);
@@ -113,10 +126,10 @@ public class ScreenCap {
         main.getDisplay().getRealMetrics(metrics);
         mProjection.createVirtualDisplay("screen-mirror", getScreenWidth(), getScreenHeight(), metrics.densityDpi, DisplayManager.VIRTUAL_DISPLAY_FLAG_PUBLIC, mImageReader.getSurface(), null, null);
     }
+    boolean portrait = true;
     public void getBitmapsFromScreen(){
 
         mImageReader.setOnImageAvailableListener((ImageReader.OnImageAvailableListener) reader -> {
-
                 Image image = mImageReader.acquireNextImage();
                 if (image == null) {
                     return;
@@ -137,6 +150,7 @@ public class ScreenCap {
                 Log.d(TAG, "getBitmapFromScreen: ");
             }
             image.close();
+
         },main.getHandler());
     }
     private static int getScreenWidth() {

@@ -240,6 +240,7 @@ public class FavouritesManager extends BaseAdapter {
         String title = webManager.getPreviewTitle();
         Drawable icon = webManager.getPreviewImage();
 
+        Log.d(TAG, "addCurrentPreviewToFavourites: "+url);
         if (title.isEmpty()) {
             title = "Loading...";
         }
@@ -250,7 +251,8 @@ public class FavouritesManager extends BaseAdapter {
 
         //if (url.contains("/embed/")) {
         //do this to keep everything consistent and avoid doubling up URLs
-        url = webManager.cleanYouTubeURLWithoutStart(url);
+        //update(jake) was a nice thought but unfortunately just wiped the url from existence
+        //url = webManager.cleanYouTubeURLWithoutStart(url);
         Log.d(TAG, "FAV! " + url);
         //}
 
@@ -313,6 +315,7 @@ public class FavouritesManager extends BaseAdapter {
 
     //content is URL or packageName
     public void addToFavourites(String content, String title, Drawable icon) {
+        Log.d(TAG, "addToFavourites: "+content);
         if (contentList.contains(content)) {
             return; //it's already there!
         }
@@ -525,10 +528,10 @@ public class FavouritesManager extends BaseAdapter {
             updateAppFavView(convertView, content);
 
         } else {
-            final String url = contentList.get(position);
+            String url = contentList.get(position);
 
-            final String title = titleList.get(position);
-            final Drawable icon = iconList.get(position);
+            String title = titleList.get(position);
+            Drawable icon = iconList.get(position);
             if (convertView == null) {
                 convertView = inflater.inflate(R.layout.row_fav_url, null);//parent, false);
                 final ViewHolder viewHolder = new ViewHolder(convertView);
@@ -647,7 +650,7 @@ public class FavouritesManager extends BaseAdapter {
         viewHolder.favouriteIcon.setImageDrawable(icon);
         convertView.setOnClickListener(v -> {
             if (favType != FAVTYPE_APP) {
-                Log.d(TAG, "Showing preview");
+                Log.d(TAG, "Showing preview" + url);
                 webManager.adding_to_fav = false;
                 webManager.showPreview(url);
             }

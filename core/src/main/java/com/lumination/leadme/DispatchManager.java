@@ -7,6 +7,7 @@ import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -265,7 +266,10 @@ public class DispatchManager {
                     if(main.screenCap.clientToServerSocket==null){
                         main.screenCap.connectToServer();
                     }
+//                    main.screenCap.setupScreenCap();
+//                    main.screenCap.getBitmapsFromScreen();
                     main.screenCap.sendImages=true;
+
 
                     break;
 
@@ -342,9 +346,24 @@ public class DispatchManager {
                     }else if(action.startsWith(LeadMeMain.NAME_REQUEST)){
                         //teachers handler for name change
                         String[] Strsplit = action.split(":");
+
                         ConnectedPeer peer = main.getConnectedLearnersAdapter().getMatchingPeer(Strsplit[2]);
+                        String oldName = peer.getDisplayName();
                         peer.setName(Strsplit[1]);
                         main.getConnectedLearnersAdapter().refresh();
+                        View NameChangedConfirm = View.inflate(main, R.layout.f__name_push_confirm, null);
+                        AlertDialog studentNameConfirm = new AlertDialog.Builder(main)
+                                .setView(NameChangedConfirm)
+                                .show();
+                        LinearLayout changed = NameChangedConfirm.findViewById(R.id.name_changed_view);
+                        LinearLayout requested = NameChangedConfirm.findViewById(R.id.name_request_view);
+                            changed.setVisibility(View.VISIBLE);
+                            requested.setVisibility(View.GONE);
+                            TextView nameChangedText = NameChangedConfirm.findViewById(R.id.name_changed_text);
+                            nameChangedText.setText(oldName+"'s name was changed to "+Strsplit[1]);
+                        Button confirmName = NameChangedConfirm.findViewById(R.id.name_changed_confirm);
+                        confirmName.setOnClickListener(v -> studentNameConfirm.dismiss());
+                        studentNameConfirm.setOnDismissListener(dialog -> main.hideSystemUI());
                     }else if (action.startsWith(LeadMeMain.VID_MUTE_TAG)) {
                         Log.d(TAG, "GOT MUTE");
                         main.muteAudio();

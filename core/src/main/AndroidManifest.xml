@@ -2,8 +2,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     package="com.lumination.leadme"
-    android:versionCode="5"
-    android:versionName="1.04">
+    android:versionCode="7"
+    android:versionName="1.06">
 
     <!-- for nearby connections -->
 <!--    <uses-permission android:name="android.permission.BLUETOOTH" />-->
@@ -67,7 +67,6 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
         <receiver android:name=".LumiAccessibilityReceiver">
             <intent-filter>
                 <action android:name="com.lumination.leadme.BROADCAST_ACTION" />

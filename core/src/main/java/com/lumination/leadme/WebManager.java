@@ -129,7 +129,7 @@ public class WebManager {
 
         websiteLaunchDialogView.findViewById(R.id.url_search_btn).setOnClickListener(v -> {
             hidePreviewDialog();
-            buildAndShowSearchDialog();
+            buildAndShowSearchDialog(SEARCH_WEB);
         });
 
         urlFavouritesManager = new FavouritesManager(main, this, FavouritesManager.FAVTYPE_URL, 10);

@@ -2,7 +2,7 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
-    android:background="@drawable/rounded_popup_white"
+    android:background="@drawable/slightly_rounded_popup"
     android:elevation="5dp"
     android:orientation="vertical">
 

@@ -3216,7 +3216,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                 OnBoard.findViewById(R.id.onboard_moreinfo_btn).setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://drive.google.com/file/d/1LrbQ5I1jlf-OQyIgr2q3Tg3sCo00x5lu/view"));
+                        Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://drive.google.com/file/d/1GGU7GeR4Ibq60-6bcc2F_bd698CKRFvZ/view"));
                         startActivity(browserIntent);
                     }
                 });
