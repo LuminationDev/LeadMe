@@ -124,7 +124,7 @@ public class ScreenCap {
         mImageReader = ImageReader.newInstance(getScreenWidth(), getScreenHeight(), PixelFormat.RGBA_8888, 1);
         DisplayMetrics metrics = new DisplayMetrics();
         main.getDisplay().getRealMetrics(metrics);
-        mProjection.createVirtualDisplay("screen-mirror", getScreenWidth(), getScreenHeight(), metrics.densityDpi, DisplayManager.VIRTUAL_DISPLAY_FLAG_PUBLIC, mImageReader.getSurface(), null, null);
+        mProjection.createVirtualDisplay("screen-mirror", getScreenHeight(), getScreenWidth(), metrics.densityDpi, DisplayManager.VIRTUAL_DISPLAY_FLAG_PUBLIC, mImageReader.getSurface(), null, null);
     }
     boolean portrait = true;
     public void getBitmapsFromScreen(){

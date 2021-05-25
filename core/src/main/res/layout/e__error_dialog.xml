@@ -111,8 +111,6 @@
                 android:layout_width="@dimen/standard_btn_width"
                 android:layout_height="@dimen/standard_btn_height"
                 android:layout_gravity="center_horizontal"
-                android:accessibilityTraversalAfter="@id/back_btn"
-                android:accessibilityTraversalBefore="@id/codeInput4"
                 android:background="@drawable/bg_active"
                 android:clickable="true"
                 android:focusable="true"

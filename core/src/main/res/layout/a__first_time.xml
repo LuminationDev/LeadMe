@@ -44,8 +44,6 @@
         android:layout_height="@dimen/standard_btn_height"
         android:layout_gravity="center_horizontal"
         android:layout_marginTop="20dp"
-        android:accessibilityTraversalAfter="@id/back_btn"
-        android:accessibilityTraversalBefore="@id/codeInput4"
         android:background="@drawable/bg_active"
         android:clickable="true"
         android:focusable="true"

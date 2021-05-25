@@ -366,7 +366,7 @@ public class WebManager {
         setupPushToggle();
         previewPushBtn.setOnClickListener(v -> {
             //save to favourites if needed
-            if (adding_to_fav || saveWebToFav.isChecked()) {
+            if (/*adding_to_fav ||*/ saveWebToFav.isChecked()) {
                 if (isYouTube) {
                     getYouTubeFavouritesManager().addCurrentPreviewToFavourites();
                 } else {

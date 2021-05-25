@@ -245,7 +245,7 @@
                     android:includeFontPadding="false"
                     android:paddingStart="8dp"
                     android:paddingEnd="10dp"
-                    android:text="@string/alerts"
+                    android:text="Alerts(0)"
                     android:textAllCaps="false"
                     android:textSize="14sp"
                     android:visibility="visible" />

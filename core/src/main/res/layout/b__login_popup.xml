@@ -20,7 +20,7 @@
 
         <LinearLayout
             android:id="@+id/wrong_code_view"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:orientation="vertical"
             android:visibility="gone">
@@ -72,7 +72,7 @@
                 android:layout_height="@dimen/standard_btn_height"
                 android:layout_gravity="center_horizontal"
                 android:accessibilityTraversalAfter="@id/back_btn"
-                android:accessibilityTraversalBefore="@id/codeInput4"
+                android:accessibilityTraversalBefore="@id/login_pin_entry"
                 android:background="@drawable/bg_active"
                 android:clickable="true"
                 android:fontFamily="@font/poppins_semibold"
@@ -89,7 +89,7 @@
             android:background="@drawable/rounded_popup_white"
             android:orientation="vertical"
             android:visibility="gone"
-            tools:visibility="visible">
+            tools:visibility="gone">
 
             <TextView
                 android:layout_width="wrap_content"
@@ -283,7 +283,7 @@
                     android:layout_height="@dimen/standard_btn_height"
                     android:layout_gravity="center_horizontal"
                     android:accessibilityTraversalAfter="@id/back_btn"
-                    android:accessibilityTraversalBefore="@id/codeInput4"
+                    android:accessibilityTraversalBefore="@id/login_pin_entry"
                     android:background="@drawable/bg_active"
                     android:clickable="true"
                     android:fontFamily="@font/poppins_semibold"
@@ -392,7 +392,7 @@
                     android:layout_gravity="center_horizontal"
                     android:layout_marginTop="10dp"
                     android:layout_marginBottom="15dp"
-                    android:accessibilityTraversalAfter="@id/codeInput1"
+                    android:accessibilityTraversalAfter="@id/login_pin_entry"
                     android:accessibilityTraversalBefore="@id/back_btn"
                     android:autofillHints=""
                     android:background="@drawable/rounded_btn_highlight"
@@ -431,129 +431,27 @@
                     android:text="@string/teacher_code"
                     android:textSize="18sp" />
 
-                <LinearLayout
-                    android:id="@+id/code_field_view"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center_horizontal"
-                    android:divider="@drawable/divider_horizontal"
-                    android:orientation="horizontal"
-                    android:showDividers="middle">
-
-
-                    <ImageView
-                        android:id="@+id/clear_code_buffer"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_gravity="center_vertical"
-                        android:src="@drawable/close"
-                        android:visibility="invisible" />
-
-                    <EditText
-                        android:id="@+id/codeInput1"
-                        android:layout_width="@dimen/code_textbox_size"
-                        android:layout_height="30dp"
-                        android:accessibilityTraversalAfter="@id/codeInput2"
-                        android:accessibilityTraversalBefore="@id/name_input_field"
-                        android:autofillHints=""
-                        android:background="@drawable/rounded_btn_highlight"
-                        android:digits="0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ _"
-                        android:focusableInTouchMode="true"
-                        android:fontFamily="@font/poppins_regular"
-                        android:gravity="bottom|center_horizontal"
-                        android:hint="@string/code_hint"
-                        android:imeOptions="flagNavigateNext"
-                        android:inputType="number"
-                        android:maxLength="1"
-                        android:paddingTop="5dp"
-                        android:singleLine="true"
-                        android:textAlignment="center"
-                        android:textColor="@color/leadme_black"
-                        android:textColorHint="@color/leadme_medium_grey"
-                        android:textSize="16sp"
-                        android:visibility="visible"></EditText>
-
-                    <EditText
-                        android:id="@+id/codeInput2"
-                        android:layout_width="@dimen/code_textbox_size"
-                        android:layout_height="30dp"
-                        android:accessibilityTraversalAfter="@id/codeInput3"
-                        android:accessibilityTraversalBefore="@id/codeInput1"
-                        android:autofillHints=""
-                        android:background="@drawable/rounded_btn_highlight"
-                        android:digits="0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ _"
-                        android:focusableInTouchMode="true"
-                        android:fontFamily="@font/poppins_regular"
-                        android:gravity="bottom|center_horizontal"
-                        android:hint="@string/code_hint"
-                        android:imeOptions="flagNavigateNext"
-                        android:inputType="number"
-                        android:maxLength="1"
-                        android:paddingTop="5dp"
-                        android:singleLine="true"
-                        android:textAlignment="center"
-                        android:textColor="@color/leadme_black"
-                        android:textColorHint="@color/leadme_medium_grey"
-                        android:textSize="16sp"
-                        android:visibility="visible"></EditText>
-
-                    <EditText
-                        android:id="@+id/codeInput3"
-                        android:layout_width="@dimen/code_textbox_size"
-                        android:layout_height="30dp"
-                        android:accessibilityTraversalAfter="@id/codeInput4"
-                        android:accessibilityTraversalBefore="@id/codeInput2"
-                        android:autofillHints=""
-                        android:background="@drawable/rounded_btn_highlight"
-                        android:digits="0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ _"
-                        android:focusableInTouchMode="true"
-                        android:fontFamily="@font/poppins_regular"
-                        android:gravity="bottom|center_horizontal"
-                        android:hint="@string/code_hint"
-                        android:imeOptions="flagNavigateNext"
-                        android:inputType="number"
-                        android:maxLength="1"
-                        android:paddingTop="5dp"
-                        android:singleLine="true"
-                        android:textAlignment="center"
-                        android:textColor="@color/leadme_black"
-                        android:textColorHint="@color/leadme_medium_grey"
-                        android:textSize="16sp"
-                        android:visibility="visible"></EditText>
-
-                    <EditText
-                        android:id="@+id/codeInput4"
-                        android:layout_width="@dimen/code_textbox_size"
-                        android:layout_height="30dp"
-                        android:accessibilityTraversalAfter="@id/connect_btn"
-                        android:accessibilityTraversalBefore="@id/codeInput3"
-                        android:autofillHints=""
-                        android:background="@drawable/rounded_btn_highlight"
-                        android:digits="0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ _"
-                        android:focusableInTouchMode="true"
-                        android:fontFamily="@font/poppins_regular"
-                        android:gravity="bottom|center_horizontal"
-                        android:hint="@string/code_hint"
-                        android:imeOptions="flagNavigateNext"
-                        android:inputType="number"
-                        android:maxLength="1"
-                        android:paddingTop="5dp"
-                        android:singleLine="true"
-                        android:textAlignment="center"
-                        android:textColor="@color/leadme_black"
-                        android:textColorHint="@color/leadme_medium_grey"
-                        android:textSize="16sp"
-                        android:visibility="visible"></EditText>
-
-
-                    <ImageView
-                        android:id="@+id/clear_code_btn"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_gravity="center_vertical"
-                        android:src="@drawable/close" />
-
-                </LinearLayout>
+                <com.alimuzaffar.lib.pin.PinEntryEditText
+                    android:id="@+id/login_pin_entry"
+                    android:layout_width="200dp"
+                    android:layout_height="30dp"
+                    android:layout_gravity="center"
+                    android:cursorVisible="false"
+                    android:digits="1234567890"
+                    android:gravity="center"
+                    android:hint="0"
+                    android:inputType="number"
+                    android:layoutDirection="ltr"
+                    android:maxLength="4"
+                    android:textIsSelectable="true"
+                    android:textSize="16sp"
+                    app:pinAnimationType="fromBottom"
+                    app:pinBackgroundDrawable="@drawable/pincode_background"
+                    app:pinBackgroundIsSquare="true"
+                    app:pinLineColors="@color/leadme_darkest_grey"
+                    app:pinLineStroke="2dp"
+                    app:pinLineStrokeSelected="4dp"
+                    app:pinTextBottomPadding="10dp" />
 
                 <TextView
                     android:id="@+id/login_forgot_pin"
@@ -591,7 +489,7 @@
                     android:layout_height="@dimen/standard_btn_height"
                     android:layout_gravity="center_horizontal"
                     android:accessibilityTraversalAfter="@id/back_btn"
-                    android:accessibilityTraversalBefore="@id/codeInput4"
+                    android:accessibilityTraversalBefore="@id/login_pin_entry"
                     android:background="@drawable/bg_active"
                     android:clickable="true"
                     android:fontFamily="@font/poppins_semibold"

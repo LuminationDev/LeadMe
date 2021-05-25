@@ -259,7 +259,6 @@
                 android:layout_width="100dp"
                 android:layout_height="40dp"
                 android:layout_gravity="center_vertical"
-                android:accessibilityTraversalBefore="@id/codeInput4"
                 android:background="@drawable/bg_passive"
                 android:clickable="true"
                 android:enabled="false"
