@@ -2257,7 +2257,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         if (loggingInAsLeader) {
             //check teacher code
             String code = pinEntry.getText().toString();
-
+            pinEntry.setText("");
             Log.d(TAG, "Code entered: " + code);
             // For showing
             ProgressBar progressBar = loginDialogView.findViewById(R.id.indeterminateBar);

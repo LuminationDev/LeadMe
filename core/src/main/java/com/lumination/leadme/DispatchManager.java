@@ -13,7 +13,9 @@ import android.widget.Toast;
 
 import com.google.android.gms.nearby.connection.Payload;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Set;
 
 public class DispatchManager {
@@ -150,7 +152,16 @@ public class DispatchManager {
     }
 
     public synchronized void alertLogout() {
-        sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.LOGOUT_TAG + ":" + main.getNearbyManager().getID(), main.getNearbyManager().getAllPeerIDs());
+        //sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.LOGOUT_TAG + ":" + main.getNearbyManager().getID(), main.getNearbyManager().getAllPeerIDs());
+
+        ArrayList<Integer> selected = new ArrayList<>();
+        Iterator iterator = main.getNearbyManager().getAllPeerIDs().iterator();
+        while (iterator.hasNext()) {
+            String peer = (String) iterator.next();
+            Log.d(TAG, "sendToSelected: " + peer);
+            selected.add(Integer.parseInt(peer));
+        }
+        main.getNearbyManager().networkAdapter.sendToSelectedClients("DISCONNECT", "DISCONNECT", selected);
     }
 
     public synchronized void sendActionToSelected(String actionTag, String action, Set<String> selectedPeerIDs) {
