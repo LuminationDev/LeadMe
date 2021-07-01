@@ -124,6 +124,67 @@
                     android:orientation="vertical">
 
                     <LinearLayout
+                        android:id="@+id/control_buttons"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:layout_marginTop="5dp"
+                        android:layout_marginBottom="25dp"
+                        android:orientation="horizontal"
+                        android:gravity="center">
+
+                        <ImageView
+                            android:id="@+id/play_btn"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center"
+                            android:fontFamily="@font/poppins_semibold"
+                            android:gravity="center_horizontal"
+                            android:includeFontPadding="false"
+                            android:src="@drawable/vid_play"
+                            android:textColor="@color/leadme_white"
+                            android:textSize="12sp" />
+
+                        <ImageView
+                            android:id="@+id/pause_btn"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center"
+                            android:layout_marginStart="35dp"
+                            android:fontFamily="@font/poppins_semibold"
+                            android:gravity="center_horizontal"
+                            android:includeFontPadding="false"
+                            android:src="@drawable/vid_pause_highlight"
+                            android:textColor="@color/leadme_white"
+                            android:textSize="12sp" />
+
+                        <ImageView
+                            android:id="@+id/mute_btn"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center"
+                            android:layout_marginStart="35dp"
+                            android:fontFamily="@font/poppins_semibold"
+                            android:gravity="center_horizontal"
+                            android:includeFontPadding="false"
+                            android:src="@drawable/vid_mute"
+                            android:textColor="@color/leadme_white"
+                            android:textSize="12sp" />
+
+                        <ImageView
+                            android:id="@+id/unmute_btn"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center"
+                            android:layout_marginStart="35dp"
+                            android:fontFamily="@font/poppins_semibold"
+                            android:gravity="center_horizontal"
+                            android:includeFontPadding="false"
+                            android:src="@drawable/vid_unmute"
+                            android:textColor="@color/leadme_white"
+                            android:textSize="12sp" />
+                    </LinearLayout>
+
+                    <LinearLayout
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:orientation="horizontal">
@@ -157,31 +218,6 @@
                             android:thumb="@drawable/toggle_thumb"
                             android:track="@drawable/toggle_track" />
 
-                        <ImageView
-                            android:id="@+id/mute_btn"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_gravity="center"
-                            android:layout_marginStart="20dp"
-                            android:fontFamily="@font/poppins_semibold"
-                            android:gravity="center_horizontal"
-                            android:includeFontPadding="false"
-                            android:src="@drawable/vid_mute"
-                            android:textColor="@color/leadme_white"
-                            android:textSize="12sp" />
-
-                        <ImageView
-                            android:id="@+id/unmute_btn"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_gravity="center"
-                            android:layout_marginStart="20dp"
-                            android:fontFamily="@font/poppins_semibold"
-                            android:gravity="center_horizontal"
-                            android:includeFontPadding="false"
-                            android:src="@drawable/vid_unmute"
-                            android:textColor="@color/leadme_white"
-                            android:textSize="12sp" />
                     </LinearLayout>
 
                     <LinearLayout

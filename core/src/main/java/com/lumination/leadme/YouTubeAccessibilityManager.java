@@ -34,7 +34,7 @@ public class YouTubeAccessibilityManager {
         this.main = main;
     }
 
-
+    public boolean adFinished = false;
     private boolean inVR = false;
     private String goalTime = "";
     private String goalTimeShort = "";
@@ -70,8 +70,10 @@ public class YouTubeAccessibilityManager {
         skipAds(rootInActiveWindow);
 
         ArrayList<AccessibilityNodeInfo> detectAdNodes = connector.collectChildren(rootInActiveWindow, detectAdsPhrases, 0);
+
         if (!detectAdNodes.isEmpty()) {
             Log.e(TAG, "WAITING FOR AD TO FINISH >> " + main.getWebManager().getLaunchTitle());
+            adFinished = false;
 
             for (AccessibilityNodeInfo detectNode : detectAdNodes) {
                 if (detectNode.getText() != null && detectNode.getText().toString().contains("Up next in")) {
@@ -86,6 +88,20 @@ public class YouTubeAccessibilityManager {
                 connector.accessibilityClickNode(playNode);
             }
             return; //don't do ANYTHING else until the ad is gone
+        }
+
+        if(!adFinished) {
+            //send ready status to guide
+            main.backgroundExecutor.submit(new Runnable() {
+               @Override
+               public void run() {
+                   main.getHandler().post(() -> {
+                       main.getDispatcher().alertGuideAdsHaveFinished();
+                   });
+               }
+            });
+
+            adFinished = true;
         }
 
         Point p = new Point();
@@ -120,7 +136,7 @@ public class YouTubeAccessibilityManager {
             main.getWebManager().setFreshPlay(false); //done!
 //            if (!main.getWebManager().launchingVR) {
 //                Log.w(TAG, "Launching!!");
-            //cueYouTubeAction(CUE_PAUSE + "");
+            cueYouTubeAction(CUE_PAUSE + "");
             cueYouTubeAction(CUE_FS_ONLY + "");
 //            }
         } else if (!videoPlayStarted && !pushTitle.isEmpty() && titleNodes != null && !titleNodes.isEmpty()) {
@@ -511,12 +527,90 @@ public class YouTubeAccessibilityManager {
             "Close miniplayer"
     };
 
+    //test if an ad has started after a video
+    private boolean adTest(AccessibilityNodeInfo rootInActiveWindow) {
+        ArrayList<AccessibilityNodeInfo> timeNodes = connector.collectChildren(rootInActiveWindow,
+                ":", 0);
+
+        String timeA = "";
+        String timeB = "";
+        //Youtube sometimes spits out a third unrelated number or string in any order
+        String timeC = "";
+
+        //before starting video
+        if(timeNodes.size() < 2) {
+            return false;
+        }
+
+        //pop up whilst in VR
+        if(inVR) {
+            String times = timeNodes.get(1).getText() + "";
+            String[] timeSplit = times.split("/");
+            if(timeSplit.length < 2) {
+                return false;
+            }
+            timeA = timeSplit[0];
+            timeB = timeSplit[1];
+        } else {
+            timeA = timeNodes.get(0).getText() + "";
+            timeB = timeNodes.get(1).getText() + "";
+            if(timeNodes.size() > 2) {
+                timeC = timeNodes.get(2).getText() + "";
+            }
+            //returning from one view to another
+            if(timeA.contains("Quality")) {
+                timeA = "0:00";
+            }
+            if(timeB.contains("Quality")) {
+                timeB = "0:00";
+            }
+            if(timeC.contains("Quality")) {
+                timeC = "0:00";
+            }
+        }
+
+        String[] timesA = trimToTime(timeA);
+        String[] timesB = trimToTime(timeB);
+        String[] timesC = trimToTime(timeC);
+
+        //duplicate ads at the start or during
+        if(timesA[0].contains("Ad") || timesB[0].contains("Ad") || timesC[0].contains("Ad")) {
+            return false;
+        }
+
+        int currentTime = Integer.parseInt(timesA[0]) * 60 + Integer.parseInt(timesA[1]);
+        int compareTime = Integer.parseInt(timesB[0]) * 60 + Integer.parseInt(timesB[1]);
+        int time = currentTime - compareTime;
+
+        if((goalTimeShort.equals("") && time >= -1 && time <= 1)) {
+            return true;
+        }
+
+        if(timeNodes.size() > 2) {
+            int optionalTime = Integer.parseInt(timesC[0]) * 60 + Integer.parseInt(timesC[1]);
+            time = compareTime - optionalTime;
+        }
+
+        //compare both -1 and 1 as youtube spits timeNodes out in a semi random order
+        if((goalTimeShort.equals("") && time >= -1 && time <= 1)) {
+            return true;
+        }
+
+        return !goalTimeShort.equals("") && (currentTime == compareTime);
+    }
+
+    private String[] trimToTime(String time) {
+        time = time.replace("/", "");
+        time = time.replace(" ", "");
+        return time.split(":");
+    }
+
     private void skipAds(AccessibilityNodeInfo rootInActiveWindow) {
         Log.d(TAG, "skipAds: ");
         ArrayList<AccessibilityNodeInfo> popupNodes = connector.collectChildren(rootInActiveWindow, skipAdsPhrases, 0);
 
-        if (videoPlayStarted && !popupNodes.isEmpty() && videoPlayStarted) {
-           // endOfVideo();
+        if ((videoPlayStarted && adTest(rootInActiveWindow))) {
+            endOfVideo();
             return;
         }
 

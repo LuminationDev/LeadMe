@@ -166,6 +166,7 @@ public class DispatchManager {
 
     public synchronized void sendActionToSelected(String actionTag, String action, Set<String> selectedPeerIDs) {
         main.setProgressTimer(2000);
+
         if(action.contains(LeadMeMain.LAUNCH_URL) || action.contains(LeadMeMain.LAUNCH_YT)) {
             Log.d(TAG, "sendActionToSelected: ");
             lastEvent = 3;
@@ -189,6 +190,7 @@ public class DispatchManager {
                 action.startsWith(LeadMeMain.STUDENT_NO_INTERNET) ||
                 action.startsWith(LeadMeMain.STUDENT_NO_ACCESSIBILITY) ||
                 action.startsWith(LeadMeMain.STUDENT_OFF_TASK_ALERT) ||
+                action.startsWith(LeadMeMain.STUDENT_FINISH_ADS) ||
                 action.startsWith(LeadMeMain.PING_TAG) ||
                 action.startsWith(LeadMeMain.LAUNCH_SUCCESS) ||
                 action.startsWith(LeadMeMain.STUDENT_NO_XRAY) ||
@@ -387,6 +389,9 @@ public class DispatchManager {
                         Log.d(TAG, "GOT SOMETHING VID RELATED");
                         String[] split = action.split(":");
                         main.getLumiAccessibilityConnector().cueYouTubeAction(split[1]);
+
+                    } else if (action.startsWith(LeadMeMain.STUDENT_FINISH_ADS)) {
+                        main.getWebManager().getYouTubeEmbedPlayer().addPeerReady();
 
                     } else if (action.startsWith(LeadMeMain.LOGOUT_TAG)) {
                         String id = action.split(":")[1];
@@ -638,5 +643,8 @@ public class DispatchManager {
                 main.getNearbyManager().getAllPeerIDs());
     }
 
-
+    protected void alertGuideAdsHaveFinished() {
+        sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.STUDENT_FINISH_ADS + main.getNearbyManager().getID(),
+                main.getNearbyManager().getAllPeerIDs());
+    }
 }

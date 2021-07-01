@@ -158,6 +158,8 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     static final String LAUNCH_YT = "LumiYT:::";
     static final String LAUNCH_ACCESS = "LumiLaunchAccess";
 
+    static final String STUDENT_FINISH_ADS = "LumiAdsFinished";
+
     static final String AUTO_INSTALL_FAILED = "LumiAutoInstallFail:";
     static final String AUTO_INSTALL_ATTEMPT = "LumiAutoInstallAttempt:";
     static final String STUDENT_OFF_TASK_ALERT = "LumiOffTask:";

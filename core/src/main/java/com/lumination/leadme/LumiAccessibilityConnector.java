@@ -42,6 +42,7 @@ public class LumiAccessibilityConnector {
     }
 
     public void resetState() {
+        ytManager.adFinished = false;
 //        Log.d(TAG, "resetState: ");
 //        ytManager.resetState();
 //        withinManager.cleanUpVideo();
@@ -151,8 +152,8 @@ public class LumiAccessibilityConnector {
             Log.w(TAG, "Revisiting previous event..." + lastEvent + " " + lastInfo);
             event = lastEvent;
             rootInActiveWindow = lastInfo;
-            lastInfo = null; //we probably don't want to revisit these too many times
-            lastEvent = null; //we probably don't want to revisit these too many times
+            //lastInfo = null; //we probably don't want to revisit these too many times
+            //lastEvent = null; //we probably don't want to revisit these too many times
 
 //       }
 //
@@ -162,7 +163,10 @@ public class LumiAccessibilityConnector {
 
         } else {
             lastEvent = event;
-            lastInfo = rootInActiveWindow;
+            //if null youtube embed gestures stop working
+            if(rootInActiveWindow != null) {
+                lastInfo = rootInActiveWindow;
+            }
         }
 
         if (event == null) {

@@ -27,6 +27,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class FavouritesManager extends BaseAdapter {
 
@@ -316,9 +318,28 @@ public class FavouritesManager extends BaseAdapter {
     //content is URL or packageName
     public void addToFavourites(String content, String title, Drawable icon) {
         Log.d(TAG, "addToFavourites: "+content);
-        if (contentList.contains(content)) {
-            return; //it's already there!
+
+        //get the youtube video id as different links can add the same video
+        String pattern = "(?<=watch\\?v=|/videos/|embed/)[^#&?]*";
+        String youtubeId = content;
+
+        Pattern compiledPattern = Pattern.compile(pattern);
+        Matcher matcher = compiledPattern.matcher(content);
+
+        if(matcher.find()){
+            youtubeId = matcher.group();
         }
+
+        for(int x=0; x < contentList.size(); x++) {
+            if(contentList.get(x).contains(youtubeId)) {
+                Log.d(TAG, "Youtube ID duplicate found");
+                return;
+            };
+        }
+
+//        if (contentList.contains(content)) {
+//            return; //it's already there!
+//        }
 
         //update local/working variables
         int thisIndex = getNextFavIndex();
