@@ -202,6 +202,37 @@
             android:textColor="@color/leadme_black"
             android:textSize="16sp" />
 
+        <TextView
+            android:id="@+id/manual_connect"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="15dp"
+            android:fontFamily="@font/poppins_regular"
+            android:includeFontPadding="false"
+            android:text="Manual connect"
+            android:textColor="@color/leadme_black"
+            android:textSize="16sp" />
+
+        <Switch
+            android:id="@+id/server_discovery"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal|center_vertical"
+            android:layout_marginTop="15dp"
+            android:layout_weight="0"
+            android:checked="false"
+            android:fontFamily="@font/poppins_regular"
+            android:gravity="left|center_vertical"
+            android:includeFontPadding="false"
+            android:showText="false"
+            android:switchMinWidth="50dp"
+            android:switchPadding="10dp"
+            android:text="Server Discovery"
+            android:textSize="16sp"
+            android:thumb="@drawable/toggle_thumb"
+            android:track="@drawable/toggle_track" />
+
+
         <ImageView
             android:layout_width="match_parent"
             android:layout_height="1dp"

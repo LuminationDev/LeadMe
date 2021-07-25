@@ -9,6 +9,9 @@ import androidx.collection.ArraySet;
 
 import com.google.android.gms.nearby.connection.Payload;
 
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.HashSet;
@@ -20,6 +23,7 @@ public class NearbyPeersManager {
     public LeadMeMain main;
     public NetworkAdapter networkAdapter;
     ConnectedPeer selectedLeader;
+    NsdServiceInfo manInfo=null;
 
     String myID;
     boolean discovering;
@@ -61,31 +65,75 @@ public class NearbyPeersManager {
 
     protected void connectToSelectedLeader() {
         String Name = selectedLeader.getDisplayName();
-        ArrayList<NsdServiceInfo> discoveredLeaders = networkAdapter.discoveredLeaders;
-        Iterator iterator = discoveredLeaders.iterator();
-        while (iterator.hasNext()) {
-            NsdServiceInfo info = (NsdServiceInfo) iterator.next();
-            Log.d(TAG, "connectToSelectedLeader: " + info.getServiceName());
-            if (info.getServiceName().equals(Name + "#Teacher")) {
+        if(manInfo==null) {
+            ArrayList<NsdServiceInfo> discoveredLeaders = networkAdapter.discoveredLeaders;
+            Iterator iterator = discoveredLeaders.iterator();
+            while (iterator.hasNext()) {
+                NsdServiceInfo info = (NsdServiceInfo) iterator.next();
+                Log.d(TAG, "connectToSelectedLeader: " + info.getServiceName());
+                if (info.getServiceName().equals(Name + "#Teacher")) {
 //                Thread t = new Thread(new Runnable() {
 //                    @Override
 //                    public void run() {
-                main.backgroundExecutor.submit(new Runnable() {
-                    @Override
-                    public void run() {
-                        networkAdapter.connectToServer(info);
+                    main.backgroundExecutor.submit(new Runnable() {
+                        @Override
+                        public void run() {
+                            networkAdapter.connectToServer(info);
 
-                    }
-                });
+                        }
+                    });
+                    return;
 
 //                        return;
 //                    }
 //                });
 //                t.start();
 
+                }
             }
+        }else{
+            main.backgroundExecutor.submit(new Runnable() {
+                @Override
+                public void run() {
+                    networkAdapter.connectToServer(manInfo);
+
+                }
+            });
+            return;
         }
         Log.d(TAG, "connectToSelectedLeader: no leader found with the name " + Name);
+    }
+
+    protected void connectToManualLeader(String IpAddress) {
+        Log.d(TAG, "connectToManualLeader: " + IpAddress);
+        main.backgroundExecutor.submit(new Runnable() {
+            @Override
+            public void run() {
+        NsdServiceInfo info = new NsdServiceInfo();
+        InetAddress inetAddress=null;
+        try {
+            inetAddress = InetAddress.getByName(IpAddress);
+        } catch (UnknownHostException e) {
+            e.printStackTrace();
+        }
+        info.setHost(inetAddress);
+        info.setPort(54321);
+        info.setServiceName("Manual#Teacher");
+        info.setServiceType("_http._tcp.");
+                Log.d(TAG, "run: "+info);
+                manInfo = info;
+        networkAdapter.discoveredLeaders.add(info);
+        selectedLeader=new ConnectedPeer("Manual", IpAddress);
+        main.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                connectToSelectedLeader();
+            }
+        });
+                        //networkAdapter.connectToServer(info);
+
+                    }
+                });
     }
 
 

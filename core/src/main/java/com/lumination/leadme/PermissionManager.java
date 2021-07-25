@@ -47,7 +47,11 @@ public class PermissionManager {
 
                 Log.d(TAG, "Overlay Permission GRANTED! ");// + main.getNearbyManager().isConnectedAsFollower() + ", " + main.getNearbyManager().isConnectedAsGuide());
                 main.performNextAction();
-                main.setandDisplayStudentOnBoard(2);
+                if(main.ServerIP.length()>0){
+                    main.setandDisplayStudentOnBoard(3);
+                }else{
+                    main.setandDisplayStudentOnBoard(2);
+                }
             }
 
             @Override

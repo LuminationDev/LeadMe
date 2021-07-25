@@ -7,7 +7,7 @@ android {
     defaultConfig {
         applicationId "com.lumination.leadme"
         minSdkVersion 24
-        targetSdkVersion 30
+        targetSdkVersion 29
     }
 
     buildTypes {

@@ -67,7 +67,7 @@ public class NetworkAdapter {
     public String Name = "Temp";
 
 
-    ServerSocket mServerSocket = null; //server socket for server
+    public ServerSocket mServerSocket = null; //server socket for server
     Socket clientsServerSocket = null;//server socket for client
     Thread mThread = null;
     Future<?> Server = null;
@@ -221,10 +221,12 @@ public class NetworkAdapter {
                     List<String> leader = Arrays.asList(serviceInfo.getServiceName().split("#"));
 
                     //add to the leaders list
-                    main.runOnUiThread(() -> {
-                        main.getLeaderSelectAdapter().addLeader(new ConnectedPeer(leader.get(0), serviceInfo.getHost().toString()));
-                        main.showLeaderWaitMsg(false);
-                    });
+                    if(!main.sessionManual) {
+                        main.runOnUiThread(() -> {
+                            main.getLeaderSelectAdapter().addLeader(new ConnectedPeer(leader.get(0), serviceInfo.getHost().toString()));
+                            main.showLeaderWaitMsg(false);
+                        });
+                    }
                     resInProgress=false;
                 }
             });
@@ -286,6 +288,7 @@ public class NetworkAdapter {
     }
 
     public void connectToServer(NsdServiceInfo serviceInfo) {
+        mService=serviceInfo;
         if (clientsServerSocket == null) {
             try {
                 Log.d(TAG, "connectToServer: attempting to connect to " + serviceInfo.getHost() + ":" + serviceInfo.getPort());
@@ -457,13 +460,16 @@ public class NetworkAdapter {
                 @Override
                 public void run() {
                     while (allowInput) {
+
                         if (clientsServerSocket != null) {
                             if (!clientsServerSocket.isClosed() && !clientsServerSocket.isInputShutdown()) {
+
                                 BufferedReader in;
                                 String input = "";
                                 try {
                                     InputStreamReader inStream = new InputStreamReader(clientsServerSocket.getInputStream());
                                     in = new BufferedReader(inStream);
+
                                     try {
                                         input = in.readLine();
                                     } catch (SocketException e) {
@@ -480,6 +486,7 @@ public class NetworkAdapter {
 
                                     if (input != null) {
                                         if (input.length() > 0) {
+                                            Log.d(TAG, "allowInput is active");
                                             //Log.d(TAG, "run: server said: " + input);
                                             netAdapt.messageReceivedFromServer(input);
                                         }
@@ -525,6 +532,7 @@ public class NetworkAdapter {
     PING: used to let the client know it is still receiving data from the server and helps keep the connection alive
      */
     public void messageReceivedFromServer(String input) {
+        Log.d(TAG, "messageReceivedFromServer: "+input);
         List<String> inputList = Arrays.asList(input.split(","));
         switch (inputList.get(0)) {
             case "COMMUNICATION":
@@ -585,9 +593,10 @@ public class NetworkAdapter {
             case "PING":
                 nearbyPeersManager.myID = inputList.get(1);
                 connectionIsActive = timeOut;
-                if (main.waitingDialog.isShowing()) {
-                    main.getHandler().post(() -> main.closeWaitingDialog(true));
-                }
+//                if (main.waitingDialog.isShowing()) {
+//                    main.getHandler().post(() -> main.closeWaitingDialog(true));
+//                }
+                Log.d(TAG, "messageReceivedFromServer: PING!!");
                 pingName = false;
                 Log.d(TAG, "messageReceivedFromServer: received ping and subsequently ignoring it");
                 break;

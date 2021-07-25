@@ -26,6 +26,7 @@ import android.hardware.SensorManager;
 import android.hardware.display.DisplayManager;
 import android.media.AudioManager;
 import android.net.Uri;
+import android.net.wifi.WifiManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -34,6 +35,7 @@ import android.os.PowerManager;
 import android.text.Editable;
 import android.text.Html;
 import android.text.TextWatcher;
+import android.text.format.Formatter;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.ActionMode;
@@ -64,6 +66,7 @@ import android.widget.ProgressBar;
 import android.widget.ScrollView;
 import android.widget.SearchView;
 import android.widget.SeekBar;
+import android.widget.Switch;
 import android.widget.TextSwitcher;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -72,6 +75,7 @@ import android.widget.ViewAnimator;
 import android.widget.ViewSwitcher;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.core.content.res.ResourcesCompat;
 import androidx.fragment.app.FragmentActivity;
 import androidx.lifecycle.Lifecycle;
@@ -85,6 +89,7 @@ import com.google.android.gms.auth.api.signin.GoogleSignInClient;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthCredential;
@@ -94,15 +99,33 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.GoogleAuthProvider;
 import com.google.firebase.auth.UserProfileChangeRequest;
+import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.EventListener;
+import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.FirebaseFirestoreException;
+import com.google.firebase.firestore.ListenerRegistration;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.firebase.firestore.QuerySnapshot;
+import com.google.firebase.firestore.SetOptions;
 import com.himanshurawat.hasher.HashType;
 import com.himanshurawat.hasher.Hasher;
 
+import java.net.InetAddress;
+import java.net.NetworkInterface;
+import java.net.SocketException;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -167,6 +190,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     static final String STUDENT_NO_XRAY = "LumiXray:";
     static final String LAUNCH_SUCCESS = "LumiSuccess:";
     final static String SESSION_UUID_TAG = "SessionUUID";
+    final static String SESSION_MANUAL_TAG = "SessionManual";
 
     static final String XRAY_ON = "LumiXrayOn";
     static final String XRAY_OFF = "LumiXrayOff";
@@ -195,6 +219,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
     //sessionUUID to enable disconnect/reconnect as same user
     private String sessionUUID = null;
+    public Boolean sessionManual = null;
 
     protected WindowManager windowManager;
     private InputMethodManager imm;
@@ -291,6 +316,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     SeekBar seekBar;
 
     FirebaseFirestore db = FirebaseFirestore.getInstance();
+    ListenerRegistration manualUserListener;
     GoogleSignInClient mGoogleSignInClient;
     private FirebaseAuth mAuth;
     FirebaseUser currentUser = null;
@@ -301,6 +327,17 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     ScheduledExecutorService scheduledExecutorService = new ScheduledThreadPoolExecutor(1);
     public ExecutorService backgroundExecutor = Executors.newCachedThreadPool();
     public ScreenCap screenCap;
+
+    AlertDialog manual;
+    View manView;
+    String ServerIP="";
+
+    //Manual connection
+    private final int leaderTimestampUpdate = 15; //update the leaders timestamp on firebase (mins)
+    private final int inactiveUser = 30; //cut off for hiding inactive leaders (mins)
+    private final int waitForGuide = 10000; //how long to wait before peer re-querys firestore
+    private String publicIP;
+    private HashMap<String, Object> manualConnectionDetails = new HashMap<String, Object>();
 
     public Handler getHandler() {
         return handler;
@@ -328,7 +365,11 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             case OVERLAY_ON:
                 Log.d(TAG, "Returning from OVERLAY ON with " + resultCode);
                 if (getPermissionsManager().isOverlayPermissionGranted()) {
-                    setandDisplayStudentOnBoard(2);
+                    if(ServerIP.length()>0){
+                        setandDisplayStudentOnBoard(3);
+                    }else {
+                        setandDisplayStudentOnBoard(2);
+                    }
                 } else {
                     setandDisplayStudentOnBoard(1);
                 }
@@ -656,7 +697,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                 } else {
                     //don't need to wait, so just login
                     initPermissions = true; //only prompt once here
-                    loginAction();
+                    loginAction(false);
                 }
 
             });
@@ -1079,7 +1120,11 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             if (getPermissionsManager().isAccessibilityGranted() && !getPermissionsManager().isOverlayPermissionGranted()) {
                 setandDisplayStudentOnBoard(1);
             } else if (getPermissionsManager().isAccessibilityGranted() && getPermissionsManager().isOverlayPermissionGranted()) {
-                setandDisplayStudentOnBoard(2);
+                if(ServerIP.length()>0){
+                    setandDisplayStudentOnBoard(3);
+                }else {
+                    setandDisplayStudentOnBoard(2);
+                }
             }
         }
 
@@ -1419,6 +1464,18 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             editor.apply();
         }
 
+        //TODO add manual toggle selection
+        if (sharedPreferences.contains(SESSION_MANUAL_TAG)) {
+            sessionManual = sharedPreferences.getBoolean(SESSION_MANUAL_TAG, false);
+        }
+
+        if (sessionManual == null) {
+            SharedPreferences.Editor editor = sharedPreferences.edit();
+            sessionManual = false;
+            editor.putBoolean(SESSION_MANUAL_TAG, sessionManual);
+            editor.apply();
+        }
+
         context = getApplicationContext();
 
         //add observer to respond to lifecycle events
@@ -1728,6 +1785,78 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             }
         });
 
+        manView = View.inflate(context, R.layout.e__manual_popup, null);
+        manual = new AlertDialog.Builder(this)
+                .setView(manView)
+                .create();
+
+        //change the shared preferences, do the rest on login for guide or learner button select
+        Switch ManualToggle = optionsScreen.findViewById(R.id.server_discovery);
+        ManualToggle.setChecked(sessionManual);
+        ManualToggle.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                //Learner cannot switch while logged in
+                switchManualPreference(sharedPreferences, isChecked);
+            }
+        });
+
+        //direct ip input connection
+        optionsScreen.findViewById(R.id.manual_connect).setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View v){
+                manual.show();
+                Button back = manView.findViewById(R.id.manual_back);
+                back.setOnClickListener(v1 -> manual.dismiss());
+                WifiManager wifiManager = (WifiManager) getSystemService(WIFI_SERVICE);
+                String ipAddress = Formatter.formatIpAddress(wifiManager.getConnectionInfo().getIpAddress());
+                if(isGuide){
+                    manView.findViewById(R.id.manual_teacher_view).setVisibility(View.VISIBLE);
+                    manView.findViewById(R.id.manual_learner_view).setVisibility(View.GONE);
+                    manView.findViewById(R.id.manual_ok).setVisibility(View.GONE);
+                    TextView IpAddress = manView.findViewById(R.id.manual_ip);
+                    IpAddress.setText(ipAddress);
+                }else{
+                    if(getNearbyManager().isConnectedAsFollower()){
+                        manual.dismiss();
+                        Toast.makeText(getApplicationContext(), "You are already connected to a leader", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                    manView.findViewById(R.id.manual_learner_view).setVisibility(View.VISIBLE);
+                    manView.findViewById(R.id.manual_ok).setVisibility(View.VISIBLE);
+                    manView.findViewById(R.id.manual_teacher_view).setVisibility(View.GONE);
+                    EditText IpEnter = manView.findViewById(R.id.manual_enterIP);
+                    EditText ManName = manView.findViewById(R.id.manual_name);
+                    Button connect = manView.findViewById(R.id.manual_ok);
+                    IpEnter.setText(ipAddress.substring(0, ipAddress .lastIndexOf(".")+1)   );
+                    IpEnter.setSelection(IpEnter.getText().length());
+                    //add to the leaders list
+
+                    connect.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            if(IpEnter!=null && IpEnter.getText().toString().length()>0){
+                                Log.d(TAG, "onClick: "+IpEnter.getText().toString());
+                                getNameView().setText(ManName.getText().toString());
+                                getNearbyManager().myName = ManName.getText().toString();
+                                runOnUiThread(() -> {
+                                    getLeaderSelectAdapter().addLeader(new ConnectedPeer("key", IpEnter.getText().toString()));
+                                    //showLeaderWaitMsg(false);
+                                });
+                                manual.dismiss();
+                                ServerIP = IpEnter.getText().toString();
+                                isGuide=false;
+                                loginAction(true);
+//                                getNearbyManager().connectToManualLeader(IpEnter.getText().toString());
+//                                leadmeAnimator.setDisplayedChild(ANIM_LEARNER_INDEX);
+//                                screenCap.startService(false);
+                            }
+                        }
+                    });
+                }
+            }
+        });
+
         optionsScreen.findViewById(R.id.logout_btn).setOnClickListener(v -> {
             if (isGuide || !getNearbyManager().isConnectedAsFollower()) {
                 mAuth.signOut();
@@ -1886,6 +2015,96 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         displayGuidePrompt(sharedPreferences);
 
     }
+
+    //MANUAL CONNECTION FUNCTIONS START
+    public void switchManualPreference(SharedPreferences sharedPreferences, boolean isManual) {
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        sessionManual = isManual;
+        editor.putBoolean(SESSION_MANUAL_TAG, sessionManual);
+        editor.apply();
+
+        //TODO if logged in as learner skip
+        if(isManual && isGuide) {
+            createManualConnection();
+        } else {
+            //remove listeners for followers
+        }
+    }
+
+    private void createManualConnection() {
+        //initiate public ip track and firebase
+        waitForPublic();
+        WifiManager wifiManager = (WifiManager) getSystemService(WIFI_SERVICE);
+        ServerIP = Formatter.formatIpAddress(wifiManager.getConnectionInfo().getIpAddress());
+        manualConnectionDetails.put("Username", mAuth.getCurrentUser().getDisplayName());
+        manualConnectionDetails.put("ServerIP", ServerIP);
+        manualConnectionDetails.put("TimeStamp", FieldValue.serverTimestamp());
+
+        //update firebase and start a continuous timer for updating the timestamp
+        Timer timestamp = new Timer();
+        TimerTask updateTimestamp = new TimerTask() {
+            @Override
+            public void run() {
+                updateAddress();
+            }
+        };
+
+        timestamp.scheduleAtFixedRate(updateTimestamp, 0L, leaderTimestampUpdate * (60 * 1000));
+    }
+
+    /*register the login details with PublicIP address as the documentID
+    create a new document of the publicIP address if does not exist
+    create a new collection, Leaders if it does not exist in case multiple Leaders are online
+    create a new document of the ServerIP address with username, ServerIP, PublicIP and timestamp fields*/
+    private void updateAddress() {
+        db.collection("addresses").document(publicIP)
+            .collection("Leaders").document(ServerIP).set(manualConnectionDetails, SetOptions.merge())
+            .addOnSuccessListener(new OnSuccessListener<Void>() {
+                @Override
+                public void onSuccess(Void aVoid) {
+                    Log.d(TAG, "DocumentSnapshot successfully written!");
+                }
+            })
+            .addOnFailureListener(new OnFailureListener() {
+                @Override
+                public void onFailure(@NonNull Exception e) {
+                    Log.w(TAG, "Error writing document", e);
+                }
+            });
+    }
+
+    private void waitForPublic() {
+        Thread getPublic = new Thread(() -> {
+            publicIP = getPublicIP();
+            manualConnectionDetails.put("PublicIP", publicIP); //store as reference for the clean up server
+        });
+
+        getPublic.start();
+
+        try {
+            getPublic.join();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private String getPublicIP() {
+        String publicIP = "";
+        try  {
+            java.util.Scanner s = new java.util.Scanner(
+                    new java.net.URL(
+                            "https://api.ipify.org")
+                            .openStream(), "UTF-8")
+                    .useDelimiter("\\A");
+            publicIP = s.next();
+        } catch (java.io.IOException e) {
+            e.printStackTrace();
+        }
+
+        return publicIP;
+    }
+    //MANUAL CONNECTION FUNCTIONS END
+
     public void composeEmail(String[] addresses, String subject) {
         Intent intent = new Intent(Intent.ACTION_SENDTO);
         intent.setData(Uri.parse("mailto:")); // only email apps should handle this
@@ -2010,7 +2229,13 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             learnerWaitingText.setText(getResources().getString(R.string.enable_location_to_connect));
             permissionManager.checkNearbyPermissions();
         } else {
-            initiateLeaderDiscovery();
+            if(sessionManual) {
+                initiateManualLeaderDiscovery();
+            }
+            else {
+                initiateLeaderDiscovery();
+            }
+
             learnerWaitingText.setText(getResources().getString(R.string.waiting_for_leaders));
         }
         leaderLearnerSwitcher.setDisplayedChild(SWITCH_LEARNER_INDEX);
@@ -2236,6 +2461,112 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         getNearbyManager().discoverLeaders();
     }
 
+    //MANUAL CONNECTION FOR LEARNERS START
+    public void initiateManualLeaderDiscovery() {
+        Log.d(TAG, "Initiating Leader Discovery");
+        isReadyToConnect = true;
+        getNearbyManager().networkAdapter.startDiscovery();
+        retrieveLeaders();
+    }
+
+    //call to firebase to retrieve any leaders registered to that publicIP address
+    private void retrieveLeaders() {
+        waitForPublic();
+
+        CollectionReference collRef = db.collection("addresses").document(publicIP).collection("Leaders");
+
+        collRef.get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+            @Override
+            public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                if (task.isSuccessful()) {
+                    //if no one has registered on the public IP yet, wait sometime and try again.
+                    if(Objects.requireNonNull(task.getResult()).size() == 0) {
+                        try {
+                            Thread.sleep(waitForGuide);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                        retrieveLeaders();
+                    } else {
+                        for (QueryDocumentSnapshot document : Objects.requireNonNull(task.getResult())) {
+                            Date leaderTimeStamp = Objects.requireNonNull(document.getTimestamp("TimeStamp")).toDate();
+
+                            if(checkTimeDifference(leaderTimeStamp) >= inactiveUser) {
+                                return;
+                            }
+
+                            //add to the leaders list
+                            runOnUiThread(() -> {
+                                getLeaderSelectAdapter().addLeader(new ConnectedPeer(document.get("Username").toString(), document.get("ServerIP").toString()));
+                                showLeaderWaitMsg(false);
+                            });
+                        }
+
+                        //add listeners to track if leader hasn't logged in but publicIP exists (multiple leaders on network)
+                        //TODO trackCollection works fine, haven't create code to stop the listeners when students log in.
+                        trackCollection(collRef);
+                    }
+                } else {
+                    Log.d(TAG, "Error getting documents: ", task.getException());
+                }
+            }
+        });
+    }
+
+    //add a listener to the Leader collection to wait for log in
+    private void trackCollection(CollectionReference collRef) {
+        //checkArray(document);
+        //adapter.notifyDataSetChanged();
+        if(manualUserListener!=null){
+            manualUserListener.remove();
+        }
+        if(!getNearbyManager().isConnectedAsFollower()) {
+            Log.d(TAG, "trackCollection: listener added");
+            manualUserListener = collRef.addSnapshotListener(new EventListener<QuerySnapshot>() {
+                @Override
+                public void onEvent(@Nullable QuerySnapshot value, @Nullable FirebaseFirestoreException error) {
+                    Log.d(TAG, "onEvent: ip listener fired");
+                    if (error != null) {
+                        Log.w(TAG, "Listen failed.", error);
+                        return;
+                    }
+
+                    if (value != null) {
+                        for (QueryDocumentSnapshot document : value) {
+                            if (document.get("Username") != null) {
+                                //checkArray(document);
+                                runOnUiThread(() -> {
+                                    getLeaderSelectAdapter().addLeader(new ConnectedPeer(document.get("Username").toString(), document.get("ServerIP").toString()));
+                                    showLeaderWaitMsg(false);
+                                });
+                            }
+                        }
+                        //adapter.notifyDataSetChanged();
+                    } else {
+                        Log.d(TAG, "Current data: null");
+                    }
+                }
+            });
+        }
+        //TODO stop listener when leader is selected
+    }
+
+    /*calculate the difference between the firebase timestamp and the current time
+    return the minutes, can also work out other units if necessary.*/
+    private int checkTimeDifference(Date leaderTimeStamp) {
+        Date now = new Date();
+
+        long difference_In_Time = now.getTime() - leaderTimeStamp.getTime();
+        long difference_In_Minutes = (difference_In_Time / (1000 * 60)) % 60;
+        long difference_In_Hours = (difference_In_Time / (1000 * 60 * 60)) % 24;
+
+        /*max difference can be 24 * 60 (mins), server clears firestore once or twice a day
+        so anything more is not necessary at this point.*/
+        return (int) (difference_In_Hours * 60) + (int) difference_In_Minutes;
+    }
+
+    //MANUAL CONNECTION FOR LEARNERS END
+
     public boolean checkLoginDetails() {
         //reset error messages
         loginDialogView.findViewById(R.id.no_name_message).setVisibility(View.GONE);
@@ -2271,7 +2602,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                         codeEntered = true;
 
                         progressBar.setVisibility(View.GONE);
-                        loginAction();
+                        loginAction(false);
                     } else {
                         codeEntered = false;
                         showLoginAlertMessage();
@@ -2329,12 +2660,15 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
     // protected PowerManager.WakeLock wakeLock;
 
-    void loginAction() {
+    void loginAction(boolean isManual) {
         Log.w(TAG, "LOGGING IN " + nearbyManager.getName());
         //   wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, TAG + ":" + APP_LOCK_TAG);
         //  wakeLock.acquire(); //this is to keep the device alive while logged in to LeadMe
         loginAttemptInAction = true;
         //if all permissions are already granted, just continue
+        if(isManual){
+            leaderLearnerSwitcher.setDisplayedChild(SWITCH_LEARNER_INDEX);
+        }
         if (leaderLearnerSwitcher.getDisplayedChild() == SWITCH_LEADER_INDEX) {
             initiateLeaderAdvertising();
             loginAttemptInAction = false;
@@ -2345,7 +2679,11 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             } else if (getPermissionsManager().isAccessibilityGranted() && !getPermissionsManager().isOverlayPermissionGranted()) {
                 setandDisplayStudentOnBoard(1);
             } else if (getPermissionsManager().isAccessibilityGranted() && getPermissionsManager().isOverlayPermissionGranted()) {
-                setandDisplayStudentOnBoard(2);
+                if(!isManual) {
+                    setandDisplayStudentOnBoard(2);
+                }else{
+                    setandDisplayStudentOnBoard(3);
+                }
             }
 
         }
@@ -2353,6 +2691,9 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         hideLoginDialog(false);
 
         String name = getNearbyManager().getName();
+        if(isManual) {
+            isGuide=false;
+        }
         Log.d(TAG, "Your name is " + name + ", are you a guide? " + isGuide);
 
         ((TextView) optionsScreen.findViewById(R.id.student_name)).setText(name);
@@ -2383,17 +2724,18 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                 SharedPreferences.Editor editor = sharedPreferences.edit();
                 editor.putBoolean("ONBOARD", true);
                 editor.apply();
-            buildAndDisplayOnBoard();
+                buildAndDisplayOnBoard();
             }
 
-
+            //if it is a manual connection session, create a firebase lookup entry
+            if(sessionManual) {
+                createManualConnection();
+            }
         } else {
             //display main student view
             leadmeAnimator.setDisplayedChild(ANIM_LEARNER_INDEX);
             allowHide = true;
             handler.postDelayed(() -> hideSystemUIStudent(), 1000);
-
-
             //update options
             ((TextView) optionsScreen.findViewById(R.id.logout_btn)).setTextColor(getResources().getColor(R.color.leadme_medium_grey, null));
             TextView title = leadmeAnimator.getCurrentView().findViewById(R.id.learner_title);
@@ -2402,6 +2744,12 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             ((TextView) optionsScreen.findViewById(R.id.connected_as_role)).setTextColor(getResources().getColor(R.color.medium, null));
             //refresh overlay
             // verifyOverlay();
+            if(manualUserListener!=null){
+                Log.d(TAG, "loginAction: listener removed");
+                manualUserListener.remove();
+                manualUserListener=null;
+                getNearbyManager().networkAdapter.stopDiscovery();
+            }
 
         }
     }
@@ -3175,7 +3523,16 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                         @Override
                         public void run() {
                             if (getPermissionsManager().isOverlayPermissionGranted()) {
-                                runOnUiThread(() -> setandDisplayStudentOnBoard(2));
+                                runOnUiThread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        if(ServerIP.length()>0){
+                                            setandDisplayStudentOnBoard(3);
+                                        }else{
+                                            setandDisplayStudentOnBoard(2);
+                                        }
+                                    }
+                                });
 
                             }
                         }
@@ -3199,8 +3556,17 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             OnBoardStudentInProgress = false;
             updateFollowerCurrentTaskToLeadMe();
             loginAttemptInAction = false;
-            getNearbyManager().connectToSelectedLeader();
-            showWaitingForConnectDialog();
+
+            if(page==2 && !sessionManual) {
+                getNearbyManager().connectToSelectedLeader();
+                showWaitingForConnectDialog();
+            }else if(sessionManual){
+                if(ServerIP == "") {
+                    ServerIP = getNearbyManager().selectedLeader.getID();
+                }
+                getNearbyManager().connectToManualLeader(ServerIP);
+            }
+
             screenCap.startService(false);
         }
     }
@@ -3480,7 +3846,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                                 getNearbyManager().myName = currentUser.getDisplayName();
                                 getNameView().setText(currentUser.getDisplayName());
                                 setContentView(leadmeAnimator);
-                                loginAction();
+                                loginAction(false);
                             }
                         }
                     });
@@ -3501,7 +3867,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                                 getNearbyManager().myName = task.getResult().getString("name");
                                 getNameView().setText(task.getResult().getString("name"));
                                 setContentView(leadmeAnimator);
-                                loginAction();
+                                loginAction(false);
                                 loginPassword="";
                                 Name="";
                                 loginEmail="";
@@ -3548,7 +3914,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                                     Log.d(TAG, "handleSignInResult: user found");
                                     getNearbyManager().myName = account.getGivenName();
                                     getNameView().setText(account.getGivenName());
-                                    loginAction();
+                                    loginAction(false);
                                 } else {
                                     Log.d(TAG, "handleSignInResult: new user");
                                     Map<String, Object> userDet = new HashMap<>();
@@ -3560,7 +3926,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                                                 getNearbyManager().myName = account.getGivenName();
                                                 getNameView().setText(account.getGivenName());
                                                 hideSystemUI();
-                                                loginAction();
+                                                loginAction(false);
                                             })
                                             .addOnFailureListener(e -> Log.d(TAG, "handleSignInResult: failed to create new user please check internet"));
 
@@ -3650,7 +4016,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                                             getNameView().setText((String) task1.getResult().get("name"));
                                             Log.d(TAG, "onComplete: name found: " + (String) task1.getResult().get("name"));
                                             setContentView(leadmeAnimator);
-                                            loginAction();
+                                            loginAction(false);
                                         }
                                     });
                                 }

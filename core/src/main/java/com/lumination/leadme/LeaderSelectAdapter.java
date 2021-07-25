@@ -106,6 +106,7 @@ public class LeaderSelectAdapter extends BaseAdapter {
             Log.d(TAG, "Clicked view: " + textView.getText());
             main.getNearbyManager().setSelectedLeader(leader_list.get(position));
             main.showLoginDialog();
+
         });
 
         return convertView;
