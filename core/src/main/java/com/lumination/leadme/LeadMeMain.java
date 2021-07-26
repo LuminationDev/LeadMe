@@ -25,6 +25,8 @@ import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.hardware.display.DisplayManager;
 import android.media.AudioManager;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.net.Uri;
 import android.net.wifi.WifiManager;
 import android.os.Build;
@@ -758,6 +760,12 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             ((TextView) loginDialogView.findViewById(R.id.teacher_name)).setText(getNearbyManager().selectedLeader.getDisplayName());
         }
 
+        //Check if the leader has internet access
+        if(!checkInternetAccess()) {
+            showWarningDialog("Currently Offline", "No internet access detected. Please connect to continue.");
+            return;
+        }
+
         if (loginDialog == null) {
             loginDialog = new AlertDialog.Builder(this)
                     .setView(loginDialogView)
@@ -813,6 +821,14 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         nameView.requestFocus();
         openKeyboard();
     }
+
+    //check if the device has access to the internet (not just wifi)
+    private boolean checkInternetAccess() {
+        ConnectivityManager connectivityManager = (ConnectivityManager)getSystemService(Context.CONNECTIVITY_SERVICE);
+        //we are connected to a network
+        return connectivityManager.getNetworkInfo(ConnectivityManager.TYPE_MOBILE).getState() == NetworkInfo.State.CONNECTED ||
+                connectivityManager.getNetworkInfo(ConnectivityManager.TYPE_WIFI).getState() == NetworkInfo.State.CONNECTED;
+    };
 
     private void showForgottenPassword(AlertDialog previous) {
         boolean prevShow=previous.isShowing();
@@ -1791,11 +1807,18 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                 .create();
 
         //change the shared preferences, do the rest on login for guide or learner button select
-        Switch ManualToggle = optionsScreen.findViewById(R.id.server_discovery);
-        ManualToggle.setChecked(sessionManual);
-        ManualToggle.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+        Switch manualToggle = optionsScreen.findViewById(R.id.server_discovery);
+        manualToggle.setChecked(sessionManual);
+        manualToggle.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                //Guide or student needs internet to access firebase database
+                if(!checkInternetAccess()) {
+                    showWarningDialog("Currently Offline", "No internet access detected. Please connect to continue."
+                    + "\n\n Note: Try our new manual connection feature if you're having trouble");
+                    manualToggle.setChecked(false);
+                    return;
+                }
                 //Learner cannot switch while logged in
                 switchManualPreference(sharedPreferences, isChecked);
             }
@@ -3580,6 +3603,11 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     private Boolean Marketing =false;
 
     public void buildloginsignup(int page, boolean signinVerif) {
+        if(!checkInternetAccess()) {
+            showWarningDialog("Currently Offline", "No internet access detected. Please connect to continue.");
+            return;
+        }
+
         showSystemUI();
         View Login = View.inflate(this, R.layout.b__login_signup, null);
         LinearLayout[] layoutPages = {Login.findViewById(R.id.rego_code), Login.findViewById(R.id.terms_of_use), Login.findViewById(R.id.signup_page)
