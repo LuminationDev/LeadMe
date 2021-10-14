@@ -789,6 +789,7 @@ public class WebManager {
         adding_to_fav = add_fav_mode;
 
         websiteLaunchDialog.show();
+        websiteLaunchDialogView.findViewById(R.id.url_input_field).requestFocus();
         main.openKeyboard();
     }
 
@@ -1485,11 +1486,16 @@ public class WebManager {
                     try {
                         bitmap = Glide.with(searchWebView).asBitmap().diskCacheStrategy(DiskCacheStrategy.ALL).load(url).submit().get();
                         Log.d(TAG, "shouldInterceptRequest: intercepted jpg");
-                    } catch (ExecutionException e) {
-                        e.printStackTrace();
-                    } catch (InterruptedException e) {
+                    } catch (ExecutionException | InterruptedException e) {
                         e.printStackTrace();
                     }
+
+                    if(bitmap == null) {
+                        Log.d(TAG, "intercepted jpg: null exception");
+                        Toast.makeText(main.getApplicationContext(), "An image was unable to be displayed.", Toast.LENGTH_SHORT).show();
+                        return null;
+                    }
+
                     ByteArrayOutputStream bos = new ByteArrayOutputStream();
                     bitmap.compress(Bitmap.CompressFormat.JPEG, 100, bos);
                     byte[] bitmapdata = bos.toByteArray();
@@ -1500,11 +1506,16 @@ public class WebManager {
                     try {
                         bitmap = Glide.with(searchWebView).asBitmap().diskCacheStrategy(DiskCacheStrategy.ALL).load(url).submit().get();
                         Log.d(TAG, "shouldInterceptRequest: intercepted png");
-                    } catch (ExecutionException e) {
-                        e.printStackTrace();
-                    } catch (InterruptedException e) {
+                    } catch (ExecutionException | InterruptedException e) {
                         e.printStackTrace();
                     }
+
+                    if(bitmap == null) {
+                        Log.d(TAG, "intercepted png: null exception");
+                        Toast.makeText(main.getApplicationContext(), "An image was unable to be displayed.", Toast.LENGTH_SHORT).show();
+                        return null;
+                    }
+
                     ByteArrayOutputStream bos = new ByteArrayOutputStream();
                     bitmap.compress(Bitmap.CompressFormat.PNG, 100, bos);
                     byte[] bitmapdata = bos.toByteArray();
@@ -1515,11 +1526,16 @@ public class WebManager {
                     try {
                         bitmap = Glide.with(searchWebView).asBitmap().diskCacheStrategy(DiskCacheStrategy.ALL).load(url).submit().get();
                         Log.d(TAG, "shouldInterceptRequest: intercepted webp");
-                    } catch (ExecutionException e) {
-                        e.printStackTrace();
-                    } catch (InterruptedException e) {
+                    } catch (ExecutionException | InterruptedException e) {
                         e.printStackTrace();
                     }
+
+                    if(bitmap == null) {
+                        Log.d(TAG, "intercepted webp: null exception");
+                        Toast.makeText(main.getApplicationContext(), "An image was unable to be displayed.", Toast.LENGTH_SHORT).show();
+                        return null;
+                    }
+
                     ByteArrayOutputStream bos = new ByteArrayOutputStream();
                     if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
                         bitmap.compress(Bitmap.CompressFormat.WEBP_LOSSY, 100, bos);
