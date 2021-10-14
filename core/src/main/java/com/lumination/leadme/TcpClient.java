@@ -79,6 +79,7 @@ public class TcpClient extends Thread{
                 InputStreamReader inreader = new InputStreamReader(client.getInputStream());
                 BufferedReader in = new BufferedReader(inreader);
                 String Input = in.readLine();
+
                 inputRecieved(Input);
                 if (Input == null) {
                     checkIn = false;

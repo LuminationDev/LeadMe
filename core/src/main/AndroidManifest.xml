@@ -2,8 +2,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     package="com.lumination.leadme"
-    android:versionCode="9"
-    android:versionName="1.08">
+    android:versionCode="14"
+    android:versionName="1.13">
 
     <!-- for nearby connections -->
 <!--    <uses-permission android:name="android.permission.BLUETOOTH" />-->
@@ -54,6 +54,7 @@
         android:hardwareAccelerated="true"
         android:usesCleartextTraffic="true"
         android:largeHeap="true"
+        android:networkSecurityConfig="@xml/network_security_config"
         >
         <meta-data android:name="google_analytics_adid_collection_enabled" android:value="false" />
         <activity

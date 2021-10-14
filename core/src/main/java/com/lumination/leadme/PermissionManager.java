@@ -38,29 +38,29 @@ public class PermissionManager {
         this.main = main;
         app_title = main.getString(R.string.app_title_with_brand);
 
-        overlayPermissionListener = new PermissionListener() {
-
-            @Override
-            public void onPermissionGranted() {
-                overlayPermissionGranted = true; //all granted
-                waitingForPermission = false; //no longer waiting
-
-                Log.d(TAG, "Overlay Permission GRANTED! ");// + main.getNearbyManager().isConnectedAsFollower() + ", " + main.getNearbyManager().isConnectedAsGuide());
-                main.performNextAction();
-                if(main.ServerIP.length()>0){
-                    main.setandDisplayStudentOnBoard(3);
-                }else{
-                    main.setandDisplayStudentOnBoard(2);
-                }
-            }
-
-            @Override
-            public void onPermissionDenied(List<String> deniedPermissions) {
-                Log.d(TAG, "Overlay Permission DENIED!");
-                overlayPermissionGranted = false; //not all granted
-                waitingForPermission = false; //no longer waiting
-            }
-        };
+//        overlayPermissionListener = new PermissionListener() {
+//
+//            @Override
+//            public void onPermissionGranted() {
+//                overlayPermissionGranted = true; //all granted
+//                waitingForPermission = false; //no longer waiting
+//
+//                Log.d(TAG, "Overlay Permission GRANTED! ");// + main.getNearbyManager().isConnectedAsFollower() + ", " + main.getNearbyManager().isConnectedAsGuide());
+//                main.performNextAction();
+//                if(main.ServerIP.length()>0){
+//                    main.setandDisplayStudentOnBoard(3);
+//                }else{
+//                    main.setandDisplayStudentOnBoard(2);
+//                }
+//            }
+//
+//            @Override
+//            public void onPermissionDenied(List<String> deniedPermissions) {
+//                Log.d(TAG, "Overlay Permission DENIED!");
+//                overlayPermissionGranted = false; //not all granted
+//                waitingForPermission = false; //no longer waiting
+//            }
+//        };
 
         nearbyPermissionListener = new PermissionListener() {
             @Override
@@ -101,7 +101,10 @@ public class PermissionManager {
     }
 
     public boolean isOverlayPermissionGranted() {
-        overlayPermissionGranted = /*(main.checkSelfPermission(Manifest.permission.SYSTEM_ALERT_WINDOW) == PackageManager.PERMISSION_GRANTED ||*/ Settings.canDrawOverlays(main);
+        overlayPermissionGranted = Settings.canDrawOverlays(main);
+
+        Log.e(TAG, "Overlay Permission: " + overlayPermissionGranted);
+        /*(main.checkSelfPermission(Manifest.permission.SYSTEM_ALERT_WINDOW) == PackageManager.PERMISSION_GRANTED ||*/
 
 //        Log.d(TAG, "IsOverlayPermissionGranted? "
 //                + (main.checkSelfPermission(Manifest.permission.SYSTEM_ALERT_WINDOW) == PackageManager.PERMISSION_GRANTED)
@@ -131,14 +134,25 @@ public class PermissionManager {
 
     public void checkOverlayPermissions() {
         Log.d(TAG, "Checking Overlay Permissions. Currently " + overlayPermissionGranted + ", " + rejectedPermissions);
+        //TCP connection did not like interacting after the TedPermission had been used - not entirely sure why this occurred?
+//        if (!isOverlayPermissionGranted()) {
+//            waitingForPermission = true;
+//            Log.d(TAG, "Checking Overlay Permissions #2 " + waitingForPermission);
+//            main.closeKeyboard();
+//            TedPermission.with(main)
+//                    .setPermissionListener(overlayPermissionListener)
+//                    .setPermissions(Manifest.permission.SYSTEM_ALERT_WINDOW)
+//                    .check();
+//        }
+//        else if (!isAccessibilityGranted()) {
+//            requestAccessibilitySettingsOn();
+//        }
+
         if (!isOverlayPermissionGranted()) {
-            waitingForPermission = true;
-            Log.d(TAG, "Checking Overlay Permissions #2 " + waitingForPermission);
-            main.closeKeyboard();
-            TedPermission.with(main)
-                    .setPermissionListener(overlayPermissionListener)
-                    .setPermissions(Manifest.permission.SYSTEM_ALERT_WINDOW)
-                    .check();
+            Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION);
+            intent.setData(Uri.parse("package:" + main.getPackageName()));
+            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_NO_HISTORY | Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS);
+            main.startActivityForResult(intent, main.OVERLAY_ON);
         }
         else if (!isAccessibilityGranted()) {
             requestAccessibilitySettingsOn();

@@ -776,6 +776,9 @@ public class NetworkAdapter {
                         main.getConnectedLearnersAdapter().addStudent(thisPeer);
                         main.showConnectedStudents(true);
                     });
+                    ArrayList<Integer> selected = new ArrayList<>();
+                    selected.add(clientID);
+                    sendToSelectedClients("Thanks " + message, "COMMUNICATION", selected);//lets client know their name has been saved
                 }
                 break;
             case "DISCONNECT":
@@ -835,10 +838,12 @@ public class NetworkAdapter {
     public void stopServer() {
         Server.cancel(true);
 //        mThread.interrupt();
-        try {
-            mServerSocket.close();
-        } catch (IOException ioe) {
-            Log.e(TAG, "Error when closing server socket.");
+        if(mServerSocket!=null) {
+            try {
+                mServerSocket.close();
+            } catch (IOException ioe) {
+                Log.e(TAG, "Error when closing server socket.");
+            }
         }
     }
 
@@ -861,6 +866,11 @@ public class NetworkAdapter {
             }
         }
 
+    }
+
+    //Needs to be reset on logout otherwise ID and xray ID do not match and client ID consecutively grows
+    public void resetClientIDs() {
+        clientID = 0;
     }
 
     public void startMonitoring(int ID, int localPort) {

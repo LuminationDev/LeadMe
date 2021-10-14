@@ -25,8 +25,6 @@ import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.hardware.display.DisplayManager;
 import android.media.AudioManager;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
 import android.net.Uri;
 import android.net.wifi.WifiManager;
 import android.os.Build;
@@ -760,12 +758,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             ((TextView) loginDialogView.findViewById(R.id.teacher_name)).setText(getNearbyManager().selectedLeader.getDisplayName());
         }
 
-        //Check if the leader has internet access
-        if(!checkInternetAccess()) {
-            showWarningDialog("Currently Offline", "No internet access detected. Please connect to continue.");
-            return;
-        }
-
         if (loginDialog == null) {
             loginDialog = new AlertDialog.Builder(this)
                     .setView(loginDialogView)
@@ -821,14 +813,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         nameView.requestFocus();
         openKeyboard();
     }
-
-    //check if the device has access to the internet (not just wifi)
-    private boolean checkInternetAccess() {
-        ConnectivityManager connectivityManager = (ConnectivityManager)getSystemService(Context.CONNECTIVITY_SERVICE);
-        //we are connected to a network
-        return connectivityManager.getNetworkInfo(ConnectivityManager.TYPE_MOBILE).getState() == NetworkInfo.State.CONNECTED ||
-                connectivityManager.getNetworkInfo(ConnectivityManager.TYPE_WIFI).getState() == NetworkInfo.State.CONNECTED;
-    };
 
     private void showForgottenPassword(AlertDialog previous) {
         boolean prevShow=previous.isShowing();
@@ -1807,18 +1791,11 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                 .create();
 
         //change the shared preferences, do the rest on login for guide or learner button select
-        Switch manualToggle = optionsScreen.findViewById(R.id.server_discovery);
-        manualToggle.setChecked(sessionManual);
-        manualToggle.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+        Switch ManualToggle = optionsScreen.findViewById(R.id.server_discovery);
+        ManualToggle.setChecked(sessionManual);
+        ManualToggle.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                //Guide or student needs internet to access firebase database
-                if(!checkInternetAccess()) {
-                    showWarningDialog("Currently Offline", "No internet access detected. Please connect to continue."
-                    + "\n\n Note: Try our new manual connection feature if you're having trouble");
-                    manualToggle.setChecked(false);
-                    return;
-                }
                 //Learner cannot switch while logged in
                 switchManualPreference(sharedPreferences, isChecked);
             }
@@ -1858,7 +1835,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                     connect.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View v) {
-                            if(IpEnter!=null && IpEnter.getText().toString().length()>0){
+                            if(IpEnter!=null && ManName!=null &&ManName.getText().toString().length()>0 && IpEnter.getText().toString().length()>0){
                                 Log.d(TAG, "onClick: "+IpEnter.getText().toString());
                                 getNameView().setText(ManName.getText().toString());
                                 getNearbyManager().myName = ManName.getText().toString();
@@ -2080,6 +2057,9 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     create a new collection, Leaders if it does not exist in case multiple Leaders are online
     create a new document of the ServerIP address with username, ServerIP, PublicIP and timestamp fields*/
     private void updateAddress() {
+        if(publicIP.length()==0){
+            return;
+        }
         db.collection("addresses").document(publicIP)
             .collection("Leaders").document(ServerIP).set(manualConnectionDetails, SetOptions.merge())
             .addOnSuccessListener(new OnSuccessListener<Void>() {
@@ -2098,6 +2078,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
     private void waitForPublic() {
         Thread getPublic = new Thread(() -> {
+            Log.d(TAG, "waitForPublic: this1");
             publicIP = getPublicIP();
             manualConnectionDetails.put("PublicIP", publicIP); //store as reference for the clean up server
         });
@@ -2109,22 +2090,29 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+        Log.d(TAG, "waitForPublic: this2");
     }
 
     private String getPublicIP() {
-        String publicIP = "";
+//        if(publicIP!=null && publicIP.length()>0){
+//            return publicIP;
+//        }
+//        Log.d(TAG, "getPublicIP: here");
+        String publicIPlocal = "";
         try  {
             java.util.Scanner s = new java.util.Scanner(
                     new java.net.URL(
                             "https://api.ipify.org")
                             .openStream(), "UTF-8")
                     .useDelimiter("\\A");
-            publicIP = s.next();
+            publicIPlocal = s.next();
+            Log.d(TAG, "getPublicIP: got public");
         } catch (java.io.IOException e) {
             e.printStackTrace();
+            Log.d(TAG, "getPublicIP: didn't get public");
         }
 
-        return publicIP;
+        return publicIPlocal;
     }
     //MANUAL CONNECTION FUNCTIONS END
 
@@ -2173,7 +2161,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         ProgressBar indeterminate = mainLeader.findViewById(R.id.leader_loading);
         if (indeterminate != null) {
             if (Time > 0) {
-                indeterminate.setVisibility(View.VISIBLE);
+                runOnUiThread(() -> indeterminate.setVisibility(View.VISIBLE));
                 scheduledExecutorService.schedule((Runnable) () -> runOnUiThread(() -> indeterminate.setVisibility(View.INVISIBLE)), (long) Time, TimeUnit.MILLISECONDS);
             }
         }
@@ -2495,7 +2483,10 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     //call to firebase to retrieve any leaders registered to that publicIP address
     private void retrieveLeaders() {
         waitForPublic();
-
+        Log.d(TAG, "retrieveLeaders: "+publicIP);
+        if (publicIP == null|| publicIP.length()==0) {
+            return;
+        }
         CollectionReference collRef = db.collection("addresses").document(publicIP).collection("Leaders");
 
         collRef.get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
@@ -2503,31 +2494,43 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             public void onComplete(@NonNull Task<QuerySnapshot> task) {
                 if (task.isSuccessful()) {
                     //if no one has registered on the public IP yet, wait sometime and try again.
-                    if(Objects.requireNonNull(task.getResult()).size() == 0) {
-                        try {
-                            Thread.sleep(waitForGuide);
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
-                        retrieveLeaders();
-                    } else {
-                        for (QueryDocumentSnapshot document : Objects.requireNonNull(task.getResult())) {
-                            Date leaderTimeStamp = Objects.requireNonNull(document.getTimestamp("TimeStamp")).toDate();
+                    try {
+                        if (Objects.requireNonNull(task.getResult()).size() == 0) {
+                            scheduledExecutorService.schedule(new Runnable() {
+                                @Override
+                                public void run() {
+                                    runOnUiThread(() -> {
+                                        retrieveLeaders();
+                                    });
+                                }
+                            }, waitForGuide, TimeUnit.MILLISECONDS);
+//                        try {
+//                            Thread.sleep(waitForGuide);
+//                        } catch (InterruptedException e) {
+//                            e.printStackTrace();
+//                        }
 
-                            if(checkTimeDifference(leaderTimeStamp) >= inactiveUser) {
-                                return;
+                        } else {
+                            for (QueryDocumentSnapshot document : Objects.requireNonNull(task.getResult())) {
+                                Date leaderTimeStamp = Objects.requireNonNull(document.getTimestamp("TimeStamp")).toDate();
+
+                                if (checkTimeDifference(leaderTimeStamp) >= inactiveUser) {
+                                    return;
+                                }
+
+                                //add to the leaders list
+                                runOnUiThread(() -> {
+                                    getLeaderSelectAdapter().addLeader(new ConnectedPeer(document.get("Username").toString(), document.get("ServerIP").toString()));
+                                    showLeaderWaitMsg(false);
+                                });
                             }
 
-                            //add to the leaders list
-                            runOnUiThread(() -> {
-                                getLeaderSelectAdapter().addLeader(new ConnectedPeer(document.get("Username").toString(), document.get("ServerIP").toString()));
-                                showLeaderWaitMsg(false);
-                            });
+                            //add listeners to track if leader hasn't logged in but publicIP exists (multiple leaders on network)
+                            //TODO trackCollection works fine, haven't create code to stop the listeners when students log in.
+                            trackCollection(collRef);
                         }
-
-                        //add listeners to track if leader hasn't logged in but publicIP exists (multiple leaders on network)
-                        //TODO trackCollection works fine, haven't create code to stop the listeners when students log in.
-                        trackCollection(collRef);
+                    }catch(NullPointerException e){
+                        Log.d(TAG, "onComplete: "+e);
                     }
                 } else {
                     Log.d(TAG, "Error getting documents: ", task.getException());
@@ -2666,9 +2669,12 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         }
     }
 
+    // TODO need to reset peer id setting?
     void logoutAction() {
         getDispatcher().alertLogout(); //need to send this before resetting 'isGuide'
         isGuide = false;
+        getNearbyManager().networkAdapter.resetClientIDs();
+        getConnectedLearnersAdapter().resetOnLogout();
         //xrayManager.monitorInProgress = false; //break connection loop in clientStream
         getNearbyManager().onStop();
         getNearbyManager().stopAdvertising();
@@ -3510,7 +3516,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         hideSystemUIStudent();
         if (page == 0) {
             View OnBoardPerm = View.inflate(this, R.layout.c__onboarding_student, null);
-            TextView support = OnBoardPerm.findViewById(R.id.onboardperm_support); //TODO support button link
+            TextView support = OnBoardPerm.findViewById(R.id.onboardperm_support);
             Button okPermission = OnBoardPerm.findViewById(R.id.onboardperm_ok_btn);
             Button cancelPermission = OnBoardPerm.findViewById(R.id.onboardperm_cancel_btn);
             okPermission.setOnClickListener(v -> getPermissionsManager().requestAccessibilitySettingsOn());
@@ -3528,7 +3534,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             this.setContentView(OnBoardPerm);
         } else if (page == 1) {
             View OnBoardPerm = View.inflate(this, R.layout.c__onboarding_student_2, null);
-            TextView support = OnBoardPerm.findViewById(R.id.onboardperm_support); //TODO support button link
+            TextView support = OnBoardPerm.findViewById(R.id.onboardperm_support);
             support.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
@@ -3538,6 +3544,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             });
             Button okPermission = OnBoardPerm.findViewById(R.id.onboardperm_ok_btn);
             Button cancelPermission = OnBoardPerm.findViewById(R.id.onboardperm_cancel_btn);
+
             okPermission.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
@@ -3584,7 +3591,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                 getNearbyManager().connectToSelectedLeader();
                 showWaitingForConnectDialog();
             }else if(sessionManual){
-                if(ServerIP == "") {
+                if(ServerIP.equals("")) {
                     ServerIP = getNearbyManager().selectedLeader.getID();
                 }
                 getNearbyManager().connectToManualLeader(ServerIP);
@@ -3603,11 +3610,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     private Boolean Marketing =false;
 
     public void buildloginsignup(int page, boolean signinVerif) {
-        if(!checkInternetAccess()) {
-            showWarningDialog("Currently Offline", "No internet access detected. Please connect to continue.");
-            return;
-        }
-
         showSystemUI();
         View Login = View.inflate(this, R.layout.b__login_signup, null);
         LinearLayout[] layoutPages = {Login.findViewById(R.id.rego_code), Login.findViewById(R.id.terms_of_use), Login.findViewById(R.id.signup_page)
@@ -4078,7 +4080,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             case ComponentCallbacks2.TRIM_MEMORY_RUNNING_MODERATE:
             case ComponentCallbacks2.TRIM_MEMORY_RUNNING_LOW:
             case ComponentCallbacks2.TRIM_MEMORY_RUNNING_CRITICAL:
-                screenCap.sendImages=false;
+                //screenCap.sendImages=false;
                 /*
                    Release any memory that your app doesn't need to run.
 
@@ -4173,21 +4175,23 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                 confirm.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        setProgressSpinner(5000, pBar);
-                        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-                        AuthCredential credential = EmailAuthProvider.getCredential(user.getEmail(), Pass.getText().toString());
-                        user.reauthenticate(credential)
-                                .addOnCompleteListener(new OnCompleteListener<Void>() {
-                                    @Override
-                                    public void onComplete(@NonNull Task<Void> task) {
-                                       if(task.isSuccessful()){
-                                            setAndDisplayPinReset(1);
-                                       }else{
-                                            error.setVisibility(View.VISIBLE);
-                                           pBar.setVisibility(View.INVISIBLE);
-                                       }
-                                    }
-                                });
+                        if (Pass != null && Pass.getText().toString().length() > 0) {
+                            setProgressSpinner(5000, pBar);
+                            FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+                            AuthCredential credential = EmailAuthProvider.getCredential(user.getEmail(), Pass.getText().toString());
+                            user.reauthenticate(credential)
+                                    .addOnCompleteListener(new OnCompleteListener<Void>() {
+                                        @Override
+                                        public void onComplete(@NonNull Task<Void> task) {
+                                            if (task.isSuccessful()) {
+                                                setAndDisplayPinReset(1);
+                                            } else {
+                                                error.setVisibility(View.VISIBLE);
+                                                pBar.setVisibility(View.INVISIBLE);
+                                            }
+                                        }
+                                    });
+                        }
                     }
                 });
                 cancel.setOnClickListener(new View.OnClickListener() {

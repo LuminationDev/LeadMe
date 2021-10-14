@@ -3,18 +3,22 @@ package com.lumination.leadme;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
+import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.ImageFormat;
 import android.graphics.PixelFormat;
 import android.hardware.display.DisplayManager;
+import android.hardware.display.VirtualDisplay;
 import android.media.Image;
 import android.media.ImageReader;
 import android.media.projection.MediaProjection;
 import android.media.projection.MediaProjectionManager;
 import android.os.Build;
+import android.os.CountDownTimer;
 import android.util.DisplayMetrics;
 import android.util.Log;
+import android.view.Display;
 
 import androidx.annotation.RequiresApi;
 
@@ -37,12 +41,15 @@ public class ScreenCap {
     MediaProjectionManager projectionManager;
     MediaProjection mProjection;
     ImageReader mImageReader;
+    VirtualDisplay mVirtualDisplay;
+    private int height;
+    private int width;
+    private int densityDPI;
     public boolean permissionGranted =false;
 
     public Socket clientToServerSocket=null;
     ExecutorService screenshotSender = Executors.newFixedThreadPool(1);
     public boolean sendImages = false;
-
 
     public ScreenCap(LeadMeMain main){
         this.main=main;
@@ -76,19 +83,19 @@ public class ScreenCap {
     boolean startImed = false;
     public void startService(boolean StartOnReturn){
         Log.d(TAG, "startService: ");
-            projectionManager = (MediaProjectionManager) main.getSystemService(Context.MEDIA_PROJECTION_SERVICE);
-            Intent screen_share_intent = new Intent(main.getApplicationContext(), ScreensharingService.class);
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                main.startForegroundService(screen_share_intent);
-            } else {
-                main.startService(screen_share_intent);
-            }
-            if(StartOnReturn){
-                startImed=true;
-            }
-                main.startActivityForResult(projectionManager.createScreenCaptureIntent(), main.SCREEN_CAPTURE);
-
+        projectionManager = (MediaProjectionManager) main.getSystemService(Context.MEDIA_PROJECTION_SERVICE);
+        Intent screen_share_intent = new Intent(main.getApplicationContext(), ScreensharingService.class);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            main.startForegroundService(screen_share_intent);
+        } else {
+            main.startService(screen_share_intent);
+        }
+        if(StartOnReturn){
+            startImed=true;
+        }
+        main.startActivityForResult(projectionManager.createScreenCaptureIntent(), main.SCREEN_CAPTURE);
     }
+
     public void handleResultReturn(int resultCode, Intent data){
         Log.d(TAG, "handleResultReturn: "+ resultCode);
         if(resultCode==-1){
@@ -121,44 +128,67 @@ public class ScreenCap {
 
     @SuppressLint("WrongConstant")
     public void setupScreenCap(){
-        mImageReader = ImageReader.newInstance(getScreenWidth(), getScreenHeight(), PixelFormat.RGBA_8888, 1);
+        height = getScreenHeight();
+        width = getScreenWidth();
+        mImageReader = ImageReader.newInstance(width, height, PixelFormat.RGBA_8888, 1);
         DisplayMetrics metrics = new DisplayMetrics();
-        main.getDisplay().getRealMetrics(metrics);
-        mProjection.createVirtualDisplay("screen-mirror", getScreenWidth(), getScreenHeight(), metrics.densityDpi, DisplayManager.VIRTUAL_DISPLAY_FLAG_PUBLIC, mImageReader.getSurface(), null, null);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            main.getDisplay().getRealMetrics(metrics);
+        } else {
+            main.getWindowManager().getDefaultDisplay().getMetrics(metrics);
+        }
+        densityDPI = metrics.densityDpi;
+        mVirtualDisplay = mProjection.createVirtualDisplay("screen-mirror", width, height, densityDPI, DisplayManager.VIRTUAL_DISPLAY_FLAG_PUBLIC, mImageReader.getSurface(), null, null);
     }
-    boolean portrait = true;
-    public void getBitmapsFromScreen(){
 
+    //randomly stops after a while of no movement
+    public void getBitmapsFromScreen(){
         mImageReader.setOnImageAvailableListener((ImageReader.OnImageAvailableListener) reader -> {
-                Image image = mImageReader.acquireNextImage();
-                if (image == null) {
-                    return;
+
+            Image image = mImageReader.acquireNextImage();
+
+            if (image == null) {
+                return;
+            }
+            if (sendImages) {
+                //only change if the height changes
+                //(meaning width has also changed)
+                if (height != getScreenHeight()) {
+                    height = getScreenHeight();
+                    width = getScreenWidth();
+                    changePeerOrientation(width, height);
                 }
-            if(sendImages) {
                 final Image.Plane[] planes = image.getPlanes();
                 final ByteBuffer buffer = planes[0].getBuffer();
-                int offset = 0;
+                //int offset = 0;
                 int pixelStride = planes[0].getPixelStride();
                 int rowStride = planes[0].getRowStride();
                 int rowPadding = rowStride - pixelStride * getScreenWidth();
-// create bitmap
-                Bitmap bmp = Bitmap.createBitmap(getScreenWidth() + rowPadding / pixelStride, getScreenHeight(), Bitmap.Config.ARGB_8888);
+                // create bitmap
+                Bitmap bmp = Bitmap.createBitmap(width + rowPadding / pixelStride, height, Bitmap.Config.ARGB_8888);
                 bmp.copyPixelsFromBuffer(buffer);
-
+                image.close(); //close image as soon as possible
                 //latestImage=bmp;
                 sendScreenShot(bmp);
-                Log.d(TAG, "getBitmapFromScreen: ");
+            } else {
+                image.close();
             }
-            image.close();
-
-        },main.getHandler());
+        }, main.getHandler());
     }
+
     private static int getScreenWidth() {
         return Resources.getSystem().getDisplayMetrics().widthPixels;
     }
 
     private static int getScreenHeight() {
         return Resources.getSystem().getDisplayMetrics().heightPixels;
+    }
+
+    //change the virtual display between portrait and landscape
+    //did not like .resize() (rotation back to portrait resulted in a square
+    public void changePeerOrientation(int width, int height) {
+        mVirtualDisplay.release();
+        mVirtualDisplay = mProjection.createVirtualDisplay("screen-mirror", width, height, densityDPI, DisplayManager.VIRTUAL_DISPLAY_FLAG_PUBLIC, mImageReader.getSurface(), null, null);
     }
 
     Future<?> lastTask= null;

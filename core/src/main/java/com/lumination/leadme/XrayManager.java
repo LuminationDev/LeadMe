@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.ImageFormat;
+import android.graphics.Matrix;
 import android.graphics.PixelFormat;
 import android.graphics.Point;
 import android.graphics.drawable.Drawable;
@@ -60,7 +61,7 @@ public class XrayManager {
 
     private TextView xrayStudentSelectedView, xrayStudentDisplayNameView;
     private ImageView xrayStudentIcon, xrayScreenshotView;
-    private View nextXrayStudent, prevXrayStudent;
+    private View nextXrayStudent, prevXrayStudent, loadingPanel;
     private Button xrayButton;
     private View xrayScreen;
     private LeadMeMain main;
@@ -72,10 +73,11 @@ public class XrayManager {
         this.xrayScreen = xrayScreen;
         xrayScreenshotView = xrayScreen.findViewById(R.id.monitor_popup_img);
         xrayScreenshotView.setImageResource(R.color.transparent);
-
+        //spinner to let the teachers know it is loading
+        loadingPanel = xrayScreen.findViewById(R.id.xrayLoadingPanel);
     }
 
-    boolean screenCapPermission = false;
+//    boolean screenCapPermission = false;
 
     private void setupXrayView() {
         xrayStudentIcon = xrayScreen.findViewById(R.id.student_icon);
@@ -197,7 +199,7 @@ public class XrayManager {
         closeButton.setOnClickListener(v -> {
             hideXrayView();
             main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.XRAY_OFF, main.getNearbyManager().getAllPeerIDs());
-
+            //remove last
             if (xrayDropdown.getVisibility() == VISIBLE) {
                 xrayButton.callOnClick(); //hide it
             }
@@ -220,6 +222,7 @@ public class XrayManager {
 
     public void showXrayView(String peer) {
         Log.w(TAG, "Showing xray view for " + peer + "!");
+
         if (!xrayInit) {
             setupXrayView();
             xrayInit = true;
@@ -247,7 +250,16 @@ public class XrayManager {
         currentXrayStudentIndex = selectedXrayStudents.indexOf(peer);
         monitoredPeer = peer;
 
+        //show loading symbol to wait for the first screen shot
+        isAwaitingImage(true);
+
         Log.w(TAG, "Finding details for: " + peer + ", " + currentXrayStudentIndex);
+
+        //If the peer has not connected properly will throw an exception in the next if statement
+        if(selectedXrayStudents.size() == 0) {
+            Toast.makeText(main.getApplicationContext(), "No students available.", Toast.LENGTH_SHORT).show();
+            return;
+        }
 
         //no matching peer was found, use defaults
         if (peer.trim().isEmpty() || currentXrayStudentIndex < 0) {
@@ -262,6 +274,7 @@ public class XrayManager {
         if (xrayStudent == null) {
             //this student must have disconnected, refresh the UI
             hideXrayView();
+            //Check if a learner is connected AND if the xray list is filling properly
             if (main.getConnectedLearnersAdapter().mData.size() > 0) {
                 Log.w(TAG, "Got connected learners! Showing xray again! " + main.getConnectedLearnersAdapter().mData.size());
                 showXrayView("");
@@ -301,6 +314,7 @@ public class XrayManager {
 
             //display most recent screenshot
             Bitmap latestScreenie = clientRecentScreenshots.get(xrayStudent.getID());
+
             xrayScreenshotView.setImageBitmap(latestScreenie);
 
             updateXrayForSelection(xrayStudent);
@@ -334,24 +348,25 @@ public class XrayManager {
         //xrayStudentSelectedView.invalidate();
     }
 
-    public void startServer() {
-        Log.w(TAG, "Starting server...");
-        main.getPermissionsManager().waitingForPermission = true;
-        if (!screenCapPermission) {
-            projectionManager = (MediaProjectionManager) main.getSystemService(Context.MEDIA_PROJECTION_SERVICE);
-
-            //start service class
-            screen_share_intent = new Intent(main.getApplicationContext(), ScreensharingService.class);
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                main.startForegroundService(screen_share_intent);
-            } else {
-                main.startService(screen_share_intent);
-            }
-
-            //start screen capturing
-            main.startActivityForResult(projectionManager.createScreenCaptureIntent(), main.SCREEN_CAPTURE);
-        }
-    }
+//Old code
+//    public void startServer() {
+//        Log.w(TAG, "Starting server...");
+//        main.getPermissionsManager().waitingForPermission = true;
+//        if (!screenCapPermission) {
+//            projectionManager = (MediaProjectionManager) main.getSystemService(Context.MEDIA_PROJECTION_SERVICE);
+//
+//            //start service class
+//            screen_share_intent = new Intent(main.getApplicationContext(), ScreensharingService.class);
+//            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+//                main.startForegroundService(screen_share_intent);
+//            } else {
+//                main.startService(screen_share_intent);
+//            }
+//
+//            //start screen capturing
+//            main.startActivityForResult(projectionManager.createScreenCaptureIntent(), main.SCREEN_CAPTURE);
+//        }
+//    }
 
     private void imageRunnableFunction(String imgPeer) {
         Log.e(TAG, "Starting imageRunnable: " + serverSocket.isClosed() + ", " + serverSocket.isBound());
@@ -359,7 +374,6 @@ public class XrayManager {
         try {
             socket = serverSocket.accept();
             Log.w(TAG, "Accepting SERVER socket from " + serverSocket.getInetAddress() + ", I'm " + socket.getLocalAddress() + " / " + imgPeer);
-
         } catch (IOException e) {
             e.printStackTrace();
             monitorInProgress = false;
@@ -382,7 +396,12 @@ public class XrayManager {
                 if (in.available() > 0) {
                     int length = in.readInt();
                     Log.d(TAG, "run: image received of size " + length + " from " + imgPeer);
-                    if (length > 10000 && length < 300000) {
+                    /*
+                    * Lowered the length range to 5,000, when in VR the blank screen at the start is less
+                    * than 10,000. The build up from this causes an overflow error and stops the projections
+                    * coming through?
+                    */
+                    if (length > 5000 && length < 300000) {
                         buffer = new byte[length];
                         in.readFully(buffer, 0, length);
                         //Log.d(TAG, "Packet Received!! ");
@@ -398,6 +417,7 @@ public class XrayManager {
                 response = tmpBmp;
 
                 main.runOnUiThread(() -> {
+                    isAwaitingImage(false);
                     Log.d(TAG, "Adding screenshot! " + monitoredPeer + " == " + imgPeer);
                     clientRecentScreenshots.put(imgPeer, tmpBmp); //store it
                     if (monitoredPeer.equals(imgPeer)) {
@@ -444,5 +464,15 @@ public class XrayManager {
             Log.w(TAG, "Now have client sockets: " + clientSocketThreads.size() + " : " + peer);
         }
 
+    }
+
+    private void isAwaitingImage(boolean waiting) {
+        if(waiting) {
+            loadingPanel.setVisibility(VISIBLE);
+            xrayScreenshotView.setVisibility(GONE);
+        } else {
+            loadingPanel.setVisibility(GONE);
+            xrayScreenshotView.setVisibility(VISIBLE);
+        }
     }
 }

@@ -77,6 +77,11 @@ public class ConnectedLearnersAdapter extends BaseAdapter {
         alertsAdapter.notifyDataSetChanged();
     }
 
+    public void resetOnLogout() {
+        mData = new ArrayList<>();
+        ((TextView)main.findViewById(R.id.learners_txt)).setText("All Learners");
+    }
+
     public void refresh() {
         refreshAlertsView();
         notifyDataSetChanged();
@@ -125,7 +130,7 @@ public class ConnectedLearnersAdapter extends BaseAdapter {
 
         //main.xrayManager.startImageClient(peer.getID());
 
-        Log.d(TAG, "Adding " + peer.getDisplayName() + " to my student list. Now: " + mData.size() + " || " + mData);
+        Log.d(TAG, "Adding " + peer.getDisplayName() + " to my student list, ID: " + peer.getID() + ". Now: " + mData.size() + " || " + mData);
     }
 
     public boolean hasConnectedStudents() {
