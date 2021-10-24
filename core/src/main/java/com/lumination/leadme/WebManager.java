@@ -868,7 +868,6 @@ public class WebManager {
         url = assistWithUrl(url);
 
         if (!URLUtil.isValidUrl(url)) {
-            Log.e("URL", url);
             if (url.contains(".")) {
                 if (!url.startsWith("http")) {
                     url = "http://" + url; //append a protocol
