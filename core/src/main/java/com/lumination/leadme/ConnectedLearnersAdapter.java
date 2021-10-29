@@ -3,24 +3,19 @@ package com.lumination.leadme;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.res.ColorStateList;
-import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewParent;
-import android.widget.AdapterView;
 import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.ListPopupWindow;
-import android.widget.PopupMenu;
 import android.widget.PopupWindow;
-import android.widget.Spinner;
 import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -29,13 +24,9 @@ import androidx.collection.ArraySet;
 import androidx.core.content.ContextCompat;
 import androidx.core.widget.ImageViewCompat;
 
-import java.lang.reflect.Field;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.TimeUnit;
 
 public class ConnectedLearnersAdapter extends BaseAdapter {
 
@@ -127,8 +118,6 @@ public class ConnectedLearnersAdapter extends BaseAdapter {
         //add the newest version
         mData.add(peer);
         refresh();
-
-        //main.xrayManager.startImageClient(peer.getID());
 
         Log.d(TAG, "Adding " + peer.getDisplayName() + " to my student list, ID: " + peer.getID() + ". Now: " + mData.size() + " || " + mData);
     }
@@ -451,6 +440,7 @@ public class ConnectedLearnersAdapter extends BaseAdapter {
                     @Override
                     public void onClick(View v) {
                         Log.d(TAG, "[adapter] Removing student: " + lastClickedID);
+                        main.xrayManager.resetClientMaps(lastClickedID); //remove the peer from the HashMaps
                         ArrayList<Integer> selected = new ArrayList<>();
                         selected.add(Integer.valueOf(lastClickedID));
                         main.getNearbyManager().networkAdapter.sendToSelectedClients("", "DISCONNECT", selected);

@@ -1,5 +1,6 @@
 package com.lumination.leadme;
 
+import android.content.Intent;
 import android.net.nsd.NsdServiceInfo;
 import android.os.Build;
 import android.os.Parcel;
@@ -10,7 +11,6 @@ import androidx.collection.ArraySet;
 import com.google.android.gms.nearby.connection.Payload;
 
 import java.net.InetAddress;
-import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Base64;
@@ -190,6 +190,8 @@ public class NearbyPeersManager {
         } else {
 //            try {
             main.runOnUiThread(() -> {
+                main.screenCap.clientToServerSocket = null;
+                main.screenCap.stopService(); //stop the screen sharing service
                 ArrayList<ConnectedPeer> temp = new ArrayList<>();
                 main.getLeaderSelectAdapter().setLeaderList(temp);
                 main.showLeaderWaitMsg(true);

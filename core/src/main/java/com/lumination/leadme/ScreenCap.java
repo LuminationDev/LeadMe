@@ -96,6 +96,11 @@ public class ScreenCap {
         main.startActivityForResult(projectionManager.createScreenCaptureIntent(), main.SCREEN_CAPTURE);
     }
 
+    public void stopService() {
+        Intent stop_screen_share_intent = new Intent(main.getApplicationContext(), ScreensharingService.class);
+        main.stopService(stop_screen_share_intent);
+    }
+
     public void handleResultReturn(int resultCode, Intent data){
         Log.d(TAG, "handleResultReturn: "+ resultCode);
         if(resultCode==-1){

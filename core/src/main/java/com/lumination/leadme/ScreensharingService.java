@@ -61,9 +61,10 @@ public class ScreensharingService extends Service {
         startForeground(notificationId, notification);
     }
 
-    public void endForeground() {
-        stopForeground(true);
-    }
+//    public void endForeground() {
+//        stopSelf();
+//        stopForeground(true);
+//    }
 
     @Override
     public IBinder onBind(Intent intent) {

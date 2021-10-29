@@ -47,12 +47,11 @@ import static android.view.View.VISIBLE;
 
 public class XrayManager {
 
-    //added-------
     ScreenshotManager screenshotManager;
 
-    String ipAddress;
-    Intent screen_share_intent = null;
-    private MediaProjectionManager projectionManager = null;
+//    String ipAddress;
+//    Intent screen_share_intent = null;
+//    private MediaProjectionManager projectionManager = null;
 
     public Bitmap response;
     Boolean monitorInProgress = false;
@@ -229,7 +228,7 @@ public class XrayManager {
         }
 
         //populate list with selected students (or all if none selected)
-        selectedXrayStudents.clear();
+        selectedXrayStudents = new ArrayList<>();
         selectedXrayStudents.addAll(main.getNearbyManager().getSelectedPeerIDsOrAll());
 
         if (selectedXrayStudents.size() > 0) {
@@ -382,7 +381,6 @@ public class XrayManager {
 
         while (monitorInProgress && !socket.isClosed()) { //global state, maybe change to individuals?
             if (monitoredPeer == null) {
-                //Log.e(TAG, "Monitored peer is NULL!");
                 try {
                     Thread.sleep(3000);
                 } catch (InterruptedException e) {
@@ -399,7 +397,7 @@ public class XrayManager {
                     /*
                     * Lowered the length range to 5,000, when in VR the blank screen at the start is less
                     * than 10,000. The build up from this causes an overflow error and stops the projections
-                    * coming through?
+                    * coming through.
                     */
                     if (length > 5000 && length < 300000) {
                         buffer = new byte[length];
@@ -417,7 +415,9 @@ public class XrayManager {
                 response = tmpBmp;
 
                 main.runOnUiThread(() -> {
+                    //remove the loading spinner
                     isAwaitingImage(false);
+                    //check if we are receiving images from the correct peer
                     Log.d(TAG, "Adding screenshot! " + monitoredPeer + " == " + imgPeer);
                     clientRecentScreenshots.put(imgPeer, tmpBmp); //store it
                     if (monitoredPeer.equals(imgPeer)) {
@@ -438,6 +438,8 @@ public class XrayManager {
 
     //Thread imageSocket;
     private String monitoredPeer;
+
+    //Need to reset maps after logout or peer removal
     HashMap<String, Thread> clientSocketThreads = new HashMap();
     HashMap<String, Bitmap> clientRecentScreenshots = new HashMap();
 
@@ -463,7 +465,28 @@ public class XrayManager {
             clientSocketThreads.put(peer, imageSocketThread); //store this
             Log.w(TAG, "Now have client sockets: " + clientSocketThreads.size() + " : " + peer);
         }
+    }
 
+    public void resetClientMaps(String peer) {
+        //Removing a single peer from the HashMaps
+        if(peer != null) {
+            Log.d(TAG, "Peer removed: " + peer);
+            clientSocketThreads.remove(peer);
+            clientRecentScreenshots.remove(peer);
+        } else {
+            Log.d(TAG, "Resetting hash maps");
+
+            clientSocketThreads = new HashMap();
+            clientRecentScreenshots = new HashMap();
+
+            //Close the serverSocket
+            try {
+                serverSocket.close();
+                serverSocket = null;
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     private void isAwaitingImage(boolean waiting) {

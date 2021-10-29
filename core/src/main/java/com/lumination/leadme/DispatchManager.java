@@ -349,12 +349,13 @@ public class DispatchManager {
                         }
                         break;
 
-                    }else if(action.startsWith(LeadMeMain.NAME_CHANGE)) {
+                    } else if(action.startsWith(LeadMeMain.NAME_CHANGE)) {
                         String[] Strsplit = action.split(":");
                         main.getNearbyManager().myName=Strsplit[1];
                         TextView title = main.leadmeAnimator.getCurrentView().findViewById(R.id.learner_title);
                         title.setText(Strsplit[1]);
-                    }else if(action.startsWith(LeadMeMain.NAME_REQUEST)){
+
+                    } else if(action.startsWith(LeadMeMain.NAME_REQUEST)){
                         //teachers handler for name change
                         String[] Strsplit = action.split(":");
 
@@ -375,7 +376,8 @@ public class DispatchManager {
                         Button confirmName = NameChangedConfirm.findViewById(R.id.name_changed_confirm);
                         confirmName.setOnClickListener(v -> studentNameConfirm.dismiss());
                         studentNameConfirm.setOnDismissListener(dialog -> main.hideSystemUI());
-                    }else if (action.startsWith(LeadMeMain.VID_MUTE_TAG)) {
+
+                    } else if (action.startsWith(LeadMeMain.VID_MUTE_TAG)) {
                         Log.d(TAG, "GOT MUTE");
                         main.muteAudio();
 
@@ -419,6 +421,7 @@ public class DispatchManager {
                         sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.LAUNCH_SUCCESS + "BLACKOUT" + ":" + main.getNearbyManager().getID() + ":" + main.getApplicationContext().getPackageName(),
                                 main.getNearbyManager().getAllPeerIDs());
                         break;
+
                     } else if (action.startsWith(LeadMeMain.STUDENT_NO_OVERLAY)) {
                         String[] split = action.split(":");
                         //Log.i(TAG, "STUDENT HAS OVERLAY? " + split[1].equals("OK"));
@@ -449,7 +452,7 @@ public class DispatchManager {
                         }
                         break;
 
-                    }else if(action.startsWith(LeadMeMain.STUDENT_NO_XRAY)){
+                    } else if(action.startsWith(LeadMeMain.STUDENT_NO_XRAY)){
                         String[] split = action.split(":");
                         if (split[1].equalsIgnoreCase("OK")) {
                             main.getConnectedLearnersAdapter().updateStatus(split[2], ConnectedPeer.STATUS_SUCCESS, LeadMeMain.STUDENT_NO_XRAY);
@@ -582,20 +585,24 @@ public class DispatchManager {
                 if (!extra.isEmpty()) {
                     // save all the info for a Within launch
                     Uri thisURI = Uri.parse(extra);
+
                     if (main.getAppManager().withinURI != null && main.getAppManager().withinURI.equals(thisURI) && !main.isAppVisibleInForeground()) {
                         Log.w(TAG, "We're already playing " + thisURI.toString() + "! Ignoring...");
                         return true; //successfully extracted the details, no action needed
+
                     } else {
                         main.getAppManager().withinURI = thisURI;
                         main.getAppManager().isStreaming = Boolean.parseBoolean(streaming);
                         main.getAppManager().isVR = Boolean.parseBoolean(vrMode);
                         Log.d(TAG, "Setting streaming status, vrMode and URL for WITHIN VR " + extra + ", " + streaming + ", " + vrMode + ", (" + appInForeground + ")");
+
                     }
                 } else {
                     Log.w(TAG, "[1] No URI, reset state!");
                     //no URL was specified, so clear any previous info
                     main.getAppManager().withinURI = null;
                     main.getLumiAccessibilityConnector().resetState();
+
                 }
             } else {
                 Log.w(TAG, "[2] No URI, reset state!");
@@ -612,10 +619,12 @@ public class DispatchManager {
                 launchAppOnFocus[0] = packageName;
                 launchAppOnFocus[1] = appName;
                 main.getLumiAccessibilityConnector().bringMainToFront();
+
             } else {
                 Log.d(TAG, "HAVE FOCUS!");
                 launchAppOnFocus = null; //reset
                 main.getHandler().post(() -> main.getAppManager().launchLocalApp(packageName, appName, true, false));
+
             }
             return true;
         } else {

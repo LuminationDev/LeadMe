@@ -306,5 +306,4 @@ public class ConnectedPeer {
         }
         return "Anonymous";
     }
-
 }
