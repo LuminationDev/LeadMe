@@ -112,6 +112,7 @@ import com.google.firebase.firestore.SetOptions;
 import com.himanshurawat.hasher.HashType;
 import com.himanshurawat.hasher.Hasher;
 
+import java.io.IOException;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
@@ -1684,7 +1685,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             }
         });
 
-
         //set up start switcher and main animator
         final View switcherView = View.inflate(context, R.layout.a__viewswitcher, null);
         leaderLearnerSwitcher = switcherView.findViewById(R.id.viewswitcher);
@@ -1734,7 +1734,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             }
         };
 
-
         startLeader.findViewById(R.id.menu_btn).setOnClickListener(menuListener);
         startLearner.findViewById(R.id.menu_btn).setOnClickListener(menuListener);
         mainLeader.findViewById(R.id.menu_btn).setOnClickListener(menuListener);
@@ -1768,6 +1767,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                 leadmeAnimator.setDisplayedChild(lastDisplayedIndex);
             }
         });
+
         optionsScreen.findViewById(R.id.options_loginBtn).setOnClickListener(view -> showLoginDialog());
         optionsScreen.findViewById(R.id.options_notsigned).setOnClickListener(view -> buildloginsignup(0));
         optionsScreen.findViewById(R.id.how_to_use_btn).setOnClickListener(new View.OnClickListener() {
@@ -1869,6 +1869,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             }
 
         });
+
         optionsScreen.findViewById(R.id.options_endSess).setOnClickListener(view -> {
             if (isGuide || !getNearbyManager().isConnectedAsFollower()) {
                 logoutAction();
@@ -1876,7 +1877,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                 Toast.makeText(getApplicationContext(), "Logout is unavailable.", Toast.LENGTH_SHORT).show();
             }
         });
-
 
         optionsScreen.findViewById(R.id.connected_only_view).setVisibility(View.GONE);
         optionsScreen.findViewById(R.id.auto_install_checkbox).setVisibility(View.GONE);
@@ -1893,6 +1893,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                 loginDialogView.findViewById(R.id.name_code_entry_view).setVisibility(View.GONE);
             }
         });
+
         if (mAuth.getCurrentUser() == null) {
             loginDialogView.findViewById(R.id.login_signup_view).setVisibility(View.VISIBLE);
             loginDialogView.findViewById(R.id.wrong_code_view).setVisibility(View.GONE);
@@ -1902,6 +1903,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             loginDialogView.findViewById(R.id.wrong_code_view).setVisibility(View.GONE);
             loginDialogView.findViewById(R.id.name_code_entry_view).setVisibility(View.VISIBLE);
         }
+
         learner_toggle.setOnClickListener(v -> {
             displayLearnerStartToggle();
             if (mAuth.getCurrentUser() == null) {
@@ -2672,6 +2674,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
     // TODO need to reset peer id setting?
     void logoutAction() {
+        xrayManager.resetClientMaps(null);
         getDispatcher().alertLogout(); //need to send this before resetting 'isGuide'
         isGuide = false;
         getNearbyManager().networkAdapter.resetClientIDs();

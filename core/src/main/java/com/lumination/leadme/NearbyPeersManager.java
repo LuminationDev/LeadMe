@@ -190,8 +190,8 @@ public class NearbyPeersManager {
         } else {
 //            try {
             main.runOnUiThread(() -> {
-                //TODO stop screen service if needed here
-                Log.e("Disconnect", "Student has disconnected");
+                main.screenCap.clientToServerSocket = null;
+                main.screenCap.stopService(); //stop the screen sharing service
                 ArrayList<ConnectedPeer> temp = new ArrayList<>();
                 main.getLeaderSelectAdapter().setLeaderList(temp);
                 main.showLeaderWaitMsg(true);
