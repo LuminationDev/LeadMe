@@ -1217,6 +1217,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         }
     }
 
+    //TODO add screenCap.endForeground(); - to stop monitoring after close?
     @OnLifecycleEvent(Lifecycle.Event.ON_DESTROY)
     public void onLifecycleDestroy() {
         //Toast.makeText(this, "LC Destroy", Toast.LENGTH_LONG).show();
@@ -3563,7 +3564,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                                         }
                                     }
                                 });
-
                             }
                         }
                     },100,100,TimeUnit.MILLISECONDS);
@@ -3573,6 +3573,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                     getPermissionsManager().checkOverlayPermissions();
                 }
             });
+
             cancelPermission.setOnClickListener(v -> {
                 leadmeAnimator.setDisplayedChild(ANIM_START_SWITCH_INDEX);
                 this.setContentView(leadmeAnimator);
@@ -3587,18 +3588,42 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             updateFollowerCurrentTaskToLeadMe();
             loginAttemptInAction = false;
 
-            if(page==2 && !sessionManual) {
-                getNearbyManager().connectToSelectedLeader();
-                showWaitingForConnectDialog();
-            }else if(sessionManual){
-                if(ServerIP.equals("")) {
-                    ServerIP = getNearbyManager().selectedLeader.getID();
-                }
-                getNearbyManager().connectToManualLeader(ServerIP);
-            }
+            //Check if LeadMe has focus, only try to connect if in the application
+            scheduledCheck = scheduledExecutorService.scheduleAtFixedRate(new Runnable() {
+                @Override
+                public void run() {
+                    Log.e("Focus", String.valueOf(appHasFocus));
 
-            screenCap.startService(false);
+                    if (appHasFocus) {
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                connectOnReturn(page);
+                            }
+                        });
+                    }
+                }
+            },100,1000,TimeUnit.MILLISECONDS);
         }
+    }
+
+    //Cancel any scheduled check and connect to a guide
+    public void connectOnReturn(int page) {
+        if(scheduledCheck!=null){
+            scheduledCheck.cancel(true);
+        }
+
+        if(page==2 && !sessionManual) {
+            getNearbyManager().connectToSelectedLeader();
+            showWaitingForConnectDialog();
+        } else if(sessionManual){
+            if(ServerIP.equals("")) {
+                ServerIP = getNearbyManager().selectedLeader.getID();
+            }
+            getNearbyManager().connectToManualLeader(ServerIP);
+        }
+
+        screenCap.startService(false);
     }
 
     public void buildloginsignup(int page) {

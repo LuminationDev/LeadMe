@@ -47,7 +47,6 @@ import static android.view.View.VISIBLE;
 
 public class XrayManager {
 
-    //added-------
     ScreenshotManager screenshotManager;
 
     String ipAddress;
@@ -399,7 +398,7 @@ public class XrayManager {
                     /*
                     * Lowered the length range to 5,000, when in VR the blank screen at the start is less
                     * than 10,000. The build up from this causes an overflow error and stops the projections
-                    * coming through?
+                    * coming through.
                     */
                     if (length > 5000 && length < 300000) {
                         buffer = new byte[length];

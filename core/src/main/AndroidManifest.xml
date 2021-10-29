@@ -76,7 +76,8 @@
         <service
             android:enabled="true"
             android:name=".ScreensharingService"
-            android:foregroundServiceType="mediaProjection" >
+            android:foregroundServiceType="mediaProjection"
+            android:stopWithTask="true">
         </service>
         <service
             android:name="com.lumination.leadme.LumiAccessibilityService"
