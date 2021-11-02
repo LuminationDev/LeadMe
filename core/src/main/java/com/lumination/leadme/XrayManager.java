@@ -480,11 +480,13 @@ public class XrayManager {
             clientRecentScreenshots = new HashMap();
 
             //Close the serverSocket
-            try {
-                serverSocket.close();
-                serverSocket = null;
-            } catch (IOException e) {
-                e.printStackTrace();
+            if(serverSocket != null) {
+                try {
+                    serverSocket.close();
+                    serverSocket = null;
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
         }
     }

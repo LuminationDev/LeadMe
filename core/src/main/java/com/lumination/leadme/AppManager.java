@@ -46,7 +46,7 @@ public class AppManager extends BaseAdapter {
         appList = listApps();
 
         //set up lock spinner
-        lockSpinner = main.appPushDialogView.findViewById(R.id.push_spinner);
+        lockSpinner = main.getDialogManager().appPushDialogView.findViewById(R.id.push_spinner);
         withinLockSpinner = withinPlayer.getLockSpinner();
         String[] items = {"View only", "Free play"};
         Integer[] imgs = {R.drawable.controls_view, R.drawable.controls_play};
@@ -340,7 +340,7 @@ public class AppManager extends BaseAdapter {
                     Log.d(TAG, "getView: is a within package");
                     withinPlayer.showWithin(); //showGuideController();
                 } else {
-                    main.showAppPushDialog(appName, appIcon, packageName);
+                    main.getDialogManager().showAppPushDialog(appName, appIcon, packageName);
                 }
             });
 

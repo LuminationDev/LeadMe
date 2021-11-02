@@ -78,6 +78,7 @@ public class WebManager {
     private FavouritesManager youTubeFavouritesManager;
 
     private LeadMeMain main;
+    private DialogManager dialogManager;
     private CheckBox favCheckbox;
 
     private Spinner lockSpinner, searchSpinner;
@@ -92,6 +93,7 @@ public class WebManager {
     public WebManager(LeadMeMain main) {
         Log.d(TAG, "WebManager: ");
         this.main = main;
+        this.dialogManager = main.getDialogManager();
         thread = Thread.currentThread();
         youTubeEmbedPlayer = new YouTubeEmbedPlayer(main, this);
 
@@ -238,7 +240,7 @@ public class WebManager {
                 } catch (Exception e) {
                     Log.e(TAG, "Error launching URL: " + e.getMessage());
                     e.printStackTrace();
-                    main.showWarningDialog(main.getResources().getString(R.string.warning_couldnt_launch_url));
+                    dialogManager.showWarningDialog(main.getResources().getString(R.string.warning_couldnt_launch_url));
                     error = true; //set error flag
                     hidePreviewDialog();
                 }
@@ -383,7 +385,7 @@ public class WebManager {
             //clean up dialogs
             hideSearchDialog();
             hidePreviewDialog();
-            main.showConfirmPushDialog(false, adding_to_fav);
+            main.getDialogManager().showConfirmPushDialog(false, adding_to_fav);
 
             //reset
             pushURL = "";
@@ -546,7 +548,7 @@ public class WebManager {
                         @Override
                         public void run() {
                             //Toast.makeText(main, "Can't launch URL, no Internet connection.", Toast.LENGTH_SHORT).show();
-                            main.showWarningDialog("No Internet Connection",
+                            dialogManager.showWarningDialog("No Internet Connection",
                                     "Internet based functions are unavailable at this time. " +
                                             "Please check your WiFi connection and try again.");
                             main.getDispatcher().alertGuidePermissionGranted(LeadMeMain.STUDENT_NO_INTERNET, false);
@@ -854,7 +856,7 @@ public class WebManager {
                 if (!main.getPermissionsManager().isInternetConnectionAvailable()) {
                     Log.w(TAG, "No internet connection in showPreview");
                     main.getHandler().post(() -> {
-                        main.showWarningDialog("No Internet Connection",
+                        dialogManager.showWarningDialog("No Internet Connection",
                                 "Internet based functions are unavailable at this time. " +
                                         "Please check your WiFi connection and try again.");
                     });
@@ -1068,7 +1070,7 @@ public class WebManager {
                 if (!main.getPermissionsManager().isInternetConnectionAvailable()) {
                     Log.w(TAG, "No internet connection in launchYouTube");
                     main.getHandler().post(() -> {
-                        main.showWarningDialog("No Internet Connection",
+                        dialogManager.showWarningDialog("No Internet Connection",
                                 "Internet based functions are unavailable at this time. " +
                                         "Please check your WiFi connection and try again.");
                         main.getDispatcher().alertGuidePermissionGranted(LeadMeMain.STUDENT_NO_INTERNET, false);
@@ -1215,7 +1217,7 @@ public class WebManager {
                         @Override
                         public void run() {
                             //Toast.makeText(main, "Can't display preview, no Internet connection.", Toast.LENGTH_SHORT).show();
-                            main.showWarningDialog("No Internet Connection",
+                            dialogManager.showWarningDialog("No Internet Connection",
                                     "Internet based functions are unavailable at this time. " +
                                             "Please check your WiFi connection and try again.");
                             hideSearchDialog();

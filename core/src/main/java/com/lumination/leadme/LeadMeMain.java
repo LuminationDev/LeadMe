@@ -17,7 +17,6 @@ import android.graphics.Color;
 import android.graphics.Path;
 import android.graphics.PixelFormat;
 import android.graphics.Point;
-import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
@@ -37,7 +36,6 @@ import android.text.Html;
 import android.text.TextWatcher;
 import android.text.format.Formatter;
 import android.util.Log;
-import android.util.TypedValue;
 import android.view.ActionMode;
 import android.view.Display;
 import android.view.GestureDetector;
@@ -46,14 +44,12 @@ import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.view.inputmethod.InputMethodManager;
-import android.webkit.WebView;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
@@ -75,7 +71,6 @@ import android.widget.ViewAnimator;
 import android.widget.ViewSwitcher;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.core.content.res.ResourcesCompat;
 import androidx.fragment.app.FragmentActivity;
 import androidx.lifecycle.Lifecycle;
@@ -85,52 +80,21 @@ import androidx.lifecycle.OnLifecycleEvent;
 import com.alimuzaffar.lib.pin.PinEntryEditText;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
-import com.google.android.gms.auth.api.signin.GoogleSignInClient;
-import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthCredential;
-import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.EmailAuthProvider;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.auth.GoogleAuthProvider;
-import com.google.firebase.auth.UserProfileChangeRequest;
-import com.google.firebase.firestore.CollectionReference;
-import com.google.firebase.firestore.DocumentSnapshot;
-import com.google.firebase.firestore.EventListener;
-import com.google.firebase.firestore.FieldValue;
-import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.FirebaseFirestoreException;
-import com.google.firebase.firestore.ListenerRegistration;
-import com.google.firebase.firestore.QueryDocumentSnapshot;
-import com.google.firebase.firestore.QuerySnapshot;
-import com.google.firebase.firestore.SetOptions;
 import com.himanshurawat.hasher.HashType;
 import com.himanshurawat.hasher.Hasher;
 
-import java.io.IOException;
-import java.net.InetAddress;
-import java.net.NetworkInterface;
-import java.net.SocketException;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
-import java.util.Timer;
-import java.util.TimerTask;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
@@ -140,14 +104,11 @@ import eu.bolt.screenshotty.ScreenshotManagerBuilder;
 
 /*
     LeadMe Main:
-
     • Handles most UI related events
     • Initilises main classes
-    • Handles login/signup and authentication
  */
 
 public class LeadMeMain extends FragmentActivity implements Handler.Callback, SensorEventListener, LifecycleObserver, ComponentCallbacks2 {
-
     //tag for debugging
     static final String TAG = "LeadMe";
     Drawable leadmeIcon;
@@ -205,7 +166,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     public final int FINE_LOC_ON = 3;
     public final int RC_SIGN_IN = 4;
 
-
     //for testing if a connection is still live
     static final String PING_TAG = "LumiPing";
     static final String PING_ACTION = "StillAlive";
@@ -222,11 +182,12 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     private String sessionUUID = null;
     public Boolean sessionManual = null;
 
-    protected WindowManager windowManager;
     private InputMethodManager imm;
-    protected WindowManager.LayoutParams overlayParams;
     private LumiAccessibilityConnector lumiAccessibilityConnector;
     private BroadcastReceiver accessibilityReceiver;
+
+    protected WindowManager windowManager;
+    protected WindowManager.LayoutParams overlayParams;
     protected View overlayView;
 
     public boolean studentLockOn = true; //students start locked
@@ -237,7 +198,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     //details about me to send to peers
     public boolean isGuide = false;
     public boolean isReadyToConnect = false;
-    public boolean dialogShowing = false;
+    //public boolean dialogShowing = false;
 
     private final Handler handler = new Handler(this);
     public ViewAnimator leadmeAnimator;
@@ -249,22 +210,20 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     private final int SWITCH_LEARNER_INDEX = 1;
 
     private final int ANIM_SPLASH_INDEX = 0;
-    public final int ANIM_START_SWITCH_INDEX = 1;
+    private final int ANIM_START_SWITCH_INDEX = 1;
     private final int ANIM_LEARNER_INDEX = 2;
     private final int ANIM_LEADER_INDEX = 3;
     private final int ANIM_APP_LAUNCH_INDEX = 4;
     private final int ANIM_OPTIONS_INDEX = 5;
     private final int ANIM_XRAY_INDEX = 6;
 
-    AlertDialog warningDialog, loginDialog, appPushDialog;
-    private AlertDialog confirmPushDialog, studentAlertsDialog;
-    public View waitingForLearners, appLauncherScreen, appPushDialogView;
-    private View loginDialogView, confirmPushDialogView, studentAlertsView;
+    public View waitingForLearners, appLauncherScreen;
+
     private View mainLearner;
     private View mainLeader;
     private View optionsScreen;
     View xrayScreen;
-    private TextView warningDialogTitle, warningDialogMessage, learnerWaitingText;
+    private TextView learnerWaitingText;
     private Button leader_toggle, learner_toggle;
     ImageView logo;
     ImageView studentImg;
@@ -274,16 +233,16 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     public Context context;
     public ActivityManager activityManager;
     private PermissionManager permissionManager;
+    private AuthenticationManager authenticationManager;
     private NearbyPeersManager nearbyManager;
     private WebManager webManager;
+    private DialogManager dialogManager;
     private AppManager appLaunchAdapter;
     private FavouritesManager favouritesManager; //TODO shift to app manager
     private ConnectedLearnersAdapter connectedLearnersAdapter;
     private LeaderSelectAdapter leaderSelectAdapter;
     private static DispatchManager dispatcher;
-
-    private TextView nameView;
-    public Button readyBtn;
+    private WifiManager wifiManager;
 
     ImageView currentTaskIcon;
     TextView currentTaskTitle;
@@ -305,25 +264,12 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     View toggleBtnView;
     boolean returnEveryone = true;
 
-
-    String appPushPackageName, appPushTitle;
-    TextView appPushMessageView;
-    Button appPushBtn;
-
     private boolean init = false;
 
     XrayManager xrayManager;
 
     SeekBar seekBar;
 
-    FirebaseFirestore db = FirebaseFirestore.getInstance();
-    ListenerRegistration manualUserListener;
-    GoogleSignInClient mGoogleSignInClient;
-    private FirebaseAuth mAuth;
-    FirebaseUser currentUser = null;
-    int pinCodeInd = 0;
-    String regoCode = "";
-    boolean hasScrolled = false;
     boolean allowHide = false;
     ScheduledExecutorService scheduledExecutorService = new ScheduledThreadPoolExecutor(1);
     public ExecutorService backgroundExecutor = Executors.newCachedThreadPool();
@@ -331,14 +277,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
     AlertDialog manual;
     View manView;
-    String ServerIP="";
-
-    //Manual connection
-    private final int leaderTimestampUpdate = 15; //update the leaders timestamp on firebase (mins)
-    private final int inactiveUser = 30; //cut off for hiding inactive leaders (mins)
-    private final int waitForGuide = 10000; //how long to wait before peer re-querys firestore
-    private String publicIP;
-    private HashMap<String, Object> manualConnectionDetails = new HashMap<String, Object>();
 
     public Handler getHandler() {
         return handler;
@@ -366,7 +304,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             case OVERLAY_ON:
                 Log.d(TAG, "Returning from OVERLAY ON with " + resultCode);
                 if (getPermissionsManager().isOverlayPermissionGranted()) {
-                    if(ServerIP.length()>0){
+                    if(getAuthenticationManager().getServerIP().length()>0){
                         setandDisplayStudentOnBoard(3);
                     }else {
                         setandDisplayStudentOnBoard(2);
@@ -375,6 +313,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                     setandDisplayStudentOnBoard(1);
                 }
                 break;
+
             case ACCESSIBILITY_ON:
                 Log.d(TAG, "Returning from ACCESS ON with " + resultCode + " (" + isGuide + ")");
                 permissionManager.waitingForPermission = false;
@@ -385,18 +324,20 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                 }
                 //permissionManager.requestBatteryOptimisation();
                 break;
+
             case BLUETOOTH_ON:
                 Log.d(TAG, "Returning from BLUETOOTH ON with " + resultCode);
                 break;
+
             case FINE_LOC_ON:
                 Log.d(TAG, "Returning from FINE LOC ON with " + resultCode);
                 break;
+
             case 99:
                 Log.d(TAG, "RETURNED RESULT FROM YOUTUBE! " + resultCode + ", " + data);
                 break;
-            //added------------
+
             case SCREEN_CAPTURE:
-               // xrayManager.manageResultsReturn(requestCode, resultCode, data);
                 screenCap.handleResultReturn(resultCode, data);
                 break;
 
@@ -406,13 +347,12 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                 Task<GoogleSignInAccount> task = GoogleSignIn.getSignedInAccountFromIntent(data);
                 try {
                     GoogleSignInAccount account = task.getResult(ApiException.class);
-                    handleSignInResult(account);
+                    getAuthenticationManager().handleSignInResult(account);
                 } catch (ApiException e) {
                     e.printStackTrace();
                 }
                 break;
 
-            //added------------
             default:
                 Log.d(TAG, "RETURNED FROM ?? with " + resultCode);
                 break;
@@ -469,6 +409,10 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         return permissionManager;
     }
 
+    public AuthenticationManager getAuthenticationManager() {
+        return authenticationManager;
+    }
+
     public NearbyPeersManager getNearbyManager() {
         return nearbyManager;
     }
@@ -487,6 +431,10 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
     public WebManager getWebManager() {
         return webManager;
+    }
+
+    public DialogManager getDialogManager() {
+        return dialogManager;
     }
 
     private boolean initPermissions = false;
@@ -514,7 +462,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
         //can't go any further
         if (!canAskForAccessibility && !permissionManager.isAccessibilityGranted()) {
-            showWarningDialog("Cannot connect to other LeadMe users until Accessibility permission is granted.");
+            dialogManager.showWarningDialog("Cannot connect to other LeadMe users until Accessibility permission is granted.");
             return;
         }
 
@@ -572,140 +520,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         leadmeAnimator.setDisplayedChild(ANIM_APP_LAUNCH_INDEX);
     }
 
-    private void setSelectedOrEveryoneBtn(boolean selected) {
-        currentlySelectedOnly = selected;
-        if (!selected) {
-            appPushDialogView.findViewById(R.id.everyone_btn).setBackground(getResources().getDrawable(R.drawable.bg_passive_left, null));
-            ((Button) appPushDialogView.findViewById(R.id.everyone_btn)).setCompoundDrawablesRelativeWithIntrinsicBounds(R.drawable.icon_fav_star_check, 0, 0, 0);
-
-            appPushDialogView.findViewById(R.id.selected_btn).setBackground(getResources().getDrawable(R.drawable.bg_passive_right_white, null));
-            ((Button) appPushDialogView.findViewById(R.id.selected_btn)).setCompoundDrawablesWithIntrinsicBounds(0, 0, 0, 0);
-            appPushBtn.setText(getResources().getString(R.string.push_this_to_everyone));
-            ((Button) appPushDialogView.findViewById(R.id.selected_btn)).setElevation(Math.round(TypedValue.applyDimension(
-                    TypedValue.COMPLEX_UNIT_DIP, 5, getResources().getDisplayMetrics())));
-            ((Button) appPushDialogView.findViewById(R.id.everyone_btn)).setElevation(0);
-
-
-        } else {
-            appPushDialogView.findViewById(R.id.everyone_btn).setBackground(getResources().getDrawable(R.drawable.bg_passive_left_white, null));
-            ((Button) appPushDialogView.findViewById(R.id.everyone_btn)).setCompoundDrawablesWithIntrinsicBounds(0, 0, 0, 0);
-
-            appPushDialogView.findViewById(R.id.selected_btn).setBackground(getResources().getDrawable(R.drawable.bg_passive_right, null));
-            ((Button) appPushDialogView.findViewById(R.id.selected_btn)).setCompoundDrawablesWithIntrinsicBounds(R.drawable.icon_fav_star_check, 0, 0, 0);
-            appPushBtn.setText(getResources().getString(R.string.push_this_to_selected));
-            ((Button) appPushDialogView.findViewById(R.id.everyone_btn)).setElevation(Math.round(TypedValue.applyDimension(
-                    TypedValue.COMPLEX_UNIT_DIP, 5, getResources().getDisplayMetrics())));
-            ((Button) appPushDialogView.findViewById(R.id.selected_btn)).setElevation(0);
-        }
-    }
-
-    boolean currentlySelectedOnly = false;
-
-    public void showAppPushDialog(String title, Drawable icon, String packageName) {
-        //TODO include display a message if errors occur
-        appPushPackageName = packageName; //keep track of what should launch
-        appPushTitle = title;
-
-        //update appearance
-        ((TextView) appPushDialogView.findViewById(R.id.push_app_title)).setText(title);
-        ((ImageView) appPushDialogView.findViewById(R.id.push_app_icon)).setImageDrawable(icon);
-
-        if (appPushMessageView == null) {
-            appPushMessageView = appPushDialogView.findViewById(R.id.push_confirm_txt);
-            appPushBtn = appPushDialogView.findViewById(R.id.push_btn);
-
-            appPushDialogView.findViewById(R.id.everyone_btn).setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    setSelectedOrEveryoneBtn(false);
-                }
-            });
-
-            appPushDialogView.findViewById(R.id.selected_btn).setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    setSelectedOrEveryoneBtn(true);
-                }
-            });
-            setSelectedOrEveryoneBtn(true);
-        }
-
-        //selected_btn
-        //everyone_btn
-
-//        if (!getConnectedLearnersAdapter().someoneIsSelected()) {
-//            //if no-one is selected, prompt to push to everyone
-//            setSelectedOrEveryoneBtn(true);
-//        } else {
-//            //if someone is selected, prompt to push to selected
-//            setSelectedOrEveryoneBtn(false);
-//        }
-
-        //display push
-        if (appPushDialog == null) {
-            appPushDialog = new AlertDialog.Builder(this)
-                    .setView(appPushDialogView)
-                    .show();
-            appPushDialog.setOnDismissListener(dialog -> hideSystemUI());
-        } else {
-            appPushDialog.show();
-        }
-        dialogShowing = true;
-    }
-
-    private void hideAppPushDialogView() {
-        if (appPushDialog != null) {
-            dialogShowing = false;
-            appPushDialog.dismiss();
-
-        }
-    }
-
-
-    private void setupLoginDialog() {
-        readyBtn = loginDialogView.findViewById(R.id.connect_btn);
-        loginDialogView.findViewById(R.id.close_login_alert_btn).setOnClickListener(v -> {
-            if (nameView.getText().toString().trim().length() == 0) {
-                nameView.requestFocus();
-            } else {
-                loginDialogView.findViewById(R.id.login_pin_entry).requestFocus();
-            }
-            loginDialogView.findViewById(R.id.name_code_entry_view).setVisibility(View.VISIBLE);
-            loginDialogView.findViewById(R.id.wrong_code_view).setVisibility(View.GONE);
-            openKeyboard();
-            hideSystemUI();
-        });
-
-        if (readyBtn != null) {
-            readyBtn.setOnClickListener(v -> {
-                boolean success = checkLoginDetails();
-                if (!success) {
-                    return; //not ready to proceed yet
-                }
-
-                Log.d(TAG, "CLICKED READY!");
-                canAskForAccessibility = true; //reset
-                closeKeyboard();
-
-                // if we're still waiting on some permissions,
-                // test for them and wait for the result before continuing
-                if (!permissionManager.isNearbyPermissionsGranted()) {
-
-                    //re-check permissions and wait until all granted before
-                    //trying to connect to other LeadMe users
-                    permissionManager.checkNearbyPermissions();
-
-                } else {
-                    //don't need to wait, so just login
-                    initPermissions = true; //only prompt once here
-                    loginAction(false);
-                }
-
-            });
-        }
-
-    }
-
     protected void showLoginDialog() {
         Log.d(TAG, "Showing login dialog");
         if (destroying) {
@@ -713,227 +527,48 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         }
         stopShakeDetection();
 
-        GoogleSignInAccount account = GoogleSignIn.getLastSignedInAccount(this);
+        //Not sure if needed yet?
+        //GoogleSignInAccount account = GoogleSignIn.getLastSignedInAccount(this);
+
         //todo if null then show account popup
-        if (mAuth.getCurrentUser() == null) {
-            loginDialogView.findViewById(R.id.login_signup_view).setVisibility(View.VISIBLE);
-            loginDialogView.findViewById(R.id.wrong_code_view).setVisibility(View.GONE);
-            loginDialogView.findViewById(R.id.name_code_entry_view).setVisibility(View.GONE);
+        FirebaseUser user = getAuthenticationManager().getCurrentAuthUser();
 
+        if (user == null) {
+            getDialogManager().changeLoginViewOptions(View.VISIBLE, View.GONE, View.GONE);
         } else {
-            loginDialogView.findViewById(R.id.login_signup_view).setVisibility(View.GONE);
-            loginDialogView.findViewById(R.id.wrong_code_view).setVisibility(View.GONE);
-            loginDialogView.findViewById(R.id.name_code_entry_view).setVisibility(View.VISIBLE);
-
-            getNearbyManager().myName = mAuth.getCurrentUser().getDisplayName();
-            getNameView().setText(mAuth.getCurrentUser().getDisplayName());
-
-
+            getDialogManager().changeLoginViewOptions(View.GONE, View.GONE, View.VISIBLE);
+            getNearbyManager().myName = user.getDisplayName();
+            getNameViewController().setText(user.getDisplayName());
         }
+
         //set appropriate mode
         if (leaderLearnerSwitcher.getDisplayedChild() == SWITCH_LEADER_INDEX) {
             //leader
             Log.d(TAG, "showLoginDialog: teacher");
-            loginDialogView.findViewById(R.id.code_entry_view).setVisibility(View.VISIBLE);
-            loginDialogView.findViewById(R.id.student_teacher_view).setVisibility(View.GONE);
-            TextView forgotPin = loginDialogView.findViewById(R.id.login_forgot_pin);
-            forgotPin.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    setAndDisplayPinReset(0);
-                }
-            });
+
+            getDialogManager().changeTeacherLoginViewOptions(View.VISIBLE, View.GONE);
         } else {
             //learner
             Log.d(TAG, "showLoginDialog: learner");
-            loginDialogView.findViewById(R.id.login_signup_view).setVisibility(View.GONE);
-            loginDialogView.findViewById(R.id.wrong_code_view).setVisibility(View.GONE);
-            loginDialogView.findViewById(R.id.name_code_entry_view).setVisibility(View.VISIBLE);
-            loginDialogView.findViewById(R.id.code_entry_view).setVisibility(View.GONE);
-            loginDialogView.findViewById(R.id.student_teacher_view).setVisibility(View.VISIBLE);
+
+            getDialogManager().changeLoginViewOptions(View.GONE, View.GONE, View.VISIBLE);
+            getDialogManager().changeTeacherLoginViewOptions(View.GONE, View.VISIBLE);
+
             if (getNearbyManager().selectedLeader == null) {
                 leaderLearnerSwitcher.setDisplayedChild(SWITCH_LEADER_INDEX);
                 showLoginDialog();
                 return;
             }
-            ((TextView) loginDialogView.findViewById(R.id.teacher_name)).setText(getNearbyManager().selectedLeader.getDisplayName());
+
+            getDialogManager().setTeacherName(getNearbyManager().selectedLeader.getDisplayName());
         }
 
-        if (loginDialog == null) {
-            loginDialog = new AlertDialog.Builder(this)
-                    .setView(loginDialogView)
-                    .create();
-        }
-        loginDialog.setOnDismissListener(dialog -> hideSystemUI());
-        loginDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
-
-        EditText email = loginDialogView.findViewById(R.id.login_email);
-        EditText password = loginDialogView.findViewById(R.id.login_password);
-        TextView forgotPassword = loginDialogView.findViewById(R.id.login_forgotten);
-        TextView errorText = loginDialogView.findViewById(R.id.error_text);
-        LinearLayout googleSignin = loginDialogView.findViewById(R.id.login_google);
-        Button enterBtn = loginDialogView.findViewById(R.id.login_enter);
-        Button backBtn = loginDialogView.findViewById(R.id.login_back);
-        TextView signup = loginDialogView.findViewById(R.id.login_signup);
-
-        password.setOnFocusChangeListener((v, hasFocus) -> {
-            if (hasFocus) {
-                imm.showSoftInput(v, InputMethodManager.SHOW_FORCED);
-            }
-        });
-
-
-        googleSignin.setOnClickListener(v -> {
-            Intent signInIntent = mGoogleSignInClient.getSignInIntent();
-            startActivityForResult(signInIntent, RC_SIGN_IN);
-        });
-
-        enterBtn.setOnClickListener(v -> {
-            if(password.getText().toString().length()>0 && email.getText().toString().length()>0) {
-                setProgressSpinner(3000, loginDialogView.findViewById(R.id.indeterminateBar));
-                FirebaseEmailSignIn(email.getText().toString(), password.getText().toString(), errorText);
-            }else {
-                errorText.setVisibility(View.VISIBLE);
-                errorText.setText("Please check you have entered your details correctly.");
-            }
-        });
-
-        signup.setOnClickListener(v -> {
-            loginDialog.dismiss();
-            buildloginsignup(0);
-        });
-
-        backBtn.setOnClickListener(v -> loginDialog.dismiss());
-        forgotPassword.setOnClickListener(v -> {
-            showForgottenPassword(loginDialog);
-        });
-        //hideSystemUI();
         initPermissions = false; //reset this to ask once more
-        dialogShowing = true;
-        loginDialog.show();
-        nameView.requestFocus();
+        getDialogManager().dialogShowing = true;
+        getDialogManager().getLoginDialog().show();
+
+        getNameViewController().requestFocus();
         openKeyboard();
-    }
-
-    private void showForgottenPassword(AlertDialog previous) {
-        boolean prevShow=previous.isShowing();
-        previous.dismiss();
-        View forgotten_view = View.inflate(context, R.layout.c__forgot_password, null);
-        AlertDialog forgottenDialog = new AlertDialog.Builder(this)
-                .setView(forgotten_view)
-                .create();
-        LinearLayout forgotten = forgotten_view.findViewById(R.id.forgot_layout);
-        LinearLayout email_sent = forgotten_view.findViewById(R.id.email_sent);
-        EditText email = forgotten_view.findViewById(R.id.forgot_email);
-        Button send = forgotten_view.findViewById(R.id.forgot_enter);
-        Button cancel = forgotten_view.findViewById(R.id.forgot_back);
-        forgotten.setVisibility(View.VISIBLE);
-        forgottenDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
-        forgottenDialog.show();
-        send.setOnClickListener(v -> {
-            if (email.getText().toString().length() > 0) {
-                mAuth.sendPasswordResetEmail(email.getText().toString())
-                        .addOnCompleteListener(task -> {
-                            if (task.isSuccessful()) {
-                                Log.d(TAG, "Email sent.");
-
-
-                            }
-                        });
-                forgotten.setVisibility(View.GONE);
-                email_sent.setVisibility(View.VISIBLE);
-                send.setText("Done");
-                send.setOnClickListener(v17 -> forgottenDialog.dismiss());
-                cancel.setOnClickListener(v16 -> {
-                    forgotten.setVisibility(View.VISIBLE);
-                    email_sent.setVisibility(View.GONE);
-                    send.setText("Send");
-                    send.setOnClickListener(v15 -> {
-                        if (email.getText().toString().length() > 0) {
-                            mAuth.sendPasswordResetEmail(email.getText().toString())
-                                    .addOnCompleteListener(task -> {
-                                        if (task.isSuccessful()) {
-                                            Log.d(TAG, "Email sent.");
-
-
-                                        }
-                                    });
-                            forgotten.setVisibility(View.GONE);
-                            email_sent.setVisibility(View.VISIBLE);
-                            send.setText("Done");
-                            send.setOnClickListener(v14 -> forgottenDialog.dismiss());
-                            cancel.setOnClickListener(v13 -> {
-                                forgotten.setVisibility(View.VISIBLE);
-                                email_sent.setVisibility(View.GONE);
-                                send.setText("Send");
-                                cancel.setOnClickListener(v12 -> {
-                                    forgottenDialog.dismiss();
-                                    previous.show();
-                                });
-                            });
-                        } else {
-                            Toast toast = Toast.makeText(getApplicationContext(), "Please enter your email first", Toast.LENGTH_SHORT);
-                            toast.show();
-                        }
-                    });
-                    cancel.setOnClickListener(v1 -> {
-                        forgottenDialog.dismiss();
-                        previous.show();
-                    });
-                });
-            } else {
-                Toast toast = Toast.makeText(getApplicationContext(), "Please enter your email first", Toast.LENGTH_SHORT);
-                toast.show();
-            }
-        });
-        cancel.setOnClickListener(v -> {
-            forgottenDialog.dismiss();
-            if(prevShow) {
-                previous.show();
-            }
-        });
-    }
-
-    private void hideLoginDialog(boolean cancelled) {
-        Log.d(TAG, "Hiding dialog box");
-        closeKeyboard();
-        hideSystemUI();
-        if (loginDialog != null) {
-            dialogShowing = false;
-            loginDialog.dismiss();
-            if (cancelled) {
-                startShakeDetection();
-            }
-        }
-
-    }
-
-
-    protected void showAlertsDialog() {
-        if (destroying) {
-            return;
-        }
-
-        if (studentAlertsDialog == null) {
-            studentAlertsDialog = new AlertDialog.Builder(this)
-                    .setView(studentAlertsView)
-                    .create();
-            studentAlertsDialog.setOnDismissListener(dialog -> hideSystemUI());
-        }
-
-        hideSystemUI();
-        dialogShowing = true;
-        getConnectedLearnersAdapter().refreshAlertsView();
-        studentAlertsDialog.show();
-    }
-
-    private void hideAlertsDialog() {
-        closeKeyboard();
-        hideSystemUI();
-        if (studentAlertsDialog != null) {
-            dialogShowing = false;
-            studentAlertsDialog.dismiss();
-        }
     }
 
     @Override
@@ -1033,10 +668,8 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             if (overlayView.isAttachedToWindow()) {
                 overlayParams.flags = WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN | WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE;
                 getWindowManager().updateViewLayout(overlayView, overlayParams);
-//                scheduledExecutor.shutdownNow();
-//                scheduledExecutor = new ScheduledThreadPoolExecutor(1);
-//                scheduledExecutor.schedule(overlayBack,100, TimeUnit.MILLISECONDS);
             }
+
             handler.post(() -> {
                 //wait until layout update is actioned before trying to gesture
                 while (currentTaskPackageName.equals(getAppManager().withinPackage) && overlayView.isLayoutRequested()) {
@@ -1089,8 +722,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                     //handler.post(() -> {
                     //new Thread(() -> {
                     backgroundExecutor.submit(() -> {
-
-
                         //wait until layout update is actioned before trying to gesture --> needs to be NON-UI thread or blocks
                         do {
                             try {
@@ -1121,7 +752,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             if (getPermissionsManager().isAccessibilityGranted() && !getPermissionsManager().isOverlayPermissionGranted()) {
                 setandDisplayStudentOnBoard(1);
             } else if (getPermissionsManager().isAccessibilityGranted() && getPermissionsManager().isOverlayPermissionGranted()) {
-                if(ServerIP.length()>0){
+                if(getAuthenticationManager().getServerIP().length()>0){
                     setandDisplayStudentOnBoard(3);
                 }else {
                     setandDisplayStudentOnBoard(2);
@@ -1244,7 +875,9 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
         hideSystemUI();
 
-        if (init && loginDialog != null && loginDialog.isShowing()) {
+        AlertDialog login = getDialogManager().getLoginDialog();
+
+        if (init && login != null && login.isShowing()) {
             openKeyboard();
         }
 
@@ -1328,9 +961,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             }
         }
 
-//        xrayManager.stopScreenshotRunnable();
-//        xrayManager.stopServer();
-
         cleanUpDialogs();
 
         //clean up nearby connections
@@ -1349,17 +979,18 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         getWebManager().cleanUp();
     }
 
+    //TODO FIX THIS LATER
     protected void cleanUpDialogs() {
-        if (loginDialog != null)
-            loginDialog.dismiss();
+//        if (loginDialog != null)
+//            loginDialog.dismiss();
         if (waitingDialog != null)
             waitingDialog.dismiss();
-        if (warningDialog != null)
-            warningDialog.dismiss();
-        if (appPushDialog != null)
-            appPushDialog.dismiss();
-        if (confirmPushDialog != null)
-            confirmPushDialog.dismiss();
+//        if (warningDialog != null)
+//            warningDialog.dismiss();
+//        if (appPushDialog != null)
+//            appPushDialog.dismiss();
+//        if (confirmPushDialog != null)
+//            confirmPushDialog.dismiss();
         if (recallPrompt != null)
             recallPrompt.dismiss();
 
@@ -1435,15 +1066,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         super.onCreate(savedInstanceState);
         screenCap = new ScreenCap(this);
 
-        GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                .requestIdToken(getString(R.string.default_web_client_id))
-                .requestEmail()
-                .build();
-        mGoogleSignInClient = GoogleSignIn.getClient(this, gso);
-        mAuth = FirebaseAuth.getInstance();
         powerManager = (PowerManager) getSystemService(POWER_SERVICE);
-        currentUser = mAuth.getCurrentUser();
-
 
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         Log.w(TAG, "On create! " + init);
@@ -1485,6 +1108,8 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
         //create adapters
         permissionManager = new PermissionManager(this);
+        authenticationManager = new AuthenticationManager(this);
+        dialogManager = new DialogManager(this);
         nearbyManager = new NearbyPeersManager(this);
         dispatcher = new DispatchManager(this);
         webManager = new WebManager(this);
@@ -1492,7 +1117,9 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         leaderSelectAdapter = new LeaderSelectAdapter(this);
         lumiAccessibilityConnector = new LumiAccessibilityConnector(this);
 
-        appPushDialogView = View.inflate(context, R.layout.e__preview_app_push, null);
+        //for getting the public ipAddress used in manual connection modes
+        wifiManager = (WifiManager) getSystemService(WIFI_SERVICE);
+
         appLaunchAdapter = new AppManager(this);
 
         //set up a receiver to capture the re-broadcast intent
@@ -1503,6 +1130,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                 getLumiAccessibilityConnector().triageReceivedIntent(intent);
             }
         };
+
         Log.w(TAG, "Registering receiver");
         registerReceiver(accessibilityReceiver, new IntentFilter(LumiAccessibilityConnector.PROPAGATE_ACTION));
 
@@ -1529,7 +1157,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         Log.d(TAG, "Adding System Visibility listener to window/decor");
         getWindow().getDecorView().setOnSystemUiVisibilityChangeListener(
                 visibility -> {
-                    Log.d(TAG, "DECOR VIEW! " + getNearbyManager().isConnectedAsFollower() + ", " + dialogShowing);
+                    Log.d(TAG, "DECOR VIEW! " + getNearbyManager().isConnectedAsFollower() + ", " + getDialogManager().dialogShowing);
                     if (getNearbyManager().isConnectedAsFollower() || OnBoardStudentInProgress) {
                         if (allowHide) {
                             handler.postDelayed(this::hideSystemUIStudent, 0);
@@ -1598,7 +1226,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         });
 
         alertsBtn = mainLeader.findViewById(R.id.alerts_button);
-        alertsBtn.setOnClickListener(v -> showAlertsDialog());
+        alertsBtn.setOnClickListener(v -> getDialogManager().showAlertsDialog());
         //alertsBtn.setVisibility(View.GONE); //by default, hide this
 
         //initialise window manager for shared use
@@ -1625,7 +1253,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             } else {
                 getDispatcher().requestRemoteAppOpen(APP_TAG, lastAppID, String.valueOf(((TextView) appLauncherScreen.findViewById(R.id.text_current_task)).getText()), UNLOCK_TAG, getNearbyManager().getSelectedPeerIDsOrAll());
             }
-            showConfirmPushDialog(true, false);
+            dialogManager.showConfirmPushDialog(true, false);
         });
 
         mainLeader.findViewById(R.id.url_core_btn).setOnClickListener(v -> getWebManager().showWebLaunchDialog(false, false));
@@ -1652,20 +1280,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             }
         });
 
-        studentAlertsView = View.inflate(context, R.layout.d__alerts_list, null);
-        ListView studentAlerts = studentAlertsView.findViewById(R.id.current_alerts_list);
-
-        View no_alerts_view = studentAlertsView.findViewById(R.id.no_alerts_message);
-        View alerts_list = studentAlertsView.findViewById(R.id.current_alerts_list);
-
-        StudentAlertsAdapter alertsAdapter = new StudentAlertsAdapter(this, alerts_list, no_alerts_view);
-        studentAlerts.setAdapter(alertsAdapter);
-
-        studentAlertsView.findViewById(R.id.confirm_btn).setOnClickListener(v -> hideAlertsDialog());
-
-        studentAlertsView.findViewById(R.id.clear_alerts_btn).setOnClickListener(v -> alertsAdapter.hideCurrentAlerts());
-
-        connectedLearnersAdapter = new ConnectedLearnersAdapter(this, new ArrayList<>(), alertsAdapter);
+        connectedLearnersAdapter = new ConnectedLearnersAdapter(this, new ArrayList<>(), getDialogManager().alertsAdapter);
         connectedStudentsView = mainLeader.findViewById(R.id.studentListView);
         connectedStudentsView.setAdapter(connectedLearnersAdapter);
 
@@ -1677,7 +1292,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                 //test my connection
                 if (!getNearbyManager().isConnectedAsFollower() && !getNearbyManager().isConnectedAsGuide()) {
                     Log.e(TAG, "No longer connected!");
-                    logoutAction();
+                    logoutResetController();
                 } else {
                     Log.d(TAG, "Going to test my connection: " + getNearbyManager().isConnectedAsFollower() + ", " + getNearbyManager().isConnectedAsGuide());
                     getNearbyManager().startPingThread();
@@ -1712,12 +1327,12 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                 optionsScreen.findViewById(R.id.options_notsigned).setVisibility(View.GONE);
             } else {
 
-                if (mAuth.getCurrentUser() != null) {
+                if (getAuthenticationManager().getCurrentAuthUser() != null) {
                     optionsScreen.findViewById(R.id.options_teacher).setVisibility(View.VISIBLE);
                     optionsScreen.findViewById(R.id.options_endSess).setVisibility(View.VISIBLE);
                     optionsScreen.findViewById(R.id.options_loginBtn).setVisibility(View.GONE);
                     optionsScreen.findViewById(R.id.options_notsigned).setVisibility(View.GONE);
-                    ((TextView) optionsScreen.findViewById(R.id.options_signed_name)).setText(mAuth.getCurrentUser().getDisplayName());
+                    ((TextView) optionsScreen.findViewById(R.id.options_signed_name)).setText(getAuthenticationManager().getCurrentAuthUserName());
                 } else {
                     optionsScreen.findViewById(R.id.options_loginBtn).setVisibility(View.VISIBLE);
                     optionsScreen.findViewById(R.id.options_notsigned).setVisibility(View.VISIBLE);
@@ -1727,7 +1342,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             if (getNearbyManager().isConnectedAsGuide()) {
                 optionsScreen.findViewById(R.id.options_teacher).setVisibility(View.VISIBLE);
                 optionsScreen.findViewById(R.id.options_endSess).setVisibility(View.VISIBLE);
-                ((TextView) optionsScreen.findViewById(R.id.options_signed_name)).setText(mAuth.getCurrentUser().getDisplayName());
+                ((TextView) optionsScreen.findViewById(R.id.options_signed_name)).setText(getAuthenticationManager().getCurrentAuthUserName());
             } else if (getNearbyManager().isConnectedAsFollower()) {
                 optionsScreen.findViewById(R.id.options_endSess).setVisibility(View.GONE);
                 optionsScreen.findViewById(R.id.options_teacher).setVisibility(View.GONE);
@@ -1744,17 +1359,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         //set up back buttons
         appLauncherScreen.findViewById(R.id.back_btn).setOnClickListener(v -> leadmeAnimator.setDisplayedChild(ANIM_LEADER_INDEX));
 
-        //prepare elements for app push dialog
-        appPushDialogView.findViewById(R.id.push_btn).setOnClickListener(v -> {
-            appLaunchAdapter.launchApp(appPushPackageName, appPushTitle, false);
-            Log.d(TAG, "LAUNCHING! " + appPushPackageName);
-            hideAppPushDialogView();
-            showConfirmPushDialog(true, false);
-        });
-
-        appPushDialogView.findViewById(R.id.back_btn).setOnClickListener(v -> hideAppPushDialogView());
-
-        //set up options screen
         //set up options screen
         optionsScreen.findViewById(R.id.back_btn).setOnClickListener(v -> {
             Log.e(TAG, lastDisplayedIndex + " // " + nearbyManager.isConnectedAsFollower() + " // " + nearbyManager.isConnectedAsGuide() + " // " + isGuide);
@@ -1769,7 +1373,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         });
 
         optionsScreen.findViewById(R.id.options_loginBtn).setOnClickListener(view -> showLoginDialog());
-        optionsScreen.findViewById(R.id.options_notsigned).setOnClickListener(view -> buildloginsignup(0));
+        optionsScreen.findViewById(R.id.options_notsigned).setOnClickListener(view -> getAuthenticationManager().buildloginsignup(0));
         optionsScreen.findViewById(R.id.how_to_use_btn).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -1811,13 +1415,13 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                 back.setOnClickListener(v1 -> manual.dismiss());
                 WifiManager wifiManager = (WifiManager) getSystemService(WIFI_SERVICE);
                 String ipAddress = Formatter.formatIpAddress(wifiManager.getConnectionInfo().getIpAddress());
-                if(isGuide){
+                if(isGuide) {
                     manView.findViewById(R.id.manual_teacher_view).setVisibility(View.VISIBLE);
                     manView.findViewById(R.id.manual_learner_view).setVisibility(View.GONE);
                     manView.findViewById(R.id.manual_ok).setVisibility(View.GONE);
                     TextView IpAddress = manView.findViewById(R.id.manual_ip);
                     IpAddress.setText(ipAddress);
-                }else{
+                } else {
                     if(getNearbyManager().isConnectedAsFollower()){
                         manual.dismiss();
                         Toast.makeText(getApplicationContext(), "You are already connected to a leader", Toast.LENGTH_SHORT).show();
@@ -1838,19 +1442,17 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                         public void onClick(View v) {
                             if(IpEnter!=null && ManName!=null &&ManName.getText().toString().length()>0 && IpEnter.getText().toString().length()>0){
                                 Log.d(TAG, "onClick: "+IpEnter.getText().toString());
-                                getNameView().setText(ManName.getText().toString());
+                                getNameViewController().setText(ManName.getText().toString());
                                 getNearbyManager().myName = ManName.getText().toString();
                                 runOnUiThread(() -> {
                                     getLeaderSelectAdapter().addLeader(new ConnectedPeer("key", IpEnter.getText().toString()));
                                     //showLeaderWaitMsg(false);
                                 });
                                 manual.dismiss();
-                                ServerIP = IpEnter.getText().toString();
+                                getAuthenticationManager().setServerIP(IpEnter.getText().toString());
                                 isGuide=false;
+
                                 loginAction(true);
-//                                getNearbyManager().connectToManualLeader(IpEnter.getText().toString());
-//                                leadmeAnimator.setDisplayedChild(ANIM_LEARNER_INDEX);
-//                                screenCap.startService(false);
                             }
                         }
                     });
@@ -1860,10 +1462,9 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
         optionsScreen.findViewById(R.id.logout_btn).setOnClickListener(v -> {
             if (isGuide || !getNearbyManager().isConnectedAsFollower()) {
-                mAuth.signOut();
-                currentUser = mAuth.getCurrentUser();
+                getAuthenticationManager().logoutAction();
                 optionsScreen.findViewById(R.id.options_teacher).setVisibility(View.GONE);
-                logoutAction();
+                logoutResetController();
             } else {
                 Toast.makeText(getApplicationContext(), "Logout is unavailable.", Toast.LENGTH_SHORT).show();
             }
@@ -1872,7 +1473,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
         optionsScreen.findViewById(R.id.options_endSess).setOnClickListener(view -> {
             if (isGuide || !getNearbyManager().isConnectedAsFollower()) {
-                logoutAction();
+                logoutResetController();
             } else {
                 Toast.makeText(getApplicationContext(), "Logout is unavailable.", Toast.LENGTH_SHORT).show();
             }
@@ -1885,53 +1486,34 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         leader_toggle = switcherView.findViewById(R.id.leader_btn);
         learner_toggle = switcherView.findViewById(R.id.learner_btn);
 
+        //OLD DIALOG CODE
         leader_toggle.setOnClickListener(v -> {
             displayLeaderStartToggle();
-            if (mAuth.getCurrentUser() == null) {
-                loginDialogView.findViewById(R.id.login_signup_view).setVisibility(View.VISIBLE);
-                loginDialogView.findViewById(R.id.wrong_code_view).setVisibility(View.GONE);
-                loginDialogView.findViewById(R.id.name_code_entry_view).setVisibility(View.GONE);
+            if (getAuthenticationManager().getCurrentAuthUser() == null) {
+                getDialogManager().changeLoginViewOptions(View.VISIBLE, View.GONE, View.GONE);
             }
         });
 
-        if (mAuth.getCurrentUser() == null) {
-            loginDialogView.findViewById(R.id.login_signup_view).setVisibility(View.VISIBLE);
-            loginDialogView.findViewById(R.id.wrong_code_view).setVisibility(View.GONE);
-            loginDialogView.findViewById(R.id.name_code_entry_view).setVisibility(View.GONE);
+        if (getAuthenticationManager().getCurrentAuthUser() == null) {
+            getDialogManager().changeLoginViewOptions(View.VISIBLE, View.GONE, View.GONE);
         } else {
-            loginDialogView.findViewById(R.id.login_signup_view).setVisibility(View.GONE);
-            loginDialogView.findViewById(R.id.wrong_code_view).setVisibility(View.GONE);
-            loginDialogView.findViewById(R.id.name_code_entry_view).setVisibility(View.VISIBLE);
+            getDialogManager().changeLoginViewOptions(View.GONE, View.GONE, View.VISIBLE);
         }
 
         learner_toggle.setOnClickListener(v -> {
             displayLearnerStartToggle();
-            if (mAuth.getCurrentUser() == null) {
-                loginDialogView.findViewById(R.id.login_signup_view).setVisibility(View.GONE);
-                loginDialogView.findViewById(R.id.wrong_code_view).setVisibility(View.GONE);
-                loginDialogView.findViewById(R.id.name_code_entry_view).setVisibility(View.VISIBLE);
+            if (getAuthenticationManager().getCurrentAuthUser() == null) {
+                getDialogManager().changeLoginViewOptions(View.GONE, View.GONE, View.VISIBLE);
             }
         });
 
         //prepare elements for login dialog
-        getNameView();
+        getNameViewController();
 
         startLeader.findViewById(R.id.app_login).setOnClickListener(v -> showLoginDialog());
 
-        loginDialogView.findViewById(R.id.back_btn).setOnClickListener(v -> hideLoginDialog(true));
-
-        loginDialogView.findViewById(R.id.connect_btn).setOnClickListener(v -> initiateLeaderAdvertising());
-
-        setupLoginDialog();
-
-
         //prepare elements for leader main view
         waitingForLearners = mainLeader.findViewById(R.id.no_students_connected);
-        //appLauncherScreen = View.inflate(context, R.layout.d__app_list, null);
-        confirmPushDialogView = View.inflate(context, R.layout.e__confirm_popup, null);
-
-        confirmPushDialogView.findViewById(R.id.ok_btn).setOnClickListener(v -> hideConfirmPushDialog());
-
 
         //set up options screen
         //auto install of missing apps on student devices
@@ -2019,7 +1601,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
     }
 
-    //MANUAL CONNECTION FUNCTIONS START
+//    //MANUAL CONNECTION FUNCTIONS START
     public void switchManualPreference(SharedPreferences sharedPreferences, boolean isManual) {
         SharedPreferences.Editor editor = sharedPreferences.edit();
         sessionManual = isManual;
@@ -2028,96 +1610,12 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
         //TODO if logged in as learner skip
         if(isManual && isGuide) {
-            createManualConnection();
+            String ipAddress = Formatter.formatIpAddress(wifiManager.getConnectionInfo().getIpAddress());
+            getAuthenticationManager().createManualConnection(ipAddress);
         } else {
             //remove listeners for followers
         }
     }
-
-    private void createManualConnection() {
-        //initiate public ip track and firebase
-        waitForPublic();
-        WifiManager wifiManager = (WifiManager) getSystemService(WIFI_SERVICE);
-        ServerIP = Formatter.formatIpAddress(wifiManager.getConnectionInfo().getIpAddress());
-        manualConnectionDetails.put("Username", mAuth.getCurrentUser().getDisplayName());
-        manualConnectionDetails.put("ServerIP", ServerIP);
-        manualConnectionDetails.put("TimeStamp", FieldValue.serverTimestamp());
-
-        //update firebase and start a continuous timer for updating the timestamp
-        Timer timestamp = new Timer();
-        TimerTask updateTimestamp = new TimerTask() {
-            @Override
-            public void run() {
-                updateAddress();
-            }
-        };
-
-        timestamp.scheduleAtFixedRate(updateTimestamp, 0L, leaderTimestampUpdate * (60 * 1000));
-    }
-
-    /*register the login details with PublicIP address as the documentID
-    create a new document of the publicIP address if does not exist
-    create a new collection, Leaders if it does not exist in case multiple Leaders are online
-    create a new document of the ServerIP address with username, ServerIP, PublicIP and timestamp fields*/
-    private void updateAddress() {
-        if(publicIP.length()==0){
-            return;
-        }
-        db.collection("addresses").document(publicIP)
-            .collection("Leaders").document(ServerIP).set(manualConnectionDetails, SetOptions.merge())
-            .addOnSuccessListener(new OnSuccessListener<Void>() {
-                @Override
-                public void onSuccess(Void aVoid) {
-                    Log.d(TAG, "DocumentSnapshot successfully written!");
-                }
-            })
-            .addOnFailureListener(new OnFailureListener() {
-                @Override
-                public void onFailure(@NonNull Exception e) {
-                    Log.w(TAG, "Error writing document", e);
-                }
-            });
-    }
-
-    private void waitForPublic() {
-        Thread getPublic = new Thread(() -> {
-            Log.d(TAG, "waitForPublic: this1");
-            publicIP = getPublicIP();
-            manualConnectionDetails.put("PublicIP", publicIP); //store as reference for the clean up server
-        });
-
-        getPublic.start();
-
-        try {
-            getPublic.join();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        Log.d(TAG, "waitForPublic: this2");
-    }
-
-    private String getPublicIP() {
-//        if(publicIP!=null && publicIP.length()>0){
-//            return publicIP;
-//        }
-//        Log.d(TAG, "getPublicIP: here");
-        String publicIPlocal = "";
-        try  {
-            java.util.Scanner s = new java.util.Scanner(
-                    new java.net.URL(
-                            "https://api.ipify.org")
-                            .openStream(), "UTF-8")
-                    .useDelimiter("\\A");
-            publicIPlocal = s.next();
-            Log.d(TAG, "getPublicIP: got public");
-        } catch (java.io.IOException e) {
-            e.printStackTrace();
-            Log.d(TAG, "getPublicIP: didn't get public");
-        }
-
-        return publicIPlocal;
-    }
-    //MANUAL CONNECTION FUNCTIONS END
 
     public void composeEmail(String[] addresses, String subject) {
         Intent intent = new Intent(Intent.ACTION_SENDTO);
@@ -2209,19 +1707,15 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
     }
 
-    public TextView getNameView() {
-        if (loginDialogView == null || nameView == null) {
-            loginDialogView = View.inflate(context, R.layout.b__login_popup, null);
-            nameView = loginDialogView.findViewById(R.id.name_input_field);
-
-            //TODO temporary code to allow me to skip login while testing
-            loginDialogView.findViewById(R.id.name_code_entry_view).setVisibility(View.VISIBLE);
-            loginDialogView.findViewById(R.id.login_signup_view).setVisibility(View.GONE);
-        }
-        return nameView;
+    /**
+     * Get the current instance of the nameView textView within the dialog manager.
+     * @return An instance of the name view text view from the dialog manager.
+     */
+    public TextView getNameViewController() {
+        return getDialogManager().getNameView();
     }
 
-    private void prepLoginSwitcher() {
+    protected void prepLoginSwitcher() {
         Log.d(TAG, "Prepping switcher! " + isGuide);
         if (loggingInAsLeader) {
             displayLeaderStartToggle();
@@ -2268,44 +1762,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     /**
      * Helper methods used by multiple managers
      */
-    public void showConfirmPushDialog(boolean isApp, boolean isSavedOnly) {
-        //TODO include display a message if errors occur
-
-        if (confirmPushDialog == null) {
-            confirmPushDialog = new AlertDialog.Builder(this)
-                    .setView(confirmPushDialogView)
-                    .show();
-            confirmPushDialog.setOnDismissListener(dialog -> hideSystemUI());
-        } else {
-            confirmPushDialog.show();
-        }
-        dialogShowing = true;
-
-        if (isSavedOnly) {
-            ((TextView) confirmPushDialog.findViewById(R.id.push_success_comment)).setText(R.string.fav_save_success);
-            ((TextView) confirmPushDialog.findViewById(R.id.push_success_title)).setText(R.string.save_success_title);
-        } else if (isApp) {
-            ((TextView) confirmPushDialog.findViewById(R.id.push_success_comment)).setText(R.string.app_push_success);
-            ((TextView) confirmPushDialog.findViewById(R.id.push_success_title)).setText(R.string.push_success_title);
-        } else { //isLink
-            ((TextView) confirmPushDialog.findViewById(R.id.push_success_comment)).setText(R.string.link_push_success);
-            ((TextView) confirmPushDialog.findViewById(R.id.push_success_title)).setText(R.string.push_success_title);
-        }
-
-        closeKeyboard();
-
-        //auto close after 1.5 seconds
-        if (isSavedOnly) {
-            handler.postDelayed(() -> {
-                hideConfirmPushDialog();
-                getWebManager().launchUrlYtFavourites();
-            }, 1500);
-        } else {
-            handler.postDelayed(this::hideConfirmPushDialog, 1500);
-        }
-
-    }
-
     boolean isOpen = false;
 
     public void openKeyboard() {
@@ -2343,67 +1799,14 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         }
     }
 
+    protected void closeDialogController(boolean success) {
+        dialogManager.closeWaitingDialog(success);
 
-    public void hideConfirmPushDialog() {
-        if (confirmPushDialog != null) {
-            dialogShowing = false;
-            confirmPushDialog.dismiss();
-        }
-        //return to main screen
-        leadmeAnimator.setDisplayedChild(ANIM_LEADER_INDEX);
-    }
-
-    public void showWarningDialog(String title, String message) {
-        if (destroying) {
-            return;
-        }
-        if (warningDialog == null) {
-            setupWarningDialog();
-        }
-        warningDialogTitle.setText(title);
-        warningDialogMessage.setText(message);
-        warningDialogMessage.setVisibility(View.VISIBLE);
-        warningDialog.show();
-        hideSystemUI();
-        dialogShowing = true;
-    }
-
-    public void showWarningDialog(String message) {
-        if (destroying) {
-            return;
-        }
-        if (warningDialog == null) {
-            setupWarningDialog();
-        }
-        warningDialogTitle.setText(getResources().getString(R.string.oops_something_went_wrong));
-        warningDialogMessage.setText(message);
-        warningDialogMessage.setVisibility(View.VISIBLE);
-        warningDialog.show();
-        hideSystemUI();
-        dialogShowing = true;
-    }
-
-    protected void closeWaitingDialog(boolean success) {
-        Log.d(TAG, "Closing waiting dialog! " + success + ", " + waitingDialog + ", " + loginDialog);
-        if (waitingDialog != null && waitingDialog.isShowing()) {
-            waitingDialog.dismiss();
-        }
-        if (loginDialog != null && loginDialog.isShowing()) {
-            loginDialog.dismiss();
-        }
-        dialogShowing = (waitingDialog != null && waitingDialog.isShowing()) || (loginDialog != null && loginDialog.isShowing());
-        Log.d(TAG, "Are they showing now?? " + (waitingDialog != null && waitingDialog.isShowing()) + " || " + (loginDialog != null && loginDialog.isShowing()));
-
-        //wait for dialogs to close
         try {
             Thread.sleep(200);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-//        if (dialogShowing) { //try again until they're both gone
-//            closeWaitingDialog(success);
-//            return;
-//        }
 
         if (!success) {
             //failed to login, so show login screen again
@@ -2423,48 +1826,14 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     public AlertDialog waitingDialog = null;
 
     private void showWaitingForConnectDialog() {
-        if (waitingDialog == null) {
-            View waitingDialogView = View.inflate(context, R.layout.e__waiting_to_connect, null);
-            Button backBtn = waitingDialogView.findViewById(R.id.back_btn);
-            backBtn.setOnClickListener(v -> {
-                waitingDialog.dismiss();
-                dialogShowing = false;
-                getNearbyManager().cancelConnection();
-            });
-
-            waitingDialog = new AlertDialog.Builder(this)
-                    .setView(waitingDialogView)
-                    .create();
-            waitingDialog.setOnDismissListener(dialog -> hideSystemUI());
-        }
-
-        loginDialog.dismiss();
-        waitingDialog.show();
-        dialogShowing = true;
-    }
-
-
-    private void setupWarningDialog() {
-        View warningDialogView = View.inflate(context, R.layout.e__warning_popup, null);
-        warningDialogTitle = warningDialogView.findViewById(R.id.warning_title);
-        warningDialogMessage = warningDialogView.findViewById(R.id.warning_comment);
-        Button okBtn = warningDialogView.findViewById(R.id.ok_btn);
-        okBtn.setOnClickListener(v -> {
-            warningDialog.dismiss();
-            dialogShowing = false;
-            warningDialogMessage.setVisibility(View.GONE);
-        });
-
-        warningDialog = new AlertDialog.Builder(this)
-                .setView(warningDialogView)
-                .create();
-        warningDialog.setOnDismissListener(dialog -> hideSystemUI());
+        getDialogManager().getLoginDialog().dismiss();
+        getDialogManager().showWaitingDialog();
+        getDialogManager().dialogShowing = true;
     }
 
     public void showLoginAlertMessage() {
-        loginDialogView.findViewById(R.id.indeterminateBar).setVisibility(View.GONE);
-        loginDialogView.findViewById(R.id.name_code_entry_view).setVisibility(View.GONE);
-        loginDialogView.findViewById(R.id.wrong_code_view).setVisibility(View.VISIBLE);
+        getDialogManager().setIndeterminateBar(View.GONE);
+        getDialogManager().changeLoginViewOptions(-1, View.GONE, View.VISIBLE);
         closeKeyboard();
         hideSystemUI();
     }
@@ -2475,138 +1844,24 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         getNearbyManager().discoverLeaders();
     }
 
-    //MANUAL CONNECTION FOR LEARNERS START
+//    //MANUAL CONNECTION FOR LEARNERS
     public void initiateManualLeaderDiscovery() {
         Log.d(TAG, "Initiating Leader Discovery");
         isReadyToConnect = true;
         getNearbyManager().networkAdapter.startDiscovery();
-        retrieveLeaders();
+        getAuthenticationManager().retrieveLeaders();
     }
-
-    //call to firebase to retrieve any leaders registered to that publicIP address
-    private void retrieveLeaders() {
-        waitForPublic();
-        Log.d(TAG, "retrieveLeaders: "+publicIP);
-        if (publicIP == null|| publicIP.length()==0) {
-            return;
-        }
-        CollectionReference collRef = db.collection("addresses").document(publicIP).collection("Leaders");
-
-        collRef.get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
-            @Override
-            public void onComplete(@NonNull Task<QuerySnapshot> task) {
-                if (task.isSuccessful()) {
-                    //if no one has registered on the public IP yet, wait sometime and try again.
-                    try {
-                        if (Objects.requireNonNull(task.getResult()).size() == 0) {
-                            scheduledExecutorService.schedule(new Runnable() {
-                                @Override
-                                public void run() {
-                                    runOnUiThread(() -> {
-                                        retrieveLeaders();
-                                    });
-                                }
-                            }, waitForGuide, TimeUnit.MILLISECONDS);
-//                        try {
-//                            Thread.sleep(waitForGuide);
-//                        } catch (InterruptedException e) {
-//                            e.printStackTrace();
-//                        }
-
-                        } else {
-                            for (QueryDocumentSnapshot document : Objects.requireNonNull(task.getResult())) {
-                                Date leaderTimeStamp = Objects.requireNonNull(document.getTimestamp("TimeStamp")).toDate();
-
-                                if (checkTimeDifference(leaderTimeStamp) >= inactiveUser) {
-                                    return;
-                                }
-
-                                //add to the leaders list
-                                runOnUiThread(() -> {
-                                    getLeaderSelectAdapter().addLeader(new ConnectedPeer(document.get("Username").toString(), document.get("ServerIP").toString()));
-                                    showLeaderWaitMsg(false);
-                                });
-                            }
-
-                            //add listeners to track if leader hasn't logged in but publicIP exists (multiple leaders on network)
-                            //TODO trackCollection works fine, haven't create code to stop the listeners when students log in.
-                            trackCollection(collRef);
-                        }
-                    }catch(NullPointerException e){
-                        Log.d(TAG, "onComplete: "+e);
-                    }
-                } else {
-                    Log.d(TAG, "Error getting documents: ", task.getException());
-                }
-            }
-        });
-    }
-
-    //add a listener to the Leader collection to wait for log in
-    private void trackCollection(CollectionReference collRef) {
-        //checkArray(document);
-        //adapter.notifyDataSetChanged();
-        if(manualUserListener!=null){
-            manualUserListener.remove();
-        }
-        if(!getNearbyManager().isConnectedAsFollower()) {
-            Log.d(TAG, "trackCollection: listener added");
-            manualUserListener = collRef.addSnapshotListener(new EventListener<QuerySnapshot>() {
-                @Override
-                public void onEvent(@Nullable QuerySnapshot value, @Nullable FirebaseFirestoreException error) {
-                    Log.d(TAG, "onEvent: ip listener fired");
-                    if (error != null) {
-                        Log.w(TAG, "Listen failed.", error);
-                        return;
-                    }
-
-                    if (value != null) {
-                        for (QueryDocumentSnapshot document : value) {
-                            if (document.get("Username") != null) {
-                                //checkArray(document);
-                                runOnUiThread(() -> {
-                                    getLeaderSelectAdapter().addLeader(new ConnectedPeer(document.get("Username").toString(), document.get("ServerIP").toString()));
-                                    showLeaderWaitMsg(false);
-                                });
-                            }
-                        }
-                        //adapter.notifyDataSetChanged();
-                    } else {
-                        Log.d(TAG, "Current data: null");
-                    }
-                }
-            });
-        }
-        //TODO stop listener when leader is selected
-    }
-
-    /*calculate the difference between the firebase timestamp and the current time
-    return the minutes, can also work out other units if necessary.*/
-    private int checkTimeDifference(Date leaderTimeStamp) {
-        Date now = new Date();
-
-        long difference_In_Time = now.getTime() - leaderTimeStamp.getTime();
-        long difference_In_Minutes = (difference_In_Time / (1000 * 60)) % 60;
-        long difference_In_Hours = (difference_In_Time / (1000 * 60 * 60)) % 24;
-
-        /*max difference can be 24 * 60 (mins), server clears firestore once or twice a day
-        so anything more is not necessary at this point.*/
-        return (int) (difference_In_Hours * 60) + (int) difference_In_Minutes;
-    }
-
-    //MANUAL CONNECTION FOR LEARNERS END
 
     public boolean checkLoginDetails() {
         //reset error messages
-        loginDialogView.findViewById(R.id.no_name_message).setVisibility(View.GONE);
-        loginDialogView.findViewById(R.id.wrong_code_message).setVisibility(View.GONE);
-        final PinEntryEditText pinEntry = loginDialogView.findViewById(R.id.login_pin_entry);
+        getDialogManager().changeLoginViewOptions(-1, View.GONE, View.GONE);
 
         //check that a name has been entered
         boolean nameEntered;
-        if (nameView.getText().toString().trim().length() == 0) { //no name entered
+        if (getNameViewController().getText().toString().trim().length() == 0) { //no name entered
             nameEntered = false;
-            loginDialogView.findViewById(R.id.no_name_message).setVisibility(View.VISIBLE);
+
+            getDialogManager().changeLoginViewOptions(-1, -1, View.VISIBLE);
         } else { //name entered
             nameEntered = true;
             String name = getNearbyManager().getName();
@@ -2616,36 +1871,30 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         //if appropriate, check if the correct code has been entered
         if (loggingInAsLeader) {
             //check teacher code
-            String code = pinEntry.getText().toString();
-            pinEntry.setText("");
+            String code = getDialogManager().getPinEntry();
+
             Log.d(TAG, "Code entered: " + code);
             // For showing
-            ProgressBar progressBar = loginDialogView.findViewById(R.id.indeterminateBar);
-            progressBar.setVisibility(View.VISIBLE);
+            getDialogManager().setIndeterminateBar(View.VISIBLE);
 
             // For hiding
+            Task<com.google.firebase.firestore.DocumentSnapshot> firebaseAccount = getAuthenticationManager().getFirebaseAccount();
 
-            db.collection("users").document(mAuth.getCurrentUser().getUid()).get().addOnCompleteListener(task -> {
+            firebaseAccount.addOnCompleteListener(task -> {
                 if (task.isSuccessful()) {
                     if (Hasher.Companion.hash(code, HashType.SHA_256).equals(task.getResult().getString("pin"))) {
                         codeEntered = true;
 
-                        progressBar.setVisibility(View.GONE);
+                        getDialogManager().setIndeterminateBar(View.GONE);
                         loginAction(false);
                     } else {
                         codeEntered = false;
                         showLoginAlertMessage();
-                        loginDialogView.findViewById(R.id.wrong_code_message).setVisibility(View.VISIBLE);
+                        getDialogManager().changeLoginViewOptions(-1, View.VISIBLE, -1);
                     }
 
                 }
             });
-//            if (code.equals(teacherCode)) { //correct code
-//                codeEntered = true;
-//            } else { //incorrect code
-//                codeEntered = false;
-//            loginDialogView.findViewById(R.id.wrong_code_message).setVisibility(View.VISIBLE);
-//            }
         } else {
             codeEntered = true; //mark as true, since we don't need one
             if (!nameEntered) {
@@ -2657,13 +1906,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             }
         }
         return false;
-//        if (!nameEntered || !codeEntered) {
-//            //alert to errors and exit
-//            showLoginAlertMessage();
-//            return false; //failed
-//        } else {
-//            return true; //succeeded
-//        }
     }
 
     public void initiateLeaderAdvertising() {
@@ -2672,14 +1914,12 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         }
     }
 
-    // TODO need to reset peer id setting?
-    void logoutAction() {
+    void logoutResetController() {
         xrayManager.resetClientMaps(null);
         getDispatcher().alertLogout(); //need to send this before resetting 'isGuide'
         isGuide = false;
         getNearbyManager().networkAdapter.resetClientIDs();
         getConnectedLearnersAdapter().resetOnLogout();
-        //xrayManager.monitorInProgress = false; //break connection loop in clientStream
         getNearbyManager().onStop();
         getNearbyManager().stopAdvertising();
         getNearbyManager().disconnectFromAllEndpoints(); //disconnect everyone
@@ -2721,7 +1961,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
         }
 
-        hideLoginDialog(false);
+        getDialogManager().hideLoginDialog(false);
 
         String name = getNearbyManager().getName();
         if(isManual) {
@@ -2762,7 +2002,8 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
             //if it is a manual connection session, create a firebase lookup entry
             if(sessionManual) {
-                createManualConnection();
+                String ipAddress = Formatter.formatIpAddress(wifiManager.getConnectionInfo().getIpAddress());
+                getAuthenticationManager().createManualConnection(ipAddress);
             }
         } else {
             //display main student view
@@ -2777,13 +2018,11 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             ((TextView) optionsScreen.findViewById(R.id.connected_as_role)).setTextColor(getResources().getColor(R.color.medium, null));
             //refresh overlay
             // verifyOverlay();
-            if(manualUserListener!=null){
-                Log.d(TAG, "loginAction: listener removed");
-                manualUserListener.remove();
-                manualUserListener=null;
-                getNearbyManager().networkAdapter.stopDiscovery();
-            }
 
+            //remove the Firebase listener if connection was manual
+            getAuthenticationManager().removeUserListener();
+            //NOTE: this may cause an issue as it was inside the above function to being with...
+            getNearbyManager().networkAdapter.stopDiscovery();
         }
     }
 
@@ -3041,7 +2280,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     }
 
     private void showRecallDialog() {
-        dialogShowing = true;
+        getDialogManager().dialogShowing = true;
         Log.w(TAG, "Showing recall dialog");
 
         if (recallPrompt == null) {
@@ -3053,12 +2292,12 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
             recallView.findViewById(R.id.ok_btn).setOnClickListener(v -> {
                 returnToAppFromMainAction(returnEveryone);
-                dialogShowing = false;
+                getDialogManager().dialogShowing = false;
                 recallPrompt.dismiss();
             });
 
             recallView.findViewById(R.id.back_btn).setOnClickListener(v -> {
-                dialogShowing = false;
+                getDialogManager().dialogShowing = false;
                 recallPrompt.dismiss();
             });
 
@@ -3082,7 +2321,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         }
 
         recallPrompt.show();
-        dialogShowing = true;
+        getDialogManager().dialogShowing = true;
     }
 
     private void makeSelectedBtnActive() {
@@ -3119,7 +2358,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             return;
         }
 
-        Log.d(TAG, "Recalling to LeadMe! " + dialogShowing + ", " + appHasFocus + ", " + hasWindowFocus() + ", " + getLifecycle().getCurrentState());
+        Log.d(TAG, "Recalling to LeadMe! " + getDialogManager().dialogShowing + ", " + appHasFocus + ", " + hasWindowFocus() + ", " + getLifecycle().getCurrentState());
         closeKeyboard();
         permissionManager.needsRecall = false;
         getLumiAccessibilityConnector().bringMainToFront(); //call each other until it works
@@ -3219,8 +2458,8 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             overlayView.setVisibility(View.INVISIBLE);
         }
 
-        readyBtn.setEnabled(true);
-        readyBtn.setText(R.string.connect_label);
+        getDialogManager().readyBtn.setEnabled(true);
+        getDialogManager().readyBtn.setText(R.string.connect_label);
         if (isGuide) {
             waitingForLearners.setVisibility(View.GONE);
         }
@@ -3560,7 +2799,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                                 runOnUiThread(new Runnable() {
                                     @Override
                                     public void run() {
-                                        if(ServerIP.length()>0){
+                                        if(getAuthenticationManager().getServerIP().length()>0){
                                             setandDisplayStudentOnBoard(3);
                                         }else{
                                             setandDisplayStudentOnBoard(2);
@@ -3619,477 +2858,18 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         if(page==2 && !sessionManual) {
             getNearbyManager().connectToSelectedLeader();
             showWaitingForConnectDialog();
-        } else if(sessionManual){
-            if(ServerIP.equals("")) {
-                ServerIP = getNearbyManager().selectedLeader.getID();
+        } else if(sessionManual) {
+            //If the serverIP address has not changed set it to the locally found guide
+            if(getAuthenticationManager().getServerIP().equals("")) {
+                getAuthenticationManager().setServerIP(getNearbyManager().selectedLeader.getID());
             }
-            getNearbyManager().connectToManualLeader(ServerIP);
+
+            getNearbyManager().connectToManualLeader(getAuthenticationManager().getServerIP());
         }
 
         screenCap.startService(false);
     }
 
-    public void buildloginsignup(int page) {
-        buildloginsignup(page, false);
-    }
-    private String loginEmail = "";
-    private String loginPassword = "";
-    private String Name = "";
-    private Boolean Marketing =false;
-
-    public void buildloginsignup(int page, boolean signinVerif) {
-        showSystemUI();
-        View Login = View.inflate(this, R.layout.b__login_signup, null);
-        LinearLayout[] layoutPages = {Login.findViewById(R.id.rego_code), Login.findViewById(R.id.terms_of_use), Login.findViewById(R.id.signup_page)
-                , Login.findViewById(R.id.email_verification)
-                , Login.findViewById(R.id.set_pin), Login.findViewById(R.id.account_created)};
-        Button next = Login.findViewById(R.id.signup_enter);
-        Button back = Login.findViewById(R.id.signup_back);
-        ProgressBar progressBar = Login.findViewById(R.id.signup_indeterminate);
-        progressBar.setVisibility(View.GONE);
-        TextView support = Login.findViewById(R.id.rego_contact_support);
-        support.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                String email[] = {"dev@lumination.com.au"};
-                composeEmail(email,"LeadMe Support: Signup Issue");
-            }
-        });
-        //page 0
-        EditText loginCode = Login.findViewById(R.id.rego_code_box);
-        TextView regoLost = Login.findViewById(R.id.rego_lost_code);
-        regoLost.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                String email[] = {"dev@lumination.com.au"};
-                composeEmail(email,"LeadMe Support: Signup Code Request");
-            }
-        });
-        TextView regoError = Login.findViewById(R.id.rego_code_error);
-        //page 2
-        TextView signupError = Login.findViewById(R.id.signup_error);
-        EditText signupName = Login.findViewById(R.id.signup_name);
-        EditText signupEmail = Login.findViewById(R.id.signup_email);
-        EditText signupPass = Login.findViewById(R.id.signup_password);
-        EditText signupConPass = Login.findViewById(R.id.signup_confirmpass);
-        CheckBox marketingCheck = Login.findViewById(R.id.signup_marketing);
-        signupEmail.setText(loginEmail);
-        signupPass.setText(loginPassword);
-        signupName.setText(Name);
-        marketingCheck.setChecked(Marketing);
-        //page 1
-        TextView errorText = Login.findViewById(R.id.tou_readtext);
-        ScrollView touScroll = Login.findViewById(R.id.tou_scrollView);
-        TextView terms = Login.findViewById(R.id.tou_terms);
-        CheckBox touAgree = Login.findViewById(R.id.tou_check);
-        //page 3
-        VideoView animation = Login.findViewById(R.id.email_animation);
-        //page 4
-        TextView pinError = Login.findViewById(R.id.pin_error_text);
-        ImageView pinErrorImg = Login.findViewById(R.id.pin_error_image);
-        //page 5
-        TextView accountText = Login.findViewById(R.id.account_createdtext);
-        for (int i = 0; i < layoutPages.length; i++) {
-            if (i != page) {
-                layoutPages[i].setVisibility(View.GONE);
-            } else {
-                layoutPages[i].setVisibility(View.VISIBLE);
-            }
-        }
-        setContentView(Login);
-        switch (page) {
-            case 0:
-                showSystemUI();
-                regoError.setVisibility(View.GONE);
-                //loginCode.requestFocus();
-                loginCode.setOnFocusChangeListener((v, hasFocus) -> {
-                    if (hasFocus) {
-                        showSystemUI();
-                    }
-                });
-                loginCode.addTextChangedListener(new TextWatcher() {
-                    @Override
-                    public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-                        showSystemUI();
-                    }
-
-                    @Override
-                    public void onTextChanged(CharSequence s, int start, int before, int count) {
-                        Log.d(TAG, "onTextChanged: " + count);
-                        if (s.length() == 6) {
-                            closeKeyboard();
-                        }
-//                        else if(s.length()>6){
-//                            loginCode.setText(s.subSequence(0,7));
-//                        }
-                    }
-
-                    @Override
-                    public void afterTextChanged(Editable s) {
-
-                    }
-                });
-                next.setOnClickListener(v -> {
-                    if (loginCode.getText().length() == 6) {
-                        setProgressSpinner(3000, progressBar);
-                        db.collection("signin_codes").document(loginCode.getText().toString())
-                                .get().addOnCompleteListener(task -> {
-                            if (task.isSuccessful()) {
-                                Log.d(TAG, "buildloginsignup: database accessed");
-                                if (task.getResult().exists()) {
-                                    //todo add email under signup code
-//                                        if(task.getResult().get)
-                                    regoCode = loginCode.getText().toString();
-                                    buildloginsignup(1);
-                                } else {
-                                    progressBar.setVisibility(View.GONE);
-                                    regoError.setText("I'm sorry that code doesn't exist.");
-                                    regoError.setVisibility(View.VISIBLE);
-                                }
-                            } else {
-                                Log.d(TAG, "buildloginsignup: unable to access database");
-                            }
-                        });
-                    }else{
-                        regoError.setVisibility(View.VISIBLE);
-                        regoError.setText("Please check you have entered the code correctly.");
-                    }
-                });
-                back.setOnClickListener(v -> {
-                    setContentView(leadmeAnimator);
-                    hideSystemUI();
-                });
-                break;
-                case 1:
-                hideSystemUI();
-                handler.postDelayed(() -> hideSystemUI(), 500);
-                errorText.setVisibility(View.GONE);
-//                terms.setOnScrollChangeListener(new View.OnScrollChangeListener() {
-//                    boolean scrolled = false;
-//                    @Override
-//                    public void onScrollChange(View v, int scrollX, int scrollY, int oldScrollX, int oldScrollY) {
-//                        if(scrollY==v.scr)
-//                    }
-//                });
-                hasScrolled = true;
-                WebView TOF = Login.findViewById(R.id.tof_webview);
-                TOF.getSettings().setJavaScriptEnabled(true);
-                String pdf = "https://github.com/LuminationDev/public/raw/main/LeadMeEdu-TermsAndConditions.pdf";
-                TOF.loadUrl("https://drive.google.com/viewerng/viewer?embedded=true&url=" + pdf);
-
-
-                        touAgree.setOnCheckedChangeListener((buttonView, isChecked) -> {
-                            if (isChecked && !hasScrolled) {
-                                touAgree.setChecked(false);
-                                errorText.setVisibility(View.VISIBLE);
-                                errorText.setText("Please read all of the terms of use");
-                            }
-                        });
-
-                next.setOnClickListener(v -> {
-                    if (touAgree.isChecked()) {
-                        buildloginsignup(2);
-                    } else {
-                        errorText.setVisibility(View.VISIBLE);
-                    }
-                });
-                back.setOnClickListener(v -> buildloginsignup(1));
-                break;
-            case 2:
-                showSystemUI();
-                signupError.setVisibility(View.GONE);
-                marketingCheck.setOnCheckedChangeListener((buttonView, isChecked) -> closeKeyboard());
-                next.setOnClickListener(v -> {
-                    if (signupName.getText().toString().length() == 0) {
-                        signupError.setText("Please enter a name");
-                        signupError.setVisibility(View.VISIBLE);
-                        progressBar.setVisibility(View.GONE);
-                        return;
-                    }
-                    if (signupEmail.getText().toString().length() == 0) {
-                        signupError.setText("Please enter an email");
-                        signupError.setVisibility(View.VISIBLE);
-                        progressBar.setVisibility(View.GONE);
-                        return;
-                    }
-                    if (signupPass.getText().toString().length() == 0) {
-                        signupError.setText("Please enter a password");
-                        signupError.setVisibility(View.VISIBLE);
-                        progressBar.setVisibility(View.GONE);
-                        return;
-                    }
-                    if (signupPass.getText().toString().equals(signupConPass.getText().toString())) {
-                        signupError.setVisibility(View.GONE);
-                        setProgressSpinner(3000, progressBar);
-                        loginEmail = signupEmail.getText().toString();
-                        loginPassword = signupPass.getText().toString();
-                        Name = signupName.getText().toString();
-                        Marketing = marketingCheck.isChecked();
-                        FirebaseEmailSignUp(signupEmail.getText().toString(), signupPass.getText().toString(), signupName.getText().toString(), marketingCheck.isChecked(), regoCode, signupError, progressBar);
-                        hideSystemUI();
-                    } else {
-                        signupError.setText("Passwords do not match");
-                        signupError.setVisibility(View.VISIBLE);
-                        progressBar.setVisibility(View.GONE);
-                    }
-                });
-                back.setOnClickListener(v -> {
-                    buildloginsignup(0);
-                    hideSystemUI();
-                });
-                break;
-
-
-            case 3:
-                handler.postDelayed(() -> hideSystemUI(), 500);
-                next.setVisibility(View.GONE);
-                Uri uri = Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.email_sent);
-                animation.setVideoURI(uri);
-                animation.setBackgroundColor(Color.WHITE);
-                Log.d(TAG, "buildloginsignup: here");
-                animation.setOnPreparedListener(mp -> {
-                    mp.setLooping(true);
-                    animation.start();
-                    handler.postDelayed(() -> animation.setBackgroundColor(Color.TRANSPARENT), 100);
-                });
-                FirebaseAuth.AuthStateListener mAuthListener= new FirebaseAuth.AuthStateListener() {
-                    @Override
-                    public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
-                        if (!mAuth.getCurrentUser().isEmailVerified()) {
-                            Log.d(TAG, "buildloginsignup: email verification sent");
-                            mAuth.getCurrentUser().sendEmailVerification().addOnSuccessListener(new OnSuccessListener<Void>() {
-                                @Override
-                                public void onSuccess(Void aVoid) {
-                                    scheduledExecutorService.scheduleAtFixedRate(() -> mAuth.addAuthStateListener(firebaseAuth1 -> {
-                                        Log.d(TAG, "run: checking user verification");
-                                        if (!mAuth.getCurrentUser().isEmailVerified()) {
-                                            mAuth.getCurrentUser().reload();
-                                        } else {
-                                            currentUser = mAuth.getCurrentUser();
-                                            scheduledExecutorService.shutdown();
-                                            runOnUiThread(() -> {
-                                                buildloginsignup(4);
-                                            });
-                                        }
-                                    }), 100, 100, TimeUnit.MILLISECONDS);
-                                }
-                            });
-                        } else {
-                            Log.d(TAG, "buildloginsignup: user is already verified");
-                        }
-                    }
-                };
-                mAuth.addAuthStateListener(mAuthListener);
-                Log.d(TAG, "buildloginsignup: and here");
-                back.setOnClickListener(v -> {
-                    scheduledExecutorService.shutdown();
-                    mAuth.removeAuthStateListener(mAuthListener);
-                    firebaseRemoveUser(mAuth.getCurrentUser());
-                    mAuth.getCurrentUser().delete();
-                    buildloginsignup(2);
-//                    setContentView(leadmeAnimator);
-                });
-                break;
-            case 4:
-                next.setVisibility(View.VISIBLE);
-                pinError.setText("Your email has been verified");
-                pinError.setTextColor(getColor(R.color.leadme_black));
-                pinErrorImg.setImageResource(R.drawable.icon_fav_star_check);
-                if (signinVerif) {
-                    setProgressSpinner(3000, progressBar);
-                    db.collection("users").document(mAuth.getCurrentUser().getUid()).get().addOnCompleteListener(task -> {
-                        if (task.getResult().exists()) {
-                            if (task.getResult().getString("pin").length() > 0) {
-                                progressBar.setVisibility(View.GONE);
-                                getNearbyManager().myName = currentUser.getDisplayName();
-                                getNameView().setText(currentUser.getDisplayName());
-                                setContentView(leadmeAnimator);
-                                loginAction(false);
-                            }
-                        }
-                    });
-
-                }
-                showSystemUI();
-                next.setOnClickListener(v -> {
-                    final PinEntryEditText pinEntry = (PinEntryEditText) findViewById(R.id.signup_pin_entry);
-                    final PinEntryEditText pinEntryConfirm = (PinEntryEditText) findViewById(R.id.signup_pin_confirm);
-                    if (pinEntry != null && pinEntryConfirm!=null && pinEntry.getText().toString().equals(pinEntryConfirm.getText().toString())) {
-                        Map<String, Object> userDet = new HashMap<>();
-                        setProgressSpinner(3000, progressBar);
-                        userDet.put("pin", Hasher.Companion.hash(pinEntry.getText().toString(), HashType.SHA_256));
-                        db.collection("users").document(mAuth.getCurrentUser().getUid()).update(userDet).addOnSuccessListener(aVoid -> Log.d(TAG, "onSuccess: pin saved to account"));
-                        db.collection("users").document(mAuth.getCurrentUser().getUid()).get().addOnCompleteListener(task -> {
-                            if (task.isSuccessful()) {
-                                progressBar.setVisibility(View.GONE);
-                                getNearbyManager().myName = task.getResult().getString("name");
-                                getNameView().setText(task.getResult().getString("name"));
-                                setContentView(leadmeAnimator);
-                                loginAction(false);
-                                loginPassword="";
-                                Name="";
-                                loginEmail="";
-                                Marketing=false;
-                            }
-                        });
-                    } else {
-                        pinError.setText("The pin's do not match");
-                        pinError.setTextColor(getColor(R.color.leadme_red));
-                        pinErrorImg.setImageResource(R.drawable.alert_error);
-                        progressBar.setVisibility(View.GONE);
-                    }
-                });
-                break;
-            default:
-                break;
-        }
-
-    }
-
-    private void firebaseRemoveUser(FirebaseUser currentUser) {
-        db.collection("users").document(currentUser.getUid()).delete().addOnCompleteListener(new OnCompleteListener<Void>() {
-            @Override
-            public void onComplete(@NonNull Task<Void> task) {
-                if(task.isSuccessful()){
-                    currentUser.delete();
-                }
-            }
-        });
-    }
-
-    //handles signin requests for the google signin
-    private void handleSignInResult(GoogleSignInAccount account) {
-        AuthCredential credential = GoogleAuthProvider.getCredential(account.getIdToken(), null);
-        mAuth.signInWithCredential(credential).addOnCompleteListener(task -> {
-            if (task.isSuccessful()) {
-                currentUser = mAuth.getCurrentUser();
-                mAuth.addAuthStateListener(firebaseAuth -> {
-                    if (currentUser != null) {
-                        db.collection("users").document(currentUser.getUid())
-                                .get().addOnCompleteListener(task1 -> {
-                            if (task1.isSuccessful()) {
-                                if (task1.getResult().exists()) {
-                                    Log.d(TAG, "handleSignInResult: user found");
-                                    getNearbyManager().myName = account.getGivenName();
-                                    getNameView().setText(account.getGivenName());
-                                    loginAction(false);
-                                } else {
-                                    Log.d(TAG, "handleSignInResult: new user");
-                                    Map<String, Object> userDet = new HashMap<>();
-                                    userDet.put("name", account.getGivenName() + " " + account.getFamilyName());
-                                    userDet.put("email", currentUser.getEmail());
-                                    db.collection("users").document(currentUser.getUid()).set(userDet)
-                                            .addOnSuccessListener(aVoid -> {
-                                                Log.d(TAG, "handleSignInResult: new user created");
-                                                getNearbyManager().myName = account.getGivenName();
-                                                getNameView().setText(account.getGivenName());
-                                                hideSystemUI();
-                                                loginAction(false);
-                                            })
-                                            .addOnFailureListener(e -> Log.d(TAG, "handleSignInResult: failed to create new user please check internet"));
-
-                                }
-                            }
-                        });
-                    } else {
-                        Intent signInIntent = mGoogleSignInClient.getSignInIntent();
-                        startActivityForResult(signInIntent, RC_SIGN_IN);
-                    }
-                });
-            } else {
-                Log.d(TAG, "handleSignInResult: failed to sign in");
-            }
-        });
-
-    }
-
-    private void FirebaseEmailSignUp(String email, String password, String name, boolean marketing, String regoCode, TextView errorText, ProgressBar progressBar) {
-
-        mAuth.createUserWithEmailAndPassword(email, password)
-                .addOnCompleteListener(LeadMeMain.this, task -> {
-                    if (task.isSuccessful()) {
-                        // Sign in success, update UI with the signed-in user's information
-                        Log.d(TAG, "createUserWithEmail:success");
-                        currentUser = task.getResult().getUser();
-                        UserProfileChangeRequest profileUpdates = new UserProfileChangeRequest.Builder()
-                                .setDisplayName(name)
-                                .build();
-                        currentUser.updateProfile(profileUpdates);
-                        Map<String, Object> userDet = new HashMap<>();
-                        userDet.put("name", name);
-                        userDet.put("email", email);
-                        userDet.put("marketing", marketing);
-                        userDet.put("rego_code", regoCode);
-                        db.collection("users").document(mAuth.getCurrentUser().getUid()).get().addOnCompleteListener(task1 -> {
-                            if (task1.getResult().exists()) {
-                                Log.d(TAG, "user data exists but user is deleted, updating user info");
-                            }
-                            db.collection("users").document(mAuth.getCurrentUser().getUid()).set(userDet)
-                                .addOnSuccessListener(aVoid -> {
-                                    Log.d(TAG, "buildloginsignup: new user created");
-                                })
-                                .addOnFailureListener(e -> {
-                                    progressBar.setVisibility(View.GONE);
-                                    errorText.setVisibility(View.VISIBLE);
-                                    errorText.setText("Error failed to save account details");
-                                    Log.d(TAG, "buildloginsignup: failed to create new user please check internet");
-                                });
-                        });
-                        buildloginsignup(3);
-                    } else {
-                        // If sign in fails, display a message to the user.
-                        progressBar.setVisibility(View.GONE);
-                        Log.w(TAG, "createUserWithEmail:failure", task.getException());
-                        errorText.setVisibility(View.VISIBLE);
-                        errorText.setText(task.getException().getMessage());
-                    }
-                });
-
-
-    }
-
-    private void FirebaseEmailSignIn(String email, String password, TextView errorText ) {
-        Log.d(TAG, "FirebaseEmailSignIn: ");
-        if (email != null && password != null) {
-            if (email.length() > 0 && password.length() > 0) {
-                mAuth.signInWithEmailAndPassword(email, password)
-                        .addOnCompleteListener(this, task -> {
-                            if (task.isSuccessful()) {
-                                // Sign in success, update UI with the signed-in user's information
-                                Log.d(TAG, "signInWithEmail:success");
-                                currentUser = task.getResult().getUser();
-                                if (!currentUser.isEmailVerified()) {
-                                    buildloginsignup(3, true);
-                                } else {
-                                    db.collection("users").document(mAuth.getCurrentUser().getUid()).get().addOnCompleteListener((OnCompleteListener<DocumentSnapshot>) task1 -> {
-                                        Log.d(TAG, "onComplete: ");
-                                        loginDialogView.findViewById(R.id.indeterminateBar).setVisibility(View.GONE);
-                                        if (task1.isSuccessful()) {
-                                            loginDialogView.findViewById(R.id.indeterminateBar).setVisibility(View.GONE);
-                                            if (task1.getResult().get("pin") == null ) {
-                                                buildloginsignup(4, false);
-                                                return;
-                                            }
-                                            getNearbyManager().myName = (String) task1.getResult().get("name");
-                                            getNameView().setText((String) task1.getResult().get("name"));
-                                            Log.d(TAG, "onComplete: name found: " + (String) task1.getResult().get("name"));
-                                            setContentView(leadmeAnimator);
-                                            loginAction(false);
-                                        }
-                                    });
-                                }
-
-                            } else {
-                                loginDialogView.findViewById(R.id.indeterminateBar).setVisibility(View.GONE);
-                                // If sign in fails, display a message to the user.
-                                Log.w(TAG, "signInWithEmail:failure", task.getException());
-                                errorText.setVisibility(View.VISIBLE);
-                                errorText.setText(task.getException().getMessage());
-                            }
-                        });
-            }
-        }
-    }
     public void onTrimMemory(int level) {
 
         // Determine which lifecycle or system event was raised.
@@ -4145,6 +2925,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                 break;
         }
     }
+
     public void setProgressSpinner(int Time, ProgressBar indeterminate) {
         if (indeterminate != null) {
             if (Time > 0) {
@@ -4170,15 +2951,25 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         }
     }
 
+    private int pinCodeInd = 0;
     int savedViewIndex=-1;
+
+    /**
+     * Set and display the pin entered by the user.
+     * @param page An int representing the stage the user is up to.
+     */
     public void setAndDisplayPinReset(int page){
-        if(loginDialog!=null &&loginDialog.isShowing()) {
-            loginDialog.dismiss();
+        AlertDialog login = getDialogManager().getLoginDialog();
+
+        if(login !=null && login.isShowing()) {
+            login.dismiss();
         }
+
         View resetPinView = View.inflate(this, R.layout.c__forgot_pin, null);
         if(savedViewIndex==-1){
             savedViewIndex= leadmeAnimator.getDisplayedChild();
         }
+
         leadmeAnimator.addView(resetPinView);
         leadmeAnimator.setDisplayedChild(leadmeAnimator.getChildCount()-1);
         Button confirm = resetPinView.findViewById(R.id.pin_reset_confirm);
@@ -4197,7 +2988,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                 forgotPass.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        showForgottenPassword(loginDialog);
+                        getAuthenticationManager().showForgottenPassword(login);
                     }
                 });
                 confirm.setOnClickListener(new View.OnClickListener() {
@@ -4205,6 +2996,8 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                     public void onClick(View v) {
                         if (Pass != null && Pass.getText().toString().length() > 0) {
                             setProgressSpinner(5000, pBar);
+
+                            //move to authentication
                             FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
                             AuthCredential credential = EmailAuthProvider.getCredential(user.getEmail(), Pass.getText().toString());
                             user.reauthenticate(credential)
@@ -4291,10 +3084,10 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                         }
                         if(pin.equals(confirmPin)){
                             setProgressSpinner(5000, pBar);
-                            Map<String, Object> userDet = new HashMap<>();
-                            //progressBar.setVisibility(View.VISIBLE);
-                            userDet.put("pin", Hasher.Companion.hash(pin, HashType.SHA_256));
-                            db.collection("users").document(mAuth.getCurrentUser().getUid()).update(userDet).addOnCompleteListener(new OnCompleteListener<Void>() {
+
+                            Task<java.lang.Void> setPin = getAuthenticationManager().setAccountPin(pin);
+
+                            setPin.addOnCompleteListener(new OnCompleteListener<Void>() {
                                 @Override
                                 public void onComplete(@NonNull Task<Void> task) {
                                     if(task.isSuccessful()){
@@ -4348,6 +3141,122 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         }
     }
 
+    /**
+     * Try login a user, checking the users have entered details and validate them. Also check
+     * current permissions.
+     */
+    public void tryLogin() {
+        boolean success = checkLoginDetails();
+        if (!success) {
+            return; //not ready to proceed yet
+        }
 
+        Log.d(TAG, "CLICKED READY!");
+        canAskForAccessibility = true; //reset
+        closeKeyboard();
+
+        // if we're still waiting on some permissions,
+        // test for them and wait for the result before continuing
+        if (!permissionManager.isNearbyPermissionsGranted()) {
+
+            //re-check permissions and wait until all granted before
+            //trying to connect to other LeadMe users
+            permissionManager.checkNearbyPermissions();
+
+        } else {
+            //don't need to wait, so just login
+            initPermissions = true; //only prompt once here
+            loginAction(false);
+        }
+    }
+
+    /**
+     * Returns the user to the LeadMe main screen.
+     * */
+    public void returnToMain() {
+        leadmeAnimator.setDisplayedChild(ANIM_LEADER_INDEX);
+    }
+
+    /**
+     * Sets the leadmeAnimator as the contect view.
+     * */
+    public void animatorAsContentView() {
+        setContentView(leadmeAnimator);
+    }
+
+    /**
+     * Calls the setIndeterminateBar function from the dialog controller.
+     * @param display An int representing the visibility of the bar.
+     * */
+    public void setIndeterminateBar(int display) {
+        getDialogManager().setIndeterminateBar(display);
+    }
+
+    /**
+     * Gets the input method manager assoicated with the LeadMe main activity.
+     * @return An instance of InputMethodManager
+     */
+    public InputMethodManager getInputManager() {
+        return this.imm;
+    }
+
+    //FUNCTIONS TO CONTROL THE SIGN IN PROCESS
+    /**
+     *
+     * @param email A String representing the email of the user attempting to sign in.
+     * @param password A String representing the password of the user attempting to sign in.
+     * @param error A TextView that can be populate with any error messages that occur.
+     */
+    public void firebaseEmailSignIn(String email, String password, TextView error) {
+        setProgressSpinner(3000, getDialogManager().getIndeterminateBar());
+        getAuthenticationManager().FirebaseEmailSignIn(email, password, error);
+    }
+
+    /**
+     * Build the view for a forgotten password route.
+     * @param previous An AlertDialog that represents the current view a user is on.
+     */
+    public void forgotPasswordController(AlertDialog previous) {
+        getAuthenticationManager().showForgottenPassword(previous);
+    }
+
+    /**
+     * Signing in using a google account. Get the instance of the google sign in client and start
+     * the activity for result.
+     */
+    public void googleSignIn() {
+        Intent signInIntent = getAuthenticationManager().getGoogleSignInClient().getSignInIntent();
+        startActivityForResult(signInIntent, RC_SIGN_IN);
+    }
+
+    /**
+     * Show the login and sign up pages.
+     * @param page An int representing the specific page to load up within the function.
+     */
+    public void buildLoginSignupController(int page) {
+        getAuthenticationManager().buildloginsignup(page);
+    }
+
+    /**
+     * Sets the name of the current user and calls the loginAction.
+     * @param name A string representing the name of the user that is connecting.
+     * @param manualLogin A boolean representing if the user is manually finding guides.
+     */
+    public void setUserName(String name, Boolean manualLogin) {
+        getNearbyManager().myName = name;
+        getNameViewController().setText(name);
+        loginAction(manualLogin);
+    }
+
+    /**
+     * Connecting to a leader by manually entering the IP address.
+     * @param username A String representing the name of the peer that is connecting.
+     * @param serverIP A String representing the local IP address of the guide.
+     * */
+    public void manuallyConnectLeader(String username, String serverIP) {
+        runOnUiThread(() -> { //not sure if needed - check later
+            getLeaderSelectAdapter().addLeader(new ConnectedPeer(username, serverIP));
+            showLeaderWaitMsg(false);
+        });
+    }
 }
-

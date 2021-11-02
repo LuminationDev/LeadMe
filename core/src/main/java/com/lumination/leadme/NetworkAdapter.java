@@ -538,7 +538,7 @@ public class NetworkAdapter {
             case "COMMUNICATION":
                 Log.d(TAG, "messageReceivedFromServer: [COMM] " + inputList.get(1));
                 if (inputList.get(1).length() > 6 && inputList.get(1).contains("Thanks")) {
-                    main.closeWaitingDialog(true);
+                    main.closeDialogController(true);
                     pingName = false;
                 }
 
