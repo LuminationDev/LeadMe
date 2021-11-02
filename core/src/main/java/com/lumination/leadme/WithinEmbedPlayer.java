@@ -658,7 +658,7 @@ public class WithinEmbedPlayer {
         videoControlDialog.show();
         //updateControllerUI(false);
         //return to main screen
-        main.hideConfirmPushDialog();
+        main.getDialogManager().hideConfirmPushDialog();
     }
 
     private void loadVideoGuideURL(String url) {

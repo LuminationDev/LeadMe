@@ -692,7 +692,7 @@ public class FavouritesManager extends BaseAdapter {
             convertView.setClickable(true);
             convertView.setOnClickListener(v -> {
                 favAdding = false;
-                main.showAppPushDialog(appName, appIcon, favPackage);
+                main.getDialogManager().showAppPushDialog(appName, appIcon, favPackage);
             });
 
             convertView.setLongClickable(true);

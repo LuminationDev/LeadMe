@@ -157,8 +157,8 @@ public class NearbyPeersManager {
      * connecting to another device.
      */
     public String getName() {
-        if (main.getNameView() != null) {
-            myName = main.getNameView().getText().toString().trim();
+        if (main.getNameViewController() != null) {
+            myName = main.getNameViewController().getText().toString().trim();
         }
         return myName;
     }
