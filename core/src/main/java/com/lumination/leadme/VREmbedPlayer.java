@@ -28,7 +28,6 @@ import android.widget.VideoView;
 */
 public class VREmbedPlayer {
     private final static String TAG = "embedPlayerVR";
-    private final int VR_FILE_CHOICE = 5;
 
     public final static String packageName = "com.Edward.VRPlayer";
     private String appName;
@@ -45,6 +44,7 @@ public class VREmbedPlayer {
     private VideoView vrplayerPreviewVideoView;
     private View vrplayerSettingsDialogView;
     private View vrplayerVideoControls;
+    private MediaPlayer mMediaPlayer;
 
     private View lockSpinnerParent;
     private Spinner lockSpinner;
@@ -79,18 +79,16 @@ public class VREmbedPlayer {
 
         createPlaybackSettingsPopup();
         setupGuideVideoControllerButtons();
-        //main.getVRAccessibilityManager();
 
+        //TODO move this to a function which is called when new video is selected as well
         //listener to manage when a video has loaded properly
-        vrplayerPreviewVideoView.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
-            @Override
-            public void onPrepared(MediaPlayer mp) {
-                int duration = mp.getDuration();
-                int videoDuration = vrplayerPreviewVideoView.getDuration()/1000;
-                Log.d(TAG, String.format("onPrepared: (ms)duration=%d, (s)videoDuration=%d", duration,
-                        videoDuration));
-                setTotalTime(videoDuration);
-            }
+        vrplayerPreviewVideoView.setOnPreparedListener(mp -> {
+            mMediaPlayer = mp;
+            int duration = mp.getDuration();
+            int videoDuration = vrplayerPreviewVideoView.getDuration()/1000;
+            Log.d(TAG, String.format("onPrepared: (ms)duration=%d, (s)videoDuration=%d", duration,
+                    videoDuration));
+            setTotalTime(videoDuration);
         });
     }
 
@@ -286,7 +284,7 @@ public class VREmbedPlayer {
     private void openPreview(String title) {
         //Put a uri for the video memory here later
         Log.d(TAG, "FileUtilities: picking a file");
-        main.getFileUtilities().browseFiles(VR_FILE_CHOICE);
+        main.getFileUtilities().browseFiles(LeadMeMain.VR_FILE_CHOICE);
 
         Log.d(TAG, "showPlaybackPreview: " + title);
 
@@ -380,7 +378,7 @@ public class VREmbedPlayer {
                 @Override
                 public void onDismiss(DialogInterface dialog) {
                     main.hideSystemUI();
-                    resetControllerState(); //reset here?
+                    //resetControllerState(); //reset here?
                 }
             });
         }
@@ -438,6 +436,8 @@ public class VREmbedPlayer {
 
     private void resetControllerState() {
         Log.e(TAG, "Resetting controller!!");
+        stopVideo();
+
         currentTime = 0;
         totalTime = -1;
         startFromTime = 0;
@@ -445,11 +445,12 @@ public class VREmbedPlayer {
         playFromTime.setText("00:00");
         elapsedTimeText.setText("00:00");
 
+        buttonHighlights(VRAccessibilityManager.CUE_PAUSE);
+
 //        if (vrModeBtn != null && vrModeBtn.isChecked()) {
 //            vrModeBtn.setChecked(false); //toggle it
 //        }
     }
-
 
     //VR Player Controls
     //changes the highlights of the buttons, controls both the local video and
@@ -486,14 +487,17 @@ public class VREmbedPlayer {
 
     //BELOW NOT IMPLEMENTED YET
     private void stopVideo() {
-        //Play local video
-        buttonHighlights(VRAccessibilityManager.CUE_STOP);
-        //stop();
+        //Stop local video
+        vrplayerPreviewVideoView.stopPlayback();
+        controllerVideoView.stopPlayback();
 
-        //Send action to peers to stop
-        main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG,
-                LeadMeMain.VR_PLAYER_TAG + ":" + VRAccessibilityManager.CUE_STOP,
-                main.getNearbyManager().getSelectedPeerIDsOrAll());
+//        buttonHighlights(VRAccessibilityManager.CUE_STOP);
+//        //stop();
+//
+//        //Send action to peers to stop
+//        main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG,
+//                LeadMeMain.VR_PLAYER_TAG + ":" + VRAccessibilityManager.CUE_STOP,
+//                main.getNearbyManager().getSelectedPeerIDsOrAll());
     }
 
     private void fwdVideo() {

@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="wrap_content"
+    android:layout_centerInParent="true"
+    android:layout_centerHorizontal="true"
+    android:layout_centerVertical="true"
+    android:background="@drawable/rounded_popup_white"
+    android:gravity="center"
+    android:orientation="vertical"
+    android:padding="20dp"
+    android:showDividers="middle|beginning|end">
+
+
+    <LinearLayout
+        android:id="@+id/file_transfer"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:showDividers="middle|beginning|end"
+        android:visibility="visible">
+
+
+        <ProgressBar
+            android:id="@+id/pBar"
+            style="@android:style/Widget.ProgressBar.Horizontal"
+            android:layout_width="243dp"
+            android:layout_height="40dp"
+            android:layout_marginTop="20dp"
+            android:layout_marginBottom="20dp"
+            android:progress="0"
+            android:max="100"/>
+
+        <TextView
+            android:id="@+id/transfer_file_comment"
+            android:layout_width="300dp"
+            android:layout_height="wrap_content"
+            android:fontFamily="@font/poppins_regular"
+            android:gravity="center_horizontal"
+            android:textColor="@color/leadme_black"
+            android:textSize="14sp" />
+
+    </LinearLayout>
+
+</LinearLayout>

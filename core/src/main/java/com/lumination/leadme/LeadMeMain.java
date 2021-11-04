@@ -168,7 +168,8 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     public final int BLUETOOTH_ON = 2;
     public final int FINE_LOC_ON = 3;
     public final int RC_SIGN_IN = 4;
-    public final int VR_FILE_CHOICE = 5;
+    public static final int VR_FILE_CHOICE = 5;
+    public static final int TRANSFER_FILE_CHOICE = 6;
 
     //for testing if a connection is still live
     static final String PING_TAG = "LumiPing";
@@ -226,7 +227,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     private final int ANIM_OPTIONS_INDEX = 5;
     private final int ANIM_XRAY_INDEX = 6;
 
-    public View waitingForLearners, appLauncherScreen;
+    public View waitingForLearners, appLauncherScreen, fileTransferPopupView;
 
     private View mainLearner;
     private View mainLeader;
@@ -241,6 +242,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
     public Context context;
     public ActivityManager activityManager;
+    private FileTransfer fileTransfer;
     private PermissionManager permissionManager;
     private AuthenticationManager authenticationManager;
     private NearbyPeersManager nearbyManager;
@@ -371,9 +373,13 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                 }
                 break;
 
-            //case TRANSFER_FILE_CHOICE:
-                //Transfer selected file to peers
-            //break;
+            case TRANSFER_FILE_CHOICE:
+                if (resultCode == Activity.RESULT_OK) {
+                    if(data != null)  {
+                        fileTransfer.startFileServer(data);
+                    }
+                }
+            break;
 
             default:
                 Log.d(TAG, "RETURNED FROM ?? with " + resultCode);
@@ -432,9 +438,11 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         return vrAccessibilityManager;
     }
 
-    public FileUtilities getFileUtilities() {return fileUtilities; }
+    public FileTransfer getFileTransfer() { return fileTransfer; }
 
-    public VREmbedPlayer getVrEmbedPlayer() {return vrEmbedPlayer; }
+    public FileUtilities getFileUtilities() { return fileUtilities; }
+
+    public VREmbedPlayer getVrEmbedPlayer() { return vrEmbedPlayer; }
 
     public PermissionManager getPermissionsManager() {
         return permissionManager;
@@ -1250,6 +1258,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         appLauncherScreen = View.inflate(context, R.layout.d__app_list, null);
         learnerWaitingText = startLearner.findViewById(R.id.waiting_text);
         xrayManager = new XrayManager(this, xrayScreen);
+        fileTransfer = new FileTransfer(this);
 
         //set up main page search
 
@@ -1325,6 +1334,9 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         mainLeader.findViewById(R.id.xray_core_btn).setOnClickListener(v -> {
             if (getConnectedLearnersAdapter().getCount() > 0) {
                 xrayManager.showXrayView("");
+
+                //FILE TRANSFER START
+                //fileUtilities.browseFiles(TRANSFER_FILE_CHOICE);
             } else {
                 Toast.makeText(getApplicationContext(), "No students connected.", Toast.LENGTH_SHORT).show();
             }

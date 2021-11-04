@@ -628,6 +628,12 @@ public class NetworkAdapter {
 //                }
                 break;
 
+            case "FILE":
+                List<String> inputList2 = Arrays.asList(inputList.get(1).split(":"));
+                Log.d(TAG, String.valueOf(inputList2));
+                main.getFileTransfer().receivingFile(clientsServerSocket.getInetAddress(), Integer.parseInt(inputList2.get(1)));
+                break;
+
             default:
                 Log.d(TAG, "messageReceivedFromServer: Invalid message type");
                 break;
@@ -883,5 +889,12 @@ public class NetworkAdapter {
         ArrayList<Integer> selected = new ArrayList<>();
         selected.add(ID);
         sendToSelectedClients("STOP", "MONITOR", selected);
+    }
+
+    //file transfer case
+    public void sendFile(int ID, int localPort) {
+        ArrayList<Integer> selected = new ArrayList<>();
+        selected.add(ID);
+        sendToSelectedClients("SEND:"+localPort,"FILE", selected);
     }
 }
