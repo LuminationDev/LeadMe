@@ -1,9 +1,11 @@
 
 package com.lumination.leadme;
 
+import android.Manifest;
 import android.accessibilityservice.AccessibilityService;
 import android.accessibilityservice.GestureDescription;
 import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.app.ActivityManager;
 import android.app.AlertDialog;
 import android.content.BroadcastReceiver;
@@ -77,7 +79,6 @@ import androidx.lifecycle.Lifecycle;
 import androidx.lifecycle.LifecycleObserver;
 import androidx.lifecycle.OnLifecycleEvent;
 
-import com.alimuzaffar.lib.pin.PinEntryEditText;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.common.api.ApiException;
@@ -133,6 +134,8 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     static final String BLACKOUT_TAG = "LumiBlackout";
     static final String APP_LOCK_TAG = "LumiWakeLock";
 
+    static final String VR_PLAYER_TAG = "LumiVRPlayer";
+
     static final String VID_MUTE_TAG = "LumiVidMute";
     static final String VID_UNMUTE_TAG = "LumiVidUnmute";
     static final String VID_ACTION_TAG = "LumiVid:";
@@ -165,6 +168,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     public final int BLUETOOTH_ON = 2;
     public final int FINE_LOC_ON = 3;
     public final int RC_SIGN_IN = 4;
+    public final int VR_FILE_CHOICE = 5;
 
     //for testing if a connection is still live
     static final String PING_TAG = "LumiPing";
@@ -189,6 +193,11 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     protected WindowManager windowManager;
     protected WindowManager.LayoutParams overlayParams;
     protected View overlayView;
+
+    //VR PLayer
+    private FileUtilities fileUtilities;
+    private VREmbedPlayer vrEmbedPlayer;
+    private VRAccessibilityManager vrAccessibilityManager;
 
     public boolean studentLockOn = true; //students start locked
     public String lastLockState = LOCK_TAG;
@@ -353,6 +362,19 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                 }
                 break;
 
+            case VR_FILE_CHOICE:
+                Log.d(TAG, "DATA: " + data);
+                if (resultCode == Activity.RESULT_OK ) {
+                    if(data != null)  {
+                        getVrEmbedPlayer().setFilepath(data.getData());
+                    }
+                }
+                break;
+
+            //case TRANSFER_FILE_CHOICE:
+                //Transfer selected file to peers
+            //break;
+
             default:
                 Log.d(TAG, "RETURNED FROM ?? with " + resultCode);
                 break;
@@ -404,6 +426,15 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     public ConnectedLearnersAdapter getConnectedLearnersAdapter() {
         return connectedLearnersAdapter;
     }
+
+    //VR Player
+    public VRAccessibilityManager getVRAccessibilityManager() {
+        return vrAccessibilityManager;
+    }
+
+    public FileUtilities getFileUtilities() {return fileUtilities; }
+
+    public VREmbedPlayer getVrEmbedPlayer() {return vrEmbedPlayer; }
 
     public PermissionManager getPermissionsManager() {
         return permissionManager;
@@ -458,6 +489,12 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         } else if (!nearbyManager.isDiscovering()) {
             Log.d(TAG, "Permission return - search for leaders");
             initiateLeaderDiscovery();
+        }
+
+        if (!permissionManager.isStoragePermissionsGranted()) {
+            Log.d(TAG, "Permission return - request storage");
+            permissionManager.checkStoragePermission();
+            return;
         }
 
         //can't go any further
@@ -1117,6 +1154,11 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         leaderSelectAdapter = new LeaderSelectAdapter(this);
         lumiAccessibilityConnector = new LumiAccessibilityConnector(this);
 
+        //VR PLAYER
+        fileUtilities = new FileUtilities(this);
+        vrAccessibilityManager = new VRAccessibilityManager(this);
+        vrEmbedPlayer = new VREmbedPlayer(this);
+
         //for getting the public ipAddress used in manual connection modes
         wifiManager = (WifiManager) getSystemService(WIFI_SERVICE);
 
@@ -1253,6 +1295,14 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             } else {
                 getDispatcher().requestRemoteAppOpen(APP_TAG, lastAppID, String.valueOf(((TextView) appLauncherScreen.findViewById(R.id.text_current_task)).getText()), UNLOCK_TAG, getNearbyManager().getSelectedPeerIDsOrAll());
             }
+
+            //VR Player
+            // Opens up the preview player again
+            Log.e(TAG, lastAppID);
+            if(lastAppID.equals(VREmbedPlayer.packageName)) {
+                getVrEmbedPlayer().showPlaybackPreview();
+            }
+
             dialogManager.showConfirmPushDialog(true, false);
         });
 
@@ -1540,6 +1590,10 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         if (!permissionManager.isNearbyPermissionsGranted()) {
             permissionManager.checkNearbyPermissions();
         }
+
+        if (!permissionManager.isStoragePermissionsGranted()) {
+            permissionManager.checkStoragePermission();
+        }
 //        currentTaskIcon = mainLearner.findViewById(R.id.current_task_icon);
 //        currentTaskIcon.setImageResource(R.color.transparent);
 
@@ -1736,6 +1790,9 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         if (!permissionManager.isNearbyPermissionsGranted()) {
             learnerWaitingText.setText(getResources().getString(R.string.enable_location_to_connect));
             permissionManager.checkNearbyPermissions();
+        } else if (!permissionManager.isStoragePermissionsGranted()) {
+            learnerWaitingText.setText("Please enable Storage permission");
+            permissionManager.checkStoragePermission();
         } else {
             if(sessionManual) {
                 initiateManualLeaderDiscovery();
@@ -1833,7 +1890,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
     public void showLoginAlertMessage() {
         getDialogManager().setIndeterminateBar(View.GONE);
-        getDialogManager().changeLoginViewOptions(-1, View.GONE, View.VISIBLE);
+        getDialogManager().changeLoginViewOptions(-1, View.GONE, -1);
         closeKeyboard();
         hideSystemUI();
     }
@@ -2518,7 +2575,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         mainLearner.findViewById(R.id.connected_txt).setVisibility(View.VISIBLE);
     }
 
-    ///////////////////////
 
     boolean mIsRestoredToTop = false;
 
@@ -2849,7 +2905,11 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         }
     }
 
-    //Cancel any scheduled check and connect to a guide
+    /**
+     * Called when overlay permission has been granted. Cancel any scheduled check and connect
+     * to a guide, starting the screenCap service in the background.
+     * @param page An integer representing which on boarding page the learner is currently on.
+     */
     public void connectOnReturn(int page) {
         if(scheduledCheck!=null){
             scheduledCheck.cancel(true);
@@ -3163,11 +3223,24 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             //trying to connect to other LeadMe users
             permissionManager.checkNearbyPermissions();
 
+        } else if (!permissionManager.isStoragePermissionsGranted()) {
+            permissionManager.checkStoragePermission();
         } else {
             //don't need to wait, so just login
             initPermissions = true; //only prompt once here
             loginAction(false);
         }
+    }
+
+    //COMMON ACTIONS THAT ARE SENT TO LEARNERS
+    public void muteLeaners() {
+        getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.VID_MUTE_TAG,
+               getNearbyManager().getSelectedPeerIDsOrAll());
+    }
+
+    public void unmuteLearners() {
+        getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.VID_UNMUTE_TAG,
+                getNearbyManager().getSelectedPeerIDsOrAll());
     }
 
     /**

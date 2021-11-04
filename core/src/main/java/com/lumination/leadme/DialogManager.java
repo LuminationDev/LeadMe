@@ -562,7 +562,7 @@ public class DialogManager {
     }
 
     /**
-     * Change the visibility of the login view options.
+     * Change the visibility of the login view options. Use -1 if no change is required for a display
      * @param loginDisplay An int representing if the login sign view should be visibility.
      * @param wrongDisplay An int representing if the wrong code view should be visibility.
      * @param nameDisplay An int representing if the name view should be visibility.

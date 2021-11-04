@@ -390,6 +390,18 @@ public class DispatchManager {
                         String[] split = action.split(":");
                         main.getLumiAccessibilityConnector().cueYouTubeAction(split[1]);
 
+                    } else if (action.startsWith(LeadMeMain.VR_PLAYER_TAG)) {
+                        Log.d(TAG, "VR PLAYER - " + packageNameRepush);
+                        String[] split = action.split(":");
+                        //Used to set the source but can be used in the future for projection changes etc.
+                        String additionalInfo = "";
+                        if(Integer.parseInt(split[1]) == VRAccessibilityManager.CUE_SET_SOURCE) {
+                            additionalInfo = split[2]; //video source
+                            additionalInfo += ":" + split[3]; //start time
+                        }
+
+                        main.getVRAccessibilityManager().videoPlayerAction(Integer.parseInt(split[1]), additionalInfo);
+
                     } else if (action.startsWith(LeadMeMain.LOGOUT_TAG)) {
                         String id = action.split(":")[1];
                         Log.d(TAG, "Guide " + id + " has logged out!");

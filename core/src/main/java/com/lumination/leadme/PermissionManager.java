@@ -26,10 +26,11 @@ public class PermissionManager {
     private final String TAG = "LumiPermissions";
 
     private LeadMeMain main;
-    private boolean overlayPermissionGranted = false, nearbyPermissionsGranted = false;
+    private boolean overlayPermissionGranted = false, nearbyPermissionsGranted = false, storagePermissionsGranted = false;
     protected boolean waitingForPermission = false;
     private PermissionListener overlayPermissionListener;
     private PermissionListener nearbyPermissionListener;
+    private PermissionListener storagePermissionListener;
     private PermissionListener miscPermissionListener;
     private ArrayList<String> rejectedPermissions = new ArrayList<>();
 
@@ -84,6 +85,25 @@ public class PermissionManager {
             }
         };
 
+        storagePermissionListener = new PermissionListener() {
+            @Override
+            public void onPermissionGranted() {
+                storagePermissionsGranted = main.checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED;
+                waitingForPermission = false; //no longer waiting
+
+                if (storagePermissionsGranted) {
+                    main.performNextAction();
+                }
+            }
+
+            @Override
+            public void onPermissionDenied(List<String> deniedPermissions) {
+                storagePermissionsGranted = false; //not all granted
+                waitingForPermission = false; //no longer waiting
+                rejectedPermissions.addAll(deniedPermissions);
+            }
+        };
+
         miscPermissionListener = new PermissionListener() {
             @Override
             public void onPermissionGranted() {
@@ -132,6 +152,11 @@ public class PermissionManager {
         return nearbyPermissionsGranted;
     }
 
+    public boolean isStoragePermissionsGranted() {
+        storagePermissionsGranted = main.checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED;
+        return storagePermissionsGranted;
+    }
+
     public void checkOverlayPermissions() {
         Log.d(TAG, "Checking Overlay Permissions. Currently " + overlayPermissionGranted + ", " + rejectedPermissions);
         //TCP connection did not like interacting after the TedPermission had been used - not entirely sure why this occurred?
@@ -175,7 +200,10 @@ public class PermissionManager {
                 .check();
     }
 
-
+    /**
+     * Checking if the device has ACCESS_COARSE_LOCATION or ACCESS_FINE_LOCATION permission on. This
+     * is for finding nearby guides on a local network.
+     */
     public void checkNearbyPermissions() {
         //Log.d(TAG, "Checking Nearby Permissions. Currently " + nearbyPermissionsGranted + ", " + rejectedPermissions);
         waitingForPermission = true;
@@ -188,6 +216,20 @@ public class PermissionManager {
                 .check();
     }
 
+    /**
+     * Checking if the device has READ_EXTERNAL storage permission on. This is used for the file transfer
+     * function as well as the VR controller.
+     */
+    public void checkStoragePermission() {
+        waitingForPermission = true;
+        String rationaleMsg = "Please enable Storage permission so Guides can select videos.";
+
+        TedPermission.with(main)
+                .setPermissionListener(storagePermissionListener)
+                .setDeniedMessage(rationaleMsg)
+                .setPermissions(Manifest.permission.READ_EXTERNAL_STORAGE)
+                .check();
+    }
 
     public void requestAccessibilitySettingsOn() {
         main.canAskForAccessibility = true;
