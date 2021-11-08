@@ -51,18 +51,6 @@ public class DispatchManager {
                 sendActionToSelected(mActionTag,mAction,selectedPeerIDs);
                 break;
         }
-
-//        if(packageNameRepush!=null) {
-//            if (packageNameRepush.equals(main.getAppManager().withinPackage)) {
-//                requestRemoteWithinLaunch(tagRepush, packageNameRepush, appNameRepush, lockTagRepush, extraRepush, streamingRepush, vrModeRepush, selectedPeerIDs);
-//            } else if(actionTag==null) {
-//                requestRemoteAppOpen(tagRepush, packageNameRepush, appNameRepush, lockTagRepush, selectedPeerIDs);
-//            }
-//        }else if(actionTag!=null){
-//            sendActionToSelected(actionTag,action,selectedPeerIDs);
-//        }
-
-        //main.runOnUiThread(() -> main.showConfirmPushDialog(true, false));
     }
 
     protected void disableInteraction(final int status) {
@@ -155,7 +143,7 @@ public class DispatchManager {
         //sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.LOGOUT_TAG + ":" + main.getNearbyManager().getID(), main.getNearbyManager().getAllPeerIDs());
 
         ArrayList<Integer> selected = new ArrayList<>();
-        Iterator iterator = main.getNearbyManager().getAllPeerIDs().iterator();
+        Iterator<String> iterator = main.getNearbyManager().getAllPeerIDs().iterator();
         while (iterator.hasNext()) {
             String peer = (String) iterator.next();
             Log.d(TAG, "sendToSelected: " + peer);
@@ -269,24 +257,19 @@ public class DispatchManager {
             switch (action) {
                 case LeadMeMain.XRAY_ON:
 //                    Log.w(TAG, "I AM being watched! " + main.getNearbyManager().getName());
-//                    main.xrayManager.generateScreenshots(true);
-                    if(main.screenCap.permissionGranted==false){
+                    if(!main.screenCap.permissionGranted){
                         main.screenCap.startService(true);
                         break;
                     }
                     if(main.screenCap.clientToServerSocket==null){
                         main.screenCap.connectToServer();
                     }
-//                    main.screenCap.setupScreenCap();
-//                    main.screenCap.getBitmapsFromScreen();
-                    main.screenCap.sendImages=true;
 
+                    main.screenCap.sendImages=true;
 
                     break;
 
                 case LeadMeMain.XRAY_OFF:
-//                    Log.w(TAG, "I'm NOT being watched! " + main.getNearbyManager().getName());
-//                    main.xrayManager.generateScreenshots(false);
                     main.screenCap.sendImages=false;
                     break;
 
@@ -310,9 +293,11 @@ public class DispatchManager {
                     exitToast.show();
                     main.exitByGuide();
                     break;
+
                 case LeadMeMain.LAUNCH_ACCESS:
                     main.getPermissionsManager().requestAccessibilitySettingsOn();
                     break;
+
                 case LeadMeMain.NAME_REQUEST:
                     View NameChangeRequest = View.inflate(main, R.layout.d__name_change_request, null);
                     AlertDialog studentNameChangeRequest = new AlertDialog.Builder(main)
@@ -502,25 +487,28 @@ public class DispatchManager {
                     } else if (action.startsWith(LeadMeMain.LAUNCH_SUCCESS)) {
                         //Log.i(TAG, "SUCCEEDED - " + action);
                         String[] split = action.split(":");
-//                        if(!split[3].equals("com.lumination.leadme")) {
-//
-//                        }
-                        if (split[1].equals("LOCKON")) {
-                            main.getConnectedLearnersAdapter().updateStatus(split[2], ConnectedPeer.STATUS_LOCK);
 
-                        } else if (split[1].equals("LOCKOFF")) {
-                            main.getConnectedLearnersAdapter().updateStatus(split[2], ConnectedPeer.STATUS_UNLOCK);
-                            //main.getConnectedLearnersAdapter().refreshAlertsView();
-                        } else if (split[1].equals("BLACKOUT")) {
-                            main.getConnectedLearnersAdapter().updateStatus(split[2], ConnectedPeer.STATUS_BLACKOUT);
+                        switch (split[1]) {
+                            case "LOCKON":
+                                main.getConnectedLearnersAdapter().updateStatus(split[2], ConnectedPeer.STATUS_LOCK);
 
-                        } else {
-                            //Log.d(TAG, "Updating icon to " + split[3]);
-                            main.getConnectedLearnersAdapter().updateStatus(split[2], ConnectedPeer.STATUS_SUCCESS, LeadMeMain.STUDENT_OFF_TASK_ALERT);
-                            main.getConnectedLearnersAdapter().appLaunchSuccess(split[2], split[1]);
-                            //main.getConnectedLearnersAdapter().updateStatus(split[2], ConnectedPeer.STATUS_SUCCESS);
-                            main.getConnectedLearnersAdapter().updateIcon(split[2], main.getAppManager().getAppIcon(split[3]));
+                                break;
+                            case "LOCKOFF":
+                                main.getConnectedLearnersAdapter().updateStatus(split[2], ConnectedPeer.STATUS_UNLOCK);
+                                //main.getConnectedLearnersAdapter().refreshAlertsView();
+                                break;
+                            case "BLACKOUT":
+                                main.getConnectedLearnersAdapter().updateStatus(split[2], ConnectedPeer.STATUS_BLACKOUT);
 
+                                break;
+                            default:
+                                //Log.d(TAG, "Updating icon to " + split[3]);
+                                main.getConnectedLearnersAdapter().updateStatus(split[2], ConnectedPeer.STATUS_SUCCESS, LeadMeMain.STUDENT_OFF_TASK_ALERT);
+                                main.getConnectedLearnersAdapter().appLaunchSuccess(split[2], split[1]);
+                                //main.getConnectedLearnersAdapter().updateStatus(split[2], ConnectedPeer.STATUS_SUCCESS);
+                                main.getConnectedLearnersAdapter().updateIcon(split[2], main.getAppManager().getAppIcon(split[3]));
+
+                                break;
                         }
                         break;
 
@@ -658,6 +646,4 @@ public class DispatchManager {
         sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.STUDENT_OFF_TASK_ALERT + main.getNearbyManager().getID(),
                 main.getNearbyManager().getAllPeerIDs());
     }
-
-
 }

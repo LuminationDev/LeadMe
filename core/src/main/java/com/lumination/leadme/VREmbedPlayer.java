@@ -20,16 +20,17 @@ import android.widget.VideoView;
 /*
 * Operation flow
 * Open a file picker to select a video - returning the path or uri
-* Display the videoview preview screen to select a starting point
+* Display the VideoView preview screen to select a starting point
 * Dispatch an action to open the VR player
-* (Peer device) VRAccessilibityManager sends intent with the selected path to the app
+* (Peer device) VRAccessibilityManager sends intent with the selected path to the app
 * Opens the video controller, buttons dispatch actions
 * (Peer device) sends intent to the VR app depending on the action received
 */
 public class VREmbedPlayer {
     private final static String TAG = "embedPlayerVR";
-
+    //Package name of the external VR player
     public final static String packageName = "com.Edward.VRPlayer";
+
     private String appName;
     private Uri filepath;
     private String fileName;
@@ -44,7 +45,6 @@ public class VREmbedPlayer {
     private VideoView vrplayerPreviewVideoView;
     private View vrplayerSettingsDialogView;
     private View vrplayerVideoControls;
-    private MediaPlayer mMediaPlayer;
 
     private View lockSpinnerParent;
     private Spinner lockSpinner;
@@ -80,10 +80,8 @@ public class VREmbedPlayer {
         createPlaybackSettingsPopup();
         setupGuideVideoControllerButtons();
 
-        //TODO move this to a function which is called when new video is selected as well
         //listener to manage when a video has loaded properly
         vrplayerPreviewVideoView.setOnPreparedListener(mp -> {
-            mMediaPlayer = mp;
             int duration = mp.getDuration();
             int videoDuration = vrplayerPreviewVideoView.getDuration()/1000;
             Log.d(TAG, String.format("onPrepared: (ms)duration=%d, (s)videoDuration=%d", duration,
@@ -114,9 +112,6 @@ public class VREmbedPlayer {
 
         //setting the preview video
         setupVideoPreview(vrplayerPreviewVideoView);
-
-        //setting the playback video
-        setupVideoPreview(controllerVideoView);
     }
 
     //Get a file name from a provided URI
@@ -187,11 +182,13 @@ public class VREmbedPlayer {
 
             Log.d(TAG, "Launching VR Player for students at: " + startFromTime);
 
+            //setting the playback video controller
+            setupVideoPreview(controllerVideoView);
+
             //LAUNCH THE APPLICATION FROM HERE
             main.getAppManager().launchApp(packageName, appName, false);
             showPushConfirmed();
 
-            //TODO wait until the application is open
             //Set the source for the peers device
             setVideoSource(startFromTime);
         }));
@@ -284,7 +281,7 @@ public class VREmbedPlayer {
     private void openPreview(String title) {
         //Put a uri for the video memory here later
         Log.d(TAG, "FileUtilities: picking a file");
-        main.getFileUtilities().browseFiles(LeadMeMain.VR_FILE_CHOICE);
+        FileUtilities.browseFiles(main, LeadMeMain.VR_FILE_CHOICE);
 
         Log.d(TAG, "showPlaybackPreview: " + title);
 
@@ -333,7 +330,6 @@ public class VREmbedPlayer {
     private void setupGuideVideoControllerButtons() {
         videoControllerDialogView.findViewById(R.id.push_again_btn).setOnClickListener(v -> {
             main.getAppManager().launchApp(packageName, appName, false);
-            //TODO wait until the application is open
             setVideoSource(startFromTime);
         });
 

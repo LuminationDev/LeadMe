@@ -293,12 +293,12 @@ public class YouTubeEmbedPlayer {
 
         videoControllerDialogView.findViewById(R.id.mute_btn).setOnClickListener(v -> {
             main.muteAudio(); //this is managed by the main activity
-            main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.VID_MUTE_TAG, main.getNearbyManager().getSelectedPeerIDsOrAll());
+            main.muteLeaners();
         });
 
         videoControllerDialogView.findViewById(R.id.unmute_btn).setOnClickListener(v -> {
             main.unMuteAudio(); //this is managed by the main activity
-            main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.VID_UNMUTE_TAG, main.getNearbyManager().getSelectedPeerIDsOrAll());
+            main.unmuteLearners();
         });
 
 //        videoControllerDialogView.findViewById(R.id.play_btn).setOnClickListener(v -> {

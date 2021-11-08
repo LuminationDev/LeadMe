@@ -52,6 +52,11 @@ public class FileTransfer {
      */
     public static int transferCount;
 
+    /**
+     * Basic constructor for the file transfer class. Responsible for setting up a secondary server
+     * and sending files via DataOutputStreams to the selected peers.
+     * @param main A reference to the LeadMe main activity.
+     */
     public FileTransfer(LeadMeMain main) {
         this.main = main;
 
@@ -64,11 +69,11 @@ public class FileTransfer {
      * Start a secondary server on the Guide's device. This server directly controls the transfer of files
      * through a DataOutputStream. Need to have secondary server as these connections need to be closed
      * once a file has been transferred.
-     * @param data An intent representing a file that has been selected.
+     * @param fileUri A Uri representing a file that has been selected.
      */
-    public void startFileServer(Intent data) {
+    public void startFileServer(Uri fileUri) {
         //section to reuse for selecting files for viewing
-        Uri fileUri = data.getData();
+        //Uri fileUri = data.getData();
         Log.i(TAG, "Uri: " + fileUri);
 
         String filePath = null;

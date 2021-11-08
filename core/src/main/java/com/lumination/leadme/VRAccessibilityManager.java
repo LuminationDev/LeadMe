@@ -8,6 +8,7 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.provider.MediaStore;
 import android.util.Log;
+import android.widget.Toast;
 
 public class VRAccessibilityManager {
     private final static String TAG = "VRAccessibilityManager";
@@ -32,32 +33,6 @@ public class VRAccessibilityManager {
      */
     public VRAccessibilityManager(LeadMeMain main) {
         this.main = main;
-    }
-
-    /**
-     * Search for a file within the MediaStore by file name. Using the supplied name from a leader.
-     * @return A Uri representing the source of the video that is about to be played.
-     */
-    public Uri getFileByName() {
-        Uri videoUri = null;
-
-        ContentResolver cr = main.getContentResolver();
-        Uri uri = MediaStore.Video.Media.EXTERNAL_CONTENT_URI;
-
-        String selection = MediaStore.Video.Media.DISPLAY_NAME + "= ?";
-        String[] selectionArguments = { this.fileName };
-
-        Cursor cursor = cr.query(uri, null, selection, selectionArguments, null);
-
-        if (cursor != null && cursor.getCount() > 0) {
-            cursor.moveToFirst();
-            videoUri = ContentUris.withAppendedId(MediaStore.Video.Media.EXTERNAL_CONTENT_URI,
-                    cursor.getInt(cursor.getColumnIndex(MediaStore.Video.VideoColumns._ID)));
-        }
-
-        cursor.close();
-
-        return videoUri;
     }
 
     /**
@@ -117,7 +92,16 @@ public class VRAccessibilityManager {
         this.fileName = split[0];
 
         //Look up the file name in storage, returning the URI
-        source = getFileByName();
+        source = FileUtilities.getFileByName(main, this.fileName);
+
+        if(source == null) {
+            //TODO notify guide that the video is missing
+            //sendAction - do not have file
+            //recall to LeadMe
+            Toast.makeText(main.context, "Video is not in memory.", Toast.LENGTH_LONG).show();
+            main.recallToLeadMe();
+            return;
+        }
 
         //File path may be needed for Unity instead of Uri.
         String absFilepath = FileUtilities.getPath(main, source);

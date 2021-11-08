@@ -14,7 +14,6 @@ import android.provider.MediaStore;
 import android.provider.OpenableColumns;
 import android.text.TextUtils;
 import android.util.Log;
-import android.widget.Toast;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -32,11 +31,11 @@ public class FileUtilities {
     private static final String TAG = "FileUtils";
 
     private static Uri contentUri = null;
-    private LeadMeMain main;
+//    private LeadMeMain main;
 
-    public FileUtilities(LeadMeMain main) {
-        this.main = main;
-    }
+//    public FileUtilities(LeadMeMain main) {
+//        this.main = main;
+//    }
 
     /**
      * Browse the phones files - reuse this part for selecting files for viewing or selection for
@@ -44,7 +43,7 @@ public class FileUtilities {
      * @param RequestType An integer representing the type of request, used when returning a
      *                    result.
      */
-    public void browseFiles(int RequestType) {
+    public static void browseFiles(LeadMeMain main, int RequestType) {
         Intent chooseFileIntent = new Intent();
 
         chooseFileIntent.setType("*/*");
@@ -55,6 +54,34 @@ public class FileUtilities {
         chooseFileIntent = Intent.createChooser(chooseFileIntent, "Choose a file");
 
         main.startActivityForResult(chooseFileIntent, RequestType);
+    }
+
+    /**
+     * Search for a file within the MediaStore by file name. Using the supplied file name.
+     * @param main A reference to the LeadMe main activity.
+     * @param fileName A string representing the name of the file to be searched for.
+     * @return A Uri of the file that has been found.
+     */
+    public static Uri getFileByName(LeadMeMain main, String fileName) {
+        Uri videoUri = null;
+
+        ContentResolver cr = main.getContentResolver();
+        Uri uri = MediaStore.Video.Media.EXTERNAL_CONTENT_URI;
+
+        String selection = MediaStore.Video.Media.DISPLAY_NAME + "= ?";
+        String[] selectionArguments = { fileName };
+
+        Cursor cursor = cr.query(uri, null, selection, selectionArguments, null);
+
+        if (cursor != null && cursor.getCount() > 0) {
+            cursor.moveToFirst();
+            videoUri = ContentUris.withAppendedId(MediaStore.Video.Media.EXTERNAL_CONTENT_URI,
+                    cursor.getInt(cursor.getColumnIndex(MediaStore.Video.VideoColumns._ID)));
+        }
+
+        cursor.close();
+
+        return videoUri;
     }
 
     /**

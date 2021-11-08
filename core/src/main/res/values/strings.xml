@@ -38,7 +38,7 @@
     <string name="toggle_below_to">, toggle below to</string>
     <string name="menu_hamburger">Menu hamburger</string>
     <string name="teacher_code">Teacher code</string>
-    <string name="waiting_for_leaders">Waiting for leaders ...</string>
+    <string name="waiting_for_leaders">Waiting for leaders …</string>
     <string name="enable_location_to_connect">Please enable Location permission\nto connect to leaders</string>
 
     <string name="push_success_title">Push Successful!</string>
@@ -56,6 +56,11 @@
     <string name="back">Back</string>
     <string name="next">Next</string>
     <string name="options">Options</string>
+    <string name="finish">Finish</string>
+    <string name="close">Close</string>
+
+    <string name="send">Send</string>
+    <string name="done">Done</string>
 
     <string name="oops_something_went_wrong">Oops! Something went wrong!</string>
     <string name="warning_couldnt_launch_url">Could not find the URL you requested.\nAre you connected to the internet?</string>
@@ -99,7 +104,7 @@
     <string name="push_to_selected">Push to selected</string>
     <string name="preview_image">Preview image</string>
     <string name="globe_icon">Globe icon</string>
-    <string name="waiting_for_learners">Waiting for learners...</string>
+    <string name="waiting_for_learners">Waiting for learners…</string>
     <string name="unlock">Play</string>
     <string name="select">Select</string>
     <string name="alerts">Alerts</string>

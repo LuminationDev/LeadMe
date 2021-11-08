@@ -586,7 +586,6 @@ public class NetworkAdapter {
                     e.printStackTrace();
                 }
                 clientsServerSocket = null;
-                //main.xrayManager.stopScreenshotRunnable();
                 nearbyPeersManager.disconnectFromEndpoint("");
                 break;
 
