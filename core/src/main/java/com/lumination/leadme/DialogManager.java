@@ -3,9 +3,11 @@ package com.lumination.leadme;
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.content.Intent;
+import android.content.res.Resources;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
+import android.net.Uri;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.View;
@@ -18,29 +20,29 @@ import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
+
+import androidx.core.content.res.ResourcesCompat;
 
 import com.alimuzaffar.lib.pin.PinEntryEditText;
-import com.google.android.gms.auth.api.signin.GoogleSignIn;
-import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
-import com.himanshurawat.hasher.HashType;
-import com.himanshurawat.hasher.Hasher;
 
 /**
  * A single class to manage and create dialog pop ups for information or errors.
  * */
 public class DialogManager {
     private final String TAG = "DialogManager";
-    private LeadMeMain main;
+    private final LeadMeMain main;
+    private final Resources resources;
 
-    private View confirmPushDialogView, loginDialogView;
-    private AlertDialog warningDialog, waitingDialog, appPushDialog, confirmPushDialog, studentAlertsDialog, loginDialog;
-    private TextView warningDialogTitle, warningDialogMessage;
+    private View confirmPushDialogView, loginDialogView, toggleBtnView, manView;
+    private AlertDialog warningDialog, waitingDialog, appPushDialog, confirmPushDialog, studentAlertsDialog, loginDialog, recallPrompt, manual;
+    private TextView appPushMessageView, warningDialogTitle, warningDialogMessage, recallMessage;
+    private Button appPushBtn, selectedBtn, everyoneBtn;
+    private String appPushPackageName, appPushTitle;
 
-    //login stuff - might be able to localise
     private TextView nameView;
 
     private boolean destroying = false;
-    private boolean currentlySelectedOnly = false;
 
     /**
      * View displayed for pushing applications to peers.
@@ -63,7 +65,7 @@ public class DialogManager {
     public StudentAlertsAdapter alertsAdapter;
 
     /**
-     *
+     * On click attempts to connect a peer to a guide.
      * */
     public Button readyBtn;
 
@@ -73,6 +75,7 @@ public class DialogManager {
      * */
     DialogManager(LeadMeMain main) {
         this.main = main;
+        this.resources = main.getResources();
         setupDialogs();
     }
 
@@ -84,6 +87,7 @@ public class DialogManager {
         setupAlertsViewDialog();
         setupLoginDialogView();
         setupLoginDialog();
+        setupManualDialog();
     }
 
     //SETUP FUNCTIONS
@@ -152,20 +156,32 @@ public class DialogManager {
         studentAlertsView.findViewById(R.id.clear_alerts_btn).setOnClickListener(v -> alertsAdapter.hideCurrentAlerts());
     }
 
-    /**
-     * Generic alert dialog creator, builds a new alert from the supplied view.
-     * @param view The view to set the alert to.
-     */
-    public AlertDialog createAlert(View view) {
-        AlertDialog newAlert = new AlertDialog.Builder(main)
-                .setView(view)
-                .create();
+//    /**
+//     * Generic alert dialog creator, builds a new alert from the supplied view.
+//     * @param view The view to set the alert to.
+//     */
+//    public AlertDialog createAlert(View view) {
+//        AlertDialog newAlert = new AlertDialog.Builder(main)
+//                .setView(view)
+//                .create();
+//
+//        return newAlert;
+//    }
 
-        return newAlert;
-    }
+//    //Generic dialog creator
+//    public void setupDialog(int layout, ViewGroup root) {
+//        View newDialog = View.inflate(main, layout, root);
+//        Button backBtn = newDialog.findViewById(R.id.back_btn);
+//        backBtn.setOnClickListener(v -> {
+//
+//        });
+//
+//    }
 
+    //Turn into generic functions
     public void closeDialog(String type) {
         if (waitingDialog != null && waitingDialog.isShowing()) {
+            dialogShowing = false;
             waitingDialog.dismiss();
         }
     }
@@ -176,25 +192,37 @@ public class DialogManager {
         }
 
         waitingDialog.show();
+        dialogShowing = true;
     }
 
-    //Generic dialog creator
-//    public void setupDialog(int layout, ViewGroup root) {
-//        View newDialog = View.inflate(main, layout, root);
-//        Button backBtn = newDialog.findViewById(R.id.back_btn);
-//        backBtn.setOnClickListener(v -> {
-//
-//        });
-//
-//    }
+    /**
+     * Display an AlertDialog for first time users with a link to the online manual.
+     */
+    public void displayGuidePrompt() {
+        View firstDialog = View.inflate(main, R.layout.a__first_time, null);
 
-    //DISPLAY FUNCTIONS
-    TextView appPushMessageView;
-    String appPushPackageName, appPushTitle;
-    Button appPushBtn;
+        AlertDialog alert = new AlertDialog.Builder(main)
+                .setView(firstDialog)
+                .show();
 
+        firstDialog.findViewById(R.id.open_guide).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://drive.google.com/file/d/1LrbQ5I1jlf-OQyIgr2q3Tg3sCo00x5lu/view"));
+                main.startActivity(browserIntent);
+                //todo link to guide
+            }
+        });
+        firstDialog.findViewById(R.id.skip_guide).setOnClickListener(v -> alert.dismiss());
+    }
 
-
+    /**
+     * An AlertDialog that displays what application is about to be pushed and if the guide wishes to
+     * continue, including it's name and icon.
+     * @param title A String representing the title of the application.
+     * @param icon A Drawable representing the icon of the applicaiton.
+     * @param packageName A String representing the packageName of the application.
+     */
     public void showAppPushDialog(String title, Drawable icon, String packageName) {
         if(appPushDialogView == null) {
             setupAppPushDialog();
@@ -250,28 +278,27 @@ public class DialogManager {
 
     @SuppressLint("UseCompatLoadingForDrawables")
     private void setSelectedOrEveryoneBtn(boolean selected) {
-        currentlySelectedOnly = selected;
         if (!selected) {
-            appPushDialogView.findViewById(R.id.everyone_btn).setBackground(main.getResources().getDrawable(R.drawable.bg_passive_left, null));
+            appPushDialogView.findViewById(R.id.everyone_btn).setBackground(resources.getDrawable(R.drawable.bg_passive_left, null));
             ((Button) appPushDialogView.findViewById(R.id.everyone_btn)).setCompoundDrawablesRelativeWithIntrinsicBounds(R.drawable.icon_fav_star_check, 0, 0, 0);
 
-            appPushDialogView.findViewById(R.id.selected_btn).setBackground(main.getResources().getDrawable(R.drawable.bg_passive_right_white, null));
+            appPushDialogView.findViewById(R.id.selected_btn).setBackground(resources.getDrawable(R.drawable.bg_passive_right_white, null));
             ((Button) appPushDialogView.findViewById(R.id.selected_btn)).setCompoundDrawablesWithIntrinsicBounds(0, 0, 0, 0);
-            appPushBtn.setText(main.getResources().getString(R.string.push_this_to_everyone));
+            appPushBtn.setText(resources.getString(R.string.push_this_to_everyone));
             ((Button) appPushDialogView.findViewById(R.id.selected_btn)).setElevation(Math.round(TypedValue.applyDimension(
-                    TypedValue.COMPLEX_UNIT_DIP, 5, main.getResources().getDisplayMetrics())));
+                    TypedValue.COMPLEX_UNIT_DIP, 5, resources.getDisplayMetrics())));
             ((Button) appPushDialogView.findViewById(R.id.everyone_btn)).setElevation(0);
 
 
         } else {
-            appPushDialogView.findViewById(R.id.everyone_btn).setBackground(main.getResources().getDrawable(R.drawable.bg_passive_left_white, null));
+            appPushDialogView.findViewById(R.id.everyone_btn).setBackground(resources.getDrawable(R.drawable.bg_passive_left_white, null));
             ((Button) appPushDialogView.findViewById(R.id.everyone_btn)).setCompoundDrawablesWithIntrinsicBounds(0, 0, 0, 0);
 
-            appPushDialogView.findViewById(R.id.selected_btn).setBackground(main.getResources().getDrawable(R.drawable.bg_passive_right, null));
+            appPushDialogView.findViewById(R.id.selected_btn).setBackground(resources.getDrawable(R.drawable.bg_passive_right, null));
             ((Button) appPushDialogView.findViewById(R.id.selected_btn)).setCompoundDrawablesWithIntrinsicBounds(R.drawable.icon_fav_star_check, 0, 0, 0);
-            appPushBtn.setText(main.getResources().getString(R.string.push_this_to_selected));
+            appPushBtn.setText(resources.getString(R.string.push_this_to_selected));
             ((Button) appPushDialogView.findViewById(R.id.everyone_btn)).setElevation(Math.round(TypedValue.applyDimension(
-                    TypedValue.COMPLEX_UNIT_DIP, 5, main.getResources().getDisplayMetrics())));
+                    TypedValue.COMPLEX_UNIT_DIP, 5, resources.getDisplayMetrics())));
             ((Button) appPushDialogView.findViewById(R.id.selected_btn)).setElevation(0);
         }
     }
@@ -343,7 +370,7 @@ public class DialogManager {
         if (warningDialog == null) {
             setupWarningDialog();
         }
-        warningDialogTitle.setText(main.getResources().getString(R.string.oops_something_went_wrong));
+        warningDialogTitle.setText(resources.getString(R.string.oops_something_went_wrong));
         warningDialogMessage.setText(message);
         warningDialogMessage.setVisibility(View.VISIBLE);
         warningDialog.show();
@@ -371,7 +398,6 @@ public class DialogManager {
         dialogShowing = true;
     }
 
-
     public void showAlertsDialog() {
         if (destroying) {
             return;
@@ -396,6 +422,148 @@ public class DialogManager {
         if (studentAlertsDialog != null) {
             dialogShowing = false;
             studentAlertsDialog.dismiss();
+        }
+    }
+
+    /**
+     * Display an AlertDialog for confirming a recall of peers back to LeadMe.
+     */
+    public void showRecallDialog() {
+        dialogShowing = true;
+        Log.w(TAG, "Showing recall dialog");
+
+        if (recallPrompt == null) {
+            View recallView = View.inflate(main, R.layout.e__recall_confirm_popup, null);
+            recallMessage = recallView.findViewById(R.id.recall_comment);
+            toggleBtnView = recallView.findViewById(R.id.toggleBtnView);
+            selectedBtn = recallView.findViewById(R.id.selected_btn);
+            everyoneBtn = recallView.findViewById(R.id.everyone_btn);
+
+            recallView.findViewById(R.id.ok_btn).setOnClickListener(v -> {
+                main.returnToAppFromMainAction(main.returnEveryone);
+                dialogShowing = false;
+                recallPrompt.dismiss();
+            });
+
+            recallView.findViewById(R.id.back_btn).setOnClickListener(v -> {
+                dialogShowing = false;
+                recallPrompt.dismiss();
+            });
+
+            recallView.findViewById(R.id.selected_btn).setOnClickListener(v -> makeSelectedBtnActive());
+
+            recallView.findViewById(R.id.everyone_btn).setOnClickListener(v -> makeEveryoneBtnActive());
+
+            recallPrompt = new AlertDialog.Builder(main)
+                    .setView(recallView)
+                    .create();
+            recallPrompt.setOnDismissListener(dialog -> hideSystemUI());
+        }
+
+        if (main.getConnectedLearnersAdapter().someoneIsSelected() && (main.getNearbyManager().getSelectedPeerIDs().size() < main.getNearbyManager().getAllPeerIDs().size())) {
+            recallMessage.setText(resources.getString(R.string.recall_comment_selected));
+            toggleBtnView.setVisibility(View.VISIBLE);
+            makeSelectedBtnActive();
+        } else {
+            recallMessage.setText(resources.getString(R.string.recall_comment_all));
+            toggleBtnView.setVisibility(View.GONE);
+        }
+
+        recallPrompt.show();
+        dialogShowing = true;
+    }
+
+    private void makeSelectedBtnActive() {
+        main.returnEveryone = false;
+        selectedBtn.setBackground(ResourcesCompat.getDrawable(resources, R.drawable.bg_active_right, null));
+        everyoneBtn.setBackground(ResourcesCompat.getDrawable(resources, R.drawable.bg_passive_left, null));
+        selectedBtn.setTextColor(resources.getColor(R.color.leadme_light_grey, null));
+        everyoneBtn.setTextColor(resources.getColor(R.color.light, null));
+    }
+
+    private void makeEveryoneBtnActive() {
+        main.returnEveryone = true;
+        selectedBtn.setBackground(ResourcesCompat.getDrawable(resources, R.drawable.bg_passive_right, null));
+        everyoneBtn.setBackground(ResourcesCompat.getDrawable(resources, R.drawable.bg_active_left, null));
+        everyoneBtn.setTextColor(resources.getColor(R.color.leadme_light_grey, null));
+        selectedBtn.setTextColor(resources.getColor(R.color.light, null));
+    }
+
+    /**
+     * Displays an AlertDialog whilst a peer is connecting to a guide.
+     */
+    public void showWaitingForConnectDialog() {
+        this.loginDialog.dismiss();
+        showWaitingDialog();
+        dialogShowing = true;
+    }
+
+    /**
+     *
+     */
+    public void showLoginAlertMessage() {
+        setIndeterminateBar(View.GONE);
+        changeLoginViewOptions(-1, View.GONE, -1);
+        closeKeyboard();
+        hideSystemUI();
+    }
+
+    /**
+     *
+     */
+    private void setupManualDialog() {
+        manView = View.inflate(main, R.layout.e__manual_popup, null);
+        manual = new AlertDialog.Builder(main)
+                .setView(manView)
+                .create();
+
+        Button back = manView.findViewById(R.id.manual_back);
+        back.setOnClickListener(v1 -> manual.dismiss());
+    }
+
+    /**
+     * Displays the AlertDialog to connect to a Guide by manually entering the ipAddress to connect to.
+     * Sets up the display depending on if the user is a peer or a guide. A guide is shown their ipAddress
+     * for a peer to see and copy and the peer sees inputs for their name and the guides ipAddress.
+     * @param isGuide A boolean determining if the user is a guide.
+     * @param ipAddress A String representing the Guide's ipAddress.
+     */
+    public void showManualDialog(boolean isGuide, String ipAddress) {
+        if(isGuide) {
+            manView.findViewById(R.id.manual_teacher_view).setVisibility(View.VISIBLE);
+            manView.findViewById(R.id.manual_learner_view).setVisibility(View.GONE);
+            manView.findViewById(R.id.manual_ok).setVisibility(View.GONE);
+            TextView IpAddress = manView.findViewById(R.id.manual_ip);
+            IpAddress.setText(ipAddress);
+        } else {
+            if(main.getNearbyManager().isConnectedAsFollower()){
+                manual.dismiss();
+                Toast.makeText(main, "You are already connected to a leader", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            manView.findViewById(R.id.manual_learner_view).setVisibility(View.VISIBLE);
+            manView.findViewById(R.id.manual_ok).setVisibility(View.VISIBLE);
+            manView.findViewById(R.id.manual_teacher_view).setVisibility(View.GONE);
+            EditText IpEnter = manView.findViewById(R.id.manual_enterIP);
+            EditText ManName = manView.findViewById(R.id.manual_name);
+            Button connect = manView.findViewById(R.id.manual_ok);
+            IpEnter.setText(ipAddress.substring(0, ipAddress .lastIndexOf(".")+1)   );
+            IpEnter.setSelection(IpEnter.getText().length());
+            //add to the leaders list
+
+            connect.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    if(IpEnter!=null && ManName!=null &&ManName.getText().toString().length()>0 && IpEnter.getText().toString().length()>0) {
+                        Log.d(TAG, "onClick: "+IpEnter.getText().toString());
+                        nameView.setText(ManName.getText().toString());
+
+                        manual.dismiss();
+                        main.isGuide = false;
+                        main.directIpConnection(ManName, IpEnter);
+                    }
+                }
+            });
         }
     }
 
@@ -504,6 +672,10 @@ public class DialogManager {
         backBtn.setOnClickListener(v -> loginDialog.dismiss());
     }
 
+    /**
+     * Hide the login dialog if a user has cancelled the process halfway through.
+     * @param cancelled A boolean representing if the login has been cancelled.
+     */
     public void hideLoginDialog(boolean cancelled) {
         Log.d(TAG, "Hiding dialog box");
         closeKeyboard();
@@ -562,7 +734,7 @@ public class DialogManager {
     }
 
     /**
-     * Change the visibility of the login view options.
+     * Change the visibility of the login view options. Use -1 if no change is required for a display
      * @param loginDisplay An int representing if the login sign view should be visibility.
      * @param wrongDisplay An int representing if the wrong code view should be visibility.
      * @param nameDisplay An int representing if the name view should be visibility.
@@ -625,5 +797,26 @@ public class DialogManager {
      * */
     private void closeKeyboard() {
         main.closeKeyboard();
+    }
+
+    /**
+     * Dismiss any dialogs that are currently open.
+     */
+    protected void cleanUpDialogs() {
+        if (loginDialog != null)
+            loginDialog.dismiss();
+        if (waitingDialog != null)
+            waitingDialog.dismiss();
+        if (warningDialog != null)
+            warningDialog.dismiss();
+        if (appPushDialog != null)
+            appPushDialog.dismiss();
+        if (confirmPushDialog != null)
+            confirmPushDialog.dismiss();
+        if (recallPrompt != null)
+            recallPrompt.dismiss();
+        if (main.getWebManager() != null) {
+            main.getWebManager().cleanUp();
+        }
     }
 }

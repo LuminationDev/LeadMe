@@ -24,8 +24,10 @@
 
     <uses-permission android:name="android.permission.ACTION_MANAGE_OVERLAY_PERMISSION" />
 
+    <!-- used for file transfer and VR controller -->
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
+
     <!-- for screen monitoring service-->
-<!--    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>-->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
 <!--    <uses-permission android:name="android.permission.ACCESS_MEDIA_LOCATION" />-->
 

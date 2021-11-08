@@ -5,8 +5,10 @@ import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
+import android.net.wifi.WifiManager;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.text.format.Formatter;
 import android.util.Log;
 import android.view.View;
 import android.webkit.WebView;
@@ -66,8 +68,8 @@ import java.util.concurrent.TimeUnit;
 public class AuthenticationManager {
     private final String TAG = "AuthenticationManager";
 
-    private LeadMeMain main;
-    private FirebaseFirestore db = FirebaseFirestore.getInstance();
+    private final LeadMeMain main;
+    private final FirebaseFirestore db = FirebaseFirestore.getInstance();
     private FirebaseAuth mAuth;
     private FirebaseUser currentUser = null;
     private ListenerRegistration manualUserListener;
@@ -146,12 +148,12 @@ public class AuthenticationManager {
                         });
                 forgotten.setVisibility(View.GONE);
                 email_sent.setVisibility(View.VISIBLE);
-                send.setText("Done");
+                send.setText(R.string.done);
                 send.setOnClickListener(v17 -> forgottenDialog.dismiss());
                 cancel.setOnClickListener(v16 -> {
                     forgotten.setVisibility(View.VISIBLE);
                     email_sent.setVisibility(View.GONE);
-                    send.setText("Send");
+                    send.setText(R.string.send);
                     send.setOnClickListener(v15 -> {
                         if (email.getText().toString().length() > 0) {
                             mAuth.sendPasswordResetEmail(email.getText().toString())
@@ -164,12 +166,12 @@ public class AuthenticationManager {
                                     });
                             forgotten.setVisibility(View.GONE);
                             email_sent.setVisibility(View.VISIBLE);
-                            send.setText("Done");
+                            send.setText(R.string.done);
                             send.setOnClickListener(v14 -> forgottenDialog.dismiss());
                             cancel.setOnClickListener(v13 -> {
                                 forgotten.setVisibility(View.VISIBLE);
                                 email_sent.setVisibility(View.GONE);
-                                send.setText("Send");
+                                send.setText(R.string.send);
                                 cancel.setOnClickListener(v12 -> {
                                     forgottenDialog.dismiss();
                                     previous.show();
@@ -431,7 +433,7 @@ public class AuthenticationManager {
         support.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String email[] = {"dev@lumination.com.au"};
+                String[] email = {"dev@lumination.com.au"};
                 //TODO perhaps change this later?
                 main.composeEmail(email,"LeadMe Support: Signup Issue");
             }
@@ -443,7 +445,7 @@ public class AuthenticationManager {
         regoLost.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String email[] = {"dev@lumination.com.au"};
+                String[] email = {"dev@lumination.com.au"};
                 main.composeEmail(email,"LeadMe Support: Signup Code Request");
             }
         });

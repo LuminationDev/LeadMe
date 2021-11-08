@@ -491,12 +491,12 @@ public class WithinEmbedPlayer {
 
         withinControllerDialogView.findViewById(R.id.mute_btn).setOnClickListener(v -> {
             main.muteAudio(); //this is managed by the main activity
-            main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.VID_MUTE_TAG, main.getNearbyManager().getSelectedPeerIDsOrAll());
+            main.muteLeaners();
         });
 
         withinControllerDialogView.findViewById(R.id.unmute_btn).setOnClickListener(v -> {
             main.unMuteAudio(); //this is managed by the main activity
-            main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.VID_UNMUTE_TAG, main.getNearbyManager().getSelectedPeerIDsOrAll());
+            main.unmuteLearners();
         });
 
         repushBtn.setOnClickListener(v -> {

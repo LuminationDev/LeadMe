@@ -33,6 +33,7 @@ public class AppManager extends BaseAdapter {
 
     private final String TAG = "AppLauncher";
 
+    public final String vrplayerPackage = "com.Edward.VRPlayer";
     public final String withinPackage = "com.shakingearthdigital.vrsecardboard";
     public final String youtubePackage = "com.google.android.youtube";
 
@@ -339,6 +340,8 @@ public class AppManager extends BaseAdapter {
                 if (packageName.equals(withinPackage)) {
                     Log.d(TAG, "getView: is a within package");
                     withinPlayer.showWithin(); //showGuideController();
+                } else if(packageName.equals(vrplayerPackage)) {
+                    main.getVrEmbedPlayer().showPlaybackPreview(appName);
                 } else {
                     main.getDialogManager().showAppPushDialog(appName, appIcon, packageName);
                 }

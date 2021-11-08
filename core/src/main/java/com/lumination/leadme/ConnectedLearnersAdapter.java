@@ -440,7 +440,7 @@ public class ConnectedLearnersAdapter extends BaseAdapter {
                     @Override
                     public void onClick(View v) {
                         Log.d(TAG, "[adapter] Removing student: " + lastClickedID);
-                        main.xrayManager.resetClientMaps(lastClickedID); //remove the peer from the HashMaps
+                        main.getXrayManager().resetClientMaps(lastClickedID); //remove the peer from the HashMaps
                         ArrayList<Integer> selected = new ArrayList<>();
                         selected.add(Integer.valueOf(lastClickedID));
                         main.getNearbyManager().networkAdapter.sendToSelectedClients("", "DISCONNECT", selected);

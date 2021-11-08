@@ -1,0 +1,339 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="fill_parent"
+    android:layout_height="wrap_content"
+    android:layout_centerInParent="true"
+    android:layout_centerHorizontal="true"
+    android:layout_centerVertical="true"
+    android:background="@drawable/rounded_popup_white"
+    android:gravity="center"
+    android:orientation="vertical"
+    android:showDividers="middle|beginning|end">
+
+
+    <LinearLayout
+        android:id="@+id/preview_view"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:showDividers="middle|beginning|end"
+        android:visibility="visible">
+
+
+        <TextView
+            android:id="@+id/popup_title"
+            android:layout_width="fill_parent"
+            android:layout_height="50dp"
+            android:layout_gravity="center"
+            android:fontFamily="@font/poppins_semibold"
+            android:gravity="center"
+            android:text="@string/playback_settings_title"
+            android:textAlignment="center"
+            android:textColor="@color/leadme_black"
+            android:textSize="16sp" />
+
+        <TextView
+            android:id="@+id/no_internet"
+            android:layout_width="fill_parent"
+            android:layout_height="260dp"
+            android:background="@color/leadme_darkest_grey"
+            android:drawableBottom="@drawable/icon_restart"
+            android:drawablePadding="20dp"
+            android:fontFamily="@font/poppins_semibold"
+            android:gravity="center"
+            android:padding="50dp"
+            android:text="Internet unavailable\n\nPlease check your connection and tap to retry."
+            android:textColor="@color/leadme_white"
+            android:textSize="16sp"
+            android:visibility="gone" />
+
+        <LinearLayout
+            android:id="@+id/video_controls"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@color/leadme_darkest_grey"
+            android:orientation="vertical"
+            android:visibility="visible">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_gravity="center"
+                android:background="@color/leadme_darkest_grey"
+                android:orientation="horizontal"
+                android:paddingTop="10dp"
+                android:paddingBottom="10dp"
+                android:visibility="gone">
+
+                <TextView
+                    android:id="@+id/preview_title"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="10dp"
+                    android:layout_marginEnd="10dp"
+                    android:ellipsize="end"
+                    android:fontFamily="@font/poppins_semibold"
+                    android:gravity="start|center_vertical"
+                    android:lines="2"
+                    android:text="Video title"
+                    android:textColor="@color/leadme_white"
+                    android:textSize="14sp" />
+
+            </LinearLayout>
+
+            <VideoView
+                android:id="@+id/video_stream_videoview"
+                android:layout_width="fill_parent"
+                android:layout_height="240dp"
+                android:background="@color/leadme_black" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingTop="10dp"
+                android:paddingBottom="10dp">
+
+                <TextView
+                    android:id="@+id/elapsedTimeText"
+                    android:layout_width="55dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="5dp"
+                    android:layout_weight="0"
+                    android:fontFamily="@font/poppins_semibold"
+                    android:gravity="end"
+                    android:includeFontPadding="false"
+                    android:text="00:00"
+                    android:textAllCaps="false"
+                    android:textColor="@color/leadme_white"
+                    android:textSize="12sp" />
+
+                <SeekBar
+                    android:id="@+id/progressBar"
+                    android:layout_width="match_parent"
+                    android:layout_height="30dp"
+                    android:layout_weight="3"
+                    android:max="100"
+                    android:paddingStart="10dp"
+                    android:paddingTop="5dp"
+                    android:paddingEnd="10dp"
+                    android:paddingBottom="5dp"
+                    android:progress="0"
+                    android:progressDrawable="@drawable/lumi_video_progress"
+                    android:thumbOffset="10dp" />
+
+                <TextView
+                    android:id="@+id/totalTimeText"
+                    android:layout_width="55dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="5dp"
+                    android:layout_weight="0"
+                    android:fontFamily="@font/poppins_semibold"
+                    android:gravity="start"
+                    android:includeFontPadding="false"
+                    android:text="00:00"
+                    android:textAllCaps="false"
+                    android:textColor="@color/leadme_white"
+                    android:textSize="12sp" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_gravity="center"
+                android:orientation="horizontal"
+                android:paddingTop="10dp"
+                android:paddingBottom="15dp">
+
+                <TextView
+                    android:id="@+id/video_play_from_label"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="@font/poppins_semibold"
+                    android:text="Video will play from"
+                    android:textColor="@color/leadme_white"
+                    android:textSize="12sp" />
+
+                <EditText
+                    android:id="@+id/video_play_from_input"
+                    style="@style/Widget.AppCompat.AutoCompleteTextView"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="10dp"
+                    android:background="@drawable/bg_black"
+                    android:fontFamily="@font/poppins_semibold"
+                    android:gravity="center_horizontal"
+                    android:includeFontPadding="false"
+                    android:inputType="time"
+                    android:minWidth="50dp"
+                    android:padding="5dp"
+                    android:singleLine="true"
+                    android:text="00:00"
+                    android:textColor="@color/leadme_white"
+                    android:textSize="12sp" />
+            </LinearLayout>
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/playback_btns"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:orientation="vertical"
+        android:paddingBottom="10dp">
+
+        <LinearLayout
+            android:id="@+id/toggleBtnView"
+            style="@style/EmptyStyle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginBottom="10dp"
+            android:orientation="horizontal"
+            android:visibility="gone">
+
+
+            <Button
+                android:id="@+id/selected_btn"
+                android:layout_width="140dp"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="10dp"
+                android:layout_marginTop="10dp"
+                android:layout_marginBottom="10dp"
+                android:layout_weight="1"
+                android:background="@drawable/bg_passive_right_white"
+                android:elevation="5dp"
+                android:fontFamily="@font/poppins_semibold"
+                android:includeFontPadding="false"
+                android:paddingStart="10dp"
+                android:paddingTop="10dp"
+                android:paddingEnd="10dp"
+                android:paddingBottom="10dp"
+                android:text="Selected"
+                android:textAlignment="center"
+                android:textAllCaps="false"
+                android:textColor="@color/leadme_black"
+                android:textSize="16sp" />
+
+            <Button
+                android:id="@+id/everyone_btn"
+                android:layout_width="140dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="1dp"
+                android:layout_marginTop="10dp"
+                android:layout_marginEnd="10dp"
+                android:layout_marginBottom="10dp"
+                android:layout_weight="1"
+                android:background="@drawable/bg_passive_left"
+                android:drawableLeft="@drawable/icon_fav_star_check"
+                android:elevation="5dp"
+                android:fontFamily="@font/poppins_semibold"
+                android:includeFontPadding="false"
+                android:paddingStart="10dp"
+                android:paddingTop="10dp"
+                android:paddingEnd="10dp"
+                android:paddingBottom="10dp"
+                android:text="Everyone"
+                android:textAlignment="center"
+                android:textAllCaps="false"
+                android:textColor="@color/leadme_black"
+                android:textSize="16sp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="10dp"
+            android:orientation="horizontal">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_gravity="center_horizontal"
+                android:orientation="horizontal">
+
+                <androidx.cardview.widget.CardView
+                    android:layout_width="45dp"
+                    android:layout_height="40dp"
+                    android:layout_margin="5dp"
+                    android:layout_marginStart="-10dp"
+                    android:visibility="gone"
+                    app:cardBackgroundColor="@color/leadme_white"
+                    app:cardElevation="5dp"
+                    app:layout_gravity="center_vertical">
+
+                    <ImageView
+                        android:id="@+id/down_arrow"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="start|center_vertical"
+                        android:paddingStart="5dp"
+                        android:src="@drawable/down_arrow" />
+
+                    <Spinner
+                        android:id="@+id/push_spinner"
+                        android:layout_width="60dp"
+                        android:layout_height="@dimen/standard_btn_height"
+                        android:layout_marginTop="-10dp"
+                        android:background="@color/leadme_white"
+                        android:dropDownWidth="wrap_content"
+                        android:gravity="top"
+                        android:padding="0dp"
+                        android:popupBackground="@color/leadme_white"
+                        android:spinnerMode="dropdown"
+                        android:theme="@style/MatchSpinnerTheme"
+                        android:translationZ="-10dp"
+                        tools:listitem="@layout/row_push_spinner" />
+                </androidx.cardview.widget.CardView>
+
+                <Button
+                    android:id="@+id/vr_push_btn"
+                    style="?android:attr/borderlessButtonStyle"
+                    android:layout_width="@dimen/standard_btn_width"
+                    android:layout_height="@dimen/standard_btn_height"
+                    android:background="@drawable/bg_active"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:fontFamily="@font/poppins_semibold"
+                    android:text="@string/push_to_selected"
+                    android:textAllCaps="false"
+                    android:textColor="@color/leadme_white"
+                    android:textSize="16sp"
+                    app:layout_gravity="center_horizontal" />
+
+                <Space
+                    android:layout_width="52dp"
+                    android:layout_height="match_parent"
+                    android:visibility="gone" />
+
+            </LinearLayout>
+        </LinearLayout>
+
+        <Button
+            android:id="@+id/video_back_btn"
+            style="?android:attr/borderlessButtonStyle"
+            android:layout_width="@dimen/standard_btn_width"
+            android:layout_height="@dimen/standard_btn_height"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="10dp"
+            android:background="@drawable/bg_passive"
+            android:clickable="true"
+            android:focusable="true"
+            android:fontFamily="@font/poppins_semibold"
+            android:text="@string/back"
+            android:textAllCaps="false"
+            android:textColor="@color/leadme_darkest_grey"
+            android:textSize="16sp"
+            app:layout_gravity="center_horizontal" />
+
+    </LinearLayout>
+
+</LinearLayout>
