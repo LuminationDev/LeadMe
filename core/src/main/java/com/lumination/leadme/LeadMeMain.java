@@ -1266,14 +1266,13 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             ((ScrollView) appLauncherScreen.findViewById(R.id.app_scroll_view)).scrollTo(0, 0);
         });
 
-
         mainLeader.findViewById(R.id.xray_core_btn).setOnClickListener(v -> {
             if (getConnectedLearnersAdapter().getCount() > 0) {
-                xrayManager.showXrayView("");
+//                xrayManager.showXrayView("");
 
                 /*All that is needed to implement the file transfer code.
                 Just needs it own button, here temporarily for testing purposes.*/
-//                FileUtilities.browseFiles(this, TRANSFER_FILE_CHOICE);
+                FileUtilities.browseFiles(this, TRANSFER_FILE_CHOICE);
             } else {
                 Toast.makeText(getApplicationContext(), "No students connected.", Toast.LENGTH_SHORT).show();
             }
