@@ -227,12 +227,17 @@ public class FileTransfer {
             try {
                 DataInputStream dis = new DataInputStream(fileSocket.getInputStream());
                 OutputStream fos; //file output stream - depends on the SDK
+                Uri fileExists;
 
                 String fileName = dis.readUTF();
 
-                //TODO add a check to see if the file exists before trying to save it
                 //Works for API 29+ at least - needs more testing
-                Uri fileExists = FileUtilities.getFileByName(main, fileName);
+                if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    fileExists = FileUtilities.getFileByName(main, fileName);
+                } else {
+                    fileExists = null;
+                }
+
                 Log.e(TAG, String.valueOf(fileExists));
                 //Send message to guide that it already has the video
                 if(fileExists != null) {
@@ -243,17 +248,18 @@ public class FileTransfer {
                 Log.d("File name", fileName);
 
                 builder.setProgress(100, 0, false)
+                        .setContentText(notificationDescription)
                         .setOngoing(true);
                 builder.setStyle(new NotificationCompat.BigTextStyle().bigText("File Name: " + fileName));
                 notifyManager.notify(NOTIFICATION_ID, builder.build());
 
-                //Save to phone gallery
-                Uri mediaCollection;
-                ContentResolver resolver = main.getContentResolver();
-                ContentValues newCaptureDetails = new ContentValues();
-
                 //Only use MediaStore for API 29+
                 if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    //Save to phone gallery
+                    Uri mediaCollection;
+                    ContentResolver resolver = main.getContentResolver();
+                    ContentValues newCaptureDetails = new ContentValues();
+
                     //determine file type - extend this in the future
                     if (fileName.toLowerCase().contains(".jpg") || fileName.toLowerCase().contains(".png")) {
                         mediaCollection = MediaStore.Images.Media.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY);
@@ -315,8 +321,10 @@ public class FileTransfer {
      * @param error The error that has occurred.
      */
     public void removePeer(String ID, String error) {
+        Toast.makeText(main, "Message: " + error + " " + "Peer: " + ID, Toast.LENGTH_LONG).show();
+        Log.d(TAG, "Message: " + error + " " + "Peer: " + ID);
+
         int peerID = Integer.parseInt(ID);
-        Log.e(TAG, "Message: " + error + " " + "Peer: " + ID);
 
         //remove from transfers
         transfers.remove(peerID);
@@ -345,7 +353,7 @@ public class FileTransfer {
 
         //Do not call to frequently otherwise notifications are dropped, included in the
         //completion one.
-        if((int) transfer_progress % 10 == 0) {
+        if((int) transfer_progress % 10 == 7) {
             builder.setProgress(100, (int) transfer_progress, false);
             notifyManager.notify(NOTIFICATION_ID, builder.build());
         }
@@ -357,7 +365,7 @@ public class FileTransfer {
 
         //Do not call to frequently otherwise notifications are dropped, included in the
         //completion one.
-        if((int) percent % 10 == 9) {
+        if((int) percent % 10 == 7) {
             builder.setProgress(100, (int) percent, false);
             notifyManager.notify(NOTIFICATION_ID, builder.build());
         }
@@ -368,12 +376,17 @@ public class FileTransfer {
         String status;
         status = transferComplete ? success : failure;
 
-        builder.setOngoing(false)
-                .setProgress(0,0, false)
-                .setContentText(status)
-                .setStyle(new NotificationCompat.BigTextStyle().bigText(status));
+        if(!transferComplete) {
+            builder.setContentText(status)
+                    .setStyle(new NotificationCompat.BigTextStyle().bigText(status));
 
-        notifyManager.notify(NOTIFICATION_ID, builder.build());
+            builder.setOngoing(false)
+                    .setProgress(0,0, false);
+        } else {
+            notifyManager.cancel(NOTIFICATION_ID);
+        }
+
+        //notifyManager.notify(NOTIFICATION_ID, builder.build());
 
         //Reset for next time
         transferComplete = true;
