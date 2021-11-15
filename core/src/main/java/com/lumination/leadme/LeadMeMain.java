@@ -131,6 +131,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     static final String BLACKOUT_TAG = "LumiBlackout";
     static final String APP_LOCK_TAG = "LumiWakeLock";
 
+    static final String TRANSFER_ERROR = "LumiTransferError";
     static final String VR_PLAYER_TAG = "LumiVRPlayer";
 
     static final String VID_MUTE_TAG = "LumiVidMute";
@@ -2597,7 +2598,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         }
     }
 
-
     private boolean OnBoardStudentInProgress = false;
 
     ScheduledFuture<?> scheduledCheck=null;
@@ -2623,6 +2623,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                 this.setContentView(leadmeAnimator);
             });
             this.setContentView(OnBoardPerm);
+
         } else if (page == 1) {
             View OnBoardPerm = View.inflate(this, R.layout.c__onboarding_student_2, null);
             TextView support = OnBoardPerm.findViewById(R.id.onboardperm_support);
@@ -2669,6 +2670,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                 this.setContentView(leadmeAnimator);
             });
             this.setContentView(OnBoardPerm);
+
         } else {
             if(scheduledCheck!=null){
                 scheduledCheck.cancel(true);
@@ -2693,7 +2695,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                         });
                     }
                 }
-            },100,1000,TimeUnit.MILLISECONDS);
+            },750,1000,TimeUnit.MILLISECONDS);
         }
     }
 
@@ -3032,6 +3034,17 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
      */
     public void transferFile(Uri file) {
         fileTransfer.startFileServer(file);
+    }
+
+    /**
+     * Send an error action to the guide when a transfer has not completed properly.
+     * @param error A string representing the type of error that has occurred.
+     * @param peerID A string representing which peer device the error occurred on.
+     */
+    public void transferError(String error, String peerID) {
+        getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG,
+                LeadMeMain.TRANSFER_ERROR + ":" + peerID + ":" + error,
+                getNearbyManager().getSelectedPeerIDsOrAll());
     }
 
     //COMMON ACTIONS THAT ARE SENT TO LEARNERS
