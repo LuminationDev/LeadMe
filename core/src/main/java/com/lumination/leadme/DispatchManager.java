@@ -171,6 +171,7 @@ public class DispatchManager {
         if (main.getNearbyManager().isConnectedAsGuide() ||
                 action.startsWith(LeadMeMain.YOUR_ID_IS) ||
                 action.startsWith(LeadMeMain.RETURN_TAG) ||
+                action.startsWith(LeadMeMain.TRANSFER_ERROR) ||
                 action.startsWith(LeadMeMain.AUTO_INSTALL_FAILED) ||
                 action.startsWith(LeadMeMain.AUTO_INSTALL_ATTEMPT) ||
                 action.startsWith(LeadMeMain.STUDENT_NO_OVERLAY) ||
@@ -467,6 +468,11 @@ public class DispatchManager {
                         } else {
                             main.getConnectedLearnersAdapter().updateStatus(split[2], ConnectedPeer.STATUS_WARNING, LeadMeMain.STUDENT_NO_ACCESSIBILITY);
                         }
+                        break;
+
+                    } else if (action.startsWith(LeadMeMain.TRANSFER_ERROR)) {
+                        String[] split = action.split(":");
+                        main.getFileTransfer().removePeer(split[1], split[2]);
                         break;
 
                     } else if (action.startsWith(LeadMeMain.AUTO_INSTALL_FAILED)) {

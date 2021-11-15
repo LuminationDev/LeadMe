@@ -88,7 +88,8 @@ public class PermissionManager {
         storagePermissionListener = new PermissionListener() {
             @Override
             public void onPermissionGranted() {
-                storagePermissionsGranted = main.checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED;
+                storagePermissionsGranted = main.checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED &&
+                        main.checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED;
                 waitingForPermission = false; //no longer waiting
 
                 if (storagePermissionsGranted) {
@@ -153,7 +154,8 @@ public class PermissionManager {
     }
 
     public boolean isStoragePermissionsGranted() {
-        storagePermissionsGranted = main.checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED;
+        storagePermissionsGranted = main.checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED &&
+                main.checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED;
         return storagePermissionsGranted;
     }
 
@@ -217,17 +219,17 @@ public class PermissionManager {
     }
 
     /**
-     * Checking if the device has READ_EXTERNAL storage permission on. This is used for the file transfer
+     * Checking if the device has READ_EXTERNAL storage permission on . This is used for the file transfer
      * function as well as the VR controller.
      */
     public void checkStoragePermission() {
         waitingForPermission = true;
-        String rationaleMsg = "Please enable Storage permission so Guides can select videos.";
+        String rationaleMsg = "Please enable Storage permissions so Guides can select and transfer videos.";
 
         TedPermission.with(main)
                 .setPermissionListener(storagePermissionListener)
                 .setDeniedMessage(rationaleMsg)
-                .setPermissions(Manifest.permission.READ_EXTERNAL_STORAGE)
+                .setPermissions(Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE)
                 .check();
     }
 

@@ -1,50 +1,63 @@
 package com.lumination.leadme;
 
-import android.app.AlertDialog;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.content.ContentResolver;
 import android.content.ContentValues;
-import android.content.Intent;
+import android.content.Context;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.util.Log;
-import android.view.View;
-import android.widget.ProgressBar;
-import android.widget.TextView;
 import android.widget.Toast;
+
+import androidx.core.app.NotificationCompat;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.lang.reflect.Array;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
 
 public class FileTransfer {
     private static final String TAG = "FileTransfer";
+    private static final int NOTIFICATION_ID = 1;
+    private static final String CHANNEL_ID = "FileTransfer";
     private final int numberOfThreads = 2; //how many transfers can operate simultaneously
+
+    //Notification Alerts
+    private final CharSequence notificationName = "File Transfer";
+    private final String notificationDescription = "File Transfer in progress.";
+    private final String success = "Transfer Complete";
+    private final String failure = "Error: Transfer incomplete";
+    protected static boolean transferComplete = true;
+
+    //Transfer error messages
+    private final String fileOnDevice = "File already on selected device.";
+    private final String transferNotSaved = "Transfer could not be saved on device.";
 
     ThreadPoolExecutor executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(numberOfThreads);
 
+    protected NotificationManager notifyManager;
+    protected NotificationCompat.Builder builder;
+
     protected ServerSocket fileServerSocket = null;
     protected Socket fileSocket = null;
-    protected final ProgressBar psgBar;
-    protected final TextView selectedPeers;
     protected ArrayList<Integer> selected;
+    protected static HashMap<Integer, Double> transfers;
 
-    private AlertDialog fileTransferPopup;
-    private final View fileTransferPopupView;
     private final LeadMeMain main;
-
-    private double total_file_size;
-    private static double[] transfers;
     private static double transfer_progress;
 
     /**
@@ -59,10 +72,7 @@ public class FileTransfer {
      */
     public FileTransfer(LeadMeMain main) {
         this.main = main;
-
-        this.fileTransferPopupView = View.inflate(main, R.layout.e__transfer_popup, null);
-        this.psgBar = fileTransferPopupView.findViewById(R.id.pBar);
-        this.selectedPeers = fileTransferPopupView.findViewById(R.id.transfer_file_comment);
+        setupNotificationChannel();
     }
 
     /**
@@ -152,19 +162,46 @@ public class FileTransfer {
         }
 
         //get the total file size for work out the percentage of total transfer
-        total_file_size = file.length() * selected.size();
-        transfers = new double[selected.size()];
+        transfers = new HashMap<>();
 
-        Log.d("Transfers", String.valueOf(transfers.length));
+        Log.d("Transfers", String.valueOf(transfers.size()));
 
-        //open the pop up for the guide
-        popup("Sending File: " + transferCount + " of " + selected.size() + " Transferred.");
+        builder.setProgress(100, 0, false)
+                .setOngoing(true)
+                .setStyle(new NotificationCompat.BigTextStyle().bigText("File Name: " + file.getName()));
+        notifyManager.notify(NOTIFICATION_ID, builder.build());
 
         //schedule file transfers for all the selected peers
         for (int x = 0; x < selected.size(); x++) {
-            Transfer transfer = new Transfer(file, path, this, main, selected.get(x), x);
+            transfers.put(selected.get(x), 0.0); //initial peers and default starting value
+
+            Transfer transfer = new Transfer(file, path, this, main, selected.get(x));
             executor.execute(transfer);
         }
+    }
+
+    //Create a notification channel, only for API 26+
+    private void setupNotificationChannel() {
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            int importance = NotificationManager.IMPORTANCE_DEFAULT;
+            NotificationChannel channel = new NotificationChannel(CHANNEL_ID, notificationName, importance);
+
+            //Register the channel with the system
+            main.getSystemService(NotificationManager.class).createNotificationChannel(channel);
+        }
+
+        buildNotification();
+    }
+
+    //Set the manager and builder
+    private void buildNotification() {
+        notifyManager = (NotificationManager) main.getSystemService(Context.NOTIFICATION_SERVICE);
+
+        builder = new NotificationCompat.Builder(main, CHANNEL_ID).setSmallIcon(R.drawable.leadme_icon)
+                .setContentTitle(notificationName)
+                .setContentText(notificationDescription)
+                .setStyle(new NotificationCompat.BigTextStyle().bigText(""))
+                .setPriority(NotificationCompat.PRIORITY_DEFAULT);
     }
 
     /**
@@ -180,6 +217,7 @@ public class FileTransfer {
             e.printStackTrace();
             Log.d(TAG, "saveFile: socket not connected");
         }
+
         saveFile();
     }
 
@@ -188,34 +226,62 @@ public class FileTransfer {
         Thread saveFile = new Thread(() -> {
             try {
                 DataInputStream dis = new DataInputStream(fileSocket.getInputStream());
+                OutputStream fos; //file output stream - depends on the SDK
 
                 String fileName = dis.readUTF();
+
+                //TODO add a check to see if the file exists before trying to save it
+                //Works for API 29+ at least - needs more testing
+                Uri fileExists = FileUtilities.getFileByName(main, fileName);
+                Log.e(TAG, String.valueOf(fileExists));
+                //Send message to guide that it already has the video
+                if(fileExists != null) {
+                    main.transferError(fileOnDevice, main.getNearbyManager().myID);
+                    return;
+                }
+
                 Log.d("File name", fileName);
+
+                builder.setProgress(100, 0, false)
+                        .setOngoing(true);
+                builder.setStyle(new NotificationCompat.BigTextStyle().bigText("File Name: " + fileName));
+                notifyManager.notify(NOTIFICATION_ID, builder.build());
 
                 //Save to phone gallery
                 Uri mediaCollection;
                 ContentResolver resolver = main.getContentResolver();
                 ContentValues newCaptureDetails = new ContentValues();
 
-                //determine file type - extend this in the future
-                if (fileName.toLowerCase().contains(".jpg") || fileName.toLowerCase().contains(".png")) {
-                    mediaCollection = MediaStore.Images.Media.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY);
-                    newCaptureDetails.put(MediaStore.Images.Media.DISPLAY_NAME, fileName);
-                } else if (fileName.toLowerCase().contains(".mp4") || fileName.toLowerCase().contains(".mov")) {
-                    mediaCollection = MediaStore.Video.Media.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY);
-                    newCaptureDetails.put(MediaStore.Video.Media.RELATIVE_PATH, "Movies/");
-                    newCaptureDetails.put(MediaStore.Video.Media.TITLE, fileName);
-                    newCaptureDetails.put(MediaStore.Video.Media.DISPLAY_NAME, fileName);
-                    //newCaptureDetails.put(MediaStore.Video.Media.MIME_TYPE, "video/mp4");
-                } else return;
+                //Only use MediaStore for API 29+
+                if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    //determine file type - extend this in the future
+                    if (fileName.toLowerCase().contains(".jpg") || fileName.toLowerCase().contains(".png")) {
+                        mediaCollection = MediaStore.Images.Media.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY);
+                        newCaptureDetails.put(MediaStore.Images.Media.DISPLAY_NAME, fileName);
+                    } else if (fileName.toLowerCase().contains(".mp4") || fileName.toLowerCase().contains(".mov")) {
+                        mediaCollection = MediaStore.Video.Media.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY);
+                        newCaptureDetails.put(MediaStore.Video.Media.RELATIVE_PATH, "Movies/");
+                        newCaptureDetails.put(MediaStore.Video.Media.TITLE, fileName);
+                        newCaptureDetails.put(MediaStore.Video.Media.DISPLAY_NAME, fileName);
+                        //newCaptureDetails.put(MediaStore.Video.Media.MIME_TYPE, "video/mp4");
+                    } else return;
 
-                Uri newCaptureUri = resolver.insert(mediaCollection, newCaptureDetails);
-                OutputStream fos = resolver.openOutputStream(newCaptureUri);
+                    Uri newCaptureUri = resolver.insert(mediaCollection, newCaptureDetails);
+                    fos = resolver.openOutputStream(newCaptureUri);
+
+                } else {
+                    Log.i(TAG, "Pre API 29 way to save the file");
+                    String videoDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MOVIES).toString();
+                    File video = new File(videoDir, fileName);
+                    fos = new FileOutputStream(video);
+                }
 
                 byte[] buffer = new byte[4096];
 
                 long size = dis.readLong();
                 long fileLength = size;
+                Log.d("File size", String.valueOf(fileLength));
+
                 int progress = 0;
                 int read;
                 while ((read = dis.read(buffer, 0, (int) Math.min(buffer.length, size))) != 0) {
@@ -231,58 +297,87 @@ public class FileTransfer {
                 Log.d("File", "File saved");
             } catch (IOException e) {
                 Log.e(TAG, String.valueOf(e));
+                transferComplete = false;
+                main.transferError(transferNotSaved, main.getNearbyManager().myID);
             } finally {
                 //while transferring show a loading screen
                 dismissPopup();
             }
         });
         Log.d("SavingFile", "Starting to save file");
-        saveFile.start();
 
-        //inflate the loading progress bar
-        popup("Receiving File");
+        saveFile.start();
+    }
+
+    /**
+     * Removes a peer from the selected array as they already have the video.
+     * @param ID The peer to be removed from the transfer array.
+     * @param error The error that has occurred.
+     */
+    public void removePeer(String ID, String error) {
+        int peerID = Integer.parseInt(ID);
+        Log.e(TAG, "Message: " + error + " " + "Peer: " + ID);
+
+        //remove from transfers
+        transfers.remove(peerID);
+
+        if(transfers.size() == 0) {
+            dismissPopup();
+        }
     }
 
     //update the guides loading bar
-    protected void updateGuideProgress(long total, int current, int number) {
+    protected void updateGuideProgress(long total, int current, int index) {
         double overallPercent = 0;
         double percent = (((double) current / (double) total) * 100);
-        Array.set(transfers, number, percent);
+
+        //Check if it has been created/deleted before updating
+        if(transfers.get(index) != null) {
+            transfers.put(index, percent); //update the original entry
+        }
 
         //get the average of array of percentages
-        for(double p : transfers) {
-            overallPercent += p;
+        for(Map.Entry<Integer, Double> entry : transfers.entrySet()) {
+            overallPercent += entry.getValue();
         }
-        transfer_progress = overallPercent/transfers.length;
 
-        main.runOnUiThread(() -> psgBar.setProgress((int) transfer_progress));
+        transfer_progress = overallPercent/transfers.size();
+
+        //Do not call to frequently otherwise notifications are dropped, included in the
+        //completion one.
+        if((int) transfer_progress % 10 == 0) {
+            builder.setProgress(100, (int) transfer_progress, false);
+            notifyManager.notify(NOTIFICATION_ID, builder.build());
+        }
     }
 
     //update the students loading bar
     protected void updateStudentProgress(long total, int current) {
         double percent = (((double) current / (double) total) * 100);
-        main.runOnUiThread(() -> psgBar.setProgress((int) percent));
+
+        //Do not call to frequently otherwise notifications are dropped, included in the
+        //completion one.
+        if((int) percent % 10 == 9) {
+            builder.setProgress(100, (int) percent, false);
+            notifyManager.notify(NOTIFICATION_ID, builder.build());
+        }
     }
 
-    //creating a popup for the loading bar (file sent and file received)
-    protected void popup(String message) {
-        main.runOnUiThread(() -> {
-            //set the comment section of the transfer popup
-            selectedPeers.setText(message);
-
-            if (fileTransferPopup == null) {
-                fileTransferPopup = new AlertDialog.Builder(main)
-                        .setView(fileTransferPopupView)
-                        .show();
-            } else {
-                fileTransferPopup.show();
-            }
-        });
-    }
-
-    //dismiss the loading bar after each transfer is completed
+    //dismiss the loading bar after a transfer is completed
     protected void dismissPopup() {
-        main.runOnUiThread(() -> fileTransferPopup.dismiss());
+        String status;
+        status = transferComplete ? success : failure;
+
+        builder.setOngoing(false)
+                .setProgress(0,0, false)
+                .setContentText(status)
+                .setStyle(new NotificationCompat.BigTextStyle().bigText(status));
+
+        notifyManager.notify(NOTIFICATION_ID, builder.build());
+
+        //Reset for next time
+        transferComplete = true;
+        transfers = new HashMap<>();
     }
 }
 
@@ -299,15 +394,13 @@ class Transfer implements Runnable {
     private final FileTransfer fileTransfer;
     private final LeadMeMain main;
     private final int ID;
-    private final int number;
 
-    public Transfer(File file, String path, FileTransfer fileTransfer, LeadMeMain main, int ID, int number) {
+    public Transfer(File file, String path, FileTransfer fileTransfer, LeadMeMain main, int ID) {
         this.file = file;
         this.path = path;
         this.fileTransfer = fileTransfer;
         this.main = main;
-        this.ID = ID;
-        this.number = number; //position in the selected ID array for transfer progress tracking
+        this.ID = ID; //used as a position in the transfer hashmap for progress tracking
     }
 
     public void run() {
@@ -345,7 +438,7 @@ class Transfer implements Runnable {
                     dos.write(buffer, 0, read);
                     dos.flush();
                     progress += read;
-                    fileTransfer.updateGuideProgress(fileLength, progress, number);
+                    fileTransfer.updateGuideProgress(fileLength, progress, this.ID);
                 }
 
                 fis.close();
@@ -353,9 +446,10 @@ class Transfer implements Runnable {
             } catch (IOException e) {
                 e.printStackTrace();
                 Log.d(TAG, "SendingFile: File not sent");
+                FileTransfer.transferComplete = false;
+                FileTransfer.transfers.remove(this.ID);
             } finally {
                 FileTransfer.transferCount++;
-                fileTransfer.selectedPeers.setText("Sending File: " + FileTransfer.transferCount + " of " + fileTransfer.selected.size() + " Transferred.");
 
                 //check that all the files have been transferred - reset connections and progress
                 if(FileTransfer.transferCount == fileTransfer.selected.size()) {
@@ -376,6 +470,5 @@ class Transfer implements Runnable {
             e.printStackTrace();
             Log.d(TAG, "SocketClosure: socket closing issue");
         }
-        main.runOnUiThread(() -> fileTransfer.psgBar.setProgress(0));
     }
 }
