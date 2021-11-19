@@ -1268,15 +1268,20 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
         mainLeader.findViewById(R.id.xray_core_btn).setOnClickListener(v -> {
             if (getConnectedLearnersAdapter().getCount() > 0) {
-//                xrayManager.showXrayView("");
-
-                /*All that is needed to implement the file transfer code.
-                Just needs it own button, here temporarily for testing purposes.*/
-                FileUtilities.browseFiles(this, TRANSFER_FILE_CHOICE);
+                xrayManager.showXrayView("");
             } else {
                 Toast.makeText(getApplicationContext(), "No students connected.", Toast.LENGTH_SHORT).show();
             }
         });
+
+        //TODO Comment this out for upload!
+//        mainLeader.findViewById(R.id.xray_core_btn).setOnLongClickListener(v -> {
+//            /*All that is needed to implement the file transfer code.
+//                Just needs it own button, here temporarily for testing purposes.*/
+//            FileUtilities.browseFiles(this, TRANSFER_FILE_CHOICE);
+//
+//            return true;
+//        });
 
         connectedLearnersAdapter = new ConnectedLearnersAdapter(this, new ArrayList<>(), dialogManager.alertsAdapter);
         connectedStudentsView = mainLeader.findViewById(R.id.studentListView);
@@ -2671,7 +2676,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             this.setContentView(OnBoardPerm);
 
         } else {
-            if(scheduledCheck!=null){
+            if(scheduledCheck != null){
                 scheduledCheck.cancel(true);
             }
             setContentView(leadmeAnimator);
@@ -2704,7 +2709,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
      * @param page An integer representing which on boarding page the learner is currently on.
      */
     public void connectOnReturn(int page) {
-        if(scheduledCheck!=null){
+        if(scheduledCheck != null){
             scheduledCheck.cancel(true);
         }
 
@@ -2807,6 +2812,12 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     private int pinCodeInd = 0;
     int savedViewIndex=-1;
 
+    //hiding the soft keyboard only
+    private void hideSoftKeyboard(View v) {
+        InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
+        imm.hideSoftInputFromWindow(v.getWindowToken(), 0);
+    }
+
     /**
      * Set and display the pin entered by the user.
      * @param page An int representing the stage the user is up to.
@@ -2830,6 +2841,12 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         View pages[] = {resetPinView.findViewById(R.id.pin_reset_pass_view),resetPinView.findViewById(R.id.set_pin),resetPinView.findViewById(R.id.pin_reset_finish_view)};
         ProgressBar pBar = resetPinView.findViewById(R.id.pin_reset_spinner);
         pBar.setVisibility(View.INVISIBLE);
+
+        resetPinView.setOnClickListener(v -> {
+            hideSoftKeyboard(v);
+        });
+        //pages[1].setOnClickListener(this::hideSoftKeyboard);
+
         switch(page){
             case 0:
                 pages[0].setVisibility(View.VISIBLE);
@@ -2879,6 +2896,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                 });
                 break;
             case 1:
+                closeKeyboard();
                 pages[1].setVisibility(View.VISIBLE);
                 pages[0].setVisibility(View.GONE);
                 pages[2].setVisibility(View.GONE);

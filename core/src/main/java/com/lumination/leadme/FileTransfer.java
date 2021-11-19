@@ -145,6 +145,7 @@ public class FileTransfer {
             file = new File(path);
         }
 
+        //TODO move this out and pass as parameter from main?
         selected = new ArrayList<>();
 
         //cycle through the selected peers adding them to the selected array
