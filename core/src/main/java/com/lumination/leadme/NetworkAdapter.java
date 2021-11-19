@@ -3,6 +3,7 @@ package com.lumination.leadme;
 import android.content.Context;
 import android.net.nsd.NsdManager;
 import android.net.nsd.NsdServiceInfo;
+import android.net.wifi.WifiManager;
 import android.os.Build;
 import android.os.Parcel;
 import android.util.Log;
@@ -14,6 +15,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
@@ -81,6 +83,8 @@ public class NetworkAdapter {
     int connectionIsActive = 0;
     int timeOut= 2;
 
+    // Acquire multicast lock
+    WifiManager.MulticastLock multicastLock;
 
     public ArrayList<studentThread> clientThreadList = new ArrayList<>();
     public ArrayList<client> currentClients = new ArrayList<>();
@@ -101,16 +105,24 @@ public class NetworkAdapter {
         netAdapt = this;
         this.nearbyPeersManager = nearbyPeersManager;
         this.main = main;
+        setMulticastLock();
         mNsdManager = (NsdManager) context.getSystemService(Context.NSD_SERVICE);
         resolver = new resListener();
         startServer();
         serviceQueue = new ArrayList<>();
     }
 
+    // Acquire multicast lock - required for pre API 11 and some devices.
+    private void setMulticastLock() {
+        WifiManager wifi = (WifiManager) main.getSystemService(Context.WIFI_SERVICE);
+        multicastLock = wifi.createMulticastLock("multicastLock");
+        multicastLock.setReferenceCounted(true);
+        multicastLock.acquire();
+    }
+
     /*
     Listens for services on the network and will send any that end in #Teacher through to the resolve listener
      */
-
     public void initializeDiscoveryListener() {
         if (mDiscoveryListener == null) {
             mDiscoveryListener = new NsdManager.DiscoveryListener() {
@@ -218,6 +230,7 @@ public class NetworkAdapter {
                         Log.d(TAG, "run: added leader");
                         discoveredLeaders.add(serviceInfo);
                     }
+
                     List<String> leader = Arrays.asList(serviceInfo.getServiceName().split("#"));
 
                     //add to the leaders list
@@ -659,7 +672,10 @@ public class NetworkAdapter {
             try {
                 // Since discovery will happen via Nsd, we don't need to care which port is
                 // used.  Just grab an available one  and advertise it via Nsd.
-                mServerSocket = new ServerSocket(54321);
+                mServerSocket = new ServerSocket();
+                mServerSocket.setReuseAddress(true);
+                mServerSocket.bind(new InetSocketAddress(54321));
+
                 localport = mServerSocket.getLocalPort();
 
                 //while (!Thread.currentThread().isInterrupted()) {
@@ -846,6 +862,10 @@ public class NetworkAdapter {
         if(mServerSocket!=null) {
             try {
                 mServerSocket.close();
+                if (multicastLock != null) {
+                    multicastLock.release();
+                    multicastLock = null;
+                }
             } catch (IOException ioe) {
                 Log.e(TAG, "Error when closing server socket.");
             }
