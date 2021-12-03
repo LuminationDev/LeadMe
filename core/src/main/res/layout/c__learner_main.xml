@@ -176,7 +176,7 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_vertical"
                 android:fontFamily="@font/poppins_semibold"
-                android:text="Connected"
+                android:text="@string/connected_label"
                 android:textColor="@color/leadme_medium_grey"
                 android:visibility="invisible" />
 

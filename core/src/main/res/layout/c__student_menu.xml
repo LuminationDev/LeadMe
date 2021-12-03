@@ -25,4 +25,14 @@
         android:fontFamily="@font/poppins_semibold"
         android:padding="10dp"
         android:text="Settings" />
+
+<!--    <TextView-->
+<!--        android:id="@+id/uninstall_apps"-->
+<!--        android:layout_width="match_parent"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:drawableLeft="@drawable/clear_favourites"-->
+<!--        android:drawablePadding="5dp"-->
+<!--        android:fontFamily="@font/poppins_semibold"-->
+<!--        android:padding="10dp"-->
+<!--        android:text="App Uninstall" />-->
 </LinearLayout>

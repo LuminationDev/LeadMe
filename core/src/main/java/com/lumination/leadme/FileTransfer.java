@@ -109,6 +109,7 @@ public class FileTransfer {
             Log.e("File Result: ", String.valueOf(e));
         }
 
+        //TODO this might cause issues with school wifi's - keep note of this
         try {
             fileServerSocket = new ServerSocket(0);
             Log.d(TAG, "ServerSocket: socket created");
@@ -172,10 +173,11 @@ public class FileTransfer {
                 .setStyle(new NotificationCompat.BigTextStyle().bigText("File Name: " + file.getName()));
         notifyManager.notify(NOTIFICATION_ID, builder.build());
 
-        //schedule file transfers for all the selected peers
+        //schedule file transfers for all the selected peers and update the status icon
         for (int x = 0; x < selected.size(); x++) {
-            transfers.put(selected.get(x), 0.0); //initial peers and default starting value
+            main.updatePeerStatus(String.valueOf(selected.get(x)), ConnectedPeer.STATUS_FILE_TRANSFER, null);
 
+            transfers.put(selected.get(x), 0.0); //initial peers and default starting value
             Transfer transfer = new Transfer(file, path, this, main, selected.get(x));
             executor.execute(transfer);
         }
@@ -226,6 +228,8 @@ public class FileTransfer {
     private void saveFile() {
         Thread saveFile = new Thread(() -> {
             try {
+                main.setDeviceStatusMessage(R.string.transfer_in_progress);
+
                 DataInputStream dis = new DataInputStream(fileSocket.getInputStream());
                 OutputStream fos; //file output stream - depends on the SDK
                 Uri fileExists;
@@ -309,6 +313,7 @@ public class FileTransfer {
             } finally {
                 //while transferring show a loading screen
                 dismissPopup();
+                main.setDeviceStatusMessage(R.string.connected_label);
             }
         });
         Log.d("SavingFile", "Starting to save file");
@@ -326,6 +331,8 @@ public class FileTransfer {
         Log.d(TAG, "Message: " + error + " " + "Peer: " + ID);
 
         int peerID = Integer.parseInt(ID);
+
+        main.runOnUiThread(() -> main.updatePeerStatus(ID, ConnectedPeer.STATUS_INSTALLED, null));
 
         //remove from transfers
         transfers.remove(peerID);
@@ -464,7 +471,7 @@ class Transfer implements Runnable {
                 FileTransfer.transfers.remove(this.ID);
             } finally {
                 FileTransfer.transferCount++;
-
+                main.runOnUiThread(() -> main.updatePeerStatus(String.valueOf(this.ID), ConnectedPeer.STATUS_INSTALLED, null));
                 //check that all the files have been transferred - reset connections and progress
                 if(FileTransfer.transferCount == fileTransfer.selected.size()) {
                     reset();

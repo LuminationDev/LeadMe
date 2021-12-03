@@ -1113,7 +1113,7 @@ public class WebManager {
             youTubeExists = false;
             //if installing, try that first.
             if (main.autoInstallApps) {
-                main.getAppManager().autoInstall(youTubePackageName, "YouTube");
+                main.getLumiAppInstaller().autoInstall(youTubePackageName, "YouTube", "false", null);
             }
         }
 

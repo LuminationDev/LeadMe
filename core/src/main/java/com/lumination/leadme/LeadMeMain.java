@@ -24,6 +24,8 @@ import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.hardware.display.DisplayManager;
 import android.media.AudioManager;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.net.Uri;
 import android.net.wifi.WifiManager;
 import android.os.Build;
@@ -43,10 +45,10 @@ import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
+import android.view.accessibility.AccessibilityEvent;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.view.inputmethod.InputMethodManager;
@@ -108,8 +110,7 @@ import eu.bolt.screenshotty.ScreenshotManagerBuilder;
     • Initilises main classes
  */
 public class LeadMeMain extends FragmentActivity implements Handler.Callback, SensorEventListener, LifecycleObserver, ComponentCallbacks2 {
-    //tag for debugging
-    static final String TAG = "LeadMe";
+    static final String TAG = "LeadMe"; //tag for debugging
     final private String teacherCode = "1234";
 
     Drawable leadmeIcon;
@@ -138,14 +139,22 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     static final String VID_UNMUTE_TAG = "LumiVidUnmute";
     static final String VID_ACTION_TAG = "LumiVid:";
 
-    static final String AUTO_INSTALL = "LumiAutoInstall";
-
     static final String LAUNCH_URL = "LumiLaunch:::";
     static final String LAUNCH_YT = "LumiYT:::";
     static final String LAUNCH_ACCESS = "LumiLaunchAccess";
 
+    static final String PERMISSION_DENIED = "LumiPermissionDenied";
+    static final String FILE_TRANSFER = "LumiFileTransfer";
+
+    static final String MULTI_INSTALL = "LumiMultiInstall";
+    static final String AUTO_INSTALL = "LumiAutoInstalling";
     static final String AUTO_INSTALL_FAILED = "LumiAutoInstallFail:";
     static final String AUTO_INSTALL_ATTEMPT = "LumiAutoInstallAttempt:";
+    static final String APP_NOT_INSTALLED = "LumiAppNotInstalled";
+    static final String COLLECT_APPS = "LumiCollectApps";
+    static final String APP_COLLECTION = "LumiPeerAppCollection";
+    static final String AUTO_UNINSTALL = "LumiAutoUninstall";
+
     static final String STUDENT_OFF_TASK_ALERT = "LumiOffTask:";
     static final String STUDENT_NO_OVERLAY = "LumiOverlay:";
     static final String STUDENT_NO_ACCESSIBILITY = "LumiAccess:";
@@ -201,7 +210,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     public boolean isGuide = false;
     public boolean isReadyToConnect = false;
     public boolean studentLockOn = true; //students start locked
-    public boolean autoInstallApps = false; //if true, missing apps on student devices get installed automatically
 
     public String lastLockState = LOCK_TAG;
     public String lastAppID;
@@ -222,10 +230,12 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     private final int ANIM_APP_LAUNCH_INDEX = 4;
     private final int ANIM_OPTIONS_INDEX = 5;
     private final int ANIM_XRAY_INDEX = 6;
+    protected final int ANIM_MULTI_INDEX = 7;
 
     public View waitingForLearners, appLauncherScreen;
 
     private View mainLearner, mainLeader, optionsScreen, xrayScreen;
+    protected View multiAppManager;
     private TextView learnerWaitingText;
     private Button leader_toggle, learner_toggle;
     private ImageView logo, studentImg;
@@ -246,6 +256,17 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     private static DispatchManager dispatcher;
     private WifiManager wifiManager;
     private XrayManager xrayManager;
+    private AppInstaller lumiAppInstaller;
+
+    //File transfer
+    public Boolean fileTransferEnabled = false; //hard coded so have to enable each session
+    public Switch transferToggle = null;
+
+    //Auto app installer
+    public Boolean autoInstallApps = false; //if true, missing apps on student devices get installed automatically
+    public Boolean managingAutoInstaller = false; //track if installing applications so recall can be skipped
+    public Boolean installingApps = null; //track if installing or uninstalling application
+    public Switch autoToggle = null;
 
     ImageView currentTaskIcon;
     TextView currentTaskTitle;
@@ -459,6 +480,10 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
     public XrayManager getXrayManager() { return xrayManager; }
 
+    public AppInstaller getLumiAppInstaller() {
+        return lumiAppInstaller;
+    }
+
     private boolean initPermissions = false;
 
     public void performNextAction() {
@@ -494,12 +519,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             return;
         }
 
-//        if (canAskForAccessibility && !permissionManager.isAccessibilityGranted()) {
-//            Log.d(TAG, "Permission return - request accessibility");
-//            permissionManager.requestAccessibilitySettingsOn();
-//            return;
-//        }
-
         if (canAskForAccessibility && permissionManager.isAccessibilityGranted() && !permissionManager.isMyServiceRunning(AccessibilityService.class)) {
             Log.d(TAG, "Permission return - accessibility permission granted, but service not running");
             Intent accessibilityIntent = new Intent(this, LumiAccessibilityService.class);
@@ -507,10 +526,11 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             return;
         }
 
+//        old code
         //make sure we're not just restarting
-        if (init && !getNearbyManager().isConnectedAsFollower() && !nearbyManager.isConnectedAsGuide()) {
-            //loginAction(); //disabled due to calling onBoarding
-        }
+//        if (init && !getNearbyManager().isConnectedAsFollower() && !nearbyManager.isConnectedAsGuide()) {
+//            //loginAction(); //disabled due to calling onBoarding
+//        }
     }
 
     @Override
@@ -591,6 +611,12 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             dialogManager.setTeacherName(getNearbyManager().selectedLeader.getDisplayName());
         }
 
+        //Check if the leader has internet access
+        if(!checkInternetAccess()) {
+            dialogManager.showWarningDialog("Currently Offline", "No internet access detected. Please connect to continue.");
+            return;
+        }
+
         initPermissions = false; //reset this to ask once more
         dialogManager.dialogShowing = true;
         dialogManager.getLoginDialog().show();
@@ -598,6 +624,14 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         getNameViewController().requestFocus();
         openKeyboard();
     }
+
+    //check if the device has access to the internet (not just wifi)
+    private boolean checkInternetAccess() {
+        ConnectivityManager connectivityManager = (ConnectivityManager)getSystemService(Context.CONNECTIVITY_SERVICE);
+        //we are connected to a network
+        return connectivityManager.getNetworkInfo(ConnectivityManager.TYPE_MOBILE).getState() == NetworkInfo.State.CONNECTED ||
+                connectivityManager.getNetworkInfo(ConnectivityManager.TYPE_WIFI).getState() == NetworkInfo.State.CONNECTED;
+    };
 
     @Override
     public void onAccuracyChanged(Sensor sensor, int accuracy) {
@@ -610,7 +644,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     }
 
     private void moveAwayFromSplashScreen() {
-
         handler.postDelayed(() -> {
             logo.setImageResource(android.R.color.transparent);
             leadmeAnimator.setDisplayedChild(ANIM_START_SWITCH_INDEX);
@@ -854,8 +887,10 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         if (!permissionManager.waitingForPermission
                 && currentTaskPackageName != null && currentTaskPackageName.equals(leadMePackageName)
                 && getNearbyManager().isConnectedAsFollower()) {
-            dispatcher.alertGuideStudentOffTask();
-            recallToLeadMe();
+            if(!managingAutoInstaller) {
+                dispatcher.alertGuideStudentOffTask();
+                recallToLeadMe();
+            }
         } else {
             manageFocus();
         }
@@ -866,6 +901,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         //Toast.makeText(this, "LC Destroy", Toast.LENGTH_LONG).show();
         Log.d(TAG, "LC Destroy");
         appHasFocus = false;
+        isGuide = false;
         Log.d(TAG, "onLifecycleDestroy: "+Build.MODEL);
         if(Build.MODEL.equals("MI 8 SE")){
             if(getAccessibilityService()!=null) {
@@ -1007,13 +1043,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
         collapseStatus();
     }
-//    private void showSystemUI() {
-////        View decorView = getWindow().getDecorView();
-////        decorView.setSystemUiVisibility(
-////                View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-////                        | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-////                        | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN);
-//    }
 
     public void hideSystemUI() {
         if (getNearbyManager().isConnectedAsFollower()) {
@@ -1050,6 +1079,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     public void onCreate(Bundle savedInstanceState) {
         //onCreate can get called when device rotated, keyboard opened/shut, etc
         super.onCreate(savedInstanceState);
+
         screenCap = new ScreenCap(this);
 
         powerManager = (PowerManager) getSystemService(POWER_SERVICE);
@@ -1086,6 +1116,31 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             editor.putBoolean(SESSION_MANUAL_TAG, sessionManual);
             editor.apply();
         }
+
+        //TODO might not use shared preferences here - enabled every session for security
+        //auto install application sharedpreferences
+//        if (sharedPreferences.contains(AUTO_INSTALL)) {
+//            autoInstallApps = sharedPreferences.getBoolean(AUTO_INSTALL, false);
+//        }
+//
+//        if (autoInstallApps == null) {
+//            SharedPreferences.Editor editor = sharedPreferences.edit();
+//            autoInstallApps = false;
+//            editor.putBoolean(AUTO_INSTALL, autoInstallApps);
+//            editor.apply();
+//        }
+
+        //file transfer sharedpreferences
+//        if (sharedPreferences.contains(FILE_TRANSFER)) {
+//            fileTransferEnabled = sharedPreferences.getBoolean(FILE_TRANSFER, false);
+//        }
+//
+//        if (fileTransferEnabled == null) {
+//            SharedPreferences.Editor editor = sharedPreferences.edit();
+//            fileTransferEnabled = false;
+//            editor.putBoolean(AUTO_INSTALL, fileTransferEnabled);
+//            editor.apply();
+//        }
 
         context = getApplicationContext();
 
@@ -1196,11 +1251,13 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         xrayScreen = View.inflate(context, R.layout.d__xray_view, null);
         appLauncherScreen = View.inflate(context, R.layout.d__app_list, null);
         learnerWaitingText = startLearner.findViewById(R.id.waiting_text);
+        multiAppManager = View.inflate(context, R.layout.d__app_manager_list, null);
+
         xrayManager = new XrayManager(this, xrayScreen);
         fileTransfer = new FileTransfer(this);
+        lumiAppInstaller = new AppInstaller(this);
 
         //set up main page search
-
         Button searchBtn = mainLeader.findViewById(R.id.search_btn);
         SearchView searchView = mainLeader.findViewById(R.id.search_bar);
         searchBtn.setVisibility(View.GONE);
@@ -1217,7 +1274,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
         alertsBtn = mainLeader.findViewById(R.id.alerts_button);
         alertsBtn.setOnClickListener(v -> dialogManager.showAlertsDialog());
-        //alertsBtn.setVisibility(View.GONE); //by default, hide this
 
         //initialise window manager for shared use
         windowManager = (WindowManager) getSystemService(WINDOW_SERVICE);
@@ -1244,9 +1300,9 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                 getVrEmbedPlayer().showPlaybackPreview();
             } else {
                 if (lastLockState != null && lastLockState.equals(LOCK_TAG)) {
-                    getDispatcher().requestRemoteAppOpen(APP_TAG, lastAppID, String.valueOf(((TextView) appLauncherScreen.findViewById(R.id.text_current_task)).getText()), LOCK_TAG, getNearbyManager().getSelectedPeerIDsOrAll());
+                    getDispatcher().requestRemoteAppOpen(APP_TAG, lastAppID, String.valueOf(((TextView) appLauncherScreen.findViewById(R.id.text_current_task)).getText()), LOCK_TAG, "false", getNearbyManager().getSelectedPeerIDsOrAll());
                 } else {
-                    getDispatcher().requestRemoteAppOpen(APP_TAG, lastAppID, String.valueOf(((TextView) appLauncherScreen.findViewById(R.id.text_current_task)).getText()), UNLOCK_TAG, getNearbyManager().getSelectedPeerIDsOrAll());
+                    getDispatcher().requestRemoteAppOpen(APP_TAG, lastAppID, String.valueOf(((TextView) appLauncherScreen.findViewById(R.id.text_current_task)).getText()), UNLOCK_TAG, "false", getNearbyManager().getSelectedPeerIDsOrAll());
                 }
 
                 dialogManager.showConfirmPushDialog(true, false);
@@ -1257,7 +1313,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
         mainLeader.findViewById(R.id.vr_core_btn).setOnClickListener(v -> {
             getAppManager().getWithinPlayer().showWithin(); //launch within search
-            //getWebManager().showWebLaunchDialog(true, false)
         });
 
         Button app_btn = mainLeader.findViewById(R.id.app_core_btn);
@@ -1274,14 +1329,29 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             }
         });
 
-        //TODO Comment this out for upload!
-//        mainLeader.findViewById(R.id.xray_core_btn).setOnLongClickListener(v -> {
-//            /*All that is needed to implement the file transfer code.
-//                Just needs it own button, here temporarily for testing purposes.*/
-//            FileUtilities.browseFiles(this, TRANSFER_FILE_CHOICE);
+        //TODO AUTO INSTALLER AND FILE TRANSFER
+        //Code in LeadMe Main, AppManager
+        //multi install button
+//        app_btn.setOnLongClickListener((View.OnLongClickListener) v -> {
+//            if(autoInstallApps) {
+//                getLumiAppInstaller().showMultiInstaller(layoutParams);
+//            } else {
+//                dialogManager.showWarningDialog("Auto Installer", "Auto installing has not been enabled.");
+//            }
 //
 //            return true;
 //        });
+//
+//        //file transfer button
+//        mainLeader.findViewById(R.id.xray_core_btn).setOnLongClickListener(v -> {
+//            if(fileTransferEnabled) {
+//                FileUtilities.browseFiles(this, TRANSFER_FILE_CHOICE);
+//            } else {
+//                dialogManager.showWarningDialog("File Transfer", "File transfer has not been enabled.");
+//            }
+//            return true;
+//        });
+        //TODO End section
 
         connectedLearnersAdapter = new ConnectedLearnersAdapter(this, new ArrayList<>(), dialogManager.alertsAdapter);
         connectedStudentsView = mainLeader.findViewById(R.id.studentListView);
@@ -1316,6 +1386,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         leadmeAnimator.addView(appLauncherScreen);
         leadmeAnimator.addView(optionsScreen);
         leadmeAnimator.addView(xrayScreen);
+        leadmeAnimator.addView(multiAppManager);
 
         showSplashScreen();
 
@@ -1358,9 +1429,20 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         mainLearner.findViewById(R.id.menu_btn).setOnClickListener(menuListener);
         appLauncherScreen.findViewById(R.id.menu_btn).setOnClickListener(menuListener);
         xrayScreen.findViewById(R.id.menu_btn).setOnClickListener(menuListener);
+        multiAppManager.findViewById(R.id.menu_btn).setOnClickListener(menuListener);
 
         //set up back buttons
         appLauncherScreen.findViewById(R.id.back_btn).setOnClickListener(v -> leadmeAnimator.setDisplayedChild(ANIM_LEADER_INDEX));
+
+        //multi installer screen
+        multiAppManager.findViewById(R.id.back_btn).setOnClickListener(v -> {
+            //display leadme main page
+            leadmeAnimator.setDisplayedChild(ANIM_LEADER_INDEX);
+            //cancel the multi install
+            getLumiAppInstaller().multiInstalling = false;
+            //reset any selected apps
+            getLumiAppInstaller().resetAppSelection();
+        });
 
         //set up options screen
         optionsScreen.findViewById(R.id.back_btn).setOnClickListener(v -> {
@@ -1394,13 +1476,76 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         });
 
         //change the shared preferences, do the rest on login for guide or learner button select
-        Switch ManualToggle = optionsScreen.findViewById(R.id.server_discovery);
-        ManualToggle.setChecked(sessionManual);
-        ManualToggle.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+        Switch manualToggle = optionsScreen.findViewById(R.id.server_discovery);
+        manualToggle.setChecked(sessionManual);
+        manualToggle.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                //Guide or student needs internet to access firebase database
+                if(!checkInternetAccess()) {
+                    dialogManager.showWarningDialog("Currently Offline", "No internet access detected. Please connect to continue."
+                            + "\n\n Note: Try our new manual connection feature if you're having trouble");
+                    manualToggle.setChecked(false);
+                    return;
+                }
+
                 //Learner cannot switch while logged in
                 switchManualPreference(sharedPreferences, isChecked);
+
+                if(!isChecked) {
+                    //reset manual connection info (switching between session discovery and other
+                    nearbyManager.resetManualInfo();
+                }
+            }
+        });
+
+        //change the shared preferences for auto installing student devices
+        autoToggle = optionsScreen.findViewById(R.id.auto_install_apps);
+        autoToggle.setVisibility(View.GONE); //disable until logged in
+        autoToggle.setChecked(autoInstallApps);
+        autoToggle.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                //Tell the teacher what is happening when it is turned on
+                if(isChecked) {
+                    //showWarningDialog("Auto Install", "Tell the teacher something helpful.");
+                    Toast.makeText(getApplicationContext(), "Auto Installing now enabled.", Toast.LENGTH_SHORT).show();
+                }
+
+                //TODO for shared preference settings
+//                SharedPreferences.Editor editor = sharedPreferences.edit();
+                autoInstallApps = isChecked;
+//                editor.putBoolean(AUTO_INSTALL, autoInstallApps);
+//                editor.apply();
+
+                //send action to student devices to change the auto install setting
+                getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.AUTO_INSTALL + ":"
+                        + autoInstallApps, getNearbyManager().getSelectedPeerIDsOrAll());
+            }
+        });
+
+        //change the shared preferences for the file transfer setting
+        transferToggle = optionsScreen.findViewById(R.id.file_transfer);
+        transferToggle.setVisibility(View.GONE); //disable until logged in
+        transferToggle.setChecked(fileTransferEnabled);
+        transferToggle.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                //Tell the teacher what is happening when it is turned on
+                if(isChecked) {
+                    //showWarningDialog("Auto Install", "Tell the teacher something helpful.");
+                    Toast.makeText(getApplicationContext(), "File transfer is now enabled.", Toast.LENGTH_SHORT).show();
+                }
+
+                //TODO for shared preference settings
+//                SharedPreferences.Editor editor = sharedPreferences.edit();
+                fileTransferEnabled = isChecked;
+//                editor.putBoolean(FILE_TRANSFER, fileTransferEnabled);
+//                editor.apply();
+
+                //send action to student devices to change the file transfer settings?
+                getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.FILE_TRANSFER + ":"
+                        + fileTransferEnabled, getNearbyManager().getSelectedPeerIDsOrAll());
             }
         });
 
@@ -1468,23 +1613,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         //prepare elements for leader main view
         waitingForLearners = mainLeader.findViewById(R.id.no_students_connected);
 
-        //set up options screen
-        //auto install of missing apps on student devices
-        CheckBox auto_install_checkbox = optionsScreen.findViewById(R.id.auto_install_checkbox);
-        auto_install_checkbox.setChecked(autoInstallApps); //toggle the checkbox
-        auto_install_checkbox.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            autoInstallApps = isChecked;
-            Log.d(TAG, "Changed detected! Auto install is now " + autoInstallApps);
-            Toast toast;
-            if (autoInstallApps) {
-                toast = Toast.makeText(getApplicationContext(), "Missing apps will be installed automatically on student devices.", Toast.LENGTH_SHORT);
-            } else {
-                toast = Toast.makeText(getApplicationContext(), "Missing apps will NOT be installed on student devices.", Toast.LENGTH_SHORT);
-            }
-            toast.show();
-            getDispatcher().sendBoolToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.AUTO_INSTALL, autoInstallApps, getNearbyManager().getSelectedPeerIDs());
-        });
-
         setUpControlButtons();
 
         initPermissions = true;
@@ -1497,13 +1625,10 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         if (!permissionManager.isStoragePermissionsGranted()) {
             permissionManager.checkStoragePermission();
         }
-//        currentTaskIcon = mainLearner.findViewById(R.id.current_task_icon);
-//        currentTaskIcon.setImageResource(R.color.transparent);
 
         xrayManager.screenshotManager = new ScreenshotManagerBuilder(this).withPermissionRequestCode(REQUEST_SCREENSHOT_PERMISSION) //optional, 888 is the default
                 .build();
-        //start this
-        //getForegroundActivity();
+
         seekBar = (SeekBar) findViewById(R.id.screen_capture_rate);
         seekBar.setProgress(20); //default value that seems to work with slowish phones
         seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
@@ -1527,7 +1652,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             }
         });
 
-
         mainLeader.findViewById(R.id.select_bar_back).setOnClickListener(v -> {
             getConnectedLearnersAdapter().selectAllPeers(false);
         });
@@ -1543,17 +1667,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             getDispatcher().repushApp(getNearbyManager().getSelectedPeerIDsOrAll());
             getConnectedLearnersAdapter().selectAllPeers(false);
         });
-
-
-//        if (BuildConfig.DEBUG) {
-//            StrictMode.setThreadPolicy(new StrictMode.ThreadPolicy.Builder().detectAll()
-//                    .penaltyLog().build());
-//
-//            StrictMode.setVmPolicy(new StrictMode.VmPolicy.Builder().detectAll()
-//                            .penaltyLog().build());
-//        }
-
-//        if a UUID exists, retrieve it
 
         //If it is the first time opening leadMe display the first time prompt
         if (!sharedPreferences.contains("FIRST")) {
@@ -1591,7 +1704,11 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         }
     }
 
-    public void exitXrayView() {
+    public void showMultiAppInstallerScreen() {
+        leadmeAnimator.setDisplayedChild(ANIM_MULTI_INDEX);
+    }
+
+    public void exitCurrentView() {
         leadmeAnimator.setDisplayedChild(ANIM_LEADER_INDEX);
     }
 
@@ -1848,6 +1965,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     }
 
     void logoutResetController() {
+        authenticationManager.removeAddress();
         xrayManager.resetClientMaps(null);
         getDispatcher().alertLogout(); //need to send this before resetting 'isGuide'
         isGuide = false;
@@ -1937,6 +2055,11 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                 String ipAddress = Formatter.formatIpAddress(wifiManager.getConnectionInfo().getIpAddress());
                 getAuthenticationManager().createManualConnection(ipAddress);
             }
+
+            //TODO AUTO INSTALLER AND FILE TRANSFER
+            //display the auto installing application toggle and file transfer toggle
+//            autoToggle.setVisibility(View.VISIBLE);
+//            transferToggle.setVisibility(View.VISIBLE);
         } else {
             //display main student view
             leadmeAnimator.setDisplayedChild(ANIM_LEARNER_INDEX);
@@ -2277,7 +2400,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.BLACKOUT_TAG, chosen);
     }
 
-
     //main function, can return everyone or only selected learners
     public void returnToAppFromMainAction(boolean returnEveryone) {
         Log.d(TAG, "Returning to app from MAIN! " + appHasFocus + ", " + hasWindowFocus());
@@ -2359,13 +2481,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     }
 
     @Override
-    public boolean onPrepareOptionsMenu(Menu menu) {
-        MenuItem checkable = menu.findItem(R.id.auto_install);
-        checkable.setChecked(autoInstallApps);
-        return true;
-    }
-
-    @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.main_menu, menu);
         return super.onCreateOptionsMenu(menu);
@@ -2379,6 +2494,10 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         }
     }
 
+    /**
+     * Set the selected leader's name at the top of the learner's home page.
+     * @param name A string representing the name of the current leader.
+     */
     public void setLeaderName(String name) {
         leaderName = name;
         ((TextView) mainLearner.findViewById(R.id.leader_name)).setText(name);
@@ -2386,6 +2505,15 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         mainLearner.findViewById(R.id.connected_txt).setVisibility(View.VISIBLE);
     }
 
+    /**
+     * Sets a message for a peer device if there is a background process occurring such as a file
+     * transfer.
+     * @param message An integer representing the string table value of the text to be set.
+     */
+    public void setDeviceStatusMessage(int message) {
+        TextView peerDeviceStatus = (TextView) mainLearner.findViewById(R.id.connected_txt);
+        runOnUiThread(() -> peerDeviceStatus.setText(getApplicationContext().getString(message)));
+    }
 
     boolean mIsRestoredToTop = false;
 
@@ -2420,7 +2548,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         }
         return appHasFocus && screenOn && (!init || leadmeAnimator.isShown());
     }
-
 
     public void updateLastTask(Drawable icon, String Name, String appID, String lock) {
         lastAppID = appID;
@@ -2661,7 +2788,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                                 });
                             }
                         }
-                    },100,100,TimeUnit.MILLISECONDS);
+                    },100,200,TimeUnit.MILLISECONDS);
                     if (getPermissionsManager().isOverlayPermissionGranted()) {
                         setandDisplayStudentOnBoard(2);
                     }
@@ -3046,6 +3173,101 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     }
 
     /**
+     * Update the status or warning icon of the connected peer.
+     * @param peerID A string representing the connected peer.
+     * @param status A int representing the status to update to.
+     * @param msg An optional message used for warning alerts.
+     */
+    public void updatePeerStatus(String peerID, int status, String msg) {
+        if(msg == null) {
+            connectedLearnersAdapter.updateStatus(peerID, status);
+        } else {
+            connectedLearnersAdapter.updateStatus(peerID, status, msg);
+        }
+    }
+
+    /**
+     * Creates a dialog asking for a peer to allow a certain permission, no dialog is present for disabling
+     * the permission. Used for auto installing applications and transferring files between devices.
+     * @param permission A string representing what permission wanting to be allowed.
+     * @param enable A boolean representing if the permission is being turned on or off.
+     */
+    public void askForPeerPermission(String permission, Boolean enable) {
+        String msg = "";
+
+        switch(permission) {
+            case FILE_TRANSFER:
+                if(enable) {
+                    msg = "Guide wants to enable \nfile transfer services.";
+                } else {
+                    fileTransferEnabled = false;
+                    return;
+                }
+                break;
+
+            case AUTO_INSTALL:
+                if(enable) {
+                    msg = "Guide wants to enable \nauto installing of applications.";
+                } else {
+                    autoInstallApps = false;
+                    return;
+                }
+                break;
+
+            default:
+                Log.e(TAG, "askForPeerPermission: Permission is not defined.");
+                return;
+        }
+
+        dialogManager.showPermissionDialog(msg, permission);
+    }
+
+    /**
+     * Determines if a permission has been allowed or denied, enables the permission if allowed.
+     * @param permission A string representing what permission has been requested.
+     * @param allowed A boolean representing if the peer has allowed or denied the request.
+     */
+    public void permissionAllowed(String permission, Boolean allowed) {
+        if(allowed) {
+            switch (permission) {
+                case FILE_TRANSFER:
+                    fileTransferEnabled = true;
+                    break;
+
+                case AUTO_INSTALL:
+                    autoInstallApps = true;
+                    break;
+
+                default:
+                    break;
+            }
+        } else {
+            permissionDenied(permission);
+        }
+    }
+
+    /**
+     * Sends an action back to the guide if the permission has been denied.
+     * @param permission A string representing what permission has been denied.
+     */
+    public void permissionDenied(String permission) {
+        getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG,
+                LeadMeMain.PERMISSION_DENIED + ":" + nearbyManager.getID() + ":" + permission,
+                getNearbyManager().getSelectedPeerIDsOrAll());
+    }
+
+    /**
+     * Starts the accessibility functions in the AppInstaller to automatically install an application
+     * on a peers device.
+     * @param event The event to trigger an auto install.
+     */
+    public void autoInstall(AccessibilityEvent event) {
+        if(managingAutoInstaller) {
+            lumiAppInstaller.install(event);
+        }
+    }
+
+    /**
      * Start the file transfer service.
      * @param file A Uri pointing at the file that is to be transfered.
      */
@@ -3145,6 +3367,11 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
      * @param page An int representing the specific page to load up within the function.
      */
     public void buildLoginSignupController(int page) {
+        if(!checkInternetAccess()) {
+            dialogManager.showWarningDialog("Currently Offline", "No internet access detected. Please connect to continue.");
+            return;
+        }
+
         getAuthenticationManager().buildloginsignup(page);
     }
 

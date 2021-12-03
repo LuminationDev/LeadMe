@@ -206,7 +206,7 @@ public class XrayManager {
     }
 
     private void hideXrayView() {
-        main.exitXrayView();
+        main.exitCurrentView();
         selectedXrayStudents.clear(); //reset
     }
 
@@ -239,7 +239,7 @@ public class XrayManager {
         } else {
             Toast.makeText(main.getApplicationContext(), "No students available.", Toast.LENGTH_SHORT).show();
             if (xrayScreen.getVisibility() == VISIBLE) {
-                main.exitXrayView();
+                main.exitCurrentView();
             }
         }
     }
