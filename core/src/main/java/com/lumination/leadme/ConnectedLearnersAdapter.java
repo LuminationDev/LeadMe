@@ -25,6 +25,7 @@ import androidx.core.content.ContextCompat;
 import androidx.core.widget.ImageViewCompat;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -49,6 +50,10 @@ public class ConnectedLearnersAdapter extends BaseAdapter {
         mData.addAll(data);
     }
 
+    /**
+     * Refreshes the ArrayList of alerts associated to a particular peer. Called when
+     * updating the status and opening the alerts dialog.
+     */
     public void refreshAlertsView() {
 
         ArrayList<ConnectedPeer> peersWithWarnings = new ArrayList<>();
@@ -120,6 +125,12 @@ public class ConnectedLearnersAdapter extends BaseAdapter {
         refresh();
 
         Log.d(TAG, "Adding " + peer.getDisplayName() + " to my student list, ID: " + peer.getID() + ". Now: " + mData.size() + " || " + mData);
+
+        //update the student device upon login with the teachers auto install setting
+        Set<String> newPeer = new HashSet<String>();
+        newPeer.add(peer.getID());
+        main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.AUTO_INSTALL + ":"
+                + main.autoInstallApps, newPeer);
     }
 
     public boolean hasConnectedStudents() {
@@ -304,16 +315,11 @@ public class ConnectedLearnersAdapter extends BaseAdapter {
                 main.getNearbyManager().networkAdapter.stopMonitoring(Integer.parseInt(lastPromptedID));
                 main.getNearbyManager().networkAdapter.removeClient(Integer.valueOf(lastPromptedID));
 
-//                main.xrayManager.clientSocketThreads.remove(lastPromptedID);
-//                main.xrayManager.clientRecentScreenshots.remove(lastPromptedID);
-//
-//                Log.w(TAG, mData.size()+", "+main.xrayManager.clientSocketThreads.size() + ", " + main.xrayManager.clientRecentScreenshots.size());
-
                 logoutPrompt.dismiss();
                 if (main.getConnectedLearnersAdapter().mData.size() > 0) {
                     //main.xrayManager.showXrayView(""); //refresh this view
                 } else {
-                    main.exitXrayView();
+                    main.exitCurrentView();
                 }
             });
 
@@ -697,6 +703,7 @@ public class ConnectedLearnersAdapter extends BaseAdapter {
         studentNameConfirm.setOnDismissListener(dialog -> main.hideSystemUI());
 
     }
+
     protected void moveToFrontOfList(ConnectedPeer peer) {
         //only reorder if we haven't already
         if (reorderByStatus && peer.getPriority() != ConnectedPeer.PRIORITY_TOP) {
@@ -706,6 +713,11 @@ public class ConnectedLearnersAdapter extends BaseAdapter {
         }
     }
 
+    /**
+     * Set the alert to be attached to an individual student's icon.
+     * @param peer A ConnectedPeer that is getting its alert updated.
+     * @param statusIcon An ImageView that represents the type of alert.
+     */
     public void drawAlertIcon(ConnectedPeer peer, ImageView statusIcon) {
         if (statusIcon == null) {
             return;
@@ -718,6 +730,10 @@ public class ConnectedLearnersAdapter extends BaseAdapter {
 
             case ConnectedPeer.STATUS_INSTALLING:
                 statusIcon.setImageDrawable(main.getResources().getDrawable(R.drawable.alert_downloading, null));
+                break;
+
+            case ConnectedPeer.STATUS_FILE_TRANSFER:
+                statusIcon.setImageDrawable(main.getResources().getDrawable(R.drawable.alert_transfering, null));
                 break;
 
             default:
@@ -772,5 +788,4 @@ public class ConnectedLearnersAdapter extends BaseAdapter {
         }
         return false;
     }
-
 }

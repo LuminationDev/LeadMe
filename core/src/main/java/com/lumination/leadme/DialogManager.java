@@ -34,9 +34,9 @@ public class DialogManager {
     private final LeadMeMain main;
     private final Resources resources;
 
-    private View confirmPushDialogView, loginDialogView, toggleBtnView, manView;
-    private AlertDialog warningDialog, waitingDialog, appPushDialog, confirmPushDialog, studentAlertsDialog, loginDialog, recallPrompt, manual;
-    private TextView appPushMessageView, warningDialogTitle, warningDialogMessage, recallMessage;
+    private View confirmPushDialogView, loginDialogView, toggleBtnView, manView, permissionDialogView;
+    private AlertDialog warningDialog, waitingDialog, appPushDialog, confirmPushDialog, studentAlertsDialog, loginDialog, recallPrompt, manual, permissionDialog;
+    private TextView appPushMessageView, warningDialogTitle, warningDialogMessage, recallMessage, permissionDialogMessage;
     private Button appPushBtn, selectedBtn, everyoneBtn;
     private String appPushPackageName, appPushTitle;
 
@@ -81,6 +81,7 @@ public class DialogManager {
 
     private void setupDialogs() {
         setupWaitingDialog();
+        setupPermissionDialog();
         setupAppPushDialog();
         setupConfirmPushDialog();
         setupWarningDialog();
@@ -110,7 +111,7 @@ public class DialogManager {
         appPushDialogView = View.inflate(main, R.layout.e__preview_app_push, null);
 
         appPushDialogView.findViewById(R.id.push_btn).setOnClickListener(v -> {
-            main.getAppManager().launchApp(appPushPackageName, appPushTitle, false);
+            main.getAppManager().launchApp(appPushPackageName, appPushTitle, false, "false");
             Log.d(TAG, "LAUNCHING! " + appPushPackageName);
             hideAppPushDialogView();
             showConfirmPushDialog(true, false);
@@ -177,6 +178,46 @@ public class DialogManager {
 //        });
 //
 //    }
+
+    public void setupPermissionDialog() {
+        permissionDialogView = View.inflate(main, R.layout.e__peer_permission_popup, null);
+        permissionDialogMessage = permissionDialogView.findViewById(R.id.permission_comment);
+        permissionDialog = new AlertDialog.Builder(main)
+                .setView(permissionDialogView)
+                .create();
+
+        permissionDialog.setOnDismissListener(dialog -> {
+            dialogShowing = false;
+            permissionDialogMessage.setVisibility(View.GONE);
+            hideSystemUI();
+        });
+    }
+
+    public void showPermissionDialog(String msg, String permission) {
+        if(permissionDialog.isShowing()) {
+            //in case a guide switched on auto installer and transfer quickly
+            Log.e("PERMISSION", "Is showing");
+            permissionDialogMessage.setText(permissionDialogMessage.getText() + " " + msg); //update the text
+        }
+
+        Button allowBtn = permissionDialogView.findViewById(R.id.allow_btn);
+        Button blockBtn = permissionDialogView.findViewById(R.id.block_btn);
+
+        permissionDialogMessage.setText(msg);
+        permissionDialogMessage.setVisibility(View.VISIBLE);
+
+        allowBtn.setOnClickListener(v -> {
+            main.permissionAllowed(permission, true);
+            permissionDialog.dismiss();
+        });
+
+        blockBtn.setOnClickListener(v -> {
+            main.permissionAllowed(permission, false);
+            permissionDialog.dismiss();
+        });
+
+        permissionDialog.show();
+    }
 
     //Turn into generic functions
     public void closeDialog(String type) {
@@ -815,6 +856,9 @@ public class DialogManager {
             confirmPushDialog.dismiss();
         if (recallPrompt != null)
             recallPrompt.dismiss();
+        if  (main.getLumiAppInstaller().installDialog != null) {
+            main.getLumiAppInstaller().installDialog.dismiss();
+        }
         if (main.getWebManager() != null) {
             main.getWebManager().cleanUp();
         }

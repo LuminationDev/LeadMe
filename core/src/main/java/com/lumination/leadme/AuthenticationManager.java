@@ -47,6 +47,7 @@ import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.ListenerRegistration;
+import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
 import com.google.firebase.firestore.SetOptions;
@@ -324,7 +325,8 @@ public class AuthenticationManager {
 
     /**
      * Create a new entry in firebase for a Guide, allowing peers to connect manually instead of
-     * by discovery.
+     * by discovery. Updates the timestamp every set period while leader is logged in, separate
+     * code clears the database every few hours.
      * @param ipAddress A String representing the local IPAddress of the Guide's device.
      */
     public void createManualConnection(String ipAddress) {
@@ -332,6 +334,7 @@ public class AuthenticationManager {
         waitForPublic();
 
         serverIP = ipAddress;
+        manualConnectionDetails.put("Email", getCurrentAuthEmail());
         manualConnectionDetails.put("Username", getCurrentAuthUserName());
         manualConnectionDetails.put("ServerIP", serverIP);
         manualConnectionDetails.put("TimeStamp", FieldValue.serverTimestamp());
@@ -348,29 +351,90 @@ public class AuthenticationManager {
         timestamp.scheduleAtFixedRate(updateTimestamp, 0L, leaderTimestampUpdate * (60 * 1000));
     }
 
-    /*register the login details with PublicIP address as the documentID
-    create a new document of the publicIP address if does not exist
-    create a new collection, Leaders if it does not exist in case multiple Leaders are online
-    create a new document of the ServerIP address with username, ServerIP, PublicIP and timestamp fields*/
+    //If the public IP is not null check for duplicate entries in the database.
     private void updateAddress() {
         if(publicIP.length() == 0) {
             return;
         }
 
+        //Check the database for any duplicate usernames and delete them.
+        deleteDuplicates();
+    }
+
+    //Collect any previous data entries for the same email and delete to avoid duplicate discovered leaders.
+    private void deleteDuplicates() {
+        Query query = db.collection("addresses").document(publicIP)
+                .collection("Leaders").whereEqualTo("Email", manualConnectionDetails.get("Email"));
+
+        query.get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+            @Override
+            public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                if (task.isSuccessful()) {
+                    Log.d(TAG, "Documents found.");
+
+                    for (DocumentSnapshot document : task.getResult()) {
+                        db.collection("addresses").document(publicIP)
+                                .collection("Leaders").document(document.getId()).delete();
+                    }
+
+                    //Register the new address.
+                    setNewAddress();
+                } else {
+                    Log.d(TAG, "Error getting documents: ", task.getException());
+                }
+            }
+        });
+    }
+
+    /*Register the login details with PublicIP address as the documentID
+    create a new document of the publicIP address if does not exist
+    create a new collection, Leaders if it does not exist in case multiple Leaders are online
+    create a new document of the ServerIP address with username, ServerIP, PublicIP and timestamp fields*/
+    private void setNewAddress() {
         db.collection("addresses").document(publicIP)
-            .collection("Leaders").document(serverIP).set(manualConnectionDetails, SetOptions.merge())
-            .addOnSuccessListener(new OnSuccessListener<Void>() {
-                @Override
-                public void onSuccess(Void aVoid) {
-                    Log.d(TAG, "DocumentSnapshot successfully written!");
-                }
-            })
-            .addOnFailureListener(new OnFailureListener() {
-                @Override
-                public void onFailure(@NonNull Exception e) {
-                    Log.w(TAG, "Error writing document", e);
-                }
-            });
+                .collection("Leaders").document(serverIP).set(manualConnectionDetails, SetOptions.merge())
+                .addOnSuccessListener(new OnSuccessListener<Void>() {
+                    @Override
+                    public void onSuccess(Void aVoid) {
+                        Log.d(TAG, "DocumentSnapshot successfully written!");
+                    }
+                })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Log.w(TAG, "Error writing document", e);
+                    }
+                });
+    }
+
+    /**
+     * Remove the login details from firebase if the leader ends session or logs out. Uses the
+     * publicIP and serverIP address to find the data entry. Only executes if server discovery
+     * was used to connect initially.
+     */
+    public void removeAddress() {
+        if(publicIP == null) {
+            return;
+        }
+
+        if(publicIP.length() == 0) {
+            return;
+        }
+
+        db.collection("addresses").document(publicIP)
+                .collection("Leaders").document(serverIP).delete()
+                .addOnSuccessListener(new OnSuccessListener<Void>() {
+                    @Override
+                    public void onSuccess(Void aVoid) {
+                        Log.d(TAG, "DocumentSnapshot successfully written!");
+                    }
+                })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Log.w(TAG, "Error writing document", e);
+                    }
+                });
     }
 
     //Attempt to get the public IP address of the current device (router address)
@@ -941,6 +1005,14 @@ public class AuthenticationManager {
      */
     public String getCurrentAuthUserName() {
         return mAuth.getCurrentUser().getDisplayName();
+    }
+
+    /**
+     * Get the email of the account holder of the currently logged in user.
+     * @return A String representing the current user's email.
+     */
+    public String getCurrentAuthEmail() {
+        return mAuth.getCurrentUser().getEmail();
     }
 
     /**

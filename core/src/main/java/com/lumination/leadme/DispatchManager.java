@@ -14,8 +14,11 @@ import android.widget.Toast;
 import com.google.android.gms.nearby.connection.Payload;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
 
 public class DispatchManager {
@@ -45,7 +48,7 @@ public class DispatchManager {
                 requestRemoteWithinLaunch(tagRepush, packageNameRepush, appNameRepush, lockTagRepush, extraRepush, streamingRepush, vrModeRepush, selectedPeerIDs);
                 break;
             case 2:
-                requestRemoteAppOpen(tagRepush, packageNameRepush, appNameRepush, lockTagRepush, selectedPeerIDs);
+                requestRemoteAppOpen(tagRepush, packageNameRepush, appNameRepush, lockTagRepush, "false", selectedPeerIDs);
                 break;
             case 3:
                 sendActionToSelected(mActionTag,mAction,selectedPeerIDs);
@@ -113,7 +116,7 @@ public class DispatchManager {
         main.updateLastTask(main.getAppManager().getAppIcon(packageName), main.getAppManager().getAppName(packageName), packageName, lockTag);
     }
 
-    public void requestRemoteAppOpen(String tag, String packageName, String appName, String lockTag, Set<String> selectedPeerIDs) {
+    public void requestRemoteAppOpen(String tag, String packageName, String appName, String lockTag, String install, Set<String> selectedPeerIDs) {
         main.setProgressTimer(2000);
         Log.d(TAG, "requestRemoteAppOpen: ");
         lastEvent=2;
@@ -127,6 +130,7 @@ public class DispatchManager {
         p.writeString(packageName);
         p.writeString(appName);
         p.writeString(lockTag);
+        p.writeString(install);
         p.writeString("");
         p.writeString("");
         bytes = p.marshall();
@@ -171,9 +175,11 @@ public class DispatchManager {
         if (main.getNearbyManager().isConnectedAsGuide() ||
                 action.startsWith(LeadMeMain.YOUR_ID_IS) ||
                 action.startsWith(LeadMeMain.RETURN_TAG) ||
+                action.startsWith(LeadMeMain.PERMISSION_DENIED) ||
                 action.startsWith(LeadMeMain.TRANSFER_ERROR) ||
-                action.startsWith(LeadMeMain.AUTO_INSTALL_FAILED) ||
+                action.startsWith(LeadMeMain.APP_NOT_INSTALLED) ||
                 action.startsWith(LeadMeMain.AUTO_INSTALL_ATTEMPT) ||
+                action.startsWith(LeadMeMain.AUTO_INSTALL_FAILED) ||
                 action.startsWith(LeadMeMain.STUDENT_NO_OVERLAY) ||
                 action.startsWith(LeadMeMain.STUDENT_NO_INTERNET) ||
                 action.startsWith(LeadMeMain.STUDENT_NO_ACCESSIBILITY) ||
@@ -422,52 +428,50 @@ public class DispatchManager {
 
                     } else if (action.startsWith(LeadMeMain.STUDENT_NO_OVERLAY)) {
                         String[] split = action.split(":");
-                        //Log.i(TAG, "STUDENT HAS OVERLAY? " + split[1].equals("OK"));
-                        //main.getConnectedLearnersAdapter().updateStatus(split[2], ConnectedPeer.STATUS_ERROR, split[1]);
                         if (split[1].equalsIgnoreCase("OK")) {
-                            //clear previous flag
-                            main.getConnectedLearnersAdapter().updateStatus(split[2], ConnectedPeer.STATUS_SUCCESS, LeadMeMain.STUDENT_NO_OVERLAY);
+                            main.updatePeerStatus(split[2], ConnectedPeer.STATUS_SUCCESS, LeadMeMain.STUDENT_NO_OVERLAY);
                         } else {
-                            main.getConnectedLearnersAdapter().updateStatus(split[2], ConnectedPeer.STATUS_WARNING, LeadMeMain.STUDENT_NO_OVERLAY);
+                            main.updatePeerStatus(split[2], ConnectedPeer.STATUS_WARNING, LeadMeMain.STUDENT_NO_OVERLAY);
                         }
                         break;
 
                     } else if (action.startsWith(LeadMeMain.STUDENT_OFF_TASK_ALERT)) {
                         String[] split = action.split(":");
-                        //Log.i(TAG, "STUDENT OFF TASK? " + split[1]);
-                        main.getConnectedLearnersAdapter().updateStatus(split[1], ConnectedPeer.STATUS_WARNING, LeadMeMain.STUDENT_OFF_TASK_ALERT);
+                        main.updatePeerStatus(split[1], ConnectedPeer.STATUS_WARNING, LeadMeMain.STUDENT_OFF_TASK_ALERT);
                         break;
 
                     } else if (action.startsWith(LeadMeMain.STUDENT_NO_INTERNET)) {
                         String[] split = action.split(":");
-                        //Log.i(TAG, "STUDENT HAS INTERNET? " + split[1].equals("OK"));
-                        //main.getConnectedLearnersAdapter().updateStatus(split[2], ConnectedPeer.STATUS_ERROR, split[1]);
                         if (split[1].equalsIgnoreCase("OK")) {
                             //clear previous flag
-                            main.getConnectedLearnersAdapter().updateStatus(split[2], ConnectedPeer.STATUS_SUCCESS, LeadMeMain.STUDENT_NO_INTERNET);
+                            main.updatePeerStatus(split[2], ConnectedPeer.STATUS_SUCCESS, LeadMeMain.STUDENT_NO_INTERNET);
                         } else {
-                            main.getConnectedLearnersAdapter().updateStatus(split[2], ConnectedPeer.STATUS_WARNING, LeadMeMain.STUDENT_NO_INTERNET);
+                            main.updatePeerStatus(split[2], ConnectedPeer.STATUS_WARNING, LeadMeMain.STUDENT_NO_INTERNET);
                         }
                         break;
 
                     } else if(action.startsWith(LeadMeMain.STUDENT_NO_XRAY)){
                         String[] split = action.split(":");
                         if (split[1].equalsIgnoreCase("OK")) {
-                            main.getConnectedLearnersAdapter().updateStatus(split[2], ConnectedPeer.STATUS_SUCCESS, LeadMeMain.STUDENT_NO_XRAY);
+                            main.updatePeerStatus(split[2], ConnectedPeer.STATUS_SUCCESS, LeadMeMain.STUDENT_NO_XRAY);
                         } else {
-                            main.getConnectedLearnersAdapter().updateStatus(split[2], ConnectedPeer.STATUS_WARNING, LeadMeMain.STUDENT_NO_XRAY);
+                            main.updatePeerStatus(split[2], ConnectedPeer.STATUS_WARNING, LeadMeMain.STUDENT_NO_XRAY);
                         }
 
                     } else if (action.startsWith(LeadMeMain.STUDENT_NO_ACCESSIBILITY)) {
                         String[] split = action.split(":");
-                        //Log.i(TAG, "STUDENT HAS ACCESS? " + split[1].equals("OK"));
-                        //main.getConnectedLearnersAdapter().updateStatus(split[2], ConnectedPeer.STATUS_ERROR, split[1]);
                         if (split[1].equalsIgnoreCase("OK")) {
-                            //clear previous flag
-                            main.getConnectedLearnersAdapter().updateStatus(split[2], ConnectedPeer.STATUS_SUCCESS, LeadMeMain.STUDENT_NO_ACCESSIBILITY);
+                            main.updatePeerStatus(split[2], ConnectedPeer.STATUS_SUCCESS, LeadMeMain.STUDENT_NO_ACCESSIBILITY);
                         } else {
-                            main.getConnectedLearnersAdapter().updateStatus(split[2], ConnectedPeer.STATUS_WARNING, LeadMeMain.STUDENT_NO_ACCESSIBILITY);
+                            main.updatePeerStatus(split[2], ConnectedPeer.STATUS_WARNING, LeadMeMain.STUDENT_NO_ACCESSIBILITY);
                         }
+                        break;
+
+                    } else if (action.startsWith(LeadMeMain.PERMISSION_DENIED)) {
+                        String[] split = action.split(":");
+                        //TODO update the message to reflect what has happened
+                        main.updatePeerStatus(split[1], ConnectedPeer.STATUS_WARNING, LeadMeMain.STUDENT_OFF_TASK_ALERT);
+                        Log.e("PERMISSIONS", "Peer: " + split[1] + " has denied permission: " + split[2]);
                         break;
 
                     } else if (action.startsWith(LeadMeMain.TRANSFER_ERROR)) {
@@ -475,10 +479,36 @@ public class DispatchManager {
                         main.getFileTransfer().removePeer(split[1], split[2]);
                         break;
 
+                    } else if(action.startsWith(LeadMeMain.FILE_TRANSFER)) {
+                        String[] split = action.split(":");
+                        main.askForPeerPermission(LeadMeMain.FILE_TRANSFER, Boolean.parseBoolean(split[1]));
+                        break;
+
+                    } else if(action.startsWith(LeadMeMain.AUTO_INSTALL)) {
+                        String[] split = action.split(":");
+                        main.askForPeerPermission(LeadMeMain.AUTO_INSTALL, Boolean.parseBoolean(split[1]));
+                        break;
+
+                    } else if(action.startsWith(LeadMeMain.MULTI_INSTALL)) {
+                        String[] split = action.split(":"); //get the instructions
+                        String applications = split[2]; //get the array of apps currently in string form
+                        //change the string array into an array
+                        String[] appArray = applications.replace("[","").replace("]","").split(",");
+                        String[] firstApp = appArray[0].split("//");
+                        main.getLumiAppInstaller().autoInstall(firstApp[0], firstApp[1], split[1], appArray);
+                        break;
+
+                    } else if(action.startsWith(LeadMeMain.APP_NOT_INSTALLED)) {
+                        String[] split = action.split(":");
+                        //get the student id add it to the need to install array.
+                        Log.d(TAG, "Application needed on peer: " + split[3]);
+                        main.getLumiAppInstaller().peersToInstall.add(split[3]);
+                        //open a dialog to confirm if wanting to install apps
+                        main.getLumiAppInstaller().applicationsToInstallWarning(split[1], split[2], false); //should auto update number of devices need as the action come in
+                        break;
+
                     } else if (action.startsWith(LeadMeMain.AUTO_INSTALL_FAILED)) {
                         String[] split = action.split(":");
-                        //Log.i(TAG, "FAILED " + split[2]);
-                        //main.getConnectedLearnersAdapter().updateStatus(split[2], ConnectedPeer.STATUS_WARNING, LeadMeMain.AUTO_INSTALL_FAILED);
                         main.getConnectedLearnersAdapter().appLaunchFail(split[2], split[1]);
 
                         //in this case, student will be back in LeadMe, so update icon too
@@ -487,7 +517,38 @@ public class DispatchManager {
 
                     } else if (action.startsWith(LeadMeMain.AUTO_INSTALL_ATTEMPT)) {
                         String[] split = action.split(":");
-                        main.getConnectedLearnersAdapter().updateStatus(split[2], ConnectedPeer.STATUS_INSTALLING);
+                        main.updatePeerStatus(split[2], ConnectedPeer.STATUS_INSTALLING, null);
+                        break;
+
+                    } else if(action.startsWith(LeadMeMain.COLLECT_APPS)) { //collecting apps from a learner device
+                        //collect all applications(package name & app name) installed on learner device
+                        List<String> applicationInfo = new ArrayList<String>(main.getAppManager().refreshAppList());
+
+                        //send back to the leader - placeholder for now
+                        sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.APP_COLLECTION + ":" + applicationInfo,
+                                main.getNearbyManager().getSelectedPeerIDs());
+                        break;
+
+                    } else if(action.startsWith(LeadMeMain.APP_COLLECTION)) { //leader receiving an app collection from a learner
+                        String[] split = action.split(":"); //get the app array
+                        String applications = split[1]; //get the array of apps currently in string form
+                        //change the string array into an array
+                        String[] appArray = applications.replace("[", "").replace("]", "").split(",");
+
+                        Collections.addAll(main.getLumiAppInstaller().peerApplications, appArray);
+                        main.getLumiAppInstaller().populateUninstall();
+
+                        break;
+
+                    } else if(action.startsWith(LeadMeMain.AUTO_UNINSTALL)) {
+                        String[] split = action.split(":"); //get the instructions
+                        String applications = split[2]; //get the array of apps currently in string form
+                        //change the string array into an array
+                        String[] appArray = applications.replace("[","").replace("]","").split(",");
+                        Collections.addAll(main.getLumiAppInstaller().appsToManage, appArray);
+
+                        main.getLumiAppInstaller().runUninstaller();
+
                         break;
 
                     } else if (action.startsWith(LeadMeMain.LAUNCH_SUCCESS)) {
@@ -496,25 +557,26 @@ public class DispatchManager {
 
                         switch (split[1]) {
                             case "LOCKON":
-                                main.getConnectedLearnersAdapter().updateStatus(split[2], ConnectedPeer.STATUS_LOCK);
-
+                                main.updatePeerStatus(split[2], ConnectedPeer.STATUS_LOCK, null);
                                 break;
+
                             case "LOCKOFF":
-                                main.getConnectedLearnersAdapter().updateStatus(split[2], ConnectedPeer.STATUS_UNLOCK);
-                                //main.getConnectedLearnersAdapter().refreshAlertsView();
+                                main.updatePeerStatus(split[2], ConnectedPeer.STATUS_UNLOCK, null);
                                 break;
+
                             case "BLACKOUT":
-                                main.getConnectedLearnersAdapter().updateStatus(split[2], ConnectedPeer.STATUS_BLACKOUT);
-
+                                main.updatePeerStatus(split[2], ConnectedPeer.STATUS_BLACKOUT, null);
                                 break;
+
                             default:
-                                //Log.d(TAG, "Updating icon to " + split[3]);
-                                main.getConnectedLearnersAdapter().updateStatus(split[2], ConnectedPeer.STATUS_SUCCESS, LeadMeMain.STUDENT_OFF_TASK_ALERT);
+                                if (split[1].equals("INSTALLED")) { //remove the downloading icon from the peer
+                                    main.updatePeerStatus(split[2], ConnectedPeer.STATUS_INSTALLED, null);
+                                }
+                                main.updatePeerStatus(split[2], ConnectedPeer.STATUS_SUCCESS, LeadMeMain.STUDENT_OFF_TASK_ALERT);
                                 main.getConnectedLearnersAdapter().appLaunchSuccess(split[2], split[1]);
-                                //main.getConnectedLearnersAdapter().updateStatus(split[2], ConnectedPeer.STATUS_SUCCESS);
                                 main.getConnectedLearnersAdapter().updateIcon(split[2], main.getAppManager().getAppIcon(split[3]));
-
                                 break;
+
                         }
                         break;
 
@@ -551,7 +613,7 @@ public class DispatchManager {
         if (launchAppOnFocus != null) {
             final String[] tmp = launchAppOnFocus;
             launchAppOnFocus = null; //reset
-            main.getAppManager().launchLocalApp(tmp[0], tmp[1], true, false);
+            main.getAppManager().launchLocalApp(tmp[0], tmp[1], true, false, "false", null);
         }
     }
 
@@ -563,6 +625,7 @@ public class DispatchManager {
         final String packageName = p.readString();
         final String appName = p.readString();
         final String lockTag = p.readString();
+        final String install = p.readString();
         final String extra = p.readString();
         final String streaming = p.readString();
         final String vrMode = p.readString();
@@ -629,7 +692,7 @@ public class DispatchManager {
             } else {
                 Log.d(TAG, "HAVE FOCUS!");
                 launchAppOnFocus = null; //reset
-                main.getHandler().post(() -> main.getAppManager().launchLocalApp(packageName, appName, true, false));
+                main.getHandler().post(() -> main.getAppManager().launchLocalApp(packageName, appName, true, false, install, null));
 
             }
             return true;

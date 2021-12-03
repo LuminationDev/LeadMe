@@ -22,7 +22,7 @@ public class LumiAccessibilityConnector {
     public static final String PROPAGATE_ACTION = "com.lumination.leadme.PROPAGATED_ACTION";
 
     private LeadMeMain main;
-    private String lastAppName, lastPackageName;
+//    private String lastAppName, lastPackageName;
 
     //handler for executing on the main thread
     private DispatchManager dispatcher;
@@ -262,116 +262,11 @@ public class LumiAccessibilityConnector {
 
             }
 
-
-            //check if we're trying to install something and respond appropriately
+            //check if we're trying to install something, respond appropriately
             if ((AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED == event.getEventType()
-                    || (AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED == event.getEventType()))
-                    && (lastAppName != null) && (lastAppName.length() > 0)) {
-                AccessibilityNodeInfo nodeInfo = event.getSource();
-                if (nodeInfo == null) {
-                    return false;
-                }
-
-                //TODO this hasn't been tested since some pretty major updates were made
-                //needs thorough testing before release
-
-                List<AccessibilityNodeInfo> installNodes = nodeInfo.findAccessibilityNodeInfosByText("Install");
-                List<AccessibilityNodeInfo> acceptNodes = nodeInfo.findAccessibilityNodeInfosByText("ACCEPT"); //is this case sensitive?
-                List<AccessibilityNodeInfo> openNodes = nodeInfo.findAccessibilityNodeInfosByText("Open");
-
-                String needsAccessTxt = "needs access to";
-                List<AccessibilityNodeInfo> accessToTextNodes = nodeInfo.findAccessibilityNodeInfosByText(needsAccessTxt);
-                List<AccessibilityNodeInfo> textNodes = nodeInfo.findAccessibilityNodeInfosByText(lastAppName);
-
-                AccessibilityNodeInfo acceptButton = null, installerButton = null, openButton = null;
-                boolean foundTitle = false, foundNeedsAccess = false;
-
-                //TODO also check for 'Needs access to'
-                for (AccessibilityNodeInfo node : acceptNodes) {
-                    if (node.getText() != null && node.getText().equals("ACCEPT")) {
-                        if (showDebugMsg)
-                            Log.i(TAG, "ACC::onAccessibilityEvent: Accept (" + lastAppName + ") " + node.getPackageName() + " for " + node.getText());
-                        acceptButton = node;
-                        break;
-                    }
-                }
-
-                for (AccessibilityNodeInfo node : installNodes) {
-                    if (node.getText() != null && node.getText().equals("Install")) {
-                        if (showDebugMsg)
-                            Log.i(TAG, "ACC::onAccessibilityEvent: Install (" + lastAppName + ") " + node.getPackageName() + " for " + node.getText());
-                        installerButton = node;
-                        break;
-                    }
-                }
-
-                for (AccessibilityNodeInfo node : openNodes) {
-                    if (node.getText() != null && node.getText().equals("Open")) {
-                        if (showDebugMsg)
-                            Log.i(TAG, "ACC::onAccessibilityEvent: Open (" + lastAppName + ") " + node.getPackageName() + " for " + node.getText());
-                        openButton = node;
-                        break;
-                    }
-                }
-
-                for (AccessibilityNodeInfo node : textNodes) {
-                    if (node.getText() != null && node.getText().equals(lastAppName)) {
-                        //found one, that's enough
-                        foundTitle = true;
-                        if (showDebugMsg)
-                            Log.i(TAG, "ACC::onAccessibilityEvent: Title (" + lastAppName + ") " + node.getPackageName() + " for " + node.getText());
-                        break;
-                    }
-                }
-
-                for (AccessibilityNodeInfo node : accessToTextNodes) {
-                    if (node.getText() != null && node.getText().equals(needsAccessTxt)) {
-                        //found it once, that's enough
-                        foundNeedsAccess = true;
-                        if (showDebugMsg)
-                            Log.i(TAG, "ACC::onAccessibilityEvent: Needs Access (" + needsAccessTxt + ") " + node.getPackageName() + " for " + node.getText());
-                        break;
-                    }
-                }
-
-                //if we can open it, it's already installed
-                if (openButton != null && foundTitle) {
-                    if (showDebugMsg)
-                        Log.i(TAG, ">> Now let's launch it! " + openNodes.size() + ", " + openButton + ", " + openButton.isClickable());
-
-                    if (openButton.isClickable()) {
-                        boolean success = openButton.performAction(AccessibilityNodeInfo.ACTION_CLICK);
-                        if (!success) {
-                            if (showDebugMsg)
-                                Log.i(TAG, ">> Second try opening it... " + openNodes.size() + ", " + openButton);
-                            success = openNodes.get(0).performAction(AccessibilityNodeInfo.ACTION_CLICK);
-                        }
-                        if (!success) {
-                            if (showDebugMsg)
-                                Log.i(TAG, ">> Third try opening it... " + openNodes.size() + ", " + openButton);
-                            main.getAppManager().launchLocalApp(lastPackageName, lastAppName, true, false);
-                        }
-                        lastAppName = null; //reset, we're done
-                        return true; //all done, can exit
-                    } else {
-                        if (showDebugMsg) Log.d(TAG, "Not clickable yet...");
-                        return false;
-                    }
-                }
-
-                //otherwise we need to install it
-                if (installerButton != null && foundTitle) {
-                    if (showDebugMsg)
-                        Log.i(TAG, ">> Let's try to install that app! " + installNodes.size());
-                    installerButton.performAction(AccessibilityNodeInfo.ACTION_CLICK);
-                }
-
-                //we might need to accept permissions
-                if (acceptButton != null && foundNeedsAccess) {
-                    if (showDebugMsg)
-                        Log.i(TAG, ">> Let's accept it's permissions! " + acceptNodes.size());
-                    acceptButton.performAction(AccessibilityNodeInfo.ACTION_CLICK);
-                }
+                    || (AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED == event.getEventType()))) {
+                //run the install event
+                main.autoInstall(event);
             }
 
         } catch (Exception e) {
@@ -387,13 +282,6 @@ public class LumiAccessibilityConnector {
         }
 
         return false;
-    }
-
-    public void prepareToInstall(String packageName, String appName) {
-        Log.d(TAG, "prepareToInstall: ");
-        lastAppName = appName;
-        lastPackageName = packageName;
-        Log.d(TAG, "PREPARING TO INSTALL " + lastAppName);
     }
 
     protected void triageReceivedIntent(Intent intent) {
@@ -435,6 +323,4 @@ public class LumiAccessibilityConnector {
             }
         }
     }
-
-
 }

@@ -186,7 +186,7 @@ public class VREmbedPlayer {
             setupVideoPreview(controllerVideoView);
 
             //LAUNCH THE APPLICATION FROM HERE
-            main.getAppManager().launchApp(packageName, appName, false);
+            main.getAppManager().launchApp(packageName, appName, false, "false");
             showPushConfirmed();
 
             //Set the source for the peers device
@@ -329,7 +329,7 @@ public class VREmbedPlayer {
 
     private void setupGuideVideoControllerButtons() {
         videoControllerDialogView.findViewById(R.id.push_again_btn).setOnClickListener(v -> {
-            main.getAppManager().launchApp(packageName, appName, false);
+            main.getAppManager().launchApp(packageName, appName, false, "false");
             setVideoSource(startFromTime);
         });
 

@@ -20,12 +20,15 @@ import android.widget.Toast;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class AppManager extends BaseAdapter {
     private LeadMeMain main;
     private PackageManager pm;
     private List<ApplicationInfo> appList;
+    private ArrayList<String> appNameList;
     private final LayoutInflater inflater;
     private String defaultBrowserUrl = "";
     protected Drawable app_placeholder;
@@ -92,6 +95,7 @@ public class AppManager extends BaseAdapter {
 
     private List<ApplicationInfo> listApps() {
         appList = new ArrayList<>();
+        appNameList = new ArrayList<String>();
         ArrayList<String> nameList = new ArrayList<>();
         try {
             Intent mainIntent = new Intent(Intent.ACTION_MAIN, null);
@@ -107,6 +111,7 @@ public class AppManager extends BaseAdapter {
                 //check to avoid double ups and avoid adding this app to the list
                 if (!nameList.contains(ai.packageName) && !ai.packageName.equals(main.getPackageName())) {
                     appList.add(ai);
+                    appNameList.add(getAppName(ai.packageName) + "//" + ai.packageName);
                     nameList.add(ai.packageName); //to prevent duplicates
                 }
             }
@@ -117,6 +122,14 @@ public class AppManager extends BaseAdapter {
             Log.e(TAG, e.getLocalizedMessage());
         }
         return null;
+    }
+
+    /**
+     * Refresh the local app list in case something has been installed during the current session.
+     */
+    public List<String> refreshAppList() {
+        listApps();
+        return this.appNameList;
     }
 
     public String lastApp = "";
@@ -134,7 +147,7 @@ public class AppManager extends BaseAdapter {
         Log.w(TAG, "Relaunching: " + taskType + ", " + url + ", " + packageName);
         switch (taskType) {
             case "Application":
-                launchLocalApp(packageName, appName, false, true);
+                launchLocalApp(packageName, appName, false, true, "false", null);
                 break;
             case "VR Video":
                 if (packageName.equals(main.getAppManager().withinPackage)) {
@@ -151,16 +164,21 @@ public class AppManager extends BaseAdapter {
     }
 
     /**
-     * used by LEARNER to launch an app as requested by LEADER
-     **/
-    public void launchLocalApp(String packageName, String appName, boolean updateCurrentTask, boolean relaunch) {
+     * Used by LEARNER to launch an app as requested by LEADER through the dispatch manager.
+     * @param packageName A string representing the google play store package name.
+     * @param appName A string representing the name of the application.
+     * @param updateCurrentTask A boolean for if the peer needs to update their current task.
+     * @param relaunch A boolean for if the application is being launched.
+     * @param install A string representing if the application needs to be installed.
+     * @param multipleInstall An array of strings holding the package names of applications to be installed.
+     */
+    public void launchLocalApp(String packageName, String appName, boolean updateCurrentTask, boolean relaunch, String install, String[] multipleInstall) {
         //check overlay status and alert leader if there's an issue
         main.verifyOverlay();
 
         //launch it locally
         String actualAppPackage = packageName;
         Intent intent = main.getPackageManager().getLaunchIntentForPackage(packageName);
-
 
         if (intent == null) {
 
@@ -174,15 +192,14 @@ public class AppManager extends BaseAdapter {
                 //prepare to install, which includes temporarily turning off
                 //overlay to allow capture of accessibility events
             } else if (main.autoInstallApps) {
-                autoInstall(packageName, appName);
+                main.getLumiAppInstaller().autoInstall(packageName, appName, install, multipleInstall);
                 return;
 
-            } else {
-                main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.AUTO_INSTALL_FAILED + appName + ":" + main.getNearbyManager().getID(), main.getNearbyManager().getSelectedPeerIDsOrAll());
-                Toast toast = Toast.makeText(main, "Sorry, the app '" + appName + "' doesn't exist on this device!", Toast.LENGTH_SHORT);
-                toast.show();
-                return;
             }
+//            else { //TODO AUTO INSTALLER
+//                main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.APP_NOT_INSTALLED + ":" + appName + ":" + packageName + ":" + main.getNearbyManager().getID(), main.getNearbyManager().getSelectedPeerIDsOrAll());
+//                return;
+//            }
         }
 
         if (packageName.equals(withinPackage)) {
@@ -222,31 +239,15 @@ public class AppManager extends BaseAdapter {
         main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.LAUNCH_SUCCESS + appName + ":" + main.getNearbyManager().getID() + ":" + actualAppPackage, main.getNearbyManager().getAllPeerIDs());
     }
 
-    protected void autoInstall(String packageName, String appName) {
-        main.getLumiAccessibilityConnector().prepareToInstall(packageName, appName);
-
-        //launch Play Store page
-        Intent intent = new Intent(Intent.ACTION_VIEW);
-        intent.setData(Uri.parse("market://details?id=" + packageName));//,  "application/vnd.android.package-archive");
-        main.startActivity(intent);
-        main.getAppManager().lastApp = intent.getPackage();
-
-        main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.AUTO_INSTALL_ATTEMPT + appName + ":" + main.getNearbyManager().getID(), main.getNearbyManager().getSelectedPeerIDsOrAll());
-        Toast toast = Toast.makeText(main, "Attempting to install '" + appName + "', please wait...", Toast.LENGTH_SHORT);
-        toast.show();
-        return;
-
-    }
-
     private Spinner lockSpinner, withinLockSpinner;
 
     /**
      * used by LEADER to launch an app on LEARNER devices
      **/
-    public void launchApp(String packageName, String appName, boolean guideToo) {
+    public void launchApp(String packageName, String appName, boolean guideToo, String install) {
         if (guideToo) {
             //launch it locally
-            launchLocalApp(packageName, appName, true, false);
+            launchLocalApp(packageName, appName, true, false, install, null);
         }
 
         //update lock status
@@ -257,7 +258,12 @@ public class AppManager extends BaseAdapter {
         }
 
         //send launch request
-        main.getDispatcher().requestRemoteAppOpen(LeadMeMain.APP_TAG, packageName, appName, lockTag, main.getNearbyManager().getSelectedPeerIDsOrAll());
+        if(install.equals("false")) { //normal app request
+            main.getDispatcher().requestRemoteAppOpen(LeadMeMain.APP_TAG, packageName, appName, lockTag, install, main.getNearbyManager().getSelectedPeerIDsOrAll());
+        } else { //confirmation of installation - only target peers who have to install
+            Set<String> peerSet = new HashSet<>(main.getLumiAppInstaller().peersToInstall);
+            main.getDispatcher().requestRemoteAppOpen(LeadMeMain.APP_TAG, packageName, appName, lockTag, install, peerSet);
+        }
     }
 
     public WithinEmbedPlayer getWithinPlayer() {
@@ -327,6 +333,8 @@ public class AppManager extends BaseAdapter {
             convertView.setTag(viewHolder);
         }
 
+        ImageView selectedIndicator = convertView.findViewById(R.id.selected_indicator);
+
         final ViewHolder viewHolder = (ViewHolder) convertView.getTag();
         viewHolder.myTextView.setText(appName);
         viewHolder.myIcon.setContentDescription(appName); //for screen readers
@@ -337,7 +345,10 @@ public class AppManager extends BaseAdapter {
 
             convertView.setOnClickListener(v -> {
                 Log.i(TAG, "Launching " + appName + " from " + packageName + " " + withinPackage);
-                if (packageName.equals(withinPackage)) {
+
+                if(main.getLumiAppInstaller().multiInstalling) { //selecting apps to install - first so Within can be selected
+                    main.getLumiAppInstaller().selectToInstall(selectedIndicator, appName + "//" + packageName);
+                } else if (packageName.equals(withinPackage)) {
                     Log.d(TAG, "getView: is a within package");
                     withinPlayer.showWithin(); //showGuideController();
                 } else if(packageName.equals(vrplayerPackage)) {
@@ -370,8 +381,4 @@ public class AppManager extends BaseAdapter {
             myIcon = itemView.findViewById(R.id.app_icon);
         }
     }
-
 }
-
-
-

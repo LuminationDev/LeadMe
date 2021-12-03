@@ -16,6 +16,8 @@ public class ConnectedPeer {
     public static final int STATUS_UNLOCK = 5;
     public static final int STATUS_OFF_TASK = 6;
     public static final int STATUS_WARNING = 7;
+    public static final int STATUS_FILE_TRANSFER = 8;
+    public static final int STATUS_INSTALLED = 9;
 
     public static final int PRIORITY_TOP = 2;
     public static final int PRIORITY_HIGH = 1;

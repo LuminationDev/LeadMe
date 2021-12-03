@@ -62,12 +62,10 @@ public class NetworkAdapter {
     NsdManager.DiscoveryListener mDiscoveryListener = null;
     NsdManager.RegistrationListener mRegistrationListener = null;
 
-
     public static final String SERVICE_TYPE = "_http._tcp.";
     public static final String TAG = "NetworkAdapter";
     public String mServiceName = "LeadMe";
     public String Name = "Temp";
-
 
     public ServerSocket mServerSocket = null; //server socket for server
     Socket clientsServerSocket = null;//server socket for client
@@ -161,8 +159,6 @@ public class NetworkAdapter {
                                 }
                             }
                         });
-
-//                        }
                     }
                 }
 
@@ -198,7 +194,6 @@ public class NetworkAdapter {
             };
         }
     }
-
 
     /*
     Resolves services found by the discovery listener, will check if is same machine
@@ -300,6 +295,7 @@ public class NetworkAdapter {
         return false;
     }
 
+    //TODO fix this
     public void connectToServer(NsdServiceInfo serviceInfo) {
         mService=serviceInfo;
         if (clientsServerSocket == null) {
@@ -307,7 +303,6 @@ public class NetworkAdapter {
                 Log.d(TAG, "connectToServer: attempting to connect to " + serviceInfo.getHost() + ":" + serviceInfo.getPort());
                 clientsServerSocket = new Socket(serviceInfo.getHost(), serviceInfo.getPort());
             } catch (IOException e) {
-
                 e.printStackTrace();
             }
             if (clientsServerSocket != null) {
@@ -605,45 +600,19 @@ public class NetworkAdapter {
             case "PING":
                 nearbyPeersManager.myID = inputList.get(1);
                 connectionIsActive = timeOut;
-//                if (main.waitingDialog.isShowing()) {
-//                    main.getHandler().post(() -> main.closeWaitingDialog(true));
-//                }
                 Log.d(TAG, "messageReceivedFromServer: PING!!");
                 pingName = false;
                 Log.d(TAG, "messageReceivedFromServer: received ping and subsequently ignoring it");
                 break;
 
-            case "MONITOR":
-//                if (inputList.get(1).contains(":")) {
-//                    List<String> inputList2 = Arrays.asList(inputList.get(1).split(":"));
-//                    if (inputList2.get(0).equals("START")) {
-//                        main.runOnUiThread(() -> {
-//                            Log.w(TAG, "Starting client monitoring server!");
-//                            main.getPermissionsManager().waitingForPermission = true;
-//                            main.xrayManager.startServer();
-//                            main.xrayManager.startScreenshotRunnable(clientsServerSocket.getInetAddress(), Integer.parseInt(inputList2.get(1)));
-//                            if (main.xrayScreen.getVisibility() != View.VISIBLE) {
-//                                main.xrayManager.screenshotPaused = true;
-//                            }
-//                        });
-//                    }
-//                    Log.d(TAG, "messageReceivedFromServer: [MONITOR] " + inputList.get(1));
-//
-//                } else {
-//                    if (inputList.get(1).equals("STOP")) {
-//                        //main.takeScreenshots=false;
-//                        main.xrayManager.stopServer();
-//                        main.xrayManager.stopScreenshotRunnable();
-//                    } else {
-//                        main.xrayManager.setScreenshotRate(Integer.parseInt(inputList.get(1)));
-//                    }
-//                }
-                break;
-
             case "FILE":
                 List<String> inputList2 = Arrays.asList(inputList.get(1).split(":"));
                 Log.d(TAG, String.valueOf(inputList2));
-                main.getFileTransfer().receivingFile(clientsServerSocket.getInetAddress(), Integer.parseInt(inputList2.get(1)));
+                if(main.fileTransferEnabled) {
+                    main.getFileTransfer().receivingFile(clientsServerSocket.getInetAddress(), Integer.parseInt(inputList2.get(1)));
+                } else {
+                    main.permissionDenied(LeadMeMain.FILE_TRANSFER);
+                }
                 break;
 
             default:
@@ -675,6 +644,10 @@ public class NetworkAdapter {
                 mServerSocket = new ServerSocket();
                 mServerSocket.setReuseAddress(true);
                 mServerSocket.bind(new InetSocketAddress(54321));
+
+                //Let the system pick the first available port number?
+                //Port may be blocked by the school or network connection
+//                mServerSocket.bind(new InetSocketAddress(0));
 
                 localport = mServerSocket.getLocalPort();
 
@@ -731,9 +704,10 @@ public class NetworkAdapter {
         serviceInfo.setServiceName(Name + "#Teacher");
         serviceInfo.setServiceType(SERVICE_TYPE);
 
+        Log.e("LOCALPORT", "Port: " + localport);
+
         mNsdManager.registerService(serviceInfo, NsdManager.PROTOCOL_DNS_SD, mRegistrationListener);
         //startServer();
-
     }
 
     //only stops the service from being discoverable and should not drop current connections
@@ -742,6 +716,7 @@ public class NetworkAdapter {
             try {
                 mNsdManager.unregisterService(mRegistrationListener);
             } finally {
+
             }
             mRegistrationListener = null;
         }
@@ -862,6 +837,7 @@ public class NetworkAdapter {
         if(mServerSocket!=null) {
             try {
                 mServerSocket.close();
+                Log.e("CLOSING PORT", "Server closing");
                 if (multicastLock != null) {
                     multicastLock.release();
                     multicastLock = null;

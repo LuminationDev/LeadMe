@@ -13,7 +13,6 @@
     <string name="all_apps">All Apps</string>
     <string name="connected_label">Connected</string>
     <string name="connect_label">Connect</string>
-    <string name="auto_install_title">Auto-install apps</string>
     <string name="reset_sett_app">Settings</string>
     <string name="exit_app">Exit</string>
     <string name="student_view_blocked">Your view has been blocked</string>
@@ -114,6 +113,17 @@
     <string name="download">Download</string>
     <string name="re_push">Re-push</string>
     <string name="x_ray_view">X-Ray View</string>
+
+    <string name="auto_install_title">Auto-install apps</string>
+    <string name="install_confirm">Installation Confirmation</string>
+    <string name="install">Install</string>
+    <string name="application_installer">Application Installer</string>
+    <string name="uninstall">Uninstall</string>
+    <string name="application_uninstaller">Uninstall Applications</string>
+    <string name="transfer_in_progress">Transferring File</string>
+    <string name="turn_on">Turn On</string>
+    <string name="confirm">Confirm</string>
+    <string name="time_warning">"It may take some time to install depending on the Wifi speed. \n Are you sure you want to install?"</string>
 
     <string name="playback_settings_title">Playback Settings</string>
     <string name="playback_controls_title">Control Playback</string>
