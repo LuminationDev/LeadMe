@@ -79,7 +79,8 @@ public class NetworkAdapter {
     boolean pingName = true;
     boolean closeSocket = false;
     int connectionIsActive = 0;
-    int timeOut= 2;
+    int timeOut = 2;
+    int PORT = 54321; //port used for connection
 
     // Acquire multicast lock
     WifiManager.MulticastLock multicastLock;
@@ -103,7 +104,6 @@ public class NetworkAdapter {
         netAdapt = this;
         this.nearbyPeersManager = nearbyPeersManager;
         this.main = main;
-        setMulticastLock();
         mNsdManager = (NsdManager) context.getSystemService(Context.NSD_SERVICE);
         resolver = new resListener();
         startServer();
@@ -203,7 +203,6 @@ public class NetworkAdapter {
         @Override
         public void onResolveFailed(NsdServiceInfo serviceInfo, int errorCode) {
             Log.e(TAG, "Resolve failed " + errorCode);
-            return;
         }
 
         @Override
@@ -238,8 +237,6 @@ public class NetworkAdapter {
                     resInProgress=false;
                 }
             });
-
-            return;
         }
     }
 
@@ -270,7 +267,6 @@ public class NetworkAdapter {
                 public void onUnregistrationFailed(NsdServiceInfo serviceInfo, int errorCode) {
                     Log.d(TAG, "Service unregistration failed: " + errorCode);
                 }
-
             };
         }
     }
@@ -639,11 +635,13 @@ public class NetworkAdapter {
         public void run() {
 
             try {
+                setMulticastLock();
+
                 // Since discovery will happen via Nsd, we don't need to care which port is
-                // used.  Just grab an available one  and advertise it via Nsd.
+                // used.  Just grab an available one and advertise it via Nsd.
                 mServerSocket = new ServerSocket();
                 mServerSocket.setReuseAddress(true);
-                mServerSocket.bind(new InetSocketAddress(54321));
+                mServerSocket.bind(new InetSocketAddress(PORT));
 
                 //Let the system pick the first available port number?
                 //Port may be blocked by the school or network connection
@@ -651,7 +649,6 @@ public class NetworkAdapter {
 
                 localport = mServerSocket.getLocalPort();
 
-                //while (!Thread.currentThread().isInterrupted()) {
                 while (true) {
                     Log.d(TAG, "ServerSocket Created, awaiting connection");
                     Socket clientSocket = null;
@@ -665,15 +662,6 @@ public class NetworkAdapter {
                         throw new RuntimeException("Error creating client", e);
                     }
                     Log.d(TAG, "run: client connected");
-                    Socket finalClientSocket = clientSocket;
-//                    Runnable clientRun = new Runnable(){
-//                        @Override
-//                        public void run() {
-//                            new TcpClient(finalClientSocket, netAdapt, clientID);
-//                            clientID++;
-//                        }
-//                    };
-//                    main.backgroudExecutor.submit(clientRun);
                     TcpClient tcp = new TcpClient(clientSocket, netAdapt, clientID);
                     Thread client = new Thread(tcp); //new thread for every client
                     studentThread st = new studentThread();
@@ -684,7 +672,6 @@ public class NetworkAdapter {
                     clientThreadList.get(clientThreadList.size() - 1).t.start();
                     Log.d(TAG, "Connected.");
                 }
-                //}
             } catch (Exception e) {
                 Log.e(TAG, "Error creating ServerSocket: ", e);
                 e.printStackTrace();
@@ -697,17 +684,21 @@ public class NetworkAdapter {
         stopAdvertising();  // Cancel any previous registration request
         initializeRegistrationListener();
         NsdServiceInfo serviceInfo = new NsdServiceInfo();
+
         if (localport < 0) {
+            main.getDialogManager().showWarningDialog("Connection Issue",
+                    "Invalid Port Number, please restart the application.");
             Log.d(TAG, "startAdvertising: ERROR - Server not started");
         }
-        serviceInfo.setPort(localport);
+
+//        serviceInfo.setPort(localport);
+        serviceInfo.setPort(PORT); //Use the hard coded port
         serviceInfo.setServiceName(Name + "#Teacher");
         serviceInfo.setServiceType(SERVICE_TYPE);
 
         Log.e("LOCALPORT", "Port: " + localport);
 
         mNsdManager.registerService(serviceInfo, NsdManager.PROTOCOL_DNS_SD, mRegistrationListener);
-        //startServer();
     }
 
     //only stops the service from being discoverable and should not drop current connections
@@ -716,17 +707,14 @@ public class NetworkAdapter {
             try {
                 mNsdManager.unregisterService(mRegistrationListener);
             } finally {
-
+                mRegistrationListener = null;
             }
-            mRegistrationListener = null;
         }
     }
 
     //starts a new server thread as seen below
     public void startServer() {
         Server = main.backgroundExecutor.submit(new ServerThread());
-//        mThread = new Thread();
-//        mThread.start();
     }
 
     /*
@@ -833,7 +821,7 @@ public class NetworkAdapter {
     //will drop all currently connected clients
     public void stopServer() {
         Server.cancel(true);
-//        mThread.interrupt();
+
         if(mServerSocket!=null) {
             try {
                 mServerSocket.close();
