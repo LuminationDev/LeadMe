@@ -34,7 +34,7 @@ public class YouTubeAccessibilityManager {
         this.main = main;
     }
 
-
+    public boolean adFinished = false;
     private boolean inVR = false;
     private String goalTime = "";
     private String goalTimeShort = "";
@@ -72,6 +72,7 @@ public class YouTubeAccessibilityManager {
         ArrayList<AccessibilityNodeInfo> detectAdNodes = connector.collectChildren(rootInActiveWindow, detectAdsPhrases, 0);
         if (!detectAdNodes.isEmpty()) {
             Log.e(TAG, "WAITING FOR AD TO FINISH >> " + main.getWebManager().getLaunchTitle());
+            adFinished = false;
 
             for (AccessibilityNodeInfo detectNode : detectAdNodes) {
                 if (detectNode.getText() != null && detectNode.getText().toString().contains("Up next in")) {
@@ -88,27 +89,57 @@ public class YouTubeAccessibilityManager {
             return; //don't do ANYTHING else until the ad is gone
         }
 
+        //send ready status to guide if the ads have finished
+        if(!adFinished) {
+            main.backgroundExecutor.submit(new Runnable() {
+                @Override
+                public void run() {
+                    //Delay the message in case an Ad starts after a half second delay
+                    try {
+                        Thread.sleep(1500);
+
+                        if(adFinished) {
+                            main.getHandler().post(() -> {
+                                alertGuideAdsHaveFinished();
+                            });
+                        }
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+            });
+
+            //Find all the accessibility nodes on the screen.
+            //Use when youtube updates or new buttons are needed to be actioned.
+            //connector.displayAllChildren(rootInActiveWindow);
+
+            adFinished = true;
+        }
+
         Point p = new Point();
         main.windowManager.getDefaultDisplay().getRealSize(p);
 
         dismissPopups(rootInActiveWindow); //do this for each fresh load of the video
 
-        ArrayList<AccessibilityNodeInfo> titleNodes = null;
+        ArrayList<AccessibilityNodeInfo> adNodes = null;
         if (!main.getWebManager().isFreshPlay() && !videoPlayStarted) {
             //this code assists in confirming that the ACTUAL video (not just an ad) has started
             //tapVideoScreen();
             pushTitle = main.getWebManager().getLaunchTitle().trim();
             pushURL = main.getWebManager().getPushURL();
-            titleNodes = connector.collectChildren(rootInActiveWindow, pushTitle, 0);
-            titleNodes.addAll(connector.collectChildren(rootInActiveWindow, "title", 0));
 
-            Log.d(TAG, "Has it started? " + videoPlayStarted + ", " + main.getWebManager().isFreshPlay() + ", " + titleNodes.size() + " for " + pushTitle);
-            tapVideoScreen();
-            if (!titleNodes.isEmpty()) {
+            adNodes = connector.collectChildren(rootInActiveWindow, "Ad", 0);
+
+            adNodes.addAll(connector.collectChildren(rootInActiveWindow, "title", 0));
+
+            Log.d(TAG, "Has it started? " + videoPlayStarted + ", " + main.getWebManager().isFreshPlay() + ", " + adNodes.size() + " for " + pushTitle);
+//            tapVideoScreen();
+
+            if (adNodes.isEmpty()) {
                 Log.e(TAG, "VIDEO STARTED!!");
                 videoPlayStarted = true;
             }
-            tapVideoScreen();
+//            tapVideoScreen();
         }
 
         if (main.getWebManager().isFreshPlay()) {
@@ -118,19 +149,16 @@ public class YouTubeAccessibilityManager {
             videoPlayStarted = false; //reset this here
             closedMini = false; //reset
             main.getWebManager().setFreshPlay(false); //done!
-//            if (!main.getWebManager().launchingVR) {
-//                Log.w(TAG, "Launching!!");
-            //cueYouTubeAction(CUE_PAUSE + "");
+            cueYouTubeAction(CUE_PAUSE + "");
             cueYouTubeAction(CUE_FS_ONLY + "");
-//            }
-        } else if (!videoPlayStarted && !pushTitle.isEmpty() && titleNodes != null && !titleNodes.isEmpty()) {
+        } else if (!videoPlayStarted && !pushTitle.isEmpty() && adNodes == null && adNodes.isEmpty()) {
             //confirms that actual video, not just an ad, has started
-            Log.w(TAG, "Found TITLE for CURRENT video! Title=" + pushTitle + ", " + titleNodes.size());
+            Log.w(TAG, "Ad nodes are empty for CURRENT video! Title=" + pushTitle + ", " + adNodes.size());
             videoPlayStarted = true;
         }
 
         if (!videoPlayStarted) {
-            Log.e(TAG, "Not ready to manage this video yet! " + pushTitle + ", " + titleNodes + " // " + pushURL);
+            Log.e(TAG, "Not ready to manage this video yet! " + pushTitle + ", " + adNodes + " // " + pushURL);
             return; //not ready for the rest yet
         }
 
@@ -209,7 +237,6 @@ public class YouTubeAccessibilityManager {
                     cuedActions.remove(i);
                     break;
             }
-
 
             if (cuedActions.contains(CUE_VR_OFF + "")) {
                 Log.i(TAG, "Exiting VR mode");
@@ -298,6 +325,7 @@ public class YouTubeAccessibilityManager {
             }
 
             if (cuedActions.contains(CUE_PAUSE + "")) {
+//                tapVideoScreen();
                 Log.i(TAG, "Attempting Pause");
                 //can't find the button, try unlocking the screen
                 ArrayList<AccessibilityNodeInfo> playNodes = connector.collectChildren(rootInActiveWindow, getPlayPhrases(), 0);
@@ -320,6 +348,7 @@ public class YouTubeAccessibilityManager {
             }
 
             if (cuedActions.contains(CUE_PLAY + "")) {
+//                tapVideoScreen();
                 Log.i(TAG, "Attempting Play");
                 //can't find the button, try unlocking the screen
                 ArrayList<AccessibilityNodeInfo> pauseNodes = connector.collectChildren(rootInActiveWindow, getPausePhrases(), 0);
@@ -376,14 +405,16 @@ public class YouTubeAccessibilityManager {
     }
 
     private String[] getPlayPhrases() {
-        String[] selectedPhrases = new String[1];
+        String[] selectedPhrases = new String[2];
+        selectedPhrases[0] = "Play";
         selectedPhrases[0] = "Play video";
         return selectedPhrases;
     }
 
     private String[] getPausePhrases() {
-        String[] selectedPhrases = new String[1];
+        String[] selectedPhrases = new String[2];
         selectedPhrases[0] = "Pause";
+        selectedPhrases[0] = "Pause video";
         return selectedPhrases;
     }
 
@@ -456,6 +487,8 @@ public class YouTubeAccessibilityManager {
         cuedActions.add(action + "");
         Log.d(TAG, "CUED ACTIONS: " + cuedActions);
 
+        Log.e(TAG, "LAST ACTIONS Event: " + connector.lastEvent + " Info: " + connector.lastInfo);
+
         if (connector.lastEvent != null && connector.lastInfo != null) {
             //new Thread(() -> {
             main.backgroundExecutor.submit(new Runnable() {
@@ -511,12 +544,90 @@ public class YouTubeAccessibilityManager {
             "Close miniplayer"
     };
 
+    //test if an ad has started after a video
+    private boolean adTest(AccessibilityNodeInfo rootInActiveWindow) {
+        ArrayList<AccessibilityNodeInfo> timeNodes = connector.collectChildren(rootInActiveWindow,
+                ":", 0);
+
+        String timeA = "";
+        String timeB = "";
+        //Youtube sometimes spits out a third unrelated number or string in any order
+        String timeC = "";
+
+        //before starting video
+        if(timeNodes.size() < 2) {
+            return false;
+        }
+
+        //pop up whilst in VR
+        if(inVR) {
+            String times = timeNodes.get(1).getText() + "";
+            String[] timeSplit = times.split("/");
+            if(timeSplit.length < 2) {
+                return false;
+            }
+            timeA = timeSplit[0];
+            timeB = timeSplit[1];
+        } else {
+            timeA = timeNodes.get(0).getText() + "";
+            timeB = timeNodes.get(1).getText() + "";
+            if(timeNodes.size() > 2) {
+                timeC = timeNodes.get(2).getText() + "";
+            }
+            //returning from one view to another
+            if(timeA.contains("Quality")) {
+                timeA = "0:00";
+            }
+            if(timeB.contains("Quality")) {
+                timeB = "0:00";
+            }
+            if(timeC.contains("Quality")) {
+                timeC = "0:00";
+            }
+        }
+
+        String[] timesA = trimToTime(timeA);
+        String[] timesB = trimToTime(timeB);
+        String[] timesC = trimToTime(timeC);
+
+        //duplicate ads at the start or during
+        if(timesA[0].contains("Ad") || timesB[0].contains("Ad") || timesC[0].contains("Ad")) {
+            return false;
+        }
+
+        int currentTime = Integer.parseInt(timesA[0]) * 60 + Integer.parseInt(timesA[1]);
+        int compareTime = Integer.parseInt(timesB[0]) * 60 + Integer.parseInt(timesB[1]);
+        int time = currentTime - compareTime;
+
+        if((goalTimeShort.equals("") && time >= -1 && time <= 1)) {
+            return true;
+        }
+
+        if(timeNodes.size() > 2) {
+            int optionalTime = Integer.parseInt(timesC[0]) * 60 + Integer.parseInt(timesC[1]);
+            time = compareTime - optionalTime;
+        }
+
+        //compare both -1 and 1 as youtube spits timeNodes out in a semi random order
+        if((goalTimeShort.equals("") && time >= -1 && time <= 1)) {
+            return true;
+        }
+
+        return !goalTimeShort.equals("") && (currentTime == compareTime);
+    }
+
+    private String[] trimToTime(String time) {
+        time = time.replace("/", "");
+        time = time.replace(" ", "");
+        return time.split(":");
+    }
+
     private void skipAds(AccessibilityNodeInfo rootInActiveWindow) {
         Log.d(TAG, "skipAds: ");
         ArrayList<AccessibilityNodeInfo> popupNodes = connector.collectChildren(rootInActiveWindow, skipAdsPhrases, 0);
 
-        if (videoPlayStarted && !popupNodes.isEmpty() && videoPlayStarted) {
-           // endOfVideo();
+        if (videoPlayStarted && !popupNodes.isEmpty() && adTest(rootInActiveWindow)) {
+            endOfVideo();
             return;
         }
 
@@ -526,6 +637,13 @@ public class YouTubeAccessibilityManager {
             thisInfo.getBoundsInScreen(bounds);
             main.tapBounds(bounds.centerX(), bounds.centerY());
         }
+    }
+
+    private void alertGuideAdsHaveFinished() {
+        Log.d(TAG, "Alerting Guide Ads have finished");
+
+        main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.STUDENT_FINISH_ADS + main.getNearbyManager().getID(),
+                main.getNearbyManager().getAllPeerIDs());
     }
 
     boolean videoPlayStarted = false;

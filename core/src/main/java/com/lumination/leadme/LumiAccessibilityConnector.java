@@ -7,6 +7,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.accessibility.AccessibilityEvent;
 import android.view.accessibility.AccessibilityNodeInfo;
+import android.widget.Button;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -42,6 +43,7 @@ public class LumiAccessibilityConnector {
     }
 
     public void resetState() {
+        ytManager.adFinished = false;
 //        Log.d(TAG, "resetState: ");
 //        ytManager.resetState();
 //        withinManager.cleanUpVideo();
@@ -56,7 +58,66 @@ public class LumiAccessibilityConnector {
         ytManager.cueYouTubeAction(actionStr);
     }
 
+    /**
+     * Print out all the accessibility nodes on a given page, able to quickly test and produce
+     * the nodes needed to improve functionality.
+     * @param rootWindow An AccessibilityNodeInfo representing the currently active window.
+     */
+    public void displayAllChildren(AccessibilityNodeInfo rootWindow) {
+        List<CharSequence> nodes = getAllChildNodeText(rootWindow);
+
+        for(CharSequence node : nodes) {
+            Log.e("SCREEN NODE", "Node: " + node);
+        }
+    }
+
+    private List<CharSequence> getAllChildNodeText(AccessibilityNodeInfo infoCompat) {
+        List<CharSequence> contents = new ArrayList<>();
+        if (infoCompat == null)
+            return contents;
+        if (infoCompat.getContentDescription() != null) {
+            contents.add(infoCompat.getContentDescription().toString().isEmpty() ? "unlabelled" : infoCompat.getContentDescription());
+        } else if (infoCompat.getText() != null) {
+            contents.add(infoCompat.getText().toString().isEmpty() ? "unlabelled" : infoCompat.getText());
+        } else {
+            getTextInChildren(infoCompat, contents);
+        }
+        if (infoCompat.isClickable()) {
+            if (infoCompat.getClassName().toString().contains(Button.class.getSimpleName())) {
+                if (contents.size() == 0) {
+                    contents.add("Unlabelled button");
+                } else {
+                    contents.add("button");
+                }
+            }
+            contents.add("Double tap to activate");
+        }
+        return contents;
+    }
+
+
+    private void getTextInChildren(AccessibilityNodeInfo nodeInfoCompat, List<CharSequence> contents) {
+        if (nodeInfoCompat == null)
+            return;
+        if (!nodeInfoCompat.isScrollable()) {
+            if (nodeInfoCompat.getContentDescription() != null) {
+                contents.add(nodeInfoCompat.getContentDescription());
+            } else if (nodeInfoCompat.getText() != null) {
+                contents.add(nodeInfoCompat.getText());
+            }
+            if (nodeInfoCompat.getChildCount() > 0) {
+                for (int i = 0; i < nodeInfoCompat.getChildCount(); i++) {
+                    if (nodeInfoCompat.getChild(i) != null) {
+                        getTextInChildren(nodeInfoCompat.getChild(i), contents);
+                    }
+                }
+            }
+        }
+    }
+
     ArrayList<AccessibilityNodeInfo> collectChildren(AccessibilityNodeInfo nodeInfo, String phrase, int level) {
+        displayAllChildren(nodeInfo);
+
         //Log.d(TAG, "collectChildren: ");
         String[] tmp = {phrase};
         return collectChildren(nodeInfo, tmp, level);
@@ -151,8 +212,8 @@ public class LumiAccessibilityConnector {
             Log.w(TAG, "Revisiting previous event..." + lastEvent + " " + lastInfo);
             event = lastEvent;
             rootInActiveWindow = lastInfo;
-            lastInfo = null; //we probably don't want to revisit these too many times
-            lastEvent = null; //we probably don't want to revisit these too many times
+//            lastInfo = null; //we probably don't want to revisit these too many times
+//            lastEvent = null; //we probably don't want to revisit these too many times
 
 //       }
 //
@@ -162,7 +223,10 @@ public class LumiAccessibilityConnector {
 
         } else {
             lastEvent = event;
-            lastInfo = rootInActiveWindow;
+            //if null youtube embed gestures stop working
+            if(rootInActiveWindow != null) {
+                lastInfo = rootInActiveWindow;
+            }
         }
 
         if (event == null) {
@@ -170,6 +234,7 @@ public class LumiAccessibilityConnector {
         }
 
         try {
+            Log.w(TAG, "Current event..." + lastEvent + " " + lastInfo);
             //if (event.getEventType() != AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED) {
             if (event.getEventType() == AccessibilityEvent.TYPE_VIEW_CLICKED || event.getEventType() == AccessibilityEvent.TYPE_VIEW_FOCUSED) {
                 Rect bounds = new Rect();
