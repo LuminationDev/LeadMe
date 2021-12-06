@@ -184,6 +184,7 @@ public class DispatchManager {
                 action.startsWith(LeadMeMain.STUDENT_NO_INTERNET) ||
                 action.startsWith(LeadMeMain.STUDENT_NO_ACCESSIBILITY) ||
                 action.startsWith(LeadMeMain.STUDENT_OFF_TASK_ALERT) ||
+                action.startsWith(LeadMeMain.STUDENT_FINISH_ADS) ||
                 action.startsWith(LeadMeMain.PING_TAG) ||
                 action.startsWith(LeadMeMain.LAUNCH_SUCCESS) ||
                 action.startsWith(LeadMeMain.STUDENT_NO_XRAY) ||
@@ -393,6 +394,9 @@ public class DispatchManager {
                         }
 
                         main.getVRAccessibilityManager().videoPlayerAction(Integer.parseInt(split[1]), additionalInfo);
+
+                    } else if (action.startsWith(LeadMeMain.STUDENT_FINISH_ADS)) {
+                        main.getWebManager().getYouTubeEmbedPlayer().addPeerReady();
 
                     } else if (action.startsWith(LeadMeMain.LOGOUT_TAG)) {
                         String id = action.split(":")[1];

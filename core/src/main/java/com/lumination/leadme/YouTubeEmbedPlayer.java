@@ -1,5 +1,6 @@
 package com.lumination.leadme;
 
+import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.res.ColorStateList;
@@ -7,6 +8,7 @@ import android.net.http.SslError;
 import android.text.format.DateUtils;
 import android.util.Log;
 import android.util.TypedValue;
+import android.view.MotionEvent;
 import android.view.View;
 import android.webkit.JavascriptInterface;
 import android.webkit.SslErrorHandler;
@@ -63,6 +65,13 @@ public class YouTubeEmbedPlayer {
     private Switch vrModeBtn;
     private boolean firstPlay = true;
 
+    private boolean firstTouch; //track if the guide has started the video
+    private boolean adsFinished; //track if students are still watching ads
+    private ImageView playBtn, pauseBtn;
+
+    //track the peers for ad control
+    int peersAdControl = 0;
+
     private TextView youtubePreviewTitle;
     private Button youtubePreviewPushBtn;
     private TextView repushBtn;
@@ -104,6 +113,8 @@ public class YouTubeEmbedPlayer {
         internetUnavailableMsg.setOnClickListener(v -> loadVideoGuideURL(attemptedURL));
         controllerWebView = videoControllerDialogView.findViewById(R.id.video_stream_webview);
         controllerWebView.setTag("CONTROLLER");
+        playBtn = videoControllerDialogView.findViewById(R.id.play_btn);
+        pauseBtn = videoControllerDialogView.findViewById(R.id.pause_btn);
 
         createPlaybackSettingsPopup();
 
@@ -143,6 +154,12 @@ public class YouTubeEmbedPlayer {
         }
 
         if (state == PLAYING) {
+            //if this is the first state switch guide to buttons
+            if(firstTouch) {
+                firstTouch = false;
+                buttonHighlights(PLAYING);
+            }
+
             main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG,
                     LeadMeMain.VID_ACTION_TAG + YouTubeAccessibilityManager.CUE_PLAY,
                     main.getNearbyManager().getSelectedPeerIDsOrAll());
@@ -163,6 +180,7 @@ public class YouTubeEmbedPlayer {
 
     boolean pageLoaded = false;
 
+    @SuppressLint("ClickableViewAccessibility")
     private void setupGuideVideoControllerWebClient() {
         controllerWebView.setWebViewClient(new WebViewClient() {
             @Override
@@ -209,6 +227,35 @@ public class YouTubeEmbedPlayer {
                 //Log.d(TAG, "VIDEO GUIDE] Received SSL error: " + error.toString());
             }
         });
+
+        controllerWebView.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                //after ads finish initial play guide uses the buttons
+                if(firstTouch) {
+                    return peerWaitingForAds(); //check if ads have finished
+                }
+
+                return !firstTouch;
+            }
+        });
+    }
+
+    private boolean peerWaitingForAds() {
+        if(peersAdControl != main.getConnectedLearnersAdapter().mData.size()) {
+            main.getDialogManager().showWarningDialog("Waiting for Ads","Student devices are still \n" +
+                    "waiting for ads to finish.");
+        }
+
+        return !adsFinished;
+    }
+
+    public void addPeerReady() {
+        peersAdControl += 1;
+        if(peersAdControl == main.getConnectedLearnersAdapter().mData.size()) {
+            adsFinished = true;
+            showToast("Ads finished, all peers ready.");
+        }
     }
 
     private void setupGuideVideoControllerButtons() {
@@ -233,10 +280,10 @@ public class YouTubeEmbedPlayer {
             syncNewStudentsWithCurrentState();
         });
 
-        videoControllerDialogView.findViewById(R.id.video_back_btn).setOnClickListener(v ->
-                hideVideoController()
-        );
-
+        videoControllerDialogView.findViewById(R.id.video_back_btn).setOnClickListener(v -> {
+            resetControllerState();
+            hideVideoController();
+        });
 
         //set up basic controls
         View basicControls = videoControllerDialogView.findViewById(R.id.basic_controls);
@@ -247,6 +294,12 @@ public class YouTubeEmbedPlayer {
         ((Switch) videoControllerDialogView.findViewById(R.id.vr_mode_toggle)).setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if(!adsFinished) {
+                    showToast("Cannot enable VR until peers are ready.");
+                    vrModeBtn.setChecked(false);
+                    return;
+                }
+
                 if (isChecked) {
                     videoCurrentDisplayMode = VR_MODE;
                     vrModeBtn.setText("VR Mode ON");
@@ -269,6 +322,10 @@ public class YouTubeEmbedPlayer {
                             LeadMeMain.VID_ACTION_TAG + YouTubeAccessibilityManager.CUE_VR_OFF,
                             main.getNearbyManager().getSelectedPeerIDsOrAll());
                 }
+
+                //keep the guide synced with the students
+                buttonHighlights(PLAYING);
+                activeWebView.loadUrl("javascript:player.playVideo();");
             }
         });
         viewModeToggle = videoControllerDialogView.findViewById(R.id.view_mode_toggle);
@@ -301,28 +358,63 @@ public class YouTubeEmbedPlayer {
             main.unmuteLearners();
         });
 
-//        videoControllerDialogView.findViewById(R.id.play_btn).setOnClickListener(v -> {
-//            if (videoCurrentDisplayMode == VR_MODE) {
-//                showToast("Cannot play in VR mode. Exit VR mode and try again.");
-//                return;
-//            }
-//            playVideo();
-//            main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG,
-//                    LeadMeMain.VID_ACTION_TAG + YouTubeAccessibilityManager.CUE_PLAY,
-//                    main.getNearbyManager().getSelectedPeerIDsOrAll());
-//        });
-//
-//        videoControllerDialogView.findViewById(R.id.pause_btn).setOnClickListener(v -> {
-//            if (videoCurrentDisplayMode == VR_MODE) {
-//                showToast("Cannot pause in VR mode. Exit VR mode and try again.");
-//                return;
-//            }
-//            pauseVideo();
-//            main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG,
-//                    LeadMeMain.VID_ACTION_TAG + YouTubeAccessibilityManager.CUE_PAUSE,
-//                    main.getNearbyManager().getSelectedPeerIDsOrAll());
-//        });
+        videoControllerDialogView.findViewById(R.id.play_btn).setOnClickListener(v -> {
+            if(buttonMessages()) {
+                return;
+            }
 
+            buttonHighlights(PLAYING);
+            //play the video through javascript
+            activeWebView.loadUrl("javascript:player.playVideo();");
+
+            playVideo();
+            main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG,
+                    LeadMeMain.VID_ACTION_TAG + YouTubeAccessibilityManager.CUE_PLAY,
+                    main.getNearbyManager().getSelectedPeerIDsOrAll());
+        });
+
+        videoControllerDialogView.findViewById(R.id.pause_btn).setOnClickListener(v -> {
+            if(buttonMessages()) {
+                return;
+            }
+
+            buttonHighlights(PAUSED);
+            activeWebView.loadUrl("javascript:player.pauseVideo();");
+
+            pauseVideo();
+            main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG,
+                    LeadMeMain.VID_ACTION_TAG + YouTubeAccessibilityManager.CUE_PAUSE,
+                    main.getNearbyManager().getSelectedPeerIDsOrAll());
+        });
+
+    }
+
+    private boolean buttonMessages() {
+        boolean stopFunction = false;
+        if(firstTouch) {
+            showToast("Tap the youtube play button to enable controls.");
+            stopFunction = true;
+        }
+
+        if (videoCurrentDisplayMode == VR_MODE) {
+            showToast("Cannot pause in VR mode. Exit VR mode and try again.");
+            stopFunction = true;
+        }
+        return stopFunction;
+    }
+
+    //change video control icon colour
+    private void buttonHighlights(int state) {
+        switch(state) {
+            case 1:
+                playBtn.setImageResource(R.drawable.vid_play_highlight);
+                pauseBtn.setImageResource(R.drawable.vid_pause);
+                break;
+            case 2:
+                playBtn.setImageResource(R.drawable.vid_play);
+                pauseBtn.setImageResource(R.drawable.vid_pause_highlight);
+                break;
+        }
     }
 
     private void syncNewStudentsWithCurrentState() {
@@ -491,6 +583,9 @@ public class YouTubeEmbedPlayer {
         progressBar.setProgress(0);
         playFromTime.setText("00:00");
         elapsedTimeText.setText("00:00");
+        firstTouch = true;
+        adsFinished = false;
+        peersAdControl = 0;
 
         if (vrModeBtn != null && vrModeBtn.isChecked()) {
             vrModeBtn.setChecked(false); //toggle it
@@ -518,6 +613,7 @@ public class YouTubeEmbedPlayer {
             main.hideSystemUI();
         });
 
+        //TODO Can open the player back up at the assigned video instead of pausing?
         pauseVideo();
         videoControlDialog.dismiss();
     }

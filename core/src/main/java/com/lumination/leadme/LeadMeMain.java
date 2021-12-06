@@ -134,7 +134,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
     static final String TRANSFER_ERROR = "LumiTransferError";
     static final String VR_PLAYER_TAG = "LumiVRPlayer";
-
+    static final String STUDENT_FINISH_ADS = "LumiAdsFinished";
     static final String VID_MUTE_TAG = "LumiVidMute";
     static final String VID_UNMUTE_TAG = "LumiVidUnmute";
     static final String VID_ACTION_TAG = "LumiVid:";
