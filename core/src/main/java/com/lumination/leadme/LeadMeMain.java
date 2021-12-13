@@ -564,10 +564,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         }
     }
 
-    private void showAppLaunchScreen() {
-        leadmeAnimator.setDisplayedChild(ANIM_APP_LAUNCH_INDEX);
-    }
-
     protected void showLoginDialog() {
         Log.d(TAG, "Showing login dialog");
         if (destroying) {
@@ -636,11 +632,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     @Override
     public void onAccuracyChanged(Sensor sensor, int accuracy) {
         //not needed
-    }
-
-    private void showSplashScreen() {
-        logo.setImageResource(R.mipmap.lumination_logo_reverse);
-        leadmeAnimator.setDisplayedChild(ANIM_SPLASH_INDEX);
     }
 
     private void moveAwayFromSplashScreen() {
@@ -1005,7 +996,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             }
         }
 
-        dialogManager.cleanUpDialogs();
+        cleanDialogs();
 
         //clean up nearby connections
         isGuide = false;
@@ -1676,6 +1667,10 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
             dialogManager.displayGuidePrompt();
         }
+    }
+
+    private void showAppLaunchScreen() {
+        leadmeAnimator.setDisplayedChild(ANIM_APP_LAUNCH_INDEX);
     }
 
 //    //MANUAL CONNECTION FUNCTIONS START
@@ -2440,7 +2435,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 //        }
         getLumiAccessibilityConnector().resetState();
 
-        dialogManager.cleanUpDialogs();
+        cleanDialogs();
 
         //reset views
         showConnectedStudents(false);
@@ -2939,12 +2934,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     private int pinCodeInd = 0;
     int savedViewIndex=-1;
 
-    //hiding the soft keyboard only
-    private void hideSoftKeyboard(View v) {
-        InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
-        imm.hideSoftInputFromWindow(v.getWindowToken(), 0);
-    }
-
     /**
      * Set and display the pin entered by the user.
      * @param page An int representing the stage the user is up to.
@@ -2970,9 +2959,8 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         pBar.setVisibility(View.INVISIBLE);
 
         resetPinView.setOnClickListener(v -> {
-            hideSoftKeyboard(v);
+            dialogManager.hideSoftKeyboard(v);
         });
-        //pages[1].setOnClickListener(this::hideSoftKeyboard);
 
         switch(page){
             case 0:
@@ -3170,6 +3158,21 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             initPermissions = true; //only prompt once here
             loginAction(false);
         }
+    }
+
+    /**
+     * Display the initial splash screen for application.
+     */
+    public void showSplashScreen() {
+        logo.setImageResource(R.mipmap.lumination_logo_reverse);
+        leadmeAnimator.setDisplayedChild(ANIM_SPLASH_INDEX);
+    }
+
+    /**
+     * Clean up any dialog boxes that may be present on the screen.
+     */
+    public void cleanDialogs() {
+        dialogManager.cleanUpDialogs();
     }
 
     /**

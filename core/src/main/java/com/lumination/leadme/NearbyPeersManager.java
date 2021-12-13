@@ -1,6 +1,5 @@
 package com.lumination.leadme;
 
-import android.content.Intent;
 import android.net.nsd.NsdServiceInfo;
 import android.os.Build;
 import android.os.Parcel;
@@ -15,7 +14,6 @@ import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.Objects;
 import java.util.Set;
 
@@ -31,6 +29,10 @@ public class NearbyPeersManager {
 
     public String myName;
 
+    /**
+     * Constructor which initiates the networkAdapter class.
+     * @param main A reference to the LeadMeMain class.
+     */
     public NearbyPeersManager(LeadMeMain main) {
         this.main = main;
         networkAdapter = new NetworkAdapter(main.context, main, this);
@@ -55,7 +57,6 @@ public class NearbyPeersManager {
         networkAdapter.startDiscovery();
     }
 
-
     protected void setSelectedLeader(ConnectedPeer peer) {
         selectedLeader = peer;
     }
@@ -73,7 +74,6 @@ public class NearbyPeersManager {
         Log.d(TAG, "onBackPressed: deprecated");
     }
 
-    //TODO Sometimes the service is not discovered?
     int tryConnect = 0;
     protected void connectToSelectedLeader() {
         String Name = selectedLeader.getDisplayName();
@@ -83,23 +83,12 @@ public class NearbyPeersManager {
             for (NsdServiceInfo info : discoveredLeaders) {
                 Log.d(TAG, "connectToSelectedLeader: " + info.getServiceName());
                 if (info.getServiceName().equals(Name + "#Teacher")) {
-                    main.backgroundExecutor.submit(new Runnable() {
-                        @Override
-                        public void run() {
-                            networkAdapter.connectToServer(info);
-                        }
-                    });
+                    main.backgroundExecutor.submit(() -> networkAdapter.connectToServer(info));
                     return;
                 }
             }
         } else {
-            main.backgroundExecutor.submit(new Runnable() {
-                @Override
-                public void run() {
-                    networkAdapter.connectToServer(manInfo);
-
-                }
-            });
+            main.backgroundExecutor.submit(() -> networkAdapter.connectToServer(manInfo));
             return;
         }
         Log.d(TAG, "connectToSelectedLeader: no leader found with the name " + Name + ". Trying" +
@@ -122,47 +111,48 @@ public class NearbyPeersManager {
 
     protected void connectToManualLeader(String IpAddress) {
         Log.d(TAG, "connectToManualLeader: " + IpAddress);
-        main.backgroundExecutor.submit(new Runnable() {
-            @Override
-            public void run() {
-                NsdServiceInfo info = new NsdServiceInfo();
-                InetAddress inetAddress=null;
-                try {
-                    inetAddress = InetAddress.getByName(IpAddress);
-                } catch (UnknownHostException e) {
-                    e.printStackTrace();
-                }
-
-                info.setHost(inetAddress);
-                info.setPort(54321);
-                info.setServiceName("Manual#Teacher");
-                info.setServiceType("_http._tcp.");
-                        Log.d(TAG, "run: "+info);
-                        manInfo = info;
-                networkAdapter.discoveredLeaders.add(info);
-                selectedLeader=new ConnectedPeer("Manual", IpAddress);
-                main.runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        connectToSelectedLeader();
-                    }
-                });
-                        //networkAdapter.connectToServer(info);
-
+        main.backgroundExecutor.submit(() -> {
+            NsdServiceInfo info = new NsdServiceInfo();
+            InetAddress inetAddress = null;
+            try {
+                inetAddress = InetAddress.getByName(IpAddress);
+            } catch (UnknownHostException e) {
+                e.printStackTrace();
             }
+
+            info.setHost(inetAddress);
+            info.setPort(54321);
+            info.setServiceName("Manual#Teacher");
+            info.setServiceType("_http._tcp.");
+                    Log.d(TAG, "run: "+info);
+                    manInfo = info;
+            networkAdapter.discoveredLeaders.add(info);
+            selectedLeader = new ConnectedPeer("Manual", IpAddress);
+            main.runOnUiThread(this::connectToSelectedLeader);
         });
     }
 
+    /**
+     * Sets the user as the Guide and starts advertising for a connection.
+     */
     public void setAsGuide() {
         main.isGuide = true;
         networkAdapter.stopDiscovery();
         networkAdapter.startAdvertising();
     }
 
+    /**
+     * Query if a user is connected as a follower.
+     * @return A boolean representing if they are a student.
+     */
     public boolean isConnectedAsFollower() {
         return !main.isGuide && networkAdapter.isConnected();
     }
 
+    /**
+     * Query if a user is connected as a guide.
+     * @return A boolean representing if they are a guide.
+     */
     public boolean isConnectedAsGuide() {
         return main.isGuide && networkAdapter.isServerRunning();
     }
@@ -178,10 +168,18 @@ public class NearbyPeersManager {
         return myName;
     }
 
+    /**
+     * Get the ID of the currently connected user.
+     * @return A string that represents the ID of the current user.
+     */
     public String getID() {
         return myID;
     }
 
+    /**
+     * Set the ID of a user that has just logged in.
+     * @param id A string representing the new user.
+     */
     public void setID(String id) {
         if (id != null && id.length() > 0) {
             myID = id;
@@ -191,18 +189,24 @@ public class NearbyPeersManager {
         }
     }
 
+    /**
+     * Removes a selected student from the network adapter's server.
+     * @param endpointId A string representing a students device.
+     */
     public void disconnectStudent(String endpointId) {
         networkAdapter.removeClient(Integer.parseInt(endpointId));
     }
 
+    /**
+     * Removes a user from the network adapter's server.
+     * @param endpointId A string representing a users device.
+     */
     public void disconnectFromEndpoint(String endpointId) {
         if (main.isGuide) {
             main.getConnectedLearnersAdapter().alertStudentDisconnect(endpointId);
             main.getConnectedLearnersAdapter().refresh();
             disconnectStudent(endpointId);
-
         } else {
-//            try {
             main.runOnUiThread(() -> {
                 main.screenCap.clientToServerSocket = null;
                 main.screenCap.stopService(); //stop the screen sharing service
@@ -212,11 +216,6 @@ public class NearbyPeersManager {
                 networkAdapter.startDiscovery();
                 main.setUIDisconnected();
             });
-            //networkAdapter.socket.close();
-//            } catch (IOException e) {
-//                Log.d(TAG, "disconnectFromEndpoint: unable to close socket");
-//                e.printStackTrace();
-//            }
         }
     }
 
@@ -229,18 +228,11 @@ public class NearbyPeersManager {
 
     protected boolean isDiscovering() {
         return discovering;
-
     }
 
     protected void disconnectFromAllEndpoints() {
         if (main.isGuide) {
             networkAdapter.stopServer();
-        } else {
-//            try {
-//                networkAdapter.socket.close();
-//            } catch (IOException e) {
-//                e.printStackTrace();
-//            }
         }
     }
 
@@ -252,6 +244,10 @@ public class NearbyPeersManager {
         }
     }
 
+    /**
+     * Get any selected peers, if no one is selected then get all peers.
+     * @return An ArraySet containing all the selected peer IDs or all peers.
+     */
     public Set<String> getSelectedPeerIDsOrAll() {
         Set<String> endpoints = new ArraySet<>();
         //if connected as guide, send message to specific peers
@@ -272,8 +268,11 @@ public class NearbyPeersManager {
         return endpoints;
     }
 
+    /**
+     * Get all peers that are currently selected.
+     * @return An ArraySet contain all the selected peer IDs.
+     */
     public Set<String> getSelectedPeerIDs() {
-
         Set<String> endpoints = new ArraySet<>();
         //if connected as guide, send message to specific peers
         if (isConnectedAsGuide()) {
@@ -291,11 +290,13 @@ public class NearbyPeersManager {
         return endpoints;
     }
 
+    /**
+     * Get all connected peers regardless of if they are selected or not.
+     * @return A hashSet containing all the peer's IDs excluding the Guide's.
+     */
     public Set<String> getAllPeerIDs() {
-        Set<String> peerIDS = new HashSet<String>();
-        Iterator it = networkAdapter.currentClients.iterator();
-        while (it.hasNext()) {
-            client id = (client) it.next();
+        Set<String> peerIDS = new HashSet<>();
+        for (client id : networkAdapter.currentClients) {
             peerIDS.add(String.valueOf(id.ID));
         }
         if (!main.isGuide) {
@@ -310,7 +311,6 @@ public class NearbyPeersManager {
         p.setDataPosition(0);
         byte[] b = p.marshall();
         p.recycle(); //recycle the parcel
-        String test = null;
         ArrayList<String> selectedString = new ArrayList<>(endpoints);
         if (selectedString.size() == 0 && !main.isGuide) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -326,9 +326,7 @@ public class NearbyPeersManager {
             }
         } else {
             ArrayList<Integer> selected = new ArrayList<>();
-            Iterator iterator = selectedString.iterator();
-            while (iterator.hasNext()) {
-                String peer = (String) iterator.next();
+            for (String peer : selectedString) {
                 Log.d(TAG, "sendToSelected: " + peer);
                 selected.add(Integer.parseInt(peer));
             }

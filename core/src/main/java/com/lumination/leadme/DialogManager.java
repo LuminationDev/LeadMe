@@ -2,6 +2,7 @@ package com.lumination.leadme;
 
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
+import android.content.Context;
 import android.content.Intent;
 import android.content.res.Resources;
 import android.graphics.Color;
@@ -838,6 +839,16 @@ public class DialogManager {
      * */
     private void closeKeyboard() {
         main.closeKeyboard();
+    }
+
+    /**
+     * Hide the keyboard when tapping outside of the keyboard area. Used within an onClickListener
+     * for the view.
+     * @param view A View which the current screen is on (Inside an onClickListener).
+     */
+    public void hideSoftKeyboard(View view) {
+        InputMethodManager imm = (InputMethodManager)main.getSystemService(Context.INPUT_METHOD_SERVICE);
+        imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
     }
 
     /**
