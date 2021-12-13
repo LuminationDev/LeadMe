@@ -284,7 +284,7 @@ public class AppManager extends BaseAdapter {
     }
 
     public void launchWithin(String url, boolean isStreaming, boolean isVR, boolean selectedOnly) {
-        Log.d(TAG, "launchWithin: " + isStreaming + ", " + isVR);
+        Log.d(TAG, "launchWithin: " + isStreaming + ", " + isVR + ", " + "Title: " + url);
         this.isStreaming = isStreaming;
         this.isVR = isVR;
         videoInit = false; //reset

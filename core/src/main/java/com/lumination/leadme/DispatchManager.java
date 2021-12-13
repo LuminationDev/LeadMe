@@ -92,7 +92,7 @@ public class DispatchManager {
     }
 
     public void requestRemoteWithinLaunch(String tag, String packageName, String appName, String lockTag, String extra, boolean streaming, boolean vrMode, Set<String> selectedPeerIDs) {
-        Log.d(TAG, "requestRemoteWithinLaunch: ");
+        Log.d(TAG, "requestRemoteWithinLaunch: " + extra);
         lastEvent=1;
         tagRepush = tag;
         packageNameRepush = packageName;
@@ -625,14 +625,14 @@ public class DispatchManager {
         Parcel p = Parcel.obtain();
         p.unmarshall(bytes, 0, bytes.length);
         p.setDataPosition(0);
-        String tag = p.readString();
+        final String tag = p.readString();
         final String packageName = p.readString();
         final String appName = p.readString();
         final String lockTag = p.readString();
-        final String install = p.readString();
-        final String extra = p.readString();
+        final String extra = p.readString(); //represents the within URI or the Install function
         final String streaming = p.readString();
         final String vrMode = p.readString();
+//        final String install = p.readString();
         p.recycle();
 
         Log.d(TAG, "Received in OpenApp!: " + tag + ", " + packageName + ", " + appName + ", " + lockTag + ", " + extra + ", " + streaming + ", " + vrMode + " vs " + main.getAppManager().lastApp);
@@ -664,6 +664,7 @@ public class DispatchManager {
                         return true; //successfully extracted the details, no action needed
 
                     } else {
+                        Log.e(TAG, String.valueOf(thisURI));
                         main.getAppManager().withinURI = thisURI;
                         main.getAppManager().isStreaming = Boolean.parseBoolean(streaming);
                         main.getAppManager().isVR = Boolean.parseBoolean(vrMode);
@@ -696,7 +697,7 @@ public class DispatchManager {
             } else {
                 Log.d(TAG, "HAVE FOCUS!");
                 launchAppOnFocus = null; //reset
-                main.getHandler().post(() -> main.getAppManager().launchLocalApp(packageName, appName, true, false, install, null));
+                main.getHandler().post(() -> main.getAppManager().launchLocalApp(packageName, appName, true, false, extra, null));
 
             }
             return true;
