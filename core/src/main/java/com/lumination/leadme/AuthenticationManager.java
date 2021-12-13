@@ -5,10 +5,8 @@ import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
-import android.net.wifi.WifiManager;
 import android.text.Editable;
 import android.text.TextWatcher;
-import android.text.format.Formatter;
 import android.util.Log;
 import android.view.View;
 import android.webkit.WebView;
@@ -81,7 +79,7 @@ public class AuthenticationManager {
     //For Manual connections
     private final int leaderTimestampUpdate = 15; //update the leaders timestamp on firebase (mins)
     private final int inactiveUser = 30; //cut off for hiding inactive leaders (mins)
-    private final int waitForGuide = 10000; //how long to wait before peer re-querys firestore
+    private final int waitForGuide = 10000; //how long to wait before peer re-query's firestore
     private String serverIP="";
     private String publicIP;
     private HashMap<String, Object> manualConnectionDetails = new HashMap<String, Object>();
@@ -476,23 +474,33 @@ public class AuthenticationManager {
     private String loginEmail = "";
     private String loginPassword = "";
     private String Name = "";
-    private Boolean Marketing =false;
+    private Boolean Marketing = false;
 
+    /**
+     * Build the sign up page for a new user or a user that is partially through a registration,
+     * sign in verification is set to false by default.
+     * @param page An integer representing which stage the user is up to.
+     **/
     public void buildloginsignup(int page) {
         buildloginsignup(page, false);
     }
 
+    /**
+     * Build the sign up page for a new user or a user that is partially through a registration.
+     * @param page An integer representing which stage the user is up to.
+     * @param signinVerif A boolean representing whether or not the sign in has been verified already.
+     */
     public void buildloginsignup(int page, boolean signinVerif) {
         showSystemUI();
-        View Login = View.inflate(main, R.layout.b__login_signup, null);
-        LinearLayout[] layoutPages = {Login.findViewById(R.id.rego_code), Login.findViewById(R.id.terms_of_use), Login.findViewById(R.id.signup_page)
-                , Login.findViewById(R.id.email_verification)
-                , Login.findViewById(R.id.set_pin), Login.findViewById(R.id.account_created)};
-        Button next = Login.findViewById(R.id.signup_enter);
-        Button back = Login.findViewById(R.id.signup_back);
-        ProgressBar progressBar = Login.findViewById(R.id.signup_indeterminate);
+        View loginView = View.inflate(main, R.layout.b__login_signup, null);
+        LinearLayout[] layoutPages = {loginView.findViewById(R.id.rego_code), loginView.findViewById(R.id.terms_of_use), loginView.findViewById(R.id.signup_page)
+                , loginView.findViewById(R.id.email_verification)
+                , loginView.findViewById(R.id.set_pin), loginView.findViewById(R.id.account_created)};
+        Button next = loginView.findViewById(R.id.signup_enter);
+        Button back = loginView.findViewById(R.id.signup_back);
+        ProgressBar progressBar = loginView.findViewById(R.id.signup_indeterminate);
         progressBar.setVisibility(View.GONE);
-        TextView support = Login.findViewById(R.id.rego_contact_support);
+        TextView support = loginView.findViewById(R.id.rego_contact_support);
         
         support.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -504,8 +512,8 @@ public class AuthenticationManager {
         });
 
         //page 0
-        EditText loginCode = Login.findViewById(R.id.rego_code_box);
-        TextView regoLost = Login.findViewById(R.id.rego_lost_code);
+        EditText loginCode = loginView.findViewById(R.id.rego_code_box);
+        TextView regoLost = loginView.findViewById(R.id.rego_lost_code);
         regoLost.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -513,30 +521,30 @@ public class AuthenticationManager {
                 main.composeEmail(email,"LeadMe Support: Signup Code Request");
             }
         });
-        TextView regoError = Login.findViewById(R.id.rego_code_error);
+        TextView regoError = loginView.findViewById(R.id.rego_code_error);
         //page 2
-        TextView signupError = Login.findViewById(R.id.signup_error);
-        EditText signupName = Login.findViewById(R.id.signup_name);
-        EditText signupEmail = Login.findViewById(R.id.signup_email);
-        EditText signupPass = Login.findViewById(R.id.signup_password);
-        EditText signupConPass = Login.findViewById(R.id.signup_confirmpass);
-        CheckBox marketingCheck = Login.findViewById(R.id.signup_marketing);
+        TextView signupError = loginView.findViewById(R.id.signup_error);
+        EditText signupName = loginView.findViewById(R.id.signup_name);
+        EditText signupEmail = loginView.findViewById(R.id.signup_email);
+        EditText signupPass = loginView.findViewById(R.id.signup_password);
+        EditText signupConPass = loginView.findViewById(R.id.signup_confirmpass);
+        CheckBox marketingCheck = loginView.findViewById(R.id.signup_marketing);
         signupEmail.setText(loginEmail);
         signupPass.setText(loginPassword);
         signupName.setText(Name);
         marketingCheck.setChecked(Marketing);
         //page 1
-        TextView errorText = Login.findViewById(R.id.tou_readtext);
-        ScrollView touScroll = Login.findViewById(R.id.tou_scrollView);
-        TextView terms = Login.findViewById(R.id.tou_terms);
-        CheckBox touAgree = Login.findViewById(R.id.tou_check);
+        TextView errorText = loginView.findViewById(R.id.tou_readtext);
+        ScrollView touScroll = loginView.findViewById(R.id.tou_scrollView);
+        TextView terms = loginView.findViewById(R.id.tou_terms);
+        CheckBox touAgree = loginView.findViewById(R.id.tou_check);
         //page 3
-        VideoView animation = Login.findViewById(R.id.email_animation);
+        VideoView animation = loginView.findViewById(R.id.email_animation);
         //page 4
-        TextView pinError = Login.findViewById(R.id.pin_error_text);
-        ImageView pinErrorImg = Login.findViewById(R.id.pin_error_image);
+        TextView pinError = loginView.findViewById(R.id.pin_error_text);
+        ImageView pinErrorImg = loginView.findViewById(R.id.pin_error_image);
         //page 5
-        TextView accountText = Login.findViewById(R.id.account_createdtext);
+        TextView accountText = loginView.findViewById(R.id.account_createdtext);
         for (int i = 0; i < layoutPages.length; i++) {
             if (i != page) {
                 layoutPages[i].setVisibility(View.GONE);
@@ -545,7 +553,9 @@ public class AuthenticationManager {
             }
         }
 
-        main.setContentView(Login);
+        main.setContentView(loginView);
+
+        loginView.setOnClickListener(v -> main.getDialogManager().hideSoftKeyboard(v));
 
         switch (page) {
             case 0:
@@ -614,12 +624,11 @@ public class AuthenticationManager {
                 break;
 
             case 1:
-                //TODO does not display the TOF on the first run through? only when clicking back button...
                 hideSystemUI();
                 main.getHandler().postDelayed(() -> hideSystemUI(), 500);
                 errorText.setVisibility(View.GONE);
                 hasScrolled = true;
-                WebView TOF = Login.findViewById(R.id.tof_webview);
+                WebView TOF = loginView.findViewById(R.id.tof_webview);
                 TOF.getSettings().setJavaScriptEnabled(true);
                 String pdf = "https://github.com/LuminationDev/public/raw/main/LeadMeEdu-TermsAndConditions.pdf";
                 TOF.loadUrl("https://drive.google.com/viewerng/viewer?embedded=true&url=" + pdf);
@@ -707,13 +716,18 @@ public class AuthenticationManager {
                     main.getHandler().postDelayed(() -> animation.setBackgroundColor(Color.TRANSPARENT), 100);
                 });
 
-                FirebaseAuth.AuthStateListener mAuthListener= new FirebaseAuth.AuthStateListener() {
+                FirebaseAuth.AuthStateListener mAuthListener = new FirebaseAuth.AuthStateListener() {
                     @Override
                     public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
-                        if (!mAuth.getCurrentUser().isEmailVerified()) {
+                        //Setup the firebase again, if this doesn't work then there is no internet connection?
+                        if(mAuth == null) {
+                            setupFirebase();
+                            return;
+                        }
+
+                        if (!Objects.requireNonNull(mAuth.getCurrentUser()).isEmailVerified()) {
                             Log.d(TAG, "buildloginsignup: email verification sent");
                             mAuth.getCurrentUser().sendEmailVerification().addOnSuccessListener(new OnSuccessListener<Void>() {
-                                //TODO error occurs if the user presses back before they verify email
                                 @Override
                                 public void onSuccess(Void aVoid) {
                                     main.scheduledExecutorService.scheduleAtFixedRate(() -> mAuth.addAuthStateListener(firebaseAuth1 -> {
@@ -740,11 +754,16 @@ public class AuthenticationManager {
                 mAuth.addAuthStateListener(mAuthListener);
                 Log.d(TAG, "buildloginsignup: and here");
 
+                //TODO error occurs if the user presses back before they verify email
+                //TODO do we want to delete a user here?
+                /*If not they can exit the app and verify whenever they want. Otherwise open to here
+                *until the verify.
+                * */
                 back.setOnClickListener(v -> {
                     main.scheduledExecutorService.shutdown();
                     mAuth.removeAuthStateListener(mAuthListener);
-                    firebaseRemoveUser(mAuth.getCurrentUser());
-                    mAuth.getCurrentUser().delete();
+//                    firebaseRemoveUser(mAuth.getCurrentUser());
+//                    mAuth.getCurrentUser().delete();
                     buildloginsignup(2);
                 });
                 break;
@@ -767,7 +786,6 @@ public class AuthenticationManager {
                             }
                         }
                     });
-
                 }
 
                 showSystemUI();
@@ -776,25 +794,31 @@ public class AuthenticationManager {
                     final PinEntryEditText pinEntry = (PinEntryEditText) main.findViewById(R.id.signup_pin_entry);
                     final PinEntryEditText pinEntryConfirm = (PinEntryEditText) main.findViewById(R.id.signup_pin_confirm);
                     if (pinEntry != null && pinEntryConfirm!=null && pinEntry.getText().toString().equals(pinEntryConfirm.getText().toString())) {
-                        main.setProgressSpinner(3000, progressBar);
+                        if(pinEntry.getText().length() != 4) {
+                            pinError.setText("Pin is not long enough");
+                            pinError.setTextColor(main.getColor(R.color.leadme_red));
+                            pinErrorImg.setImageResource(R.drawable.alert_error);
+                        } else {
+                            main.setProgressSpinner(3000, progressBar);
 
-                        Map<String, Object> userDet = new HashMap<>();
-                        userDet.put("pin", Hasher.Companion.hash(pinEntry.getText().toString(), HashType.SHA_256));
+                            Map<String, Object> userDet = new HashMap<>();
+                            userDet.put("pin", Hasher.Companion.hash(pinEntry.getText().toString(), HashType.SHA_256));
 
-                        db.collection("users").document(mAuth.getCurrentUser().getUid()).update(userDet)
-                                .addOnSuccessListener(aVoid -> Log.d(TAG, "onSuccess: pin saved to account"));
+                            db.collection("users").document(mAuth.getCurrentUser().getUid()).update(userDet)
+                                    .addOnSuccessListener(aVoid -> Log.d(TAG, "onSuccess: pin saved to account"));
 
-                        db.collection("users").document(mAuth.getCurrentUser().getUid()).get().addOnCompleteListener(task -> {
-                            if (task.isSuccessful()) {
-                                progressBar.setVisibility(View.GONE);
-                                main.setUserName(task.getResult().getString("name"), false);
-                                main.animatorAsContentView();
-                                loginPassword="";
-                                Name="";
-                                loginEmail="";
-                                Marketing=false;
-                            }
-                        });
+                            db.collection("users").document(mAuth.getCurrentUser().getUid()).get().addOnCompleteListener(task -> {
+                                if (task.isSuccessful()) {
+                                    progressBar.setVisibility(View.GONE);
+                                    main.setUserName(task.getResult().getString("name"), false);
+                                    main.animatorAsContentView();
+                                    loginPassword="";
+                                    Name="";
+                                    loginEmail="";
+                                    Marketing=false;
+                                }
+                            });
+                        }
                     } else {
                         pinError.setText("The pin's do not match");
                         pinError.setTextColor(main.getColor(R.color.leadme_red));
@@ -802,12 +826,20 @@ public class AuthenticationManager {
                         progressBar.setVisibility(View.GONE);
                     }
                 });
+
+                /*Return to the main screen, email is verified just have to set code
+                *before first login. Have to logout so the pin entry does no come up upon retry.
+                * */
+                back.setOnClickListener(v -> {
+                    logoutAction();
+                    main.animatorAsContentView();
+                    hideSystemUI();
+                });
                 break;
 
             default:
                 break;
         }
-
     }
 
     private void firebaseRemoveUser(FirebaseUser currentUser) {
@@ -822,7 +854,7 @@ public class AuthenticationManager {
     }
 
     /**
-     * Handles signin requests for the google client signin.
+     * Handles sign in requests for the google client sign in.
      * @param account An instance of a GoogleSignInAccount.
      */
     public void handleSignInResult(GoogleSignInAccount account) {
@@ -924,7 +956,7 @@ public class AuthenticationManager {
      * @param password A String representing the password of the user attempting to sign in.
      * @param errorText A TextView that can be populate with any error messages that occur.
      */
-    public void FirebaseEmailSignIn(String email, String password, TextView errorText ) {
+    public void FirebaseEmailSignIn(String email, String password, TextView errorText) {
         Log.d(TAG, "FirebaseEmailSignIn: ");
 
         if (email != null && password != null) {
@@ -936,7 +968,9 @@ public class AuthenticationManager {
                         currentUser = task.getResult().getUser();
 
                         if (!currentUser.isEmailVerified()) {
-                            buildloginsignup(3, true);
+                            //not clearing
+                            main.cleanDialogs();
+                            buildloginsignup(3, false);
                         } else {
                             db.collection("users").document(mAuth.getCurrentUser().getUid()).get()
                                     .addOnCompleteListener((OnCompleteListener<DocumentSnapshot>) task1 -> {
@@ -946,6 +980,7 @@ public class AuthenticationManager {
                                 if (task1.isSuccessful()) {
                                     main.setIndeterminateBar(View.GONE);
                                     if (task1.getResult().get("pin") == null ) {
+                                        main.cleanDialogs();
                                         buildloginsignup(4, false);
                                         return;
                                     }
