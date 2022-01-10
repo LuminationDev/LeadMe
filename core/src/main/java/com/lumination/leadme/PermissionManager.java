@@ -7,6 +7,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.ConnectivityManager;
+import android.net.NetworkCapabilities;
 import android.net.NetworkInfo;
 import android.net.Uri;
 import android.provider.Settings;
@@ -28,7 +29,7 @@ public class PermissionManager {
     private LeadMeMain main;
     private boolean overlayPermissionGranted = false, nearbyPermissionsGranted = false, storagePermissionsGranted = false;
     protected boolean waitingForPermission = false;
-    private PermissionListener overlayPermissionListener;
+//    private PermissionListener overlayPermissionListener;
     private PermissionListener nearbyPermissionListener;
     private PermissionListener storagePermissionListener;
     private PermissionListener miscPermissionListener;
@@ -327,7 +328,6 @@ public class PermissionManager {
             try {
                 String host = Uri.parse(url).getHost();
 
-//                Thread thread = new Thread(() -> {
                 main.backgroundExecutor.submit(new Runnable() {
                     @Override
                     public void run() {
@@ -340,9 +340,6 @@ public class PermissionManager {
                     }
                 });
 
-//                });
-//                thread.start();
-
                 //wait for isReachable to return
                 Thread.sleep(1200);
                 connected = successfulPing;
@@ -354,6 +351,29 @@ public class PermissionManager {
         }
         return connected;
     }
+
+    /**
+     * Check whether a device is connected to the internet, either through WIFI or CELLULAR.
+     * @param context The context of the application.
+     * @return A boolean representing if the device is connected to the internet.
+     */
+    public static boolean isInternetAvailable(Context context) {
+        boolean result = false;
+        ConnectivityManager connectivityManager = (ConnectivityManager) context.getApplicationContext().getSystemService(Context.CONNECTIVITY_SERVICE);
+        if (connectivityManager != null) {
+            NetworkCapabilities networkCapabilities = connectivityManager.getNetworkCapabilities(connectivityManager.getActiveNetwork());
+            if (networkCapabilities != null) {
+                if (networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)) {
+                    result = true;
+                } else {
+                    result = networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR);
+                }
+            }
+        }
+
+        return result;
+    }
+
     //doubtful that this will get past play's review so commented for now
 //    public void requestBatteryOptimisation(){
 //        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {

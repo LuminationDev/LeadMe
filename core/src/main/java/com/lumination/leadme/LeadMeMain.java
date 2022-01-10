@@ -25,6 +25,7 @@ import android.hardware.SensorManager;
 import android.hardware.display.DisplayManager;
 import android.media.AudioManager;
 import android.net.ConnectivityManager;
+import android.net.NetworkCapabilities;
 import android.net.NetworkInfo;
 import android.net.Uri;
 import android.net.wifi.WifiManager;
@@ -321,7 +322,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                 if (getPermissionsManager().isOverlayPermissionGranted()) {
                     if(getAuthenticationManager().getServerIP().length()>0){
                         setandDisplayStudentOnBoard(3);
-                    }else {
+                    } else {
                         setandDisplayStudentOnBoard(2);
                     }
                 } else {
@@ -608,7 +609,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         }
 
         //Check if the leader has internet access
-        if(!checkInternetAccess()) {
+        if(!PermissionManager.isInternetAvailable(getApplicationContext())) {
             dialogManager.showWarningDialog("Currently Offline", "No internet access detected. Please connect to continue.");
             return;
         }
@@ -620,14 +621,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         getNameViewController().requestFocus();
         openKeyboard();
     }
-
-    //check if the device has access to the internet (not just wifi)
-    private boolean checkInternetAccess() {
-        ConnectivityManager connectivityManager = (ConnectivityManager)getSystemService(Context.CONNECTIVITY_SERVICE);
-        //we are connected to a network
-        return connectivityManager.getNetworkInfo(ConnectivityManager.TYPE_MOBILE).getState() == NetworkInfo.State.CONNECTED ||
-                connectivityManager.getNetworkInfo(ConnectivityManager.TYPE_WIFI).getState() == NetworkInfo.State.CONNECTED;
-    };
 
     @Override
     public void onAccuracyChanged(Sensor sensor, int accuracy) {
@@ -1321,7 +1314,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         });
 
         //TODO AUTO INSTALLER AND FILE TRANSFER
-        //Code in LeadMe Main, AppManager
+        //Code in LeadMe Main & AppManager
         //multi install button
 //        app_btn.setOnLongClickListener((View.OnLongClickListener) v -> {
 //            if(autoInstallApps) {
@@ -1473,7 +1466,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 //Guide or student needs internet to access firebase database
-                if(!checkInternetAccess()) {
+                if(!PermissionManager.isInternetAvailable(getApplicationContext())) {
                     dialogManager.showWarningDialog("Currently Offline", "No internet access detected. Please connect to continue."
                             + "\n\n Note: Try our new manual connection feature if you're having trouble");
                     manualToggle.setChecked(false);
@@ -3370,7 +3363,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
      * @param page An int representing the specific page to load up within the function.
      */
     public void buildLoginSignupController(int page) {
-        if(!checkInternetAccess()) {
+        if(!PermissionManager.isInternetAvailable(getApplicationContext())) {
             dialogManager.showWarningDialog("Currently Offline", "No internet access detected. Please connect to continue.");
             return;
         }

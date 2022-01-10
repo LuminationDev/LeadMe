@@ -41,8 +41,8 @@ public class WithinAccessibilityManager {
             "Downloaded"
     };
 
-    private LumiAccessibilityConnector connector;
-    private LeadMeMain main;
+    private final LumiAccessibilityConnector connector;
+    private final LeadMeMain main;
 
 
     boolean initTapLocations = false;
@@ -71,8 +71,7 @@ public class WithinAccessibilityManager {
             foundNodes.addAll(rootInActiveWindow.findAccessibilityNodeInfosByText(phrase));
         }
 
-        ArrayList<AccessibilityNodeInfo> iteratorList = new ArrayList<>();
-        iteratorList.addAll(foundNodes); //make a copy
+        ArrayList<AccessibilityNodeInfo> iteratorList = new ArrayList<>(foundNodes); //make a copy
         for (AccessibilityNodeInfo thisNode : iteratorList) {
             String searchStr = (thisNode.getText() + " // " + thisNode.getContentDescription()).toLowerCase();
             Log.d(TAG, "Testing " + searchStr);
@@ -127,7 +126,11 @@ public class WithinAccessibilityManager {
 
         if (!playNodes.isEmpty()) {
             playNodes.get(0).getBoundsInScreen(leftRect);
-            downloadNodes.get(0).getBoundsInScreen(rightRect);
+
+            if(!downloadNodes.isEmpty()) {
+                downloadNodes.get(0).getBoundsInScreen(rightRect);
+            }
+
             Log.w(TAG, "[1] Found " + leftRect + " and " + rightRect);
 
             // this view is a whole screen length below the main view, so compensate by subtracting rect.bottom
@@ -267,7 +270,7 @@ public class WithinAccessibilityManager {
                             scheduledExecutor.setCorePoolSize(1);
                             schedTask = scheduledExecutor.schedule(() -> {
                                 // do a thing
-                                exitVRvideo();
+                                exitVRVideo();
                             }, delay, SECONDS);
                             Log.w(TAG, "Is it scheduled? ");//+schedTask.isCancelled()+", "+schedTask.isDone()+", "+schedTask.getDelay(SECONDS));
                         }
@@ -383,8 +386,8 @@ public class WithinAccessibilityManager {
         return infoArrayList;
     }
 
-    private void exitVRvideo() {
-        AccessibilityService service = main.getAccessibilityService();
+    private void exitVRVideo() {
+        AccessibilityService service = LeadMeMain.getAccessibilityService();
         Log.w(TAG, "CHECK VR FINISHED?? " + service.getRootInActiveWindow().getClassName() + " == " + lastEvent.getClassName() + ", " + checkingForFinish + ", " + scheduled);
         endOfVideo();
         checkingForFinish = false; //prepare to check again

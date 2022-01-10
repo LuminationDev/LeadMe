@@ -14,7 +14,6 @@ import android.widget.Toast;
 import com.google.android.gms.nearby.connection.Payload;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -91,8 +90,19 @@ public class DispatchManager {
         }
     }
 
+    /**
+     * Launch a within experience on the learner's devices with a set video source to stream or download.
+     * @param tag A string ....
+     * @param packageName A string representing if the package is within.
+     * @param appName A string representing the name of the application 'Within'.
+     * @param lockTag A string representing if the learner devices should be in lock or play mode.
+     * @param extra A string representing the URL of the video to launch.
+     * @param streaming A boolean determining if the video is to be streamed or downloaded.
+     * @param vrMode A boolean determining if launching in VR mode.
+     * @param selectedPeerIDs A set of strings that represents the selected peers.
+     */
     public void requestRemoteWithinLaunch(String tag, String packageName, String appName, String lockTag, String extra, boolean streaming, boolean vrMode, Set<String> selectedPeerIDs) {
-        Log.d(TAG, "requestRemoteWithinLaunch: ");
+        Log.d(TAG, "requestRemoteWithinLaunch: " + extra);
         lastEvent=1;
         tagRepush = tag;
         packageNameRepush = packageName;
@@ -264,7 +274,6 @@ public class DispatchManager {
 
             switch (action) {
                 case LeadMeMain.XRAY_ON:
-//                    Log.w(TAG, "I AM being watched! " + main.getNearbyManager().getName());
                     if(!main.screenCap.permissionGranted){
                         main.screenCap.startService(true);
                         break;
@@ -507,6 +516,7 @@ public class DispatchManager {
                         //get the student id add it to the need to install array.
                         Log.d(TAG, "Application needed on peer: " + split[3]);
                         main.getLumiAppInstaller().peersToInstall.add(split[3]);
+
                         //open a dialog to confirm if wanting to install apps
                         main.getLumiAppInstaller().applicationsToInstallWarning(split[1], split[2], false); //should auto update number of devices need as the action come in
                         break;
@@ -625,14 +635,14 @@ public class DispatchManager {
         Parcel p = Parcel.obtain();
         p.unmarshall(bytes, 0, bytes.length);
         p.setDataPosition(0);
-        String tag = p.readString();
+        final String tag = p.readString();
         final String packageName = p.readString();
         final String appName = p.readString();
         final String lockTag = p.readString();
-        final String install = p.readString();
-        final String extra = p.readString();
+        final String extra = p.readString(); //represents the within URI or the Install function
         final String streaming = p.readString();
         final String vrMode = p.readString();
+//        final String install = p.readString();
         p.recycle();
 
         Log.d(TAG, "Received in OpenApp!: " + tag + ", " + packageName + ", " + appName + ", " + lockTag + ", " + extra + ", " + streaming + ", " + vrMode + " vs " + main.getAppManager().lastApp);
@@ -664,6 +674,7 @@ public class DispatchManager {
                         return true; //successfully extracted the details, no action needed
 
                     } else {
+                        Log.e(TAG, String.valueOf(thisURI));
                         main.getAppManager().withinURI = thisURI;
                         main.getAppManager().isStreaming = Boolean.parseBoolean(streaming);
                         main.getAppManager().isVR = Boolean.parseBoolean(vrMode);
@@ -696,7 +707,7 @@ public class DispatchManager {
             } else {
                 Log.d(TAG, "HAVE FOCUS!");
                 launchAppOnFocus = null; //reset
-                main.getHandler().post(() -> main.getAppManager().launchLocalApp(packageName, appName, true, false, install, null));
+                main.getHandler().post(() -> main.getAppManager().launchLocalApp(packageName, appName, true, false, extra, null));
 
             }
             return true;
