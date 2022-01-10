@@ -60,6 +60,8 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.TimeUnit;
 
+import com.google.common.net.InetAddresses;
+
 /**
  * Specific class for handling the authentication of users. Manages login/logout functions through
  * the firebase database as well as third party methods.
@@ -210,8 +212,18 @@ public class AuthenticationManager {
      * */
     public void retrieveLeaders() {
         waitForPublic();
+
         Log.d(TAG, "retrieveLeaders: " + publicIP);
+
         if (publicIP == null || publicIP.length() == 0) {
+            Log.d(TAG, "PublicIP address not found");
+            main.getDialogManager().showWarningDialog("Public IP", "Public IP address not found" +
+                    "\n firewall may be blocking the query.");
+            return;
+        } else if (!InetAddresses.isInetAddress(publicIP)) {
+            Log.d(TAG, "PublicIP address not valid");
+            main.getDialogManager().showWarningDialog("Public IP", "Public IP address not valid" +
+                    "\n firewall may be blocking the query.");
             return;
         }
 
@@ -250,7 +262,7 @@ public class AuthenticationManager {
                             trackCollection(collRef);
                         }
                     }catch(NullPointerException e){
-                        Log.d(TAG, "onComplete: "+e);
+                        Log.d(TAG, "onComplete: " + e);
                     }
                 } else {
                     Log.d(TAG, "Error getting documents: ", task.getException());

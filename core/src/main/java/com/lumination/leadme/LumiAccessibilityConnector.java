@@ -249,6 +249,7 @@ public class LumiAccessibilityConnector {
             AccessibilityNodeInfo finalRootInActiveWindow = rootInActiveWindow;
 
             if (!appInForeground && event.getSource() != null && event.getSource().getPackageName().toString().contains(main.getAppManager().withinPackage)) {
+                Log.e(TAG, "SOMETHING!");
                 executor.execute(() -> {
                     withinManager.manageWithinAccess(finalEvent, finalRootInActiveWindow);
                 });

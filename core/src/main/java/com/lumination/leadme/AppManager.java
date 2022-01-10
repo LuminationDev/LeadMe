@@ -15,7 +15,6 @@ import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.Spinner;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -62,7 +61,6 @@ public class AppManager extends BaseAdapter {
         LumiSpinnerAdapter withinAdapter = new LumiSpinnerAdapter(main, R.layout.row_push_spinner, items, imgs);
         withinLockSpinner.setAdapter(withinAdapter);
     }
-
 
     public Drawable getAppIcon(String packageName) {
         try {

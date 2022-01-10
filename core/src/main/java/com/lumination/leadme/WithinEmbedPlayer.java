@@ -33,9 +33,6 @@ import java.util.Scanner;
 import androidx.core.content.ContextCompat;
 import androidx.core.widget.ImageViewCompat;
 
-import com.google.gson.internal.$Gson$Preconditions;
-
-
 public class WithinEmbedPlayer {
 
     private final static String TAG = "embedPlayerWithin";
