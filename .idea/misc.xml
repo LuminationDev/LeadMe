@@ -1,5 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
+  <component name="DesignSurface">
+    <option name="filePathToZoomLevelMap">
+      <map>
+        <entry key="..\:/Users/ecoad/Projects/Android/LeadMe/core/src/main/res/layout/e__learner_request_popup.xml" value="0.3046875" />
+        <entry key="..\:/Users/ecoad/Projects/Android/LeadMe/core/src/main/res/layout/e__peer_permission_popup.xml" value="0.20108695652173914" />
+        <entry key="..\:/Users/ecoad/Projects/Android/LeadMe/core/src/main/res/layout/f__playback_control_vrplayer.xml" value="0.3671875" />
+        <entry key="..\:/Users/ecoad/Projects/Android/LeadMe/core/src/main/res/layout/f__playback_control_youtube.xml" value="0.3046875" />
+        <entry key="..\:/Users/ecoad/Projects/Android/LeadMe/core/src/main/res/layout/f__playback_settings_vrplayer.xml" value="0.3671875" />
+      </map>
+    </option>
+  </component>
   <component name="ProjectRootManager" version="2" languageLevel="JDK_11" default="true" project-jdk-name="11" project-jdk-type="JavaSDK">
     <output url="file://$PROJECT_DIR$/build/classes" />
   </component>

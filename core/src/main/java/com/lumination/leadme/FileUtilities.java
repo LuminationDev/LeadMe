@@ -31,11 +31,6 @@ public class FileUtilities {
     private static final String TAG = "FileUtils";
 
     private static Uri contentUri = null;
-//    private LeadMeMain main;
-
-//    public FileUtilities(LeadMeMain main) {
-//        this.main = main;
-//    }
 
     /**
      * Browse the phones files - reuse this part for selecting files for viewing or selection for

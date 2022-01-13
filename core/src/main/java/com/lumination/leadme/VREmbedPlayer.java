@@ -2,8 +2,8 @@ package com.lumination.leadme;
 
 import android.app.AlertDialog;
 import android.content.DialogInterface;
+import android.content.res.ColorStateList;
 import android.database.Cursor;
-import android.media.MediaPlayer;
 import android.net.Uri;
 import android.provider.OpenableColumns;
 import android.text.format.DateUtils;
@@ -11,11 +11,18 @@ import android.util.Log;
 import android.util.TypedValue;
 import android.view.View;
 import android.widget.Button;
+import android.widget.CompoundButton;
 import android.widget.ImageView;
 import android.widget.SeekBar;
-import android.widget.Spinner;
+import android.widget.Switch;
 import android.widget.TextView;
+import android.widget.Toast;
 import android.widget.VideoView;
+
+import androidx.core.content.ContextCompat;
+import androidx.core.widget.ImageViewCompat;
+
+import java.util.Set;
 
 /*
 * Operation flow
@@ -41,14 +48,11 @@ public class VREmbedPlayer {
     private final VideoView controllerVideoView;
 
     private TextView vrplayerPreviewTitle;
-    private Button vrplayerPreviewPushBtn;
+    private Button vrplayerPreviewPushBtn, vrplayerSetSourceBtn;
     private VideoView vrplayerPreviewVideoView;
     private View vrplayerSettingsDialogView;
     private View vrplayerVideoControls;
 
-    private View lockSpinnerParent;
-    private Spinner lockSpinner;
-    private String[] lockSpinnerItems;
     private TextView playFromTime;
 
     private TextView totalTimeText, elapsedTimeText;
@@ -59,9 +63,9 @@ public class VREmbedPlayer {
 
     private ImageView playBtn, pauseBtn;
 
-    boolean lastLockState = true;
     boolean selectedOnly = false;
-    int lastStartFrom = 1;
+
+    Switch viewModeToggle;
 
     private LeadMeMain main;
 
@@ -111,7 +115,7 @@ public class VREmbedPlayer {
         }
 
         //setting the preview video
-        setupVideoPreview(vrplayerPreviewVideoView);
+        setupVideoPreview(vrplayerPreviewVideoView, this.filepath);
     }
 
     //Get a file name from a provided URI
@@ -130,16 +134,39 @@ public class VREmbedPlayer {
 
     //Sets the video source and moves it to the top of the UI as some phones will display it behind
     //the pop up dialog.
-    private void setupVideoPreview(VideoView video) {
-        video.setVideoURI(filepath);
+    private void setupVideoPreview(VideoView video, Uri path) {
+        video.setVideoURI(path);
         video.setZOrderOnTop(true);
-        //display the first frame instead of black space
-        video.seekTo(1);
+
+        if(startFromTime != 0) {
+            video.seekTo(startFromTime * 1000);
+        } else {
+            //display the first frame instead of black space
+            video.seekTo(1);
+        }
+
+        viewModeToggle = videoControllerDialogView.findViewById(R.id.view_mode_toggle);
+        viewModeToggle.setChecked(true);
+        viewModeToggle.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if(isChecked){
+                    viewModeToggle.setText("View Mode ON");
+                    ImageViewCompat.setImageTintList(videoControllerDialogView.findViewById(R.id.view_mode_icon), ColorStateList.valueOf(ContextCompat.getColor(main, R.color.leadme_blue)));
+                    main.lockFromMainAction();
+                }else{
+                    ImageViewCompat.setImageTintList(videoControllerDialogView.findViewById(R.id.view_mode_icon), ColorStateList.valueOf(ContextCompat.getColor(main, R.color.leadme_medium_grey)));
+                    viewModeToggle.setText("View Mode OFF");
+                    main.unlockFromMainAction();
+                }
+            }
+        });
     }
 
     //Sets up the UI for selecting where to start the video from.
     private void createPlaybackSettingsPopup() {
         vrplayerSettingsDialogView = View.inflate(main, R.layout.f__playback_settings_vrplayer, null);
+        vrplayerSetSourceBtn = vrplayerSettingsDialogView.findViewById(R.id.set_source_btn);
         vrplayerPreviewPushBtn = vrplayerSettingsDialogView.findViewById(R.id.vr_push_btn);
         vrplayerPreviewTitle = vrplayerSettingsDialogView.findViewById(R.id.preview_title);
         vrplayerVideoControls = vrplayerSettingsDialogView.findViewById(R.id.video_controls);
@@ -176,32 +203,31 @@ public class VREmbedPlayer {
             }
         });
 
+        vrplayerSetSourceBtn.setOnClickListener(v -> {
+            Log.d(TAG, "FileUtilities: picking a file");
+            FileUtilities.browseFiles(main, LeadMeMain.VR_FILE_CHOICE);
+        });
+
         vrplayerPreviewPushBtn.setOnClickListener(v -> main.getHandler().post(() -> {
+            if (main.vrVideoPath == null) {
+                Toast.makeText(main, "A video has not been selected", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
             playbackSettingsDialog.dismiss();
-            lastLockState = lockSpinner.getSelectedItem().toString().startsWith("View");
 
             Log.d(TAG, "Launching VR Player for students at: " + startFromTime);
 
             //setting the playback video controller
-            setupVideoPreview(controllerVideoView);
+            setupVideoPreview(controllerVideoView, main.vrVideoPath);
 
             //LAUNCH THE APPLICATION FROM HERE
-            main.getAppManager().launchApp(packageName, appName, false, "false");
+            main.getAppManager().launchApp(packageName, appName, false, "false", true, main.getNearbyManager().getSelectedPeerIDsOrAll());
             showPushConfirmed();
 
             //Set the source for the peers device
             setVideoSource(startFromTime);
         }));
-
-        lockSpinnerParent = vrplayerSettingsDialogView.findViewById(R.id.lock_spinner);
-        lockSpinner = (Spinner) vrplayerSettingsDialogView.findViewById(R.id.push_spinner);
-        lockSpinnerItems = new String[2];
-        lockSpinnerItems[0] = "View only";
-        lockSpinnerItems[1] = "Free play";
-        Integer[] push_imgs = {R.drawable.controls_view, R.drawable.controls_play};
-        LumiSpinnerAdapter push_adapter = new LumiSpinnerAdapter(main, R.layout.row_push_spinner, lockSpinnerItems, push_imgs);
-        lockSpinner.setAdapter(push_adapter);
-        lockSpinner.setSelection(0); //default to locked
     }
 
     //TIME SETTINGS
@@ -279,9 +305,9 @@ public class VREmbedPlayer {
     }
 
     private void openPreview(String title) {
-        //Put a uri for the video memory here later
-        Log.d(TAG, "FileUtilities: picking a file");
-        FileUtilities.browseFiles(main, LeadMeMain.VR_FILE_CHOICE);
+        if(main.vrVideoPath != null) {
+            setupVideoPreview(vrplayerPreviewVideoView, main.vrVideoPath);
+        }
 
         Log.d(TAG, "showPlaybackPreview: " + title);
 
@@ -316,21 +342,34 @@ public class VREmbedPlayer {
                 .show();
         ((TextView)confirmPushDialogView.findViewById(R.id.push_success_comment)).setText("Your video was successfully launched.");
         Button ok = confirmPushDialogView.findViewById(R.id.ok_btn);
-        ok.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                confirmPopup.dismiss();
-                //return to main screen
-                main.getDialogManager().hideConfirmPushDialog();
-                showVideoController();
-            }
+        ok.setOnClickListener(v -> {
+            confirmPopup.dismiss();
+            //return to main screen
+            main.getDialogManager().hideConfirmPushDialog();
+            showVideoController();
         });
+    }
+
+    /**
+     * Launches the custom VR Player.
+     * @param peerSet A set of strings representing the learner ID's to send the action to.
+     */
+    public void launchVR(Set<String> peerSet) {
+        main.getAppManager().launchApp(packageName, appName, false, "false", true, peerSet);
+    }
+
+    /**
+     * Relaunches the last VR experience with the selected video source.
+     * @param peerSet A set of strings representing the learner ID's to send the action to.
+     */
+    public void relaunchVR(Set<String> peerSet) {
+        main.getAppManager().launchApp(packageName, appName, false, "false", true, peerSet);
+        setVideoSource(startFromTime);
     }
 
     private void setupGuideVideoControllerButtons() {
         videoControllerDialogView.findViewById(R.id.push_again_btn).setOnClickListener(v -> {
-            main.getAppManager().launchApp(packageName, appName, false, "false");
-            setVideoSource(startFromTime);
+            relaunchVR(main.getNearbyManager().getSelectedPeerIDsOrAll());
         });
 
         videoControllerDialogView.findViewById(R.id.push_btn).setOnClickListener(v -> {
@@ -358,6 +397,15 @@ public class VREmbedPlayer {
         videoControllerDialogView.findViewById(R.id.unmute_btn).setOnClickListener(v ->
                 main.unmuteLearners()
         );
+    }
+
+    /**
+     * Opens the video controller for the custom VR player. Only available if the video path has
+     * already been set/saved in the LeadMe main.
+     */
+    public void openVideoController() {
+        controllerVideoView.seekTo(1); //to not show a black screen
+        showVideoController();
     }
 
     private void showVideoController() {
@@ -442,10 +490,6 @@ public class VREmbedPlayer {
         elapsedTimeText.setText("00:00");
 
         buttonHighlights(VRAccessibilityManager.CUE_PAUSE);
-
-//        if (vrModeBtn != null && vrModeBtn.isChecked()) {
-//            vrModeBtn.setChecked(false); //toggle it
-//        }
     }
 
     //VR Player Controls

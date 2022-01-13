@@ -19,6 +19,7 @@ import android.widget.ScrollView;
 import android.widget.TextView;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 
 public class AppInstaller {
@@ -324,7 +325,7 @@ public class AppInstaller {
             installDialog.dismiss();
             installDialogShowing = false;
             //push application again this time with install set to true and only to the peersToInstall list
-            appManager.launchApp(packageToInstallName, appToInstallName, false, "true");
+            appManager.launchApp(packageToInstallName, appToInstallName, false, "true", false, new HashSet<>(peersToInstall));
             resetAppSelection();
         });
 

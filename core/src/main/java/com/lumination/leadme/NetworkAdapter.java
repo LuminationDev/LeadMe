@@ -603,7 +603,7 @@ public class NetworkAdapter {
 
             case "FILE":
                 List<String> inputList2 = Arrays.asList(inputList.get(1).split(":"));
-                Log.d(TAG, String.valueOf(inputList2));
+                Log.e(TAG, clientsServerSocket.getInetAddress() + " : " + inputList2);
                 if(main.fileTransferEnabled) {
                     main.getFileTransfer().receivingFile(clientsServerSocket.getInetAddress(), Integer.parseInt(inputList2.get(1)));
                 } else {
@@ -668,7 +668,7 @@ public class NetworkAdapter {
                     st.t = client;
                     st.ID = clientID;
                     clientID++;
-                    clientThreadList.add(st); //threads are saved in an array incase they need to be accessed for any reason
+                    clientThreadList.add(st); //threads are saved in an array in case they need to be accessed for any reason
                     clientThreadList.get(clientThreadList.size() - 1).t.start();
                     Log.d(TAG, "Connected.");
                 }

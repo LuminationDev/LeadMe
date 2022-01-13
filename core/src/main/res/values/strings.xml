@@ -120,10 +120,12 @@
     <string name="application_installer">Application Installer</string>
     <string name="uninstall">Uninstall</string>
     <string name="application_uninstaller">Uninstall Applications</string>
+    <string name="waiting_for_transfer">Queued for transfer</string>
     <string name="transfer_in_progress">Transferring File</string>
     <string name="turn_on">Turn On</string>
     <string name="confirm">Confirm</string>
     <string name="time_warning">"It may take some time to install depending on the Wifi speed. \n Are you sure you want to install?"</string>
+    <string name="set_source">Choose Video</string>
 
     <string name="playback_settings_title">Playback Settings</string>
     <string name="playback_controls_title">Control Playback</string>
