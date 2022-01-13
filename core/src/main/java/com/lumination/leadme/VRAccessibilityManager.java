@@ -1,14 +1,9 @@
 package com.lumination.leadme;
 
 import android.content.ComponentName;
-import android.content.ContentResolver;
-import android.content.ContentUris;
 import android.content.Intent;
-import android.database.Cursor;
 import android.net.Uri;
-import android.provider.MediaStore;
 import android.util.Log;
-import android.widget.Toast;
 
 public class VRAccessibilityManager {
     private final static String TAG = "VRAccessibilityManager";
@@ -95,20 +90,33 @@ public class VRAccessibilityManager {
         source = FileUtilities.getFileByName(main, this.fileName);
 
         if(source == null) {
-            //TODO notify guide that the video is missing
-            //sendAction - do not have file
-            //recall to LeadMe
-            Toast.makeText(main.context, "Video is not in memory.", Toast.LENGTH_LONG).show();
-            main.recallToLeadMe();
-            return;
+            requestFile();
+        } else {
+            //File path may be needed for Unity instead of Uri.
+            String absFilepath = FileUtilities.getPath(main, source);
+
+            Log.e(TAG, "source:" + absFilepath + ":" + split[1]);
+            //Send a source intent with the file path and the start time
+            newIntent("source:" + absFilepath + ":" + split[1]);
+        }
+    }
+
+    //Send an action to the guide requesting that a file be transferred to this device
+    private void requestFile() {
+        main.fileTransferEnabled = true; //hard coded for now - change to permission later
+
+        if(main.fileTransferEnabled) {
+            FileTransfer.setFileType("VRVideo");
+            main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.FILE_REQUEST_TAG + ":" + main.getNearbyManager().getID()
+                    + ":" + "false" + ":" + FileTransfer.getFileType(), main.getNearbyManager().getSelectedPeerIDs());
+            main.getDialogManager().showWarningDialog("Missing File", "Video is transferring now.");
+        } else {
+            main.getDialogManager().showWarningDialog("Permission Needed", "File Transfer is not enabled " +
+                    "\nThe file cannot be sent.");
         }
 
-        //File path may be needed for Unity instead of Uri.
-        String absFilepath = FileUtilities.getPath(main, source);
-
-        Log.e(TAG, "source:" + absFilepath + ":" + split[1]);
-        //Send a source intent with the file path and the start time
-        newIntent("source:" + absFilepath + ":" + split[1]);
+        main.runOnUiThread(() -> main.updateFollowerCurrentTaskToLeadMe());
+        main.getLumiAccessibilityConnector().bringMainToFront();
     }
 
     //Create an intent based on the action supplied and send it to the external application

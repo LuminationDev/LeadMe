@@ -108,7 +108,7 @@ import eu.bolt.screenshotty.ScreenshotManagerBuilder;
 /*
     LeadMe Main:
     • Handles most UI related events
-    • Initilises main classes
+    • Initialises main classes
  */
 public class LeadMeMain extends FragmentActivity implements Handler.Callback, SensorEventListener, LifecycleObserver, ComponentCallbacks2 {
     static final String TAG = "LeadMe"; //tag for debugging
@@ -135,6 +135,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
     static final String TRANSFER_ERROR = "LumiTransferError";
     static final String VR_PLAYER_TAG = "LumiVRPlayer";
+    static final String FILE_REQUEST_TAG = "LumiFileRequest";
     static final String STUDENT_FINISH_ADS = "LumiAdsFinished";
     static final String VID_MUTE_TAG = "LumiVidMute";
     static final String VID_UNMUTE_TAG = "LumiVidUnmute";
@@ -146,6 +147,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
     static final String PERMISSION_DENIED = "LumiPermissionDenied";
     static final String FILE_TRANSFER = "LumiFileTransfer";
+    static final String UPDATE_DEVICE_MESSAGE = "LumiUpdateDeviceMessage";
 
     static final String MULTI_INSTALL = "LumiMultiInstall";
     static final String AUTO_INSTALL = "LumiAutoInstalling";
@@ -206,6 +208,11 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     //VR PLayer
     private VREmbedPlayer vrEmbedPlayer;
     private VRAccessibilityManager vrAccessibilityManager;
+    /**
+     * A Uri representing the last source pushed by the leader to a learner,
+     * saved in case a learners requests a file transfer.
+     */
+    public Uri vrVideoPath;
 
     //details about me to send to peers
     public boolean isGuide = false;
@@ -262,6 +269,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     //File transfer
     public Boolean fileTransferEnabled = false; //hard coded so have to enable each session
     public Switch transferToggle = null;
+    public ArrayList<Integer> fileRequests = new ArrayList<>(); //array to hold learner ID's that are requesting a file
 
     //Auto app installer
     public Boolean autoInstallApps = false; //if true, missing apps on student devices get installed automatically
@@ -373,7 +381,8 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                 Log.d(TAG, "DATA: " + data);
                 if (resultCode == Activity.RESULT_OK ) {
                     if(data != null)  {
-                        getVrEmbedPlayer().setFilepath(data.getData());
+                        vrVideoPath = data.getData();
+                        getVrEmbedPlayer().setFilepath(vrVideoPath);
                     }
                 }
                 break;
@@ -381,7 +390,9 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             case TRANSFER_FILE_CHOICE:
                 if (resultCode == Activity.RESULT_OK) {
                     if(data != null)  {
-                        transferFile(data.getData());
+                        //TODO hardcoded file type for now as to not trigger the VR in dispatchManager
+                        FileTransfer.setFileType("File");
+                        transferFile(data.getData(), false);
                     }
                 }
                 break;
@@ -920,7 +931,11 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         if (appHasFocus && getNearbyManager().isConnectedAsFollower()) {
             //if we've got no delayed content, we're properly returning to LeadMe
             if (!getDispatcher().hasDelayedLaunchContent()) {
-                studentLockOn=false;
+                //Don't disengage the lock if using the VR player
+                if(!currentTaskPackageName.equals(VREmbedPlayer.packageName)) {
+                    studentLockOn=false;
+                }
+
                 //if we're in lock mode and we should be in something other than LeadMe, relaunch it
                 if (studentLockOn && currentTaskPackageName != null && currentTaskPackageName != leadMePackageName) {
                     Log.e(TAG, "RELAUNCH?? " + currentTaskPackageName);
@@ -928,7 +943,9 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                     if (currentTaskPackageName.equals(getAppManager().withinPackage) || currentTaskPackageName.equals(getAppManager().youtubePackage)) {
                         getAppManager().relaunchLast(currentTaskPackageName, currentTaskName, currentTaskType, currentTaskURL, currentTaskURLTitle);
                     } else {
-                        getAppManager().relaunchLast();
+                        if(!currentTaskPackageName.equals(VREmbedPlayer.packageName)) {
+                            getAppManager().relaunchLast();
+                        }
                     }
 
                     //if we have launched at least one thing previously, we might want to reset the task icon to LeadMe
@@ -1313,7 +1330,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             }
         });
 
-        //TODO AUTO INSTALLER AND FILE TRANSFER
+        //TODO VR PLAYER, AUTO INSTALLER AND FILE TRANSFER
         //Code in LeadMe Main & AppManager
         //multi install button
 //        app_btn.setOnLongClickListener((View.OnLongClickListener) v -> {
@@ -1326,13 +1343,24 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 //            return true;
 //        });
 //
-//        //file transfer button
+        //file transfer button
 //        mainLeader.findViewById(R.id.xray_core_btn).setOnLongClickListener(v -> {
 //            if(fileTransferEnabled) {
 //                FileUtilities.browseFiles(this, TRANSFER_FILE_CHOICE);
 //            } else {
 //                dialogManager.showWarningDialog("File Transfer", "File transfer has not been enabled.");
 //            }
+//            return true;
+//        });
+
+        //Custom VR button
+//        mainLeader.findViewById(R.id.vr_core_btn).setOnLongClickListener(v -> {
+//            if(vrVideoPath == null) {
+//                getVrEmbedPlayer().showPlaybackPreview();
+//            } else {
+//                getVrEmbedPlayer().openVideoController();
+//            }
+//
 //            return true;
 //        });
         //TODO End section
@@ -2322,7 +2350,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     }
 
     public void recallToLeadMe() {
-        if(leadmeAnimator.getDisplayedChild()==ANIM_START_SWITCH_INDEX){
+        if (leadmeAnimator.getDisplayedChild() == ANIM_START_SWITCH_INDEX){
             return;
         }
         getWebManager().reset();
@@ -3183,6 +3211,17 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     }
 
     /**
+     * Update the device message on selected learner devices to reflect a change in the
+     * application.
+     * @param msg A string stating the message to be sent.
+     * @param peerSet A set of peers that will receive the message.
+     */
+    public void sendDeviceMessage(int msg, Set peerSet) {
+        getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG,
+                LeadMeMain.UPDATE_DEVICE_MESSAGE + ":" + msg, peerSet);
+    }
+
+    /**
      * Creates a dialog asking for a peer to allow a certain permission, no dialog is present for disabling
      * the permission. Used for auto installing applications and transferring files between devices.
      * @param permission A string representing what permission wanting to be allowed.
@@ -3265,10 +3304,11 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
     /**
      * Start the file transfer service.
-     * @param file A Uri pointing at the file that is to be transfered.
+     * @param file A Uri pointing at the file that is to be transferred.
+     * @param requesting A boolean representing if a learner has requested the transfer.
      */
-    public void transferFile(Uri file) {
-        fileTransfer.startFileServer(file);
+    public void transferFile(Uri file, boolean requesting) {
+        fileTransfer.startFileServer(file, requesting);
     }
 
     /**

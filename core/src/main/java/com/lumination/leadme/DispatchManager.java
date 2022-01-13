@@ -146,6 +146,7 @@ public class DispatchManager {
         bytes = p.marshall();
         p.recycle();
         writeMessageToSelected(bytes, selectedPeerIDs);
+
         main.updateLastTask(main.getAppManager().getAppIcon(packageName), main.getAppManager().getAppName(packageName), packageName, lockTag);
 
         if (!packageName.equals(main.getAppManager().withinPackage)) {
@@ -187,6 +188,7 @@ public class DispatchManager {
                 action.startsWith(LeadMeMain.RETURN_TAG) ||
                 action.startsWith(LeadMeMain.PERMISSION_DENIED) ||
                 action.startsWith(LeadMeMain.TRANSFER_ERROR) ||
+                action.startsWith(LeadMeMain.FILE_REQUEST_TAG) ||
                 action.startsWith(LeadMeMain.APP_NOT_INSTALLED) ||
                 action.startsWith(LeadMeMain.AUTO_INSTALL_ATTEMPT) ||
                 action.startsWith(LeadMeMain.AUTO_INSTALL_FAILED) ||
@@ -404,6 +406,28 @@ public class DispatchManager {
 
                         main.getVRAccessibilityManager().videoPlayerAction(Integer.parseInt(split[1]), additionalInfo);
 
+                    } else if(action.startsWith(LeadMeMain.FILE_REQUEST_TAG)) {
+                        String[] split = action.split(":");
+                        String ID = split[1];
+                        Log.e("FILE REQUEST", "Requesting: " + main.vrVideoPath + " from " + ID + " status: " + split[2] + "type: " + split[3]);
+
+                        //Set the file type for handling when complete
+                        FileTransfer.setFileType(split[3]);
+
+                        //If false, then the learner needs the file, otherwise the transfer is complete - relaunch the app
+                        if(split[2].equals("false")) {
+                            main.fileRequests.add(Integer.parseInt(ID));
+                            main.getDialogManager().showRequestDialog(5);
+                        } else {
+                            Set<String> peer = new HashSet<>();
+                            peer.add(ID);
+
+                            //TODO change into a switch case if more request types are handled later
+                            if(FileTransfer.getFileType().equals("VRVideo")) {
+                                main.getVrEmbedPlayer().relaunchVR(peer);
+                            }
+                        }
+
                     } else if (action.startsWith(LeadMeMain.STUDENT_FINISH_ADS)) {
                         main.getWebManager().getYouTubeEmbedPlayer().addPeerReady();
 
@@ -495,6 +519,11 @@ public class DispatchManager {
                     } else if(action.startsWith(LeadMeMain.FILE_TRANSFER)) {
                         String[] split = action.split(":");
                         main.askForPeerPermission(LeadMeMain.FILE_TRANSFER, Boolean.parseBoolean(split[1]));
+                        break;
+
+                    } else if(action.startsWith(LeadMeMain.UPDATE_DEVICE_MESSAGE)) {
+                        String[] split = action.split(":");
+                        main.setDeviceStatusMessage(Integer.parseInt(split[1]));
                         break;
 
                     } else if(action.startsWith(LeadMeMain.AUTO_INSTALL)) {
@@ -639,10 +668,10 @@ public class DispatchManager {
         final String packageName = p.readString();
         final String appName = p.readString();
         final String lockTag = p.readString();
-        final String extra = p.readString(); //represents the within URI or the Install function
+        final String extra = p.readString(); //represents the Within URI or the Install function
         final String streaming = p.readString();
         final String vrMode = p.readString();
-//        final String install = p.readString();
+
         p.recycle();
 
         Log.d(TAG, "Received in OpenApp!: " + tag + ", " + packageName + ", " + appName + ", " + lockTag + ", " + extra + ", " + streaming + ", " + vrMode + " vs " + main.getAppManager().lastApp);

@@ -147,14 +147,17 @@ public class AppManager extends BaseAdapter {
             case "Application":
                 launchLocalApp(packageName, appName, false, true, "false", null);
                 break;
+
             case "VR Video":
                 if (packageName.equals(main.getAppManager().withinPackage)) {
                     launchWithin(withinPlayer.foundURL, isStreaming, isVR,true);
                     break;
                 }
+
             case "YouTube":
                 main.getWebManager().launchYouTube(url, urlTitle, false, main.getWebManager().getYouTubeEmbedPlayer().isVROn());
                 break;
+
             case "Website":
                 main.getWebManager().launchWebsite(url, urlTitle, false);
                 break;
@@ -240,9 +243,15 @@ public class AppManager extends BaseAdapter {
     private Spinner lockSpinner, withinLockSpinner;
 
     /**
-     * used by LEADER to launch an app on LEARNER devices
-     **/
-    public void launchApp(String packageName, String appName, boolean guideToo, String install) {
+     * Used by LEADER to launch an app on LEARNER devices.
+     * @param packageName A string representing the google play store package name.
+     * @param appName A string representing the name of the application.
+     * @param guideToo A boolean determining if launching the app on the guide's device as well.
+     * @param install A string representing if the application needs to be installed.
+     * @param VRPlayer A boolean determining if the custom VR player is being launched.
+     * @param peerSet A set of strings representing the learner devices that the function is being sent to.
+     */
+    public void launchApp(String packageName, String appName, boolean guideToo, String install, boolean VRPlayer, Set<String> peerSet) {
         if (guideToo) {
             //launch it locally
             launchLocalApp(packageName, appName, true, false, install, null);
@@ -250,18 +259,13 @@ public class AppManager extends BaseAdapter {
 
         //update lock status
         String lockTag = LeadMeMain.LOCK_TAG;
-        if (lockSpinner.getSelectedItemPosition() == 1) {
+        if (lockSpinner.getSelectedItemPosition() == 1 && !VRPlayer) {
             //locked by default, unlocked if selected
             lockTag = LeadMeMain.UNLOCK_TAG;
         }
 
         //send launch request
-        if(install.equals("false")) { //normal app request
-            main.getDispatcher().requestRemoteAppOpen(LeadMeMain.APP_TAG, packageName, appName, lockTag, install, main.getNearbyManager().getSelectedPeerIDsOrAll());
-        } else { //confirmation of installation - only target peers who have to install
-            Set<String> peerSet = new HashSet<>(main.getLumiAppInstaller().peersToInstall);
-            main.getDispatcher().requestRemoteAppOpen(LeadMeMain.APP_TAG, packageName, appName, lockTag, install, peerSet);
-        }
+        main.getDispatcher().requestRemoteAppOpen(LeadMeMain.APP_TAG, packageName, appName, lockTag, install, peerSet);
     }
 
     public WithinEmbedPlayer getWithinPlayer() {

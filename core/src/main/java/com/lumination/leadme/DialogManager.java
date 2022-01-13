@@ -26,6 +26,11 @@ import androidx.core.content.res.ResourcesCompat;
 
 import com.alimuzaffar.lib.pin.PinEntryEditText;
 
+import java.util.ArrayList;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import static java.util.concurrent.TimeUnit.SECONDS;
+
 /**
  * A single class to manage and create dialog pop ups for information or errors.
  * */
@@ -34,9 +39,9 @@ public class DialogManager {
     private final LeadMeMain main;
     private final Resources resources;
 
-    private View confirmPushDialogView, loginDialogView, toggleBtnView, manView, permissionDialogView;
-    private AlertDialog warningDialog, waitingDialog, appPushDialog, confirmPushDialog, studentAlertsDialog, loginDialog, recallPrompt, manual, permissionDialog;
-    private TextView appPushMessageView, warningDialogTitle, warningDialogMessage, recallMessage, permissionDialogMessage;
+    private View confirmPushDialogView, loginDialogView, toggleBtnView, manView, permissionDialogView, requestDialogView;
+    private AlertDialog warningDialog, waitingDialog, appPushDialog, confirmPushDialog, studentAlertsDialog, loginDialog, recallPrompt, manual, permissionDialog, requestDialog;
+    private TextView appPushMessageView, warningDialogTitle, warningDialogMessage, recallMessage, permissionDialogMessage, requestDialogMessage;
     private Button appPushBtn, selectedBtn, everyoneBtn;
     private String appPushPackageName, appPushTitle;
 
@@ -89,6 +94,7 @@ public class DialogManager {
         setupLoginDialogView();
         setupLoginDialog();
         setupManualDialog();
+        setupRequestDialog();
     }
 
     //SETUP FUNCTIONS
@@ -111,7 +117,7 @@ public class DialogManager {
         appPushDialogView = View.inflate(main, R.layout.e__preview_app_push, null);
 
         appPushDialogView.findViewById(R.id.push_btn).setOnClickListener(v -> {
-            main.getAppManager().launchApp(appPushPackageName, appPushTitle, false, "false");
+            main.getAppManager().launchApp(appPushPackageName, appPushTitle, false, "false", false, main.getNearbyManager().getSelectedPeerIDsOrAll());
             Log.d(TAG, "LAUNCHING! " + appPushPackageName);
             hideAppPushDialogView();
             showConfirmPushDialog(true, false);
@@ -179,7 +185,35 @@ public class DialogManager {
 //
 //    }
 
-    public void setupPermissionDialog() {
+    //Request dialog for file requests from learner devices
+    private void setupRequestDialog() {
+        requestDialogView = View.inflate(main, R.layout.e__learner_request_popup, null);
+        requestDialogMessage = requestDialogView.findViewById(R.id.request_comment);
+        requestDialog = new AlertDialog.Builder(main)
+                .setView(requestDialogView)
+                .create();
+
+        requestDialog.setOnDismissListener(dialog -> {
+            dialogShowing = false;
+            hideSystemUI();
+        });
+
+        Button allowBtn = requestDialogView.findViewById(R.id.allow_btn);
+        Button blockBtn = requestDialogView.findViewById(R.id.block_btn);
+
+        allowBtn.setOnClickListener(v -> {
+            main.transferFile(main.vrVideoPath, true);
+            requestDialog.dismiss();
+        });
+
+        blockBtn.setOnClickListener(v -> {
+            main.fileRequests = new ArrayList<>();
+            requestDialog.dismiss();
+        });
+    }
+
+    //Permission dialog for file transfer and auto installing applications
+    private void setupPermissionDialog() {
         permissionDialogView = View.inflate(main, R.layout.e__peer_permission_popup, null);
         permissionDialogMessage = permissionDialogView.findViewById(R.id.permission_comment);
         permissionDialog = new AlertDialog.Builder(main)
@@ -193,6 +227,62 @@ public class DialogManager {
         });
     }
 
+
+    /**
+     * Displays an alert box, notifying the guide that there are files missing on a learner devices.
+     * Will wait x seconds before showing the allow button as to check if any other devices report
+     * the same issue.
+     * @param delay An int representing the time delay before making the allow button clickable.
+     */
+    @SuppressLint("SetTextI18n")
+    public void showRequestDialog(int delay) {
+        if(requestDialog.isShowing()) {
+            //in case a guide switched on auto installer and transfer quickly
+            Log.e("REQUEST", "Is showing");
+            requestDialogMessage.setText(main.fileRequests.size() + " learners do not have the video. " +
+                    "\nDo you want to transfer it?"); //update the text if there are more requests
+        } else {
+            requestDialogMessage.setText(main.fileRequests.size() + " learner does not have the video. " +
+                    "\nDo you want to transfer it?");
+
+            waitForOthers(requestDialogView.findViewById(R.id.allow_btn), delay);
+        }
+
+        requestDialog.show();
+    }
+
+    /**
+     * Makes a button wait x seconds until clickable - useful when waiting for responses
+     */
+    private void waitForOthers(Button button, int seconds) {
+        button.setEnabled(false);
+        String originalText = (String) button.getText();
+
+        final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
+
+        final Runnable runnable = new Runnable() {
+            int countdownStarter = seconds;
+
+            public void run() {
+
+                button.setText("Wait (" + countdownStarter + ")");
+                countdownStarter--;
+
+                if (countdownStarter < 0) {
+                    button.setText(originalText);
+                    button.setEnabled(true);
+                    scheduler.shutdown();
+                }
+            }
+        };
+        scheduler.scheduleAtFixedRate(runnable, 0, 1, SECONDS);
+    }
+
+    /**
+     * Show a dialog that is directed at getting a permission enabled by a learner.
+     * @param msg A description of the permission that needs to be enabled.
+     * @param permission The permission that needs enabling.
+     */
     public void showPermissionDialog(String msg, String permission) {
         if(permissionDialog.isShowing()) {
             //in case a guide switched on auto installer and transfer quickly
