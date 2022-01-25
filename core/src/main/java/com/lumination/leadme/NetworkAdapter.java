@@ -106,7 +106,6 @@ public class NetworkAdapter {
         this.main = main;
         mNsdManager = (NsdManager) context.getSystemService(Context.NSD_SERVICE);
         resolver = new resListener();
-        startServer();
         serviceQueue = new ArrayList<>();
     }
 
@@ -605,6 +604,7 @@ public class NetworkAdapter {
                 List<String> inputList2 = Arrays.asList(inputList.get(1).split(":"));
                 Log.e(TAG, clientsServerSocket.getInetAddress() + " : " + inputList2);
                 if(main.fileTransferEnabled) {
+                    FileTransfer.setFileType(inputList2.get(2));
                     main.getFileTransfer().receivingFile(clientsServerSocket.getInetAddress(), Integer.parseInt(inputList2.get(1)));
                 } else {
                     main.permissionDenied(LeadMeMain.FILE_TRANSFER);
@@ -875,9 +875,9 @@ public class NetworkAdapter {
     }
 
     //file transfer case
-    public void sendFile(int ID, int localPort) {
+    public void sendFile(int ID, int localPort, String fileType) {
         ArrayList<Integer> selected = new ArrayList<>();
         selected.add(ID);
-        sendToSelectedClients("SEND:"+localPort,"FILE", selected);
+        sendToSelectedClients("SEND:" + localPort + ":" + fileType,"FILE", selected);
     }
 }

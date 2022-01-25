@@ -41,6 +41,8 @@ public class ConnectedPeer {
     private boolean internetEnabled = true;
     private boolean lastAppLaunchSucceeded = true;
     private boolean xray = true;
+    private boolean transfer = true;
+    private boolean installer = true;
 
     private NearbyPeersManager.Endpoint myEndpoint;
 
@@ -106,6 +108,15 @@ public class ConnectedPeer {
             case LeadMeMain.STUDENT_NO_XRAY:
                 hiddenAlerts.remove("xrayOn");
                 xray=success;
+                break;
+            case LeadMeMain.PERMISSION_TRANSFER_DENIED:
+                hiddenAlerts.remove("transferOn");
+                transfer=success;
+                break;
+            case LeadMeMain.PERMISSION_AUTOINSTALL_DENIED:
+                hiddenAlerts.remove("installerOn");
+                installer=success;
+                break;
         }
     }
 
@@ -138,6 +149,12 @@ public class ConnectedPeer {
         }
         if(!xray && !hiddenAlerts.contains("xrayOn")){
             res += "• Xray permission is disabled\n";
+        }
+        if(!transfer && !hiddenAlerts.contains("transferOn")) {
+            res += "• Transfer permission is disabled\n";
+        }
+        if(!installer && !hiddenAlerts.contains("installerOn")) {
+            res += "• Auto installer permission is disabled\n";
         }
         if (res.isEmpty() && status == STATUS_WARNING) {
             res += "• Unspecified warning\n";
@@ -247,6 +264,20 @@ public class ConnectedPeer {
                 hiddenAlerts.add("xrayOn");
             } else {
                 hiddenAlerts.remove("xrayOn");
+            }
+        }
+        if(!transfer){
+            if(hide){
+                hiddenAlerts.add("transferOn");
+            } else {
+                hiddenAlerts.remove("transferOn");
+            }
+        }
+        if(!installer){
+            if(hide){
+                hiddenAlerts.add("installerOn");
+            } else {
+                hiddenAlerts.remove("installerOn");
             }
         }
     }

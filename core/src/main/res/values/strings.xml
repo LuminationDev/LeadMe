@@ -39,6 +39,7 @@
     <string name="teacher_code">Teacher code</string>
     <string name="waiting_for_leaders">Waiting for leaders …</string>
     <string name="enable_location_to_connect">Please enable Location permission\nto connect to leaders</string>
+    <string name="enable_storage">"Please enable Storage permission"</string>
 
     <string name="push_success_title">Push Successful!</string>
     <string name="save_success_title">Save Successful!</string>

@@ -2,6 +2,7 @@ package com.lumination.leadme;
 
 import android.app.AlertDialog;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.res.ColorStateList;
 import android.database.Cursor;
 import android.net.Uri;
@@ -22,6 +23,9 @@ import android.widget.VideoView;
 import androidx.core.content.ContextCompat;
 import androidx.core.widget.ImageViewCompat;
 
+import com.BoardiesITSolutions.FileDirectoryPicker.OpenFilePicker;
+
+import java.io.File;
 import java.util.Set;
 
 /*
@@ -39,12 +43,11 @@ public class VREmbedPlayer {
     public final static String packageName = "com.Edward.VRPlayer";
 
     private String appName;
-    private Uri filepath;
     private String fileName;
 
     private AlertDialog videoControlDialog, playbackSettingsDialog;
 
-    private final View videoControllerDialogView, videoControls;
+    private final View videoControllerDialogView; //, videoControls
     private final VideoView controllerVideoView;
 
     private TextView vrplayerPreviewTitle;
@@ -73,7 +76,7 @@ public class VREmbedPlayer {
         this.main = main;
 
         videoControllerDialogView = View.inflate(main, R.layout.f__playback_control_vrplayer, null);
-        videoControls = videoControllerDialogView.findViewById(R.id.video_controls);
+//        videoControls = videoControllerDialogView.findViewById(R.id.video_controls);
 
         controllerVideoView = videoControllerDialogView.findViewById(R.id.video_stream_videoview);
         controllerVideoView.setTag("CONTROLLER");
@@ -95,27 +98,54 @@ public class VREmbedPlayer {
     }
 
     /**
+     * Takes a String and sets the video preview for the EmbedPlayer, sets one for the preview and
+     * one for the control. Separated for ease of use and customisation in the future.
+     * @param path A String of the content that is going to be played.
+     */
+    public void setFilepath(String path) {
+        File f = new File(path);
+        Log.e(TAG,"File name is: " + f.getName());
+
+        this.fileName = f.getName(); //get file name
+
+        //For testing purposes
+        Log.e(TAG, path);
+        Log.e(TAG, this.fileName);
+
+        //In case a file is not chosen or there is an error
+        if(path == null || this.fileName == null) {
+            Log.e(TAG, "File is missing or path is incorrect");
+            return;
+        }
+
+        vrplayerPreviewVideoView.setVideoPath(path);
+
+        //setting the preview video
+        setupVideoPreview(vrplayerPreviewVideoView);
+    }
+
+    /**
      * Takes a URI and sets the video preview for the EmbedPlayer, sets one for the preview and
      * one for the control. Separated for ease of use and customisation in the future.
      * @param path A URI of the content that is going to be played.
      */
     public void setFilepath(Uri path) {
-        this.filepath = path;
         this.fileName = getFileName(path);
 
-
         //For testing purposes
-        Log.e(TAG, String.valueOf(filepath));
-        Log.e(TAG, getFileName(path));
+        Log.e(TAG, String.valueOf(path));
+        Log.e(TAG, this.fileName);
 
         //In case a file is not chosen or there is an error
-        if(this.filepath == null || this.fileName == null) {
+        if(path == null || this.fileName == null) {
             Log.e(TAG, "File is missing or path is incorrect");
             return;
         }
 
+        vrplayerPreviewVideoView.setVideoURI(path);
+
         //setting the preview video
-        setupVideoPreview(vrplayerPreviewVideoView, this.filepath);
+        setupVideoPreview(vrplayerPreviewVideoView);
     }
 
     //Get a file name from a provided URI
@@ -134,8 +164,7 @@ public class VREmbedPlayer {
 
     //Sets the video source and moves it to the top of the UI as some phones will display it behind
     //the pop up dialog.
-    private void setupVideoPreview(VideoView video, Uri path) {
-        video.setVideoURI(path);
+    private void setupVideoPreview(VideoView video) {
         video.setZOrderOnTop(true);
 
         if(startFromTime != 0) {
@@ -205,11 +234,15 @@ public class VREmbedPlayer {
 
         vrplayerSetSourceBtn.setOnClickListener(v -> {
             Log.d(TAG, "FileUtilities: picking a file");
-            FileUtilities.browseFiles(main, LeadMeMain.VR_FILE_CHOICE);
+            if(LeadMeMain.isMiUiV9()) {
+                main.alternateFileChoice(LeadMeMain.VR_FILE_CHOICE);
+            } else {
+                FileUtilities.browseFiles(main, LeadMeMain.VR_FILE_CHOICE);
+            }
         });
 
         vrplayerPreviewPushBtn.setOnClickListener(v -> main.getHandler().post(() -> {
-            if (main.vrVideoPath == null) {
+            if (main.vrVideoURI == null && main.vrVideoPath == null) {
                 Toast.makeText(main, "A video has not been selected", Toast.LENGTH_SHORT).show();
                 return;
             }
@@ -218,8 +251,15 @@ public class VREmbedPlayer {
 
             Log.d(TAG, "Launching VR Player for students at: " + startFromTime);
 
-            //setting the playback video controller
-            setupVideoPreview(controllerVideoView, main.vrVideoPath);
+            if(LeadMeMain.isMiUiV9()) {
+                //setting the playback video controller
+                setupVideoPreview(controllerVideoView);
+                controllerVideoView.setVideoPath(main.vrVideoPath);
+            } else {
+                //setting the playback video controller
+                setupVideoPreview(controllerVideoView);
+                controllerVideoView.setVideoURI(main.vrVideoURI);
+            }
 
             //LAUNCH THE APPLICATION FROM HERE
             main.getAppManager().launchApp(packageName, appName, false, "false", true, main.getNearbyManager().getSelectedPeerIDsOrAll());
@@ -305,8 +345,16 @@ public class VREmbedPlayer {
     }
 
     private void openPreview(String title) {
-        if(main.vrVideoPath != null) {
-            setupVideoPreview(vrplayerPreviewVideoView, main.vrVideoPath);
+        if(main.vrVideoURI != null) {
+            if(LeadMeMain.isMiUiV9()) {
+                //setting the playback video controller
+                setupVideoPreview(vrplayerPreviewVideoView);
+                controllerVideoView.setVideoPath(main.vrVideoPath);
+            } else {
+                //setting the playback video controller
+                setupVideoPreview(vrplayerPreviewVideoView);
+                controllerVideoView.setVideoURI(main.vrVideoURI);
+            }
         }
 
         Log.d(TAG, "showPlaybackPreview: " + title);

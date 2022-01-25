@@ -25,6 +25,10 @@ import java.io.InputStream;
  * in order to return a file to onActivityResult, otherwise result will always be 0.
  * If MUI Optmizations is not shown, Click the reset to default values in the Autofill section a
  * few times and the option will appear.
+ *
+ * Note: Xiaomi phones do not delete files sometimes, it will stay hidden in memory and if trying
+ * to search for it, it will say it exists however it cannot be accessed. Need to install 'File by Google'
+ * in order to fully remove the file.
  */
 public class FileUtilities {
 
@@ -72,9 +76,9 @@ public class FileUtilities {
             cursor.moveToFirst();
             videoUri = ContentUris.withAppendedId(MediaStore.Video.Media.EXTERNAL_CONTENT_URI,
                     cursor.getInt(cursor.getColumnIndex(MediaStore.Video.VideoColumns._ID)));
-        }
 
-        cursor.close();
+            cursor.close();
+        }
 
         return videoUri;
     }
