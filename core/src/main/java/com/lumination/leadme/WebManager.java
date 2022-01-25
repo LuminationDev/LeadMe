@@ -28,11 +28,14 @@ import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.GridView;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.SearchView;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import androidx.core.content.res.ResourcesCompat;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
@@ -67,6 +70,8 @@ public class WebManager {
     private TextView previewMessage;
     private ProgressBar previewProgress;
     private Button previewPushBtn;
+    private Button selected;
+    private Button everyone;
     private boolean isYouTube = false;
     private boolean isWithin = false;
     private String pushURL = "";
@@ -74,6 +79,7 @@ public class WebManager {
     String controllerURL = "";
 
     private View webYouTubeFavView;
+    private LinearLayout toggleSelectedBtn;
     private FavouritesManager urlFavouritesManager;
     private FavouritesManager youTubeFavouritesManager;
 
@@ -100,6 +106,10 @@ public class WebManager {
         websiteLaunchDialogView = View.inflate(main, R.layout.d__enter_url, null);
         previewDialogView = View.inflate(main, R.layout.e__preview_url_push, null);
         searchDialogView = View.inflate(main, R.layout.e__preview_url_search, null);
+
+        toggleSelectedBtn = previewDialogView.findViewById(R.id.toggleBtnView);
+        selected = previewDialogView.findViewById(R.id.selected_btn);
+        everyone = previewDialogView.findViewById(R.id.everyone_btn);
 
         //set up lock spinner
         lockSpinnerParent = previewDialogView.findViewById(R.id.lock_spinner);
@@ -366,6 +376,7 @@ public class WebManager {
 
         final CheckBox saveWebToFav = previewDialogView.findViewById(R.id.fav_checkbox);
         setupPushToggle();
+
         previewPushBtn.setOnClickListener(v -> {
             //save to favourites if needed
             if (/*adding_to_fav ||*/ saveWebToFav.isChecked()) {
@@ -606,7 +617,7 @@ public class WebManager {
 
                 scheduleActivityLaunch(intent, updateCurrentTask, ai.packageName, name, "Website", url, urlTitle);
                 main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG,
-                        LeadMeMain.LAUNCH_SUCCESS + uri.getHost() + ":" + main.getNearbyManager().getID() + ":" + ai.packageName, main.getNearbyManager().getAllPeerIDs());
+                        LeadMeMain.LAUNCH_SUCCESS + uri.getHost() + ":" + main.getNearbyManager().getID() + ":" + ai.packageName, main.getNearbyManager().getSelectedPeerIDsOrAll());
                 //success!
                 return;
             }
@@ -618,7 +629,7 @@ public class WebManager {
         if (browserIntent != null) {
             scheduleActivityLaunch(browserIntent, updateCurrentTask, browserIntent.getStringExtra("packageName"), "Default Browser", "Website", url, urlTitle);
             main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG,
-                    LeadMeMain.LAUNCH_SUCCESS + uri.getHost() + ":" + main.getNearbyManager().getID() + ":" + browserIntent.getStringExtra("packageName"), main.getNearbyManager().getAllPeerIDs());
+                    LeadMeMain.LAUNCH_SUCCESS + uri.getHost() + ":" + main.getNearbyManager().getID() + ":" + browserIntent.getStringExtra("packageName"), main.getNearbyManager().getSelectedPeerIDsOrAll());
             //success!
             return;
 
@@ -738,7 +749,7 @@ public class WebManager {
         } else {
             //lockSpinnerParent.setVisibility(View.VISIBLE);
             if (main.getConnectedLearnersAdapter().someoneIsSelected()) {
-                previewPushBtn.setText(main.getResources().getString(R.string.push_this_to_selected));
+                selectedOnly();
             } else {
                 previewPushBtn.setText(main.getResources().getString(R.string.push_this_to_everyone));
             }
@@ -770,6 +781,12 @@ public class WebManager {
     }
 
     void showWebLaunchDialog(boolean add_fav_mode) {
+        if(main.getConnectedLearnersAdapter().someoneIsSelected()) {
+            toggleSelectedBtn.setVisibility(View.VISIBLE);
+        } else {
+            toggleSelectedBtn.setVisibility(View.GONE);
+        }
+
         Log.d(TAG, "showWebLaunchDialog: ");
         if (isYouTube && lastWasGuideView) {
             youTubeEmbedPlayer.showVideoController(); //null, null);
@@ -1130,7 +1147,7 @@ public class WebManager {
 
             //alert other peers as needed
             main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG,
-                    LeadMeMain.LAUNCH_SUCCESS + "YT id=" + getYouTubeID(url) + ":" + main.getNearbyManager().getID() + ":" + youTubePackageName, main.getNearbyManager().getAllPeerIDs());
+                    LeadMeMain.LAUNCH_SUCCESS + "YT id=" + getYouTubeID(url) + ":" + main.getNearbyManager().getID() + ":" + youTubePackageName, main.getNearbyManager().getSelectedPeerIDsOrAll());
 
 
         } catch (Exception ex) {
@@ -1561,40 +1578,52 @@ public class WebManager {
 
         return false;
     }
+
     boolean selectedOnly=false;
     private void setupPushToggle() {
         Button leftToggle = previewDialogView.findViewById(R.id.selected_btn);
         Button rightToggle = previewDialogView.findViewById(R.id.everyone_btn);
-        leftToggle.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                selectedOnly=true;
-                previewDialogView.findViewById(R.id.everyone_btn).setBackground(main.getResources().getDrawable(R.drawable.bg_passive_left_white, null));
-                ((Button) previewDialogView.findViewById(R.id.everyone_btn)).setCompoundDrawablesWithIntrinsicBounds(0, 0, 0, 0);
-                ((Button) previewDialogView.findViewById(R.id.everyone_btn)).setElevation(Math.round(TypedValue.applyDimension(
-                        TypedValue.COMPLEX_UNIT_DIP, 5,main.getResources().getDisplayMetrics())));
-                ((Button) previewDialogView.findViewById(R.id.selected_btn)).setElevation(0);
-                previewDialogView.findViewById(R.id.selected_btn).setBackground(main.getResources().getDrawable(R.drawable.bg_passive_right, null));
-                ((Button) previewDialogView.findViewById(R.id.selected_btn)).setCompoundDrawablesWithIntrinsicBounds(R.drawable.icon_fav_star_check, 0, 0, 0);
-                previewPushBtn.setText(main.getResources().getString(R.string.push_this_to_selected));
-            }
-        });
-        rightToggle.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                selectedOnly=false;
-                previewDialogView.findViewById(R.id.everyone_btn).setBackground(main.getResources().getDrawable(R.drawable.bg_passive_left, null));
-                ((Button) previewDialogView.findViewById(R.id.everyone_btn)).setCompoundDrawablesRelativeWithIntrinsicBounds(R.drawable.icon_fav_star_check, 0, 0, 0);
-
-                previewDialogView.findViewById(R.id.selected_btn).setBackground(main.getResources().getDrawable(R.drawable.bg_passive_right_white, null));
-                ((Button) previewDialogView.findViewById(R.id.selected_btn)).setCompoundDrawablesWithIntrinsicBounds(0, 0, 0, 0);
-                previewPushBtn.setText(main.getResources().getString(R.string.push_this_to_everyone));
-                ((Button) previewDialogView.findViewById(R.id.selected_btn)).setElevation(Math.round(TypedValue.applyDimension(
-                        TypedValue.COMPLEX_UNIT_DIP, 5,main.getResources().getDisplayMetrics())));
-                ((Button) previewDialogView.findViewById(R.id.everyone_btn)).setElevation(0);
-            }
-        });
+        leftToggle.setOnClickListener(v -> selectedOnly());
+        rightToggle.setOnClickListener(v -> everyone());
         rightToggle.callOnClick();
     }
 
+    private void selectedOnly() {
+        selectedOnly=true;
+//        previewDialogView.findViewById(R.id.everyone_btn).setBackground(main.getResources().getDrawable(R.drawable.bg_passive_left_white, null));
+//        ((Button) previewDialogView.findViewById(R.id.everyone_btn)).setCompoundDrawablesWithIntrinsicBounds(0, 0, 0, 0);
+//        ((Button) previewDialogView.findViewById(R.id.everyone_btn)).setElevation(Math.round(TypedValue.applyDimension(
+//                TypedValue.COMPLEX_UNIT_DIP, 5,main.getResources().getDisplayMetrics())));
+//        ((Button) previewDialogView.findViewById(R.id.selected_btn)).setElevation(0);
+//        previewDialogView.findViewById(R.id.selected_btn).setBackground(main.getResources().getDrawable(R.drawable.bg_passive_right, null));
+//        //((Button) previewDialogView.findViewById(R.id.selected_btn)).setCompoundDrawablesWithIntrinsicBounds(R.drawable.icon_fav_star_check, 0, 0, 0);
+//        previewPushBtn.setText(main.getResources().getString(R.string.push_this_to_selected));
+
+        selected.setBackground(ResourcesCompat.getDrawable(main.getResources(), R.drawable.bg_active_right, null));
+        everyone.setBackground(ResourcesCompat.getDrawable(main.getResources(), R.drawable.bg_passive_left, null));
+        selected.setTextColor(main.getResources().getColor(R.color.leadme_light_grey, null));
+        everyone.setTextColor(main.getResources().getColor(R.color.light, null));
+
+        previewPushBtn.setText(main.getResources().getString(R.string.push_this_to_selected));
+    }
+
+    private void everyone() {
+        selectedOnly=false;
+//                previewDialogView.findViewById(R.id.everyone_btn).setBackground(main.getResources().getDrawable(R.drawable.bg_passive_left, null));
+//                //((Button) previewDialogView.findViewById(R.id.everyone_btn)).setCompoundDrawablesRelativeWithIntrinsicBounds(R.drawable.icon_fav_star_check, 0, 0, 0);
+//
+//                previewDialogView.findViewById(R.id.selected_btn).setBackground(main.getResources().getDrawable(R.drawable.bg_passive_right_white, null));
+//                ((Button) previewDialogView.findViewById(R.id.selected_btn)).setCompoundDrawablesWithIntrinsicBounds(0, 0, 0, 0);
+//                previewPushBtn.setText(main.getResources().getString(R.string.push_this_to_everyone));
+//                ((Button) previewDialogView.findViewById(R.id.selected_btn)).setElevation(Math.round(TypedValue.applyDimension(
+//                        TypedValue.COMPLEX_UNIT_DIP, 5,main.getResources().getDisplayMetrics())));
+//                ((Button) previewDialogView.findViewById(R.id.everyone_btn)).setElevation(0);
+
+        selected.setBackground(ResourcesCompat.getDrawable(main.getResources(), R.drawable.bg_passive_right, null));
+        everyone.setBackground(ResourcesCompat.getDrawable(main.getResources(), R.drawable.bg_active_left, null));
+        everyone.setTextColor(main.getResources().getColor(R.color.leadme_light_grey, null));
+        selected.setTextColor(main.getResources().getColor(R.color.light, null));
+
+        previewPushBtn.setText(main.getResources().getString(R.string.push_this_to_everyone));
+    }
 }

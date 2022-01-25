@@ -182,7 +182,6 @@ public class AppManager extends BaseAdapter {
         Intent intent = main.getPackageManager().getLaunchIntentForPackage(packageName);
 
         if (intent == null) {
-
             if (packageName.toLowerCase().contains("browser")) {
                 //find default browser instead
                 intent = main.getWebManager().getBrowserIntent(defaultBrowserUrl);
@@ -197,10 +196,10 @@ public class AppManager extends BaseAdapter {
                 return;
 
             }
-//            else { //TODO AUTO INSTALLER
-//                main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.APP_NOT_INSTALLED + ":" + appName + ":" + packageName + ":" + main.getNearbyManager().getID(), main.getNearbyManager().getSelectedPeerIDsOrAll());
-//                return;
-//            }
+            else {
+                main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.APP_NOT_INSTALLED + ":" + appName + ":" + packageName + ":" + main.getNearbyManager().getID(), main.getNearbyManager().getSelectedPeerIDsOrAll());
+                return;
+            }
         }
 
         if (packageName.equals(withinPackage)) {
@@ -285,6 +284,14 @@ public class AppManager extends BaseAdapter {
         return isVR;
     }
 
+    /**
+     * Request that Within open with the supplied url video.
+     * @param url A string representing the url of the selected video.
+     * @param isStreaming A boolean determining if the video should be streamed of downloaded.
+     * @param isVR A boolean determining if the experience is in VR or flat screen mode.
+     * @param selectedOnly  A boolean determining if just the selected peers should launch the
+     *                      application.
+     */
     public void launchWithin(String url, boolean isStreaming, boolean isVR, boolean selectedOnly) {
         Log.d(TAG, "launchWithin: " + isStreaming + ", " + isVR + ", " + "Title: " + url);
         this.isStreaming = isStreaming;

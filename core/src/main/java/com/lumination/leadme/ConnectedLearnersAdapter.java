@@ -1,5 +1,7 @@
 package com.lumination.leadme;
 
+import static java.util.concurrent.TimeUnit.SECONDS;
+
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.res.ColorStateList;
@@ -28,6 +30,8 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 
 public class ConnectedLearnersAdapter extends BaseAdapter {
 
@@ -55,18 +59,19 @@ public class ConnectedLearnersAdapter extends BaseAdapter {
      * updating the status and opening the alerts dialog.
      */
     public void refreshAlertsView() {
-
         ArrayList<ConnectedPeer> peersWithWarnings = new ArrayList<>();
         for (ConnectedPeer peer : mData) {
             if (!peer.getAlertsList().isEmpty()) {
                 peersWithWarnings.add(peer);
             }
         }
+
         if (peersWithWarnings.isEmpty()) {
             main.setAlertsBtnVisibility(View.GONE);
         } else {
             main.setAlertsBtnVisibility(View.VISIBLE);
         }
+
         Log.d(TAG, "refreshAlertsView: size:"+peersWithWarnings.size());
         main.alertsBtn.setText("Alerts ("+peersWithWarnings.size()+")");
         alertsAdapter.setData(peersWithWarnings);
@@ -126,11 +131,32 @@ public class ConnectedLearnersAdapter extends BaseAdapter {
 
         Log.d(TAG, "Adding " + peer.getDisplayName() + " to my student list, ID: " + peer.getID() + ". Now: " + mData.size() + " || " + mData);
 
+        //Blocks call if guide logs out on a device then logs back in as a student.
+        if(main.isGuide) {
+            updateOnConnect(peer.getID());
+        }
+    }
+
+    /**
+     * Update the new guide with any settings that have been turned on prior to the peer connecting.
+     * @param ID A string representing the ID of the peer that has just connected.
+     */
+    private void updateOnConnect(String ID) {
         //update the student device upon login with the teachers auto install setting
         Set<String> newPeer = new HashSet<String>();
-        newPeer.add(peer.getID());
-        main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.AUTO_INSTALL + ":"
-                + main.autoInstallApps, newPeer);
+        newPeer.add(ID);
+
+        final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
+
+        final Runnable runnable = () -> {
+            main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.AUTO_INSTALL + ":"
+                    + main.autoInstallApps, newPeer);
+            main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.FILE_TRANSFER + ":"
+                    + main.fileTransferEnabled, newPeer);
+
+            scheduler.shutdown();
+        };
+        scheduler.scheduleAtFixedRate(runnable, 5, 5, SECONDS);
     }
 
     public boolean hasConnectedStudents() {
@@ -151,7 +177,6 @@ public class ConnectedLearnersAdapter extends BaseAdapter {
 
         return null;
     }
-
 
     private ConnectedPeer getMatchingPeerByUUID(String peerID) {
         if (mData == null || mData.size() == 0) {
@@ -224,6 +249,13 @@ public class ConnectedLearnersAdapter extends BaseAdapter {
                     break;
                 case LeadMeMain.STUDENT_NO_XRAY:
                     warningMessage = "xray popup was denied";
+                    break;
+                case LeadMeMain.PERMISSION_TRANSFER_DENIED:
+                    warningMessage = "file transfer permission was denied";
+                    break;
+                case LeadMeMain.PERMISSION_AUTOINSTALL_DENIED:
+                    warningMessage = "auto installer permission was denied";
+                    break;
             }
             thisPeer.setWarning(msg, false);
 

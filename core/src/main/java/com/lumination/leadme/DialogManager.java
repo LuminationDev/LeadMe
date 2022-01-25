@@ -27,6 +27,8 @@ import androidx.core.content.res.ResourcesCompat;
 import com.alimuzaffar.lib.pin.PinEntryEditText;
 
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import static java.util.concurrent.TimeUnit.SECONDS;
@@ -44,6 +46,7 @@ public class DialogManager {
     private TextView appPushMessageView, warningDialogTitle, warningDialogMessage, recallMessage, permissionDialogMessage, requestDialogMessage;
     private Button appPushBtn, selectedBtn, everyoneBtn;
     private String appPushPackageName, appPushTitle;
+    private ArrayList<String> permissions = null;
 
     private TextView nameView;
 
@@ -202,7 +205,18 @@ public class DialogManager {
         Button blockBtn = requestDialogView.findViewById(R.id.block_btn);
 
         allowBtn.setOnClickListener(v -> {
-            main.transferFile(main.vrVideoPath, true);
+            if(LeadMeMain.isMiUiV9()) {
+                main.getFileTransfer().startFileServer(main.vrVideoPath, true);
+            } else {
+                main.transferFile(main.vrVideoURI, true);
+            }
+
+            Set<String> peerSet = new HashSet<>();
+            for(int ID : main.fileRequests) {
+                peerSet.add(String.valueOf(ID));
+            }
+
+            main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.RETURN_TAG, peerSet);
             requestDialog.dismiss();
         });
 
@@ -284,25 +298,38 @@ public class DialogManager {
      * @param permission The permission that needs enabling.
      */
     public void showPermissionDialog(String msg, String permission) {
-        if(permissionDialog.isShowing()) {
-            //in case a guide switched on auto installer and transfer quickly
-            Log.e("PERMISSION", "Is showing");
-            permissionDialogMessage.setText(permissionDialogMessage.getText() + " " + msg); //update the text
-        }
-
         Button allowBtn = permissionDialogView.findViewById(R.id.allow_btn);
         Button blockBtn = permissionDialogView.findViewById(R.id.block_btn);
 
-        permissionDialogMessage.setText(msg);
+        if(permissions == null) {
+            permissions = new ArrayList<>();
+        }
+
+        if(permissionDialog.isShowing()) {
+            //in case a guide switched on auto installer and transfer quickly
+            Log.e("PERMISSION", "Is showing");
+            permissionDialogMessage.setText(permissionDialogMessage.getText() + "\n\n" + msg); //update the text
+        } else {
+            permissionDialogMessage.setText(msg);
+        }
+
+        permissions.add(permission);
         permissionDialogMessage.setVisibility(View.VISIBLE);
 
-        allowBtn.setOnClickListener(v -> {
-            main.permissionAllowed(permission, true);
+        //Add permissions if the messages stack
+        allowBtn.setOnClickListener(view -> {
+            for ( String pm : permissions) {
+                main.permissionAllowed(pm, true);
+            }
             permissionDialog.dismiss();
+            permissions = null;
         });
 
-        blockBtn.setOnClickListener(v -> {
-            main.permissionAllowed(permission, false);
+        blockBtn.setOnClickListener(view -> {
+            for ( String pm : permissions) {
+                main.permissionAllowed(pm, false);
+            }
+            permissions = null;
             permissionDialog.dismiss();
         });
 
@@ -772,7 +799,7 @@ public class DialogManager {
         Button backBtn = loginDialogView.findViewById(R.id.login_back);
         TextView signup = loginDialogView.findViewById(R.id.login_signup);
 
-        enterBtn.setOnClickListener(v -> {
+        enterBtn.setOnClickListener(view -> {
             if(password.getText().toString().length()>0 && email.getText().toString().length()>0) {
                 main.firebaseEmailSignIn(email.getText().toString(), password.getText().toString(), errorText);
             } else {
@@ -781,21 +808,21 @@ public class DialogManager {
             }
         });
 
-        password.setOnFocusChangeListener((v, hasFocus) -> {
+        password.setOnFocusChangeListener((view, hasFocus) -> {
             if (hasFocus) {
-                main.getInputManager().showSoftInput(v, InputMethodManager.SHOW_FORCED);
+                main.getInputManager().showSoftInput(view, InputMethodManager.SHOW_FORCED);
             }
         });
 
-        forgotPassword.setOnClickListener(v -> {
+        forgotPassword.setOnClickListener(view -> {
             main.forgotPasswordController(loginDialog);
         });
 
-        googleSignin.setOnClickListener(v -> {
+        googleSignin.setOnClickListener(view -> {
             main.googleSignIn();
         });
 
-        signup.setOnClickListener(v -> {
+        signup.setOnClickListener(view -> {
             loginDialog.dismiss();
             main.buildLoginSignupController(0);
         });

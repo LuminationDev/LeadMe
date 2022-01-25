@@ -58,6 +58,9 @@ public class FileTransfer {
 
     private ServerSocket serverSocket = null;
     private Socket fileSocket = null;
+    //TODO this might cause issues with school's wifi if ports are blocked - keep note of this
+    final int PORT = 54323;
+
     private ArrayList<Integer> selected;
     private HashMap<Integer, Double> transfers;
 
@@ -156,23 +159,40 @@ public class FileTransfer {
     }
 
     /**
+     * Used for older Xiaomi phones as they return the file path instead of a UriStart a secondary server on the Guide's device. This server directly controls the transfer of files
+     * through a DataOutputStream. Need to have secondary server as these connections need to be closed
+     * once a file has been transferred.
+     * @param filePath A string representing the path of athe selected file on the device.
+     * @param requesting A boolean representing if the file is being requested by a learner device.
+     */
+    public void startFileServer(String filePath, boolean requesting) {
+        request = requesting;
+
+        internalOrExternal(filePath);
+
+        startServer();
+
+        sendFile();
+    }
+
+    /**
      * Get the exact file path for a file from a supplied Uri. The file path is needed as Uri's are
      * meaningless across separate devices.
      * @param fileUri A content Uri of the selected file.
      * @return A boolean representing if the file is available to send.
      */
     private boolean getFilePath(Uri fileUri) {
-        Log.i(TAG, "Uri: " + fileUri);
+        Log.d(TAG, "Uri: " + fileUri);
 
         String path = null;
         try {
             path = FileUtilities.getPath(main.context, fileUri);
         } catch (Exception e) {
             Log.e(TAG,"Error: " + e);
-            Toast.makeText(main.context, "Error: " + e, Toast.LENGTH_SHORT).show();
+//            Toast.makeText(main.context, "Error: " + e, Toast.LENGTH_SHORT).show();
         }
 
-        Toast.makeText(main.context, "Path: " + path, Toast.LENGTH_LONG).show();
+//        Toast.makeText(main.context, "Path: " + path, Toast.LENGTH_LONG).show();
 
         Log.d(TAG + " File", path);
 
@@ -195,7 +215,7 @@ public class FileTransfer {
      * @param path A string representing the exact path of the file on a device's storage.
      */
     private void internalOrExternal(String path) {
-        Log.e(TAG + " Path", path);
+        Log.d(TAG + " Path", path);
 
         if (path.contains("sdcard")) {
             String newPath = null;
@@ -205,7 +225,7 @@ public class FileTransfer {
                 newPath = dirs[dirs.length - 1].getAbsolutePath();
                 newPath = newPath.substring(0, newPath.indexOf("Android"));
                 newPath += editedPath[1];
-                Log.e("Path", newPath);
+                Log.d(TAG, "SD card Path: " + newPath);
             }
             assert newPath != null;
             file = new File(newPath);
@@ -219,9 +239,6 @@ public class FileTransfer {
      * completed.
      */
     public void startServer() {
-        //TODO this might cause issues with school's wifi if ports are blocked - keep note of this
-        final int PORT = 0;
-
         //TODO test with 10+ phones in case the server shuts down before finishing
         final ExecutorService clientProcessingPool = Executors.newFixedThreadPool(10);
 
@@ -256,6 +273,9 @@ public class FileTransfer {
      * Get the correct file path, selected peers and start the thread executor.
      */
     private void sendFile() {
+        //Cancel any previous notification
+        notifyManager.cancel(NOTIFICATION_ID);
+
         //make sure at 0 for each new transfer
         transfer_progress = 0;
         transferCount = 0;
@@ -313,7 +333,6 @@ public class FileTransfer {
 
         //Add the peer to the set for message updates
         for (int ID: selected) {
-            Log.e("Peer", String.valueOf(ID));
             peerSet.add(String.valueOf(ID));
         }
 
@@ -351,7 +370,10 @@ public class FileTransfer {
 
         try {
             fileSocket = new Socket();
-            fileSocket.connect(new InetSocketAddress(ip, port), 10000);
+            //Regular getLocalPort method from network adapter
+//            fileSocket.connect(new InetSocketAddress(ip, port), 10000);
+            //Hard coded port in case getLocalPort is blocked (same as the connection issue)
+            fileSocket.connect(new InetSocketAddress(ip, PORT), 10000);
 
             Log.d(TAG, "saveFile: socket connected");
 
@@ -376,7 +398,7 @@ public class FileTransfer {
         // create a data output stream from the output stream so we can send data through it
         DataOutputStream dataOutputStream = new DataOutputStream(outputStream);
 
-        System.out.println("Sending ID to the ServerSocket");
+        Log.d(TAG, "Sending ID to the ServerSocket");
 
         // write the message we want to send
         dataOutputStream.writeUTF(main.getNearbyManager().getID());
@@ -396,26 +418,29 @@ public class FileTransfer {
 
                 DataInputStream dis = new DataInputStream(fileSocket.getInputStream());
                 OutputStream fos; //file output stream - depends on the SDK
-                Uri fileExists;
+                Uri fileURI = null;
+                String fileExists = null;
 
                 String fileName = dis.readUTF();
 
-                //Works for API 29+ at least - needs more testing
+                Log.d(TAG, "File name: " + fileName);
+
+                //Works for API 27+ at least - needs more testing
                 if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                    fileExists = FileUtilities.getFileByName(main, fileName);
+                    fileURI = FileUtilities.getFileByName(main, fileName);
                 } else {
-                    fileExists = null;
+                    //Currently only checks Movies and Downloads folder
+                    fileExists = main.searchForFile(fileName);
                 }
 
-                Log.e(TAG, "Does file exist on device: " + fileExists);
+                Log.d(TAG, "File URI: " + fileURI + "File exists: " + fileExists);
 
                 //Send message to guide that it already has the video
-                if(fileExists != null) {
+                if(fileURI != null || fileExists != null) {
+                    //getFilePath(fileURI);
                     main.transferError(fileOnDevice, main.getNearbyManager().myID);
                     return;
                 }
-
-                Log.d("File name", fileName);
 
                 builder.setProgress(100, 0, false)
                         .setContentText(notificationDescription)
@@ -430,7 +455,7 @@ public class FileTransfer {
                     ContentResolver resolver = main.getContentResolver();
                     ContentValues newCaptureDetails = new ContentValues();
 
-                    //determine file type - extend this in the future
+                    //TODO determine file type - extend this in the future
                     if (fileName.toLowerCase().contains(".jpg") || fileName.toLowerCase().contains(".png")) {
                         mediaCollection = MediaStore.Images.Media.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY);
                         newCaptureDetails.put(MediaStore.Images.Media.DISPLAY_NAME, fileName);
@@ -446,7 +471,7 @@ public class FileTransfer {
                     fos = resolver.openOutputStream(newCaptureUri);
 
                 } else {
-                    Log.i(TAG, "Pre API 29 way to save the file");
+                    Log.d(TAG, "Pre API 29 way to save the file");
                     String videoDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MOVIES).toString();
                     File video = new File(videoDir, fileName);
                     fos = new FileOutputStream(video);
@@ -456,7 +481,6 @@ public class FileTransfer {
 
                 long size = dis.readLong();
                 long fileLength = size;
-                Log.d("File size", String.valueOf(fileLength));
 
                 int progress = 0;
                 int read;
@@ -470,7 +494,7 @@ public class FileTransfer {
                 fos.close();
                 dis.close();
                 fileSocket.close();
-                Log.d("File", "File saved");
+                Log.d(TAG, "File saved");
 
                 //Send confirmation that the transfer is complete - guide can then handle it however necessary
                 main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.FILE_REQUEST_TAG + ":" + main.getNearbyManager().getID()
@@ -490,7 +514,7 @@ public class FileTransfer {
                 main.setDeviceStatusMessage(R.string.connected_label);
             }
         });
-        Log.d("SavingFile", "Starting to save file");
+        Log.d(TAG, "Starting to save file");
 
         saveFile.start();
     }
@@ -513,6 +537,12 @@ public class FileTransfer {
 
         if(transfers.size() == 0) {
             dismissPopup();
+        }
+
+        //check if actually removed as could be updated at the same time.
+        Log.d(TAG, "Transfer size after removal: " + transfers.size());
+        if(transfers.get(peerID) != null) {
+            transfers.remove(peerID);
         }
     }
 
@@ -539,8 +569,11 @@ public class FileTransfer {
 
         transfer_progress = overallPercent/transfers.size();
 
+        Log.d(TAG, "Transfer size on update: " + transfers.size());
+
         //Do not call to frequently otherwise notifications are dropped, included in the
         //completion one.
+        //TODO find a better way to do this!
         if((int) transfer_progress % 10 == 7) {
             builder.setProgress(100, (int) transfer_progress, false);
             notifyManager.notify(NOTIFICATION_ID, builder.build());
@@ -654,7 +687,7 @@ public class FileTransfer {
 
                 byte[] buffer = new byte[4096];
 
-                Log.e("File name to send", file.getName());
+                Log.d(TAG, "File name to send: " + file.getName());
 
                 dos.writeUTF(file.getName());
                 dos.writeLong(fileLength);
@@ -671,11 +704,11 @@ public class FileTransfer {
                 fis.close();
                 dos.close();
 
-                Log.e(TAG, "File sent");
+                Log.d(TAG, "File sent");
                 removeRequest(this.ID);
             } catch (IOException e) {
                 e.printStackTrace();
-                Log.d(TAG, "SendingFile: File not sent");
+                Log.e(TAG, "SendingFile: File not sent");
                 transferComplete = false;
                 transfers.remove(this.ID);
                 removeRequest(this.ID);
@@ -683,7 +716,7 @@ public class FileTransfer {
                 transferCount++;
                 main.runOnUiThread(() -> main.updatePeerStatus(String.valueOf(this.ID), ConnectedPeer.STATUS_INSTALLED, null));
 
-                Log.e(TAG + " Transfer end", "Count: " + transferCount + " Selected size: " + selected.size());
+                Log.d(TAG, " Transfer end. Count: " + transferCount + " Selected size: " + selected.size());
 
                 //check that all the files have been transferred - reset connections and progress
                 if(transferCount == selected.size()) {
@@ -718,7 +751,6 @@ public class FileTransfer {
                 this.clientSocket.close();
                 isRunning = false;
 
-                //TODO might close too soon if peers are still connected?
                 serverSocket.close();
                 serverSocket = null;
             } catch (IOException e) {
@@ -732,7 +764,7 @@ public class FileTransfer {
                 isRunning = true;
             }
 
-            Log.e(TAG, "SocketClosure: file transfer server reset");
+            Log.d(TAG, "SocketClosure: file transfer server reset");
             main.runOnUiThread(() -> Toast.makeText(main, "Transfers complete", Toast.LENGTH_SHORT).show());
         }
     }
@@ -749,7 +781,7 @@ public class FileTransfer {
         }
 
         public void run() {
-            main.getNearbyManager().networkAdapter.sendFile(ID, serverSocket.getLocalPort());
+            main.getNearbyManager().networkAdapter.sendFile(ID, serverSocket.getLocalPort(), fileType);
         }
     }
 }

@@ -43,6 +43,10 @@
     <!-- for youtube -->
     <uses-permission android:name="android.permission.INTERNET" />
 
+    <!-- for Play store updates - not sure if necessary -->
+<!--    <uses-permission android:name="android.permission.GET_ACCOUNTS"/>-->
+<!--    <uses-permission android:name="android.permission.USE_CREDENTIALS"/>-->
+
 <!--    &lt;!&ndash; Google Play filtering &ndash;&gt;-->
 <!--    <uses-feature-->
 <!--        android:name="android.hardware.wifi.direct"-->

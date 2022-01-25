@@ -1,5 +1,7 @@
 package com.lumination.leadme;
 
+import static java.util.concurrent.TimeUnit.SECONDS;
+
 import android.net.nsd.NsdServiceInfo;
 import android.os.Build;
 import android.os.Parcel;
@@ -16,6 +18,8 @@ import java.util.Base64;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 
 public class NearbyPeersManager {
     String TAG = "NearbyPeersManager";
@@ -133,12 +137,23 @@ public class NearbyPeersManager {
     }
 
     /**
-     * Sets the user as the Guide and starts advertising for a connection.
+     * Sets the user as the Guide, starts the network server and after a set delay starts
+     * advertising for a connection.
      */
     public void setAsGuide() {
         main.isGuide = true;
-        networkAdapter.stopDiscovery();
-        networkAdapter.startAdvertising();
+        networkAdapter.startServer();
+
+        //Wait a little bit for the server to start before making the guide discoverable.
+        final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
+
+        final Runnable runnable = () -> {
+            networkAdapter.stopDiscovery();
+            networkAdapter.startAdvertising();
+
+            scheduler.shutdown();
+        };
+        scheduler.scheduleAtFixedRate(runnable, 2, 1, SECONDS);
     }
 
     /**

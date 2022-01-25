@@ -3,6 +3,7 @@ package com.lumination.leadme;
 import android.content.ComponentName;
 import android.content.Intent;
 import android.net.Uri;
+import android.os.Build;
 import android.util.Log;
 
 public class VRAccessibilityManager {
@@ -21,6 +22,7 @@ public class VRAccessibilityManager {
     private Intent sendIntent;
     private String fileName;
     private Uri source;
+    private String absFilepath;
 
     /**
      * Basic constructor for the VRAccessibility Manager, no additional setup required within.
@@ -74,6 +76,9 @@ public class VRAccessibilityManager {
         }
     }
 
+    /*TODO application needs to be opened once so that the user can allow file permissions otherwise
+    set source will throw a storage permission denied exception.
+    * */
     //Send the source filepath and start time to the external application
     private void setSource(String info) {
         Log.d(TAG, "File name: " + info);
@@ -86,19 +91,32 @@ public class VRAccessibilityManager {
         String[] split = info.split(":");
         this.fileName = split[0];
 
-        //Look up the file name in storage, returning the URI
-        source = FileUtilities.getFileByName(main, this.fileName);
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            //Look up the file name in storage, returning the URI
+            source = FileUtilities.getFileByName(main, this.fileName);
 
-        if(source == null) {
-            requestFile();
+            if(source == null) {
+                requestFile();
+                return;
+            } else {
+                //File path needed for Unity instead of Uri.
+                absFilepath = FileUtilities.getPath(main, source);
+            }
         } else {
-            //File path may be needed for Unity instead of Uri.
-            String absFilepath = FileUtilities.getPath(main, source);
+            String filePath = main.searchForFile(this.fileName);
 
-            Log.e(TAG, "source:" + absFilepath + ":" + split[1]);
-            //Send a source intent with the file path and the start time
-            newIntent("source:" + absFilepath + ":" + split[1]);
+            if(filePath == null) {
+                requestFile();
+                return;
+            } else {
+                absFilepath = filePath;
+            }
         }
+
+        Log.d(TAG, "File path: " + absFilepath);
+
+        //Send a source intent with the file path and the start time
+        newIntent("File path:" + absFilepath + ":" + split[1]);
     }
 
     //Send an action to the guide requesting that a file be transferred to this device
@@ -109,14 +127,11 @@ public class VRAccessibilityManager {
             FileTransfer.setFileType("VRVideo");
             main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.FILE_REQUEST_TAG + ":" + main.getNearbyManager().getID()
                     + ":" + "false" + ":" + FileTransfer.getFileType(), main.getNearbyManager().getSelectedPeerIDs());
-            main.getDialogManager().showWarningDialog("Missing File", "Video is transferring now.");
+            main.runOnUiThread(() ->main.getDialogManager().showWarningDialog("Missing File", "Video is transferring now."));
         } else {
-            main.getDialogManager().showWarningDialog("Permission Needed", "File Transfer is not enabled " +
-                    "\nThe file cannot be sent.");
+            main.runOnUiThread(() ->main.getDialogManager().showWarningDialog("Permission Needed", "File Transfer is not enabled " +
+                    "\nThe file cannot be sent."));
         }
-
-        main.runOnUiThread(() -> main.updateFollowerCurrentTaskToLeadMe());
-        main.getLumiAccessibilityConnector().bringMainToFront();
     }
 
     //Create an intent based on the action supplied and send it to the external application

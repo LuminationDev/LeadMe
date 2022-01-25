@@ -40,6 +40,7 @@ dependencies {
     //for nearby connections
     implementation 'com.google.android.gms:play-services-nearby:18.0.0'
     implementation 'androidx.constraintlayout:constraintlayout:2.0.4'
+    implementation 'com.google.android.play:core:1.10.0'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.4.0'
 
     //for permissions manager
@@ -77,6 +78,13 @@ dependencies {
         // androidx.appcompat as a dependency in your app.
         exclude group: 'androidx.appcompat', module: 'appcompat'
     }
+
+    //testing new filepicker
+    //noinspection GradleCompatible
+    implementation 'com.android.support:appcompat-v7:28.0.0'
+    //noinspection GradleCompatible
+    implementation 'com.android.support:design:28.0.0'
+    implementation 'com.github.BoardiesITSolutions:FileDirectoryPicker:1.0.0.7'
 }
 
 configurations.all {
