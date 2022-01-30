@@ -1506,7 +1506,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
         //file transfer button
         mainLeader.findViewById(R.id.xray_core_btn).setOnLongClickListener(view -> {
-            if(getConnectedLearnersAdapter().someoneIsSelected()) {
+            if(!getConnectedLearnersAdapter().someoneIsSelected()) {
                 Toast.makeText(context, "Peers need to be selected.", Toast.LENGTH_LONG).show();
                 return true;
             }
