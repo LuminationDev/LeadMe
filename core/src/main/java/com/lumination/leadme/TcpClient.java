@@ -139,12 +139,7 @@ public class TcpClient extends Thread{
                     Log.d(TAG, "inputRecieved: ping messages are purposely ignored");
                     break;
                 case "IMAGE":
-                    parent.executorService.submit(new Runnable() {
-                        @Override
-                        public void run() {
-                            parent.updateParent(inputList.get(1),ID,"IMAGE");
-                        }
-                    });
+                    parent.executorService.submit(() -> parent.updateParent(inputList.get(1),ID,"IMAGE"));
                     break;
                 default:
                     break;

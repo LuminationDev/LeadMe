@@ -419,6 +419,9 @@ public class XrayManager {
                     isAwaitingImage(false);
                     //check if we are receiving images from the correct peer
                     Log.d(TAG, "Adding screenshot! " + monitoredPeer + " == " + imgPeer);
+
+                    Log.d(TAG, "Bitmap height: " + response.getHeight() + " | width: " + response.getWidth());
+
                     clientRecentScreenshots.put(imgPeer, tmpBmp); //store it
                     if (monitoredPeer.equals(imgPeer)) {
                         xrayScreenshotView.setImageBitmap(tmpBmp);
