@@ -6,6 +6,7 @@ import android.net.nsd.NsdServiceInfo;
 import android.net.wifi.WifiManager;
 import android.os.Build;
 import android.os.Parcel;
+import android.text.format.Formatter;
 import android.util.Log;
 import android.view.View;
 
@@ -15,10 +16,12 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
@@ -146,13 +149,15 @@ public class NetworkAdapter {
 
                     } else if (service.getServiceName().contains("#Teacher")) {
                         Log.d(TAG, "onServiceFound: attempting to resolve " + service.getServiceName());
+
                         //fixes the resolve 3 error
                         executorService.submit(new Runnable() {
                             @Override
                             public void run() {
                                 mNsdManager.resolveService(service, new resListener());
                                 try {
-                                    Thread.currentThread().sleep(100); //sleeps thread
+                                    Thread.currentThread();
+                                    Thread.sleep(500); //sleeps thread
                                 } catch (InterruptedException e) {
                                     e.printStackTrace();
                                 }
@@ -214,13 +219,32 @@ public class NetworkAdapter {
                 resInProgress=false;
                 return;
             }
+
             Log.d(TAG, "onServiceResolved: " + serviceInfo);
+
             executorService.submit(new Runnable() {
                 @Override
                 public void run() {
                     mService = serviceInfo;
                     if (!discoveredLeaders.contains(serviceInfo)) {
                         Log.d(TAG, "run: added leader");
+
+                        //Get the hard coded IP address set across in the Service info attributes
+                        String ipAddress_hard = new String(serviceInfo.getAttributes().get("IP"));
+                        InetAddress hardCoded = null;
+
+                        try {
+                            hardCoded = InetAddress.getByName(ipAddress_hard);
+                        } catch (UnknownHostException e) {
+                            e.printStackTrace();
+                        }
+
+                        //Override the captured IP address with the hardcoded one
+                        if(hardCoded != null) {
+                            Log.d(TAG, "Hard coded IP Address: " + ipAddress_hard);
+                            serviceInfo.setHost(hardCoded);
+                        }
+
                         discoveredLeaders.add(serviceInfo);
                     }
 
@@ -299,6 +323,10 @@ public class NetworkAdapter {
                 clientsServerSocket = new Socket(serviceInfo.getHost(), serviceInfo.getPort());
             } catch (IOException e) {
                 e.printStackTrace();
+
+
+            } finally {
+                tryReconnect(serviceInfo);
             }
             if (clientsServerSocket != null) {
                 if (clientsServerSocket.isConnected()) {
@@ -316,16 +344,18 @@ public class NetworkAdapter {
                     });
                 }
             }
-        } else if (!clientsServerSocket.isConnected()) {
-            Log.d(TAG, "connectToServer: Socket disconnected attempting to reconnect");
-            clientsServerSocket = null;
-            if (tries <= 10) {
-                tries++;
-                connectToServer(serviceInfo);
-            }
-            Log.d(TAG, "connectToServer: reconnection unsuccessful");
+        }
+//        else if (!clientsServerSocket.isConnected()) {
+//            Log.d(TAG, "connectToServer: Socket disconnected attempting to reconnect");
+//            clientsServerSocket = null;
+//            if (tries <= 10) {
+//                tries++;
+//                connectToServer(serviceInfo);
+//            }
+//            Log.d(TAG, "connectToServer: reconnection unsuccessful");
 
-        } else if (clientsServerSocket.isConnected()) {
+//        }
+        else if (clientsServerSocket.isConnected()) {
             if (clientsServerSocket.getInetAddress().equals(serviceInfo.getHost()) && clientsServerSocket.getPort() == serviceInfo.getPort()) {
                 Log.d(TAG, "connectToServer: socket already connected");
                 try {
@@ -360,6 +390,9 @@ public class NetworkAdapter {
         } else {
             Log.d(TAG, "connectToServer: not really sure how we ended up here");
         }
+
+
+
         scheduledExecutor.shutdown();
         scheduledExecutor = new ScheduledThreadPoolExecutor(1);
         scheduledExecutor.scheduleAtFixedRate(new Runnable() {
@@ -378,7 +411,19 @@ public class NetworkAdapter {
                     }
                 }
             }
-        }, 0, 8000, TimeUnit.MILLISECONDS);
+        }, 1, 8000, TimeUnit.MILLISECONDS);
+    }
+
+    private void tryReconnect(NsdServiceInfo serviceInfo) {
+        if (!clientsServerSocket.isConnected()) {
+            Log.d(TAG, "connectToServer: Socket disconnected attempting to reconnect");
+            clientsServerSocket = null;
+            if (tries <= 10) {
+                tries++;
+                connectToServer(serviceInfo);
+            }
+            Log.d(TAG, "connectToServer: reconnection unsuccessful");
+        }
     }
 
     /*
@@ -457,7 +502,7 @@ public class NetworkAdapter {
         //on the fly name changes are supported, client is identified by assigned ID
 
         //new Thread so server messages can be read from a while loop without impacting the UI
-        if(recieveInput==null) {
+        if(recieveInput == null) {
             //recieveInput = new Thread() {
             recieveInput = main.backgroundExecutor.submit(new Runnable() {
                 @Override
@@ -652,6 +697,7 @@ public class NetworkAdapter {
                 while (true) {
                     Log.d(TAG, "ServerSocket Created, awaiting connection");
                     Socket clientSocket = null;
+
                     try {
                         clientSocket = mServerSocket.accept();//blocks the thread until client is accepted
                     } catch (IOException e) {
@@ -661,6 +707,7 @@ public class NetworkAdapter {
                         }
                         throw new RuntimeException("Error creating client", e);
                     }
+
                     Log.d(TAG, "run: client connected");
                     TcpClient tcp = new TcpClient(clientSocket, netAdapt, clientID);
                     Thread client = new Thread(tcp); //new thread for every client
@@ -685,6 +732,7 @@ public class NetworkAdapter {
         initializeRegistrationListener();
         NsdServiceInfo serviceInfo = new NsdServiceInfo();
 
+        //While using hardcoded PORT this should never be an issue... should
         if (localport < 0) {
             main.getDialogManager().showWarningDialog("Connection Issue",
                     "Invalid Port Number, please restart the application.");
@@ -696,7 +744,15 @@ public class NetworkAdapter {
         serviceInfo.setServiceName(Name + "#Teacher");
         serviceInfo.setServiceType(SERVICE_TYPE);
 
-        Log.e("LOCALPORT", "Port: " + localport);
+
+        //TODO add the IP address onto the service as an attribute - expand later for IPv6
+//        serviceInfo.setAttribute("IP", mServerSocket.getInetAddress().toString());
+        serviceInfo.setAttribute("IP", Formatter.formatIpAddress(main.wifiManager.getConnectionInfo().getIpAddress()));
+
+        //host must be set as NSD can get incorrect addresses on busy networks - keep for backup if attribute isn't sent?
+        serviceInfo.setHost(mServerSocket.getInetAddress());
+
+        Log.e("LOCALPORT", "Port: " + localport + " | IpAddress: " + mServerSocket.getInetAddress());
 
         mNsdManager.registerService(serviceInfo, NsdManager.PROTOCOL_DNS_SD, mRegistrationListener);
     }
@@ -820,7 +876,9 @@ public class NetworkAdapter {
 
     //will drop all currently connected clients
     public void stopServer() {
-        Server.cancel(true);
+        if(Server != null) {
+            Server.cancel(true);
+        }
 
         if(mServerSocket!=null) {
             try {

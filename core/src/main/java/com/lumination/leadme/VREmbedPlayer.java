@@ -232,16 +232,16 @@ public class VREmbedPlayer {
             }
         });
 
-        vrplayerSetSourceBtn.setOnClickListener(v -> {
+        vrplayerSetSourceBtn.setOnClickListener(view -> {
             Log.d(TAG, "FileUtilities: picking a file");
-            if(LeadMeMain.isMiUiV9()) {
-                main.alternateFileChoice(LeadMeMain.VR_FILE_CHOICE);
-            } else {
-                FileUtilities.browseFiles(main, LeadMeMain.VR_FILE_CHOICE);
-            }
+
+            String allowed = "Only 360 video files can be selected for the VR Player";
+
+            //Function to let leaders know what files can be picked
+            main.getDialogManager().showFileTypeDialog(allowed);
         });
 
-        vrplayerPreviewPushBtn.setOnClickListener(v -> main.getHandler().post(() -> {
+        vrplayerPreviewPushBtn.setOnClickListener(view -> main.getHandler().post(() -> {
             if (main.vrVideoURI == null && main.vrVideoPath == null) {
                 Toast.makeText(main, "A video has not been selected", Toast.LENGTH_SHORT).show();
                 return;

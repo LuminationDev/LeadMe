@@ -147,34 +147,35 @@ public class ScreenCap {
     }
 
     /**
-     * Retrieve bitmaps of the current screen, these are to be sent to the guide when xray is on.
+     * Retrieve a bitmap of the current screen, these are to be sent to the guide when xray is on.
      * Note: If it randomly stops after a while of no movement check onTrimMemory in LeadMe main as
      * this stopped it in the past if memory was running low.
      */
-    public void getBitmapsFromScreen(){
-        mImageReader.setOnImageAvailableListener((ImageReader.OnImageAvailableListener) reader -> {
+    public void getBitmapsFromScreen() {
+        mImageReader.setOnImageAvailableListener(reader -> {
 
             Image image = mImageReader.acquireNextImage();
 
             if (image == null) {
                 return;
             }
+
             if (sendImages) {
-                //only change if the height changes
-                //(meaning width has also changed)
-                if (height != getScreenHeight()) {
-                    height = getScreenHeight();
-                    width = getScreenWidth();
-                    changePeerOrientation(width, height);
-                }
+                //Can use the image dimension as the virtual display has been set up.
+                int width = image.getWidth();
+                int height = image.getHeight();
+
                 final Image.Plane[] planes = image.getPlanes();
                 final ByteBuffer buffer = planes[0].getBuffer();
                 //int offset = 0;
                 int pixelStride = planes[0].getPixelStride();
                 int rowStride = planes[0].getRowStride();
-                int rowPadding = rowStride - pixelStride * getScreenWidth();
+                int rowPaddingStride = rowStride - (pixelStride * width);
+                int rowPadding = rowPaddingStride / pixelStride;
+
                 // create bitmap
-                Bitmap bmp = Bitmap.createBitmap(width + rowPadding / pixelStride, height, Bitmap.Config.ARGB_8888);
+                Bitmap bmp = Bitmap.createBitmap(width + rowPadding, height, Bitmap.Config.ARGB_8888);
+
                 bmp.copyPixelsFromBuffer(buffer);
                 image.close(); //close image as soon as possible
                 //latestImage=bmp;
@@ -191,17 +192,6 @@ public class ScreenCap {
 
     private static int getScreenHeight() {
         return Resources.getSystem().getDisplayMetrics().heightPixels;
-    }
-
-    /**
-     * Change the virtual display between portrait and landscape
-     * Note: did not like .resize() (rotation back to portrait resulted in a square)
-     * @param width A integer representing the width of the new virtual display.
-     * @param height A integer representing the height of the new virtual display.
-     */
-    public void changePeerOrientation(int width, int height) {
-        mVirtualDisplay.release();
-        mVirtualDisplay = mProjection.createVirtualDisplay("screen-mirror", width, height, densityDPI, DisplayManager.VIRTUAL_DISPLAY_FLAG_PUBLIC, mImageReader.getSurface(), null, null);
     }
 
     Future<?> lastTask= null;

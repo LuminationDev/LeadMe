@@ -41,9 +41,9 @@ public class DialogManager {
     private final LeadMeMain main;
     private final Resources resources;
 
-    private View confirmPushDialogView, loginDialogView, toggleBtnView, manView, permissionDialogView, requestDialogView;
-    private AlertDialog warningDialog, waitingDialog, appPushDialog, confirmPushDialog, studentAlertsDialog, loginDialog, recallPrompt, manual, permissionDialog, requestDialog;
-    private TextView appPushMessageView, warningDialogTitle, warningDialogMessage, recallMessage, permissionDialogMessage, requestDialogMessage;
+    private View confirmPushDialogView, loginDialogView, toggleBtnView, manView, permissionDialogView, requestDialogView, fileTypeDialogView;
+    private AlertDialog warningDialog, waitingDialog, appPushDialog, confirmPushDialog, studentAlertsDialog, loginDialog, recallPrompt, manual, permissionDialog, requestDialog, fileTypeDialog;
+    private TextView appPushMessageView, warningDialogTitle, warningDialogMessage, recallMessage, permissionDialogMessage, requestDialogMessage, fileTypeDialogMessage;
     private Button appPushBtn, selectedBtn, everyoneBtn;
     private String appPushPackageName, appPushTitle;
     private ArrayList<String> permissions = null;
@@ -97,6 +97,7 @@ public class DialogManager {
         setupLoginDialogView();
         setupLoginDialog();
         setupManualDialog();
+        setupFileTypes();
         setupRequestDialog();
     }
 
@@ -188,6 +189,32 @@ public class DialogManager {
 //
 //    }
 
+    //Dialog to describe what sort of files can be choosen
+    private void setupFileTypes() {
+        fileTypeDialogView = View.inflate(main, R.layout.e__leader_filetype_popup, null);
+        fileTypeDialogMessage = fileTypeDialogView.findViewById(R.id.filetype_comment);
+        fileTypeDialog = new AlertDialog.Builder(main)
+                .setView(fileTypeDialogView)
+                .create();
+
+        fileTypeDialog.setOnDismissListener(dialog -> {
+            dialogShowing = false;
+            hideSystemUI();
+        });
+
+        Button allowBtn = fileTypeDialogView.findViewById(R.id.ok_btn);
+
+        allowBtn.setOnClickListener(v -> {
+            fileTypeDialog.dismiss();
+
+            if(LeadMeMain.isMiUiV9()) {
+                main.alternateFileChoice(LeadMeMain.VR_FILE_CHOICE);
+            } else {
+                FileUtilities.browseFiles(main, LeadMeMain.VR_FILE_CHOICE);
+            }
+        });
+    }
+
     //Request dialog for file requests from learner devices
     private void setupRequestDialog() {
         requestDialogView = View.inflate(main, R.layout.e__learner_request_popup, null);
@@ -233,6 +260,8 @@ public class DialogManager {
         permissionDialog = new AlertDialog.Builder(main)
                 .setView(permissionDialogView)
                 .create();
+
+        permissionDialog.setCancelable(false);
 
         permissionDialog.setOnDismissListener(dialog -> {
             dialogShowing = false;
@@ -334,6 +363,24 @@ public class DialogManager {
         });
 
         permissionDialog.show();
+    }
+
+    /**
+     * Show a dialog alert that describes what file types can be selected for a certain application.
+     */
+    public void showFileTypeDialog(String message) {
+        if (destroying) {
+            return;
+        }
+        if (fileTypeDialog == null) {
+            setupWarningDialog();
+        }
+
+        fileTypeDialogMessage.setText(message);
+        fileTypeDialogMessage.setVisibility(View.VISIBLE);
+        fileTypeDialog.show();
+        hideSystemUI();
+        dialogShowing = true;
     }
 
     //Turn into generic functions
@@ -749,7 +796,13 @@ public class DialogManager {
     private void setupLoginDialogView() {
         getNameView(); //sets up the loginDialog
 
-        loginDialogView.findViewById(R.id.back_btn).setOnClickListener(v -> hideLoginDialog(true));
+        loginDialogView.findViewById(R.id.back_btn).setOnClickListener(view -> {
+            hideLoginDialog(true);
+
+            //clear the pin entry
+            getAndClearPinEntry();
+        });
+
         loginDialogView.findViewById(R.id.connect_btn).setOnClickListener(v -> main.initiateLeaderAdvertising());
 
         readyBtn = loginDialogView.findViewById(R.id.connect_btn);
@@ -868,7 +921,7 @@ public class DialogManager {
      * Query the text entry and retrieve the string.
      * @return A String representing the what has been entered by a user.
      */
-    public String getPinEntry() {
+    public String getAndClearPinEntry() {
         final PinEntryEditText pinEntry = loginDialogView.findViewById(R.id.login_pin_entry);
         String entry = pinEntry.getText().toString();
         pinEntry.setText("");

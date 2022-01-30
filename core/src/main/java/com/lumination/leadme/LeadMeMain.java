@@ -288,7 +288,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     private ConnectedLearnersAdapter connectedLearnersAdapter;
     private LeaderSelectAdapter leaderSelectAdapter;
     private static DispatchManager dispatcher;
-    private WifiManager wifiManager;
+    protected WifiManager wifiManager;
     private XrayManager xrayManager;
     private AppInstaller lumiAppInstaller;
 
@@ -1485,40 +1485,40 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         //TODO VR PLAYER, AUTO INSTALLER AND FILE TRANSFER
         //Code in LeadMe Main & AppManager
         //multi install button
-//        app_btn.setOnLongClickListener(view -> {
-//            if(autoInstallApps) {
-//                getLumiAppInstaller().showMultiInstaller(layoutParams);
-//            } else {
-//                dialogManager.showWarningDialog("Auto Installer", "Auto installing has not been enabled.");
-//            }
-//
-//            return true;
-//        });
+        app_btn.setOnLongClickListener(view -> {
+            if(autoInstallApps) {
+                getLumiAppInstaller().showMultiInstaller(layoutParams);
+            } else {
+                dialogManager.showWarningDialog("Auto Installer", "Auto installing has not been enabled.");
+            }
+
+            return true;
+        });
 
         //file transfer button
-//        mainLeader.findViewById(R.id.xray_core_btn).setOnLongClickListener(view -> {
-//            if(fileTransferEnabled) {
-//                if(isMiUiV9()) {
-//                    alternateFileChoice(TRANSFER_FILE_CHOICE);
-//                } else {
-//                    FileUtilities.browseFiles(this, TRANSFER_FILE_CHOICE);
-//                }
-//            } else {
-//                dialogManager.showWarningDialog("File Transfer", "File transfer has not been enabled.");
-//            }
-//            return true;
-//        });
+        mainLeader.findViewById(R.id.xray_core_btn).setOnLongClickListener(view -> {
+            if(fileTransferEnabled) {
+                if(isMiUiV9()) {
+                    alternateFileChoice(TRANSFER_FILE_CHOICE);
+                } else {
+                    FileUtilities.browseFiles(this, TRANSFER_FILE_CHOICE);
+                }
+            } else {
+                dialogManager.showWarningDialog("File Transfer", "File transfer has not been enabled.");
+            }
+            return true;
+        });
 
         //Custom VR button
-//        mainLeader.findViewById(R.id.vr_core_btn).setOnLongClickListener(view -> {
-//            if(vrVideoPath == null) {
-//                getVrEmbedPlayer().showPlaybackPreview();
-//            } else {
-//                getVrEmbedPlayer().openVideoController();
-//            }
-//
-//            return true;
-//        });
+        mainLeader.findViewById(R.id.vr_core_btn).setOnLongClickListener(view -> {
+            if(vrVideoPath == null) {
+                getVrEmbedPlayer().showPlaybackPreview();
+            } else {
+                getVrEmbedPlayer().openVideoController();
+            }
+
+            return true;
+        });
         //TODO End section
     }
 
@@ -2177,7 +2177,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         //if appropriate, check if the correct code has been entered
         if (loggingInAsLeader) {
             //check teacher code
-            String code = dialogManager.getPinEntry();
+            String code = dialogManager.getAndClearPinEntry();
 
             Log.d(TAG, "Code entered: " + code);
             // For showing
@@ -2317,7 +2317,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
             //TODO AUTO INSTALLER AND FILE TRANSFER
             //display the auto installing application toggle and file transfer toggle
-//            autoToggle.setVisibility(View.VISIBLE);
+            autoToggle.setVisibility(View.VISIBLE);
             transferToggle.setVisibility(View.VISIBLE);
         } else {
             //display main student view
@@ -2336,7 +2336,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             //remove the Firebase listener if connection was manual
             getAuthenticationManager().removeUserListener();
             //NOTE: this may cause an issue as it was inside the above function to being with...
-            getNearbyManager().networkAdapter.stopDiscovery();
+            //getNearbyManager().networkAdapter.stopDiscovery();
         }
     }
 
