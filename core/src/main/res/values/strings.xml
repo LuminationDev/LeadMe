@@ -145,5 +145,6 @@
     <string name="onboard_title_3">Block Devices</string>
     <string name="onboard_title_4">Manage Alerts</string>
     <string name="onboard_title_5">Lead the Way</string>
+    <string name="manual_connect">Manual connect</string>
 
 </resources>

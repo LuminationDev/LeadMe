@@ -812,6 +812,10 @@ public class ConnectedLearnersAdapter extends BaseAdapter {
         return count;
     }
 
+    /**
+     * Check through the connected learners to see if anyone is currently selected.
+     * @return A boolean representing if a learner is selected.
+     */
     public boolean someoneIsSelected() {
         for (ConnectedPeer peer : mData) {
             if (peer.isSelected()) {
