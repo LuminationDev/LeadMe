@@ -1258,31 +1258,38 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             editor.putBoolean(SESSION_MANUAL_TAG, sessionManual);
             editor.apply();
         }
+    }
 
-        //TODO might not use shared preferences here - enabled every session for security
+    /**
+     * Check the shared preferences for file transfer and auto installer - this will only be kept
+     * in shared preferences for the guide for security reasons. Learners will have to opt-in each
+     * time they connect.
+     */
+    private void checkAddtionalPreferences() {
+        //TODO might not use shared preferences here - enabled every session for security?
         //auto install application sharedpreferences
-//        if (sharedPreferences.contains(AUTO_INSTALL)) {
-//            autoInstallApps = sharedPreferences.getBoolean(AUTO_INSTALL, false);
-//        }
-//
-//        if (autoInstallApps == null) {
-//            SharedPreferences.Editor editor = sharedPreferences.edit();
-//            autoInstallApps = false;
-//            editor.putBoolean(AUTO_INSTALL, autoInstallApps);
-//            editor.apply();
-//        }
+        if (sharedPreferences.contains(AUTO_INSTALL)) {
+            autoInstallApps = sharedPreferences.getBoolean(AUTO_INSTALL, false);
+        }
+
+        if (autoInstallApps == null) {
+            SharedPreferences.Editor editor = sharedPreferences.edit();
+            autoInstallApps = false;
+            editor.putBoolean(AUTO_INSTALL, autoInstallApps);
+            editor.apply();
+        }
 
         //file transfer sharedpreferences
-//        if (sharedPreferences.contains(FILE_TRANSFER)) {
-//            fileTransferEnabled = sharedPreferences.getBoolean(FILE_TRANSFER, false);
-//        }
-//
-//        if (fileTransferEnabled == null) {
-//            SharedPreferences.Editor editor = sharedPreferences.edit();
-//            fileTransferEnabled = false;
-//            editor.putBoolean(AUTO_INSTALL, fileTransferEnabled);
-//            editor.apply();
-//        }
+        if (sharedPreferences.contains(FILE_TRANSFER)) {
+            fileTransferEnabled = sharedPreferences.getBoolean(FILE_TRANSFER, false);
+        }
+
+        if (fileTransferEnabled == null) {
+            SharedPreferences.Editor editor = sharedPreferences.edit();
+            fileTransferEnabled = false;
+            editor.putBoolean(AUTO_INSTALL, fileTransferEnabled);
+            editor.apply();
+        }
     }
 
     /**
@@ -1482,6 +1489,8 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             }
         });
 
+        checkAddtionalPreferences();
+
         //TODO VR PLAYER, AUTO INSTALLER AND FILE TRANSFER
         //Code in LeadMe Main & AppManager
         //multi install button
@@ -1497,6 +1506,11 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
         //file transfer button
         mainLeader.findViewById(R.id.xray_core_btn).setOnLongClickListener(view -> {
+            if(getConnectedLearnersAdapter().someoneIsSelected()) {
+                Toast.makeText(context, "Peers need to be selected.", Toast.LENGTH_LONG).show();
+                return true;
+            }
+
             if(fileTransferEnabled) {
                 if(isMiUiV9()) {
                     alternateFileChoice(TRANSFER_FILE_CHOICE);
@@ -1727,10 +1741,10 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             }
 
             //TODO for shared preference settings
-//                SharedPreferences.Editor editor = sharedPreferences.edit();
+            SharedPreferences.Editor editor = sharedPreferences.edit();
             autoInstallApps = isChecked;
-//                editor.putBoolean(AUTO_INSTALL, autoInstallApps);
-//                editor.apply();
+            editor.putBoolean(AUTO_INSTALL, autoInstallApps);
+            editor.apply();
 
             //send action to student devices to change the auto install setting
             getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.AUTO_INSTALL + ":"
@@ -1749,10 +1763,10 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             }
 
             //TODO for shared preference settings
-//                SharedPreferences.Editor editor = sharedPreferences.edit();
+            SharedPreferences.Editor editor = sharedPreferences.edit();
             fileTransferEnabled = isChecked;
-//                editor.putBoolean(FILE_TRANSFER, fileTransferEnabled);
-//                editor.apply();
+            editor.putBoolean(FILE_TRANSFER, fileTransferEnabled);
+            editor.apply();
 
             //send action to student devices to change the file transfer settings?
             getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.FILE_TRANSFER + ":"

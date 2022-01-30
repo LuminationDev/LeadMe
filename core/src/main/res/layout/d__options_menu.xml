@@ -209,7 +209,7 @@
             android:layout_marginTop="15dp"
             android:fontFamily="@font/poppins_regular"
             android:includeFontPadding="false"
-            android:text="Manual connect"
+            android:text="@string/manual_connect"
             android:textColor="@color/leadme_black"
             android:textSize="16sp" />
 

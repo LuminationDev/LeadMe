@@ -42,7 +42,7 @@ public class DialogManager {
     private final Resources resources;
 
     private View confirmPushDialogView, loginDialogView, toggleBtnView, manView, permissionDialogView, requestDialogView, fileTypeDialogView;
-    private AlertDialog warningDialog, waitingDialog, appPushDialog, confirmPushDialog, studentAlertsDialog, loginDialog, recallPrompt, manual, permissionDialog, requestDialog, fileTypeDialog;
+    private AlertDialog warningDialog, waitingDialog, appPushDialog, confirmPushDialog, studentAlertsDialog, loginDialog, recallPrompt, manualDialog, permissionDialog, requestDialog, fileTypeDialog;
     private TextView appPushMessageView, warningDialogTitle, warningDialogMessage, recallMessage, permissionDialogMessage, requestDialogMessage, fileTypeDialogMessage;
     private Button appPushBtn, selectedBtn, everyoneBtn;
     private String appPushPackageName, appPushTitle;
@@ -718,12 +718,12 @@ public class DialogManager {
      */
     private void setupManualDialog() {
         manView = View.inflate(main, R.layout.e__manual_popup, null);
-        manual = new AlertDialog.Builder(main)
+        manualDialog = new AlertDialog.Builder(main)
                 .setView(manView)
                 .create();
 
         Button back = manView.findViewById(R.id.manual_back);
-        back.setOnClickListener(v1 -> manual.dismiss());
+        back.setOnClickListener(v1 -> manualDialog.dismiss());
     }
 
     /**
@@ -742,7 +742,7 @@ public class DialogManager {
             IpAddress.setText(ipAddress);
         } else {
             if(main.getNearbyManager().isConnectedAsFollower()){
-                manual.dismiss();
+                manualDialog.dismiss();
                 Toast.makeText(main, "You are already connected to a leader", Toast.LENGTH_SHORT).show();
                 return;
             }
@@ -763,13 +763,15 @@ public class DialogManager {
                         Log.d(TAG, "onClick: "+IpEnter.getText().toString());
                         nameView.setText(ManName.getText().toString());
 
-                        manual.dismiss();
+                        manualDialog.dismiss();
                         main.isGuide = false;
                         main.directIpConnection(ManName, IpEnter);
                     }
                 }
             });
         }
+
+        manualDialog.show();
     }
 
     /**
