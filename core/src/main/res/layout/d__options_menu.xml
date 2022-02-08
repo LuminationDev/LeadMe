@@ -47,7 +47,7 @@
             android:id="@+id/connected_only_view"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="30dp"
+            android:layout_marginBottom="3dp"
             android:orientation="vertical"
             android:visibility="gone">
 
@@ -110,35 +110,6 @@
                 android:textColor="@color/leadme_white"
                 android:visibility="gone" />
 
-            <LinearLayout
-                android:id="@+id/capture_rate_display"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:visibility="gone">
-
-                <TextView
-                    android:id="@+id/screen_capture"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="20dp"
-                    android:fontFamily="@font/poppins_semibold"
-                    android:text="Capture Rate"
-                    android:textColor="@color/leadme_medium_grey"
-                    android:textSize="16sp" />
-
-                <SeekBar
-                    android:id="@+id/screen_capture_rate"
-                    android:layout_width="fill_parent"
-                    android:layout_height="wrap_content"
-                    android:buttonTint="@color/leadme_blue"
-                    android:max="100"
-                    android:progress="1"
-                    android:progressTint="@color/leadme_blue"
-                    android:thumbTint="@color/leadme_blue"
-                    android:visibility="gone"
-                    tools:visibility="visible" />
-            </LinearLayout>
-
         </LinearLayout>
 
         <TextView
@@ -176,9 +147,20 @@
             android:layout_marginTop="20dp"
             android:fontFamily="@font/poppins_semibold"
             android:includeFontPadding="false"
-            android:text="Help"
+            android:text="@string/help"
             android:textColor="@color/leadme_black"
             android:textSize="18sp" />
+
+        <TextView
+            android:id="@+id/on_boarding"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="15dp"
+            android:fontFamily="@font/poppins_regular"
+            android:includeFontPadding="false"
+            android:text="@string/display_onboarding"
+            android:textColor="@color/leadme_black"
+            android:textSize="16sp" />
 
         <TextView
             android:id="@+id/how_to_use_btn"

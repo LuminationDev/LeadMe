@@ -32,25 +32,25 @@ public class TcpClient extends Thread{
     boolean checkIn = true;
     ScheduledExecutorService scheduledExecutor = new ScheduledThreadPoolExecutor(3);
     Runnable tcpRunner = () -> {
-            if (client.isConnected() && !client.isClosed()) {
-                for (int i = 0; i < parent.currentClients.size(); i++) {
-                    client Client = parent.currentClients.get(i);
-                    if (ID == Client.ID) {
-                        while (Client.messageQueue.size() > 0) {
-                            Log.d(TAG, "sending: " + Client.messageQueue.get(0).message + " " + Client.messageQueue.get(0).type);
-                            sendToClient(Client.messageQueue.get(0).message, Client.messageQueue.get(0).type);
-                            parent.currentClients.get(i).messageQueue.remove(0);
-                            try {
-                                Thread.currentThread().sleep(500);
-                            } catch (InterruptedException e) {
-                                e.printStackTrace();
-                            }
-
+        if (client.isConnected() && !client.isClosed()) {
+            for (int i = 0; i < parent.currentClients.size(); i++) {
+                client Client = parent.currentClients.get(i);
+                if (ID == Client.ID) {
+                    while (Client.messageQueue.size() > 0) {
+                        Log.d(TAG, "sending: " + Client.messageQueue.get(0).message + " " + Client.messageQueue.get(0).type);
+                        sendToClient(Client.messageQueue.get(0).message, Client.messageQueue.get(0).type);
+                        parent.currentClients.get(i).messageQueue.remove(0);
+                        try {
+                            Thread.currentThread().sleep(500);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
                         }
+
                     }
                 }
-                //Log.d(TAG, "run: checking for messages");
             }
+            //Log.d(TAG, "run: checking for messages");
+        }
     };
     Runnable ConnectionCheck = () -> {
         try {
@@ -109,7 +109,7 @@ public class TcpClient extends Thread{
 
         scheduledExecutor.scheduleAtFixedRate(tcpRunner,0,1500, TimeUnit.MILLISECONDS);
 
-        scheduledExecutor.scheduleAtFixedRate(ConnectionCheck,300,1000, TimeUnit.MILLISECONDS);
+        scheduledExecutor.scheduleAtFixedRate(ConnectionCheck,300,2000, TimeUnit.MILLISECONDS);
 
         //new Thread(inputRun).start();
         scheduledExecutor.scheduleAtFixedRate(inputRun,0,1000, TimeUnit.MILLISECONDS);
