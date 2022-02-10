@@ -80,332 +80,332 @@
             android:paddingEnd="20dp"/>
     </LinearLayout>
 
-
-    <HorizontalScrollView
-        android:layout_width="350dp"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center_horizontal"
-        android:clipToPadding="false"
-        android:fadeScrollbars="false"
-        android:foregroundGravity="center_horizontal"
-        android:gravity="center_horizontal"
-        android:orientation="horizontal"
-        android:layout_marginBottom="10dp">
-
-        <LinearLayout
-            android:id="@+id/internal_wrapper"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:clipToPadding="false"
-            android:foregroundGravity="center_horizontal"
-            android:gravity="center_horizontal"
-            android:orientation="horizontal"
-            android:paddingTop="10dp"
-            android:paddingStart="10dp"
-            android:paddingEnd="10dp">
-
-            <Button
-                android:id="@+id/app_core_btn"
-                style="@style/EmptyStyle"
-                android:layout_width="@dimen/pushbtn_size"
-                android:layout_height="@dimen/pushbtn_size"
-                android:layout_gravity="center"
-                android:layout_marginTop="15dp"
-                android:layout_marginBottom="25dp"
-                android:background="@drawable/circle_btn"
-                android:drawableTop="@drawable/core_app_icon"
-                android:drawablePadding="-10dp"
-                android:elevation="15dp"
-                android:fontFamily="@font/poppins_semibold"
-                android:includeFontPadding="false"
-                android:paddingTop="13dp"
-                android:singleLine="true"
-                android:text="@string/app"
-                android:textAllCaps="false"
-                android:textColor="@color/leadme_black"
-                android:textSize="12sp"
-                app:layout_gravity="center_horizontal|top" />
-
-            <Space
-                android:layout_width="15dp"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:visibility="visible" />
-
-            <Button
-                android:id="@+id/url_core_btn"
-                style="@style/EmptyStyle"
-                android:layout_width="@dimen/pushbtn_size"
-                android:layout_height="@dimen/pushbtn_size"
-                android:layout_gravity="center"
-                android:layout_marginTop="15dp"
-                android:layout_marginBottom="25dp"
-                android:background="@drawable/circle_btn"
-                android:drawableTop="@drawable/core_url_icon"
-                android:drawablePadding="-6dp"
-                android:elevation="15dp"
-                android:fontFamily="@font/poppins_semibold"
-                android:paddingTop="12dp"
-                android:text="@string/url"
-                android:textAllCaps="false"
-                android:textColor="@color/leadme_black"
-                android:textSize="12sp"
-                app:layout_gravity="center_horizontal|top" />
-
-            <Space
-                android:layout_width="15dp"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:visibility="visible" />
-
-            <Button
-                android:id="@+id/within_core_btn"
-                style="@style/EmptyStyle"
-                android:layout_width="@dimen/pushbtn_size"
-                android:layout_height="@dimen/pushbtn_size"
-                android:layout_gravity="center"
-                android:layout_marginTop="15dp"
-                android:layout_marginBottom="25dp"
-                android:background="@drawable/circle_btn"
-                android:drawableTop="@drawable/core_yt_icon"
-                android:drawablePadding="-5dp"
-                android:elevation="15dp"
-                android:fontFamily="@font/poppins_semibold"
-                android:includeFontPadding="false"
-                android:paddingTop="15dp"
-                android:text="Within"
-                android:textAllCaps="false"
-                android:textColor="@color/leadme_black"
-                android:textSize="12sp"
-                app:layout_gravity="center_horizontal|top" />
-
-            <Space
-                android:layout_width="15dp"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:visibility="visible" />
-
-            <Button
-                android:id="@+id/xray_core_btn"
-                style="@style/EmptyStyle"
-                android:layout_width="@dimen/pushbtn_size"
-                android:layout_height="@dimen/pushbtn_size"
-                android:layout_gravity="center"
-                android:layout_marginTop="15dp"
-                android:layout_marginBottom="25dp"
-                android:background="@drawable/circle_btn"
-                android:drawableTop="@drawable/core_xray_with_inset"
-                android:drawablePadding="-4dp"
-                android:elevation="15dp"
-                android:fontFamily="@font/poppins_semibold"
-                android:includeFontPadding="false"
-                android:paddingTop="13dp"
-                android:text="X-Ray"
-                android:textAllCaps="false"
-                android:textColor="@color/leadme_black"
-                android:textSize="12sp"
-                app:layout_gravity="center_horizontal|top" />
-
-            <Space
-                android:layout_width="15dp"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:visibility="visible" />
-
-            <Button
-                android:id="@+id/vr_core_btn"
-                style="@style/EmptyStyle"
-                android:layout_width="@dimen/pushbtn_size"
-                android:layout_height="@dimen/pushbtn_size"
-                android:layout_gravity="center"
-                android:layout_marginTop="15dp"
-                android:layout_marginBottom="25dp"
-                android:background="@drawable/circle_btn"
-                android:drawableTop="@drawable/core_vr"
-                android:drawablePadding="-10dp"
-                android:elevation="15dp"
-                android:fontFamily="@font/poppins_semibold"
-                android:includeFontPadding="false"
-                android:paddingTop="9dp"
-                android:text="VR"
-                android:textAllCaps="false"
-                android:textColor="@color/leadme_black"
-                android:textSize="12sp"
-                app:layout_gravity="center_horizontal|top" />
-
-            <Space
-                android:layout_width="15dp"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:visibility="visible" />
-
-            <Button
-                android:id="@+id/file_core_btn"
-                style="@style/EmptyStyle"
-                android:layout_width="@dimen/pushbtn_size"
-                android:layout_height="@dimen/pushbtn_size"
-                android:layout_gravity="center"
-                android:layout_marginTop="15dp"
-                android:layout_marginBottom="25dp"
-                android:background="@drawable/circle_btn"
-                android:drawableTop="@drawable/alert_transfering"
-                android:drawablePadding="-10dp"
-                android:elevation="15dp"
-                android:fontFamily="@font/poppins_semibold"
-                android:includeFontPadding="false"
-                android:paddingTop="13dp"
-                android:text="Transfer"
-                android:textAllCaps="false"
-                android:textColor="@color/leadme_black"
-                android:textSize="12sp"
-                app:layout_gravity="center_horizontal|top" />
-
-            <Space
-                android:layout_width="15dp"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:visibility="visible" />
-
-            <Button
-                android:id="@+id/installer_core_btn"
-                style="@style/EmptyStyle"
-                android:layout_width="@dimen/pushbtn_size"
-                android:layout_height="@dimen/pushbtn_size"
-                android:layout_gravity="center"
-                android:layout_marginTop="15dp"
-                android:layout_marginBottom="25dp"
-                android:background="@drawable/circle_btn"
-                android:drawableTop="@drawable/alert_downloading"
-                android:drawablePadding="-7dp"
-                android:elevation="15dp"
-                android:fontFamily="@font/poppins_semibold"
-                android:includeFontPadding="false"
-                android:paddingTop="10dp"
-                android:text="Installer"
-                android:textAllCaps="false"
-                android:textColor="@color/leadme_black"
-                android:textSize="12sp"
-                app:layout_gravity="center_horizontal|top" />
-
-        </LinearLayout>
-
-    </HorizontalScrollView>
-
-<!--    <LinearLayout-->
-<!--        android:layout_width="fill_parent"-->
+<!--Layout for after Updates have been enabled-->
+<!--    <HorizontalScrollView-->
+<!--        android:layout_width="350dp"-->
 <!--        android:layout_height="wrap_content"-->
 <!--        android:layout_gravity="center_horizontal"-->
 <!--        android:clipToPadding="false"-->
+<!--        android:fadeScrollbars="false"-->
 <!--        android:foregroundGravity="center_horizontal"-->
 <!--        android:gravity="center_horizontal"-->
 <!--        android:orientation="horizontal"-->
-<!--        android:paddingStart="20dp"-->
-<!--        android:paddingTop="10dp"-->
-<!--        android:paddingEnd="20dp">-->
+<!--        android:layout_marginBottom="10dp">-->
 
-<!--        <Button-->
-<!--            android:id="@+id/app_core_btn"-->
-<!--            style="@style/EmptyStyle"-->
-<!--            android:layout_width="@dimen/pushbtn_size"-->
-<!--            android:layout_height="@dimen/pushbtn_size"-->
-<!--            android:layout_gravity="center"-->
-<!--            android:layout_marginTop="15dp"-->
-<!--            android:layout_marginBottom="25dp"-->
-<!--            android:background="@drawable/circle_btn"-->
-<!--            android:drawableTop="@drawable/core_app_icon"-->
-<!--            android:drawablePadding="-10dp"-->
-<!--            android:elevation="15dp"-->
-<!--            android:fontFamily="@font/poppins_semibold"-->
-<!--            android:includeFontPadding="false"-->
-<!--            android:paddingTop="13dp"-->
-<!--            android:singleLine="true"-->
-<!--            android:text="@string/app"-->
-<!--            android:textAllCaps="false"-->
-<!--            android:textColor="@color/leadme_black"-->
-<!--            android:textSize="12sp"-->
-<!--            app:layout_gravity="center_horizontal|top" />-->
-
-<!--        <Space-->
-<!--            android:layout_width="15dp"-->
+<!--        <LinearLayout-->
+<!--            android:id="@+id/internal_wrapper"-->
+<!--            android:layout_width="wrap_content"-->
 <!--            android:layout_height="wrap_content"-->
-<!--            android:layout_gravity="center"-->
-<!--            android:visibility="visible" />-->
+<!--            android:clipToPadding="false"-->
+<!--            android:foregroundGravity="center_horizontal"-->
+<!--            android:gravity="center_horizontal"-->
+<!--            android:orientation="horizontal"-->
+<!--            android:paddingTop="10dp"-->
+<!--            android:paddingStart="10dp"-->
+<!--            android:paddingEnd="10dp">-->
 
-<!--        <Button-->
-<!--            android:id="@+id/url_core_btn"-->
-<!--            style="@style/EmptyStyle"-->
-<!--            android:layout_width="@dimen/pushbtn_size"-->
-<!--            android:layout_height="@dimen/pushbtn_size"-->
-<!--            android:layout_gravity="center"-->
-<!--            android:layout_marginTop="15dp"-->
-<!--            android:layout_marginBottom="25dp"-->
-<!--            android:background="@drawable/circle_btn"-->
-<!--            android:drawableTop="@drawable/core_url_icon"-->
-<!--            android:drawablePadding="-6dp"-->
-<!--            android:elevation="15dp"-->
-<!--            android:fontFamily="@font/poppins_semibold"-->
-<!--            android:paddingTop="12dp"-->
-<!--            android:text="@string/url"-->
-<!--            android:textAllCaps="false"-->
-<!--            android:textColor="@color/leadme_black"-->
-<!--            android:textSize="12sp"-->
-<!--            app:layout_gravity="center_horizontal|top" />-->
+<!--            <Button-->
+<!--                android:id="@+id/app_core_btn"-->
+<!--                style="@style/EmptyStyle"-->
+<!--                android:layout_width="@dimen/pushbtn_size"-->
+<!--                android:layout_height="@dimen/pushbtn_size"-->
+<!--                android:layout_gravity="center"-->
+<!--                android:layout_marginTop="15dp"-->
+<!--                android:layout_marginBottom="25dp"-->
+<!--                android:background="@drawable/circle_btn"-->
+<!--                android:drawableTop="@drawable/core_app_icon"-->
+<!--                android:drawablePadding="-10dp"-->
+<!--                android:elevation="15dp"-->
+<!--                android:fontFamily="@font/poppins_semibold"-->
+<!--                android:includeFontPadding="false"-->
+<!--                android:paddingTop="13dp"-->
+<!--                android:singleLine="true"-->
+<!--                android:text="@string/app"-->
+<!--                android:textAllCaps="false"-->
+<!--                android:textColor="@color/leadme_black"-->
+<!--                android:textSize="12sp"-->
+<!--                app:layout_gravity="center_horizontal|top" />-->
 
-<!--        <Space-->
-<!--            android:layout_width="15dp"-->
-<!--            android:layout_height="wrap_content"-->
-<!--            android:layout_gravity="center"-->
-<!--            android:visibility="visible" />-->
+<!--            <Space-->
+<!--                android:layout_width="15dp"-->
+<!--                android:layout_height="wrap_content"-->
+<!--                android:layout_gravity="center"-->
+<!--                android:visibility="visible" />-->
 
-<!--        <Button-->
-<!--            android:id="@+id/vr_core_btn"-->
-<!--            style="@style/EmptyStyle"-->
-<!--            android:layout_width="@dimen/pushbtn_size"-->
-<!--            android:layout_height="@dimen/pushbtn_size"-->
-<!--            android:layout_gravity="center"-->
-<!--            android:layout_marginTop="15dp"-->
-<!--            android:layout_marginBottom="25dp"-->
-<!--            android:background="@drawable/circle_btn"-->
-<!--            android:drawableTop="@drawable/core_vr"-->
-<!--            android:drawablePadding="-10dp"-->
-<!--            android:elevation="15dp"-->
-<!--            android:fontFamily="@font/poppins_semibold"-->
-<!--            android:includeFontPadding="false"-->
-<!--            android:paddingTop="9dp"-->
-<!--            android:text="VR"-->
-<!--            android:textAllCaps="false"-->
-<!--            android:textColor="@color/leadme_black"-->
-<!--            android:textSize="12sp"-->
-<!--            app:layout_gravity="center_horizontal|top" />-->
+<!--            <Button-->
+<!--                android:id="@+id/url_core_btn"-->
+<!--                style="@style/EmptyStyle"-->
+<!--                android:layout_width="@dimen/pushbtn_size"-->
+<!--                android:layout_height="@dimen/pushbtn_size"-->
+<!--                android:layout_gravity="center"-->
+<!--                android:layout_marginTop="15dp"-->
+<!--                android:layout_marginBottom="25dp"-->
+<!--                android:background="@drawable/circle_btn"-->
+<!--                android:drawableTop="@drawable/core_url_icon"-->
+<!--                android:drawablePadding="-6dp"-->
+<!--                android:elevation="15dp"-->
+<!--                android:fontFamily="@font/poppins_semibold"-->
+<!--                android:paddingTop="12dp"-->
+<!--                android:text="@string/url"-->
+<!--                android:textAllCaps="false"-->
+<!--                android:textColor="@color/leadme_black"-->
+<!--                android:textSize="12sp"-->
+<!--                app:layout_gravity="center_horizontal|top" />-->
 
-<!--        <Space-->
-<!--            android:layout_width="15dp"-->
-<!--            android:layout_height="wrap_content"-->
-<!--            android:layout_gravity="center"-->
-<!--            android:visibility="visible" />-->
+<!--            <Space-->
+<!--                android:layout_width="15dp"-->
+<!--                android:layout_height="wrap_content"-->
+<!--                android:layout_gravity="center"-->
+<!--                android:visibility="visible" />-->
 
-<!--        <Button-->
-<!--            android:id="@+id/xray_core_btn"-->
-<!--            style="@style/EmptyStyle"-->
-<!--            android:layout_width="@dimen/pushbtn_size"-->
-<!--            android:layout_height="@dimen/pushbtn_size"-->
-<!--            android:layout_gravity="center"-->
-<!--            android:layout_marginTop="15dp"-->
-<!--            android:layout_marginBottom="25dp"-->
-<!--            android:background="@drawable/circle_btn"-->
-<!--            android:drawableTop="@drawable/core_xray_with_inset"-->
-<!--            android:drawablePadding="-4dp"-->
-<!--            android:elevation="15dp"-->
-<!--            android:fontFamily="@font/poppins_semibold"-->
-<!--            android:includeFontPadding="false"-->
-<!--            android:paddingTop="13dp"-->
-<!--            android:text="X-Ray"-->
-<!--            android:textAllCaps="false"-->
-<!--            android:textColor="@color/leadme_black"-->
-<!--            android:textSize="12sp"-->
-<!--            app:layout_gravity="center_horizontal|top" />-->
+<!--            <Button-->
+<!--                android:id="@+id/within_core_btn"-->
+<!--                style="@style/EmptyStyle"-->
+<!--                android:layout_width="@dimen/pushbtn_size"-->
+<!--                android:layout_height="@dimen/pushbtn_size"-->
+<!--                android:layout_gravity="center"-->
+<!--                android:layout_marginTop="15dp"-->
+<!--                android:layout_marginBottom="25dp"-->
+<!--                android:background="@drawable/circle_btn"-->
+<!--                android:drawableTop="@drawable/core_yt_icon"-->
+<!--                android:drawablePadding="-5dp"-->
+<!--                android:elevation="15dp"-->
+<!--                android:fontFamily="@font/poppins_semibold"-->
+<!--                android:includeFontPadding="false"-->
+<!--                android:paddingTop="15dp"-->
+<!--                android:text="Within"-->
+<!--                android:textAllCaps="false"-->
+<!--                android:textColor="@color/leadme_black"-->
+<!--                android:textSize="12sp"-->
+<!--                app:layout_gravity="center_horizontal|top" />-->
 
-<!--    </LinearLayout>-->
+<!--            <Space-->
+<!--                android:layout_width="15dp"-->
+<!--                android:layout_height="wrap_content"-->
+<!--                android:layout_gravity="center"-->
+<!--                android:visibility="visible" />-->
+
+<!--            <Button-->
+<!--                android:id="@+id/xray_core_btn"-->
+<!--                style="@style/EmptyStyle"-->
+<!--                android:layout_width="@dimen/pushbtn_size"-->
+<!--                android:layout_height="@dimen/pushbtn_size"-->
+<!--                android:layout_gravity="center"-->
+<!--                android:layout_marginTop="15dp"-->
+<!--                android:layout_marginBottom="25dp"-->
+<!--                android:background="@drawable/circle_btn"-->
+<!--                android:drawableTop="@drawable/core_xray_with_inset"-->
+<!--                android:drawablePadding="-4dp"-->
+<!--                android:elevation="15dp"-->
+<!--                android:fontFamily="@font/poppins_semibold"-->
+<!--                android:includeFontPadding="false"-->
+<!--                android:paddingTop="13dp"-->
+<!--                android:text="X-Ray"-->
+<!--                android:textAllCaps="false"-->
+<!--                android:textColor="@color/leadme_black"-->
+<!--                android:textSize="12sp"-->
+<!--                app:layout_gravity="center_horizontal|top" />-->
+
+<!--            <Space-->
+<!--                android:layout_width="15dp"-->
+<!--                android:layout_height="wrap_content"-->
+<!--                android:layout_gravity="center"-->
+<!--                android:visibility="visible" />-->
+
+<!--            <Button-->
+<!--                android:id="@+id/vr_core_btn"-->
+<!--                style="@style/EmptyStyle"-->
+<!--                android:layout_width="@dimen/pushbtn_size"-->
+<!--                android:layout_height="@dimen/pushbtn_size"-->
+<!--                android:layout_gravity="center"-->
+<!--                android:layout_marginTop="15dp"-->
+<!--                android:layout_marginBottom="25dp"-->
+<!--                android:background="@drawable/circle_btn"-->
+<!--                android:drawableTop="@drawable/core_vr"-->
+<!--                android:drawablePadding="-10dp"-->
+<!--                android:elevation="15dp"-->
+<!--                android:fontFamily="@font/poppins_semibold"-->
+<!--                android:includeFontPadding="false"-->
+<!--                android:paddingTop="9dp"-->
+<!--                android:text="VR"-->
+<!--                android:textAllCaps="false"-->
+<!--                android:textColor="@color/leadme_black"-->
+<!--                android:textSize="12sp"-->
+<!--                app:layout_gravity="center_horizontal|top" />-->
+
+<!--            <Space-->
+<!--                android:layout_width="15dp"-->
+<!--                android:layout_height="wrap_content"-->
+<!--                android:layout_gravity="center"-->
+<!--                android:visibility="visible" />-->
+
+<!--            <Button-->
+<!--                android:id="@+id/file_core_btn"-->
+<!--                style="@style/EmptyStyle"-->
+<!--                android:layout_width="@dimen/pushbtn_size"-->
+<!--                android:layout_height="@dimen/pushbtn_size"-->
+<!--                android:layout_gravity="center"-->
+<!--                android:layout_marginTop="15dp"-->
+<!--                android:layout_marginBottom="25dp"-->
+<!--                android:background="@drawable/circle_btn"-->
+<!--                android:drawableTop="@drawable/alert_transfering"-->
+<!--                android:drawablePadding="-10dp"-->
+<!--                android:elevation="15dp"-->
+<!--                android:fontFamily="@font/poppins_semibold"-->
+<!--                android:includeFontPadding="false"-->
+<!--                android:paddingTop="13dp"-->
+<!--                android:text="Transfer"-->
+<!--                android:textAllCaps="false"-->
+<!--                android:textColor="@color/leadme_black"-->
+<!--                android:textSize="12sp"-->
+<!--                app:layout_gravity="center_horizontal|top" />-->
+
+<!--            <Space-->
+<!--                android:layout_width="15dp"-->
+<!--                android:layout_height="wrap_content"-->
+<!--                android:layout_gravity="center"-->
+<!--                android:visibility="visible" />-->
+
+<!--            <Button-->
+<!--                android:id="@+id/installer_core_btn"-->
+<!--                style="@style/EmptyStyle"-->
+<!--                android:layout_width="@dimen/pushbtn_size"-->
+<!--                android:layout_height="@dimen/pushbtn_size"-->
+<!--                android:layout_gravity="center"-->
+<!--                android:layout_marginTop="15dp"-->
+<!--                android:layout_marginBottom="25dp"-->
+<!--                android:background="@drawable/circle_btn"-->
+<!--                android:drawableTop="@drawable/alert_downloading"-->
+<!--                android:drawablePadding="-7dp"-->
+<!--                android:elevation="15dp"-->
+<!--                android:fontFamily="@font/poppins_semibold"-->
+<!--                android:includeFontPadding="false"-->
+<!--                android:paddingTop="10dp"-->
+<!--                android:text="Installer"-->
+<!--                android:textAllCaps="false"-->
+<!--                android:textColor="@color/leadme_black"-->
+<!--                android:textSize="12sp"-->
+<!--                app:layout_gravity="center_horizontal|top" />-->
+
+<!--        </LinearLayout>-->
+
+<!--    </HorizontalScrollView>-->
+
+    <LinearLayout
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:clipToPadding="false"
+        android:foregroundGravity="center_horizontal"
+        android:gravity="center_horizontal"
+        android:orientation="horizontal"
+        android:paddingStart="20dp"
+        android:paddingTop="10dp"
+        android:paddingEnd="20dp">
+
+        <Button
+            android:id="@+id/app_core_btn"
+            style="@style/EmptyStyle"
+            android:layout_width="@dimen/pushbtn_size"
+            android:layout_height="@dimen/pushbtn_size"
+            android:layout_gravity="center"
+            android:layout_marginTop="15dp"
+            android:layout_marginBottom="25dp"
+            android:background="@drawable/circle_btn"
+            android:drawableTop="@drawable/core_app_icon"
+            android:drawablePadding="-10dp"
+            android:elevation="15dp"
+            android:fontFamily="@font/poppins_semibold"
+            android:includeFontPadding="false"
+            android:paddingTop="13dp"
+            android:singleLine="true"
+            android:text="@string/app"
+            android:textAllCaps="false"
+            android:textColor="@color/leadme_black"
+            android:textSize="12sp"
+            app:layout_gravity="center_horizontal|top" />
+
+        <Space
+            android:layout_width="15dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:visibility="visible" />
+
+        <Button
+            android:id="@+id/url_core_btn"
+            style="@style/EmptyStyle"
+            android:layout_width="@dimen/pushbtn_size"
+            android:layout_height="@dimen/pushbtn_size"
+            android:layout_gravity="center"
+            android:layout_marginTop="15dp"
+            android:layout_marginBottom="25dp"
+            android:background="@drawable/circle_btn"
+            android:drawableTop="@drawable/core_url_icon"
+            android:drawablePadding="-6dp"
+            android:elevation="15dp"
+            android:fontFamily="@font/poppins_semibold"
+            android:paddingTop="12dp"
+            android:text="@string/url"
+            android:textAllCaps="false"
+            android:textColor="@color/leadme_black"
+            android:textSize="12sp"
+            app:layout_gravity="center_horizontal|top" />
+
+        <Space
+            android:layout_width="15dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:visibility="visible" />
+
+        <Button
+            android:id="@+id/within_core_btn"
+            style="@style/EmptyStyle"
+            android:layout_width="@dimen/pushbtn_size"
+            android:layout_height="@dimen/pushbtn_size"
+            android:layout_gravity="center"
+            android:layout_marginTop="15dp"
+            android:layout_marginBottom="25dp"
+            android:background="@drawable/circle_btn"
+            android:drawableTop="@drawable/core_yt_icon"
+            android:drawablePadding="-5dp"
+            android:elevation="15dp"
+            android:fontFamily="@font/poppins_semibold"
+            android:includeFontPadding="false"
+            android:paddingTop="15dp"
+            android:text="VR"
+            android:textAllCaps="false"
+            android:textColor="@color/leadme_black"
+            android:textSize="12sp"
+            app:layout_gravity="center_horizontal|top" />
+
+        <Space
+            android:layout_width="15dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:visibility="visible" />
+
+        <Button
+            android:id="@+id/xray_core_btn"
+            style="@style/EmptyStyle"
+            android:layout_width="@dimen/pushbtn_size"
+            android:layout_height="@dimen/pushbtn_size"
+            android:layout_gravity="center"
+            android:layout_marginTop="15dp"
+            android:layout_marginBottom="25dp"
+            android:background="@drawable/circle_btn"
+            android:drawableTop="@drawable/core_xray_with_inset"
+            android:drawablePadding="-4dp"
+            android:elevation="15dp"
+            android:fontFamily="@font/poppins_semibold"
+            android:includeFontPadding="false"
+            android:paddingTop="13dp"
+            android:text="X-Ray"
+            android:textAllCaps="false"
+            android:textColor="@color/leadme_black"
+            android:textSize="12sp"
+            app:layout_gravity="center_horizontal|top" />
+
+    </LinearLayout>
 
 
     <RelativeLayout
