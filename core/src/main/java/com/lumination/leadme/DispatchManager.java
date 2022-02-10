@@ -897,6 +897,7 @@ public class DispatchManager {
         private void launchURL(String action) {
             String[] split = action.split(":::", 3);
             main.getWebManager().launchWebsite(split[1], split[2], true);
+//            main.url_overlay.setVisibility(View.VISIBLE);
         }
 
         /**

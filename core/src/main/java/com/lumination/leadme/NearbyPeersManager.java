@@ -40,6 +40,8 @@ public class NearbyPeersManager {
     public NearbyPeersManager(LeadMeMain main) {
         this.main = main;
         networkAdapter = new NetworkAdapter(main.context, main, this);
+        //In case the server was not closed down
+        networkAdapter.stopServer();
     }
 
     protected void startPingThread() {

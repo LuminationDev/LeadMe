@@ -58,6 +58,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 import com.google.common.net.InetAddresses;
@@ -77,6 +79,7 @@ public class AuthenticationManager {
     private GoogleSignInClient mGoogleSignInClient;
     private String regoCode = "";
     private boolean hasScrolled = false;
+    private ScheduledExecutorService scheduledExecutorService = new ScheduledThreadPoolExecutor(1);
 
     //For Manual connections
     private final int leaderTimestampUpdate = 15; //update the leaders timestamp on firebase (mins)
@@ -236,14 +239,10 @@ public class AuthenticationManager {
                     //if no one has registered on the public IP yet, wait sometime and try again.
                     try {
                         if (Objects.requireNonNull(task.getResult()).size() == 0) {
-                            main.scheduledExecutorService.schedule(new Runnable() {
-                                @Override
-                                public void run() {
-                                    //runOnUiThread(() -> {
-                                        retrieveLeaders();
-                                    //});
-                                }
-                            }, waitForGuide, TimeUnit.MILLISECONDS);
+                            //In case the user switches back to auto
+                            if(main.sessionManual) {
+                                scheduledExecutorService.schedule(() -> retrieveLeaders(), waitForGuide, TimeUnit.MILLISECONDS);
+                            }
                         } else {
                             for (QueryDocumentSnapshot document : Objects.requireNonNull(task.getResult())) {
                                 Date leaderTimeStamp = Objects.requireNonNull(document.getTimestamp("TimeStamp")).toDate();
@@ -261,7 +260,7 @@ public class AuthenticationManager {
                             //add listeners to track if leader hasn't logged in but publicIP exists (multiple leaders on network)
                             trackCollection(collRef);
                         }
-                    }catch(NullPointerException e){
+                    } catch(NullPointerException e){
                         Log.d(TAG, "onComplete: " + e);
                     }
                 } else {
@@ -742,13 +741,13 @@ public class AuthenticationManager {
                             mAuth.getCurrentUser().sendEmailVerification().addOnSuccessListener(new OnSuccessListener<Void>() {
                                 @Override
                                 public void onSuccess(Void aVoid) {
-                                    main.scheduledExecutorService.scheduleAtFixedRate(() -> mAuth.addAuthStateListener(firebaseAuth1 -> {
+                                    scheduledExecutorService.scheduleAtFixedRate(() -> mAuth.addAuthStateListener(firebaseAuth1 -> {
                                         Log.d(TAG, "run: checking user verification");
                                         if (!mAuth.getCurrentUser().isEmailVerified()) {
                                             mAuth.getCurrentUser().reload();
                                         } else {
                                             currentUser = mAuth.getCurrentUser();
-                                            main.scheduledExecutorService.shutdown();
+                                            scheduledExecutorService.shutdown();
                                             //TODO might need the UI thread - check later
                                             //runOnUiThread(() -> {
                                                 buildloginsignup(4);
@@ -772,7 +771,7 @@ public class AuthenticationManager {
                 *until the verify.
                 * */
                 back.setOnClickListener(v -> {
-                    main.scheduledExecutorService.shutdown();
+                    scheduledExecutorService.shutdown();
                     mAuth.removeAuthStateListener(mAuthListener);
 //                    firebaseRemoveUser(mAuth.getCurrentUser());
 //                    mAuth.getCurrentUser().delete();

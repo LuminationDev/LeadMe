@@ -93,6 +93,10 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Objects;
@@ -103,6 +107,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -211,8 +216,8 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     protected ViewGroup.LayoutParams layoutParams;
 
     protected WindowManager windowManager;
-    protected WindowManager.LayoutParams overlayParams;
-    protected View overlayView;
+    protected WindowManager.LayoutParams overlayParams, url_overlayParams;
+    protected View overlayView, url_overlay;
 
     //VR PLayer
     private VREmbedPlayer vrEmbedPlayer;
@@ -312,6 +317,11 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     boolean allowHide = false;
     ScheduledExecutorService scheduledExecutorService = new ScheduledThreadPoolExecutor(1);
     public ExecutorService backgroundExecutor = Executors.newCachedThreadPool();
+    /**
+     * Used exclusively for handling messages from a server on learner devices
+     */
+    public ThreadPoolExecutor serverThreadPool = (ThreadPoolExecutor) Executors.newFixedThreadPool(2);
+
     public ScreenCap screenCap;
 
     public Handler getHandler() {
@@ -741,6 +751,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
             if (!getPermissionsManager().waitingForPermission) {
                 overlayView.setVisibility(View.VISIBLE);
+                url_overlay.setVisibility(View.INVISIBLE);
             } else {
                 //need to allow students to accept permissions
                 overlayView.setVisibility(View.INVISIBLE);
@@ -912,6 +923,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
             if (overlayView != null) {
                 overlayView.setVisibility(View.INVISIBLE);
+                url_overlay.setVisibility(View.INVISIBLE);
             }
         }
 
@@ -1042,6 +1054,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
         if (appHasFocus) {
             overlayView.setVisibility(View.INVISIBLE); //NEVER want this over LeadMe
+            url_overlay.setVisibility(View.INVISIBLE);
         }
     }
 
@@ -1054,6 +1067,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         super.onDestroy();
         Log.w(TAG, "In onDestroy");
         backgroundExecutor.shutdownNow();
+        serverThreadPool.shutdownNow();
         //subscription.dispose();
         destroyAndReset();
     }
@@ -1086,6 +1100,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         //remove the overlay if necessary
         if (overlayView != null && overlayView.isAttachedToWindow()) {
             windowManager.removeView(overlayView);
+            windowManager.removeView(url_overlay);
         }
 
         //clean up link preview assets
@@ -1478,40 +1493,40 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         //TODO VR PLAYER, AUTO INSTALLER AND FILE TRANSFER
         //Code in LeadMe Main & AppManager
         //multi install button
-        mainLeader.findViewById(R.id.installer_core_btn).setOnClickListener(view -> {
-            if(autoInstallApps) {
-                getLumiAppInstaller().showMultiInstaller(layoutParams);
-            } else {
-                dialogManager.showWarningDialog("Auto Installer", "Auto installing has not been enabled.");
-            }
-        });
-
-        //file transfer button
-        mainLeader.findViewById(R.id.file_core_btn).setOnClickListener(view -> {
-            if(!getConnectedLearnersAdapter().someoneIsSelected()) {
-                Toast.makeText(context, "Peers need to be selected.", Toast.LENGTH_LONG).show();
-                return;
-            }
-
-            if(fileTransferEnabled) {
-                if(isMiUiV9()) {
-                    alternateFileChoice(TRANSFER_FILE_CHOICE);
-                } else {
-                    FileUtilities.browseFiles(this, TRANSFER_FILE_CHOICE);
-                }
-            } else {
-                dialogManager.showWarningDialog("File Transfer", "File transfer has not been enabled.");
-            }
-        });
-
-        //Custom VR button
-        mainLeader.findViewById(R.id.vr_core_btn).setOnClickListener(view -> {
-            if(vrVideoPath == null) {
-                getVrEmbedPlayer().showPlaybackPreview();
-            } else {
-                getVrEmbedPlayer().openVideoController();
-            }
-        });
+//        mainLeader.findViewById(R.id.installer_core_btn).setOnClickListener(view -> {
+//            if(autoInstallApps) {
+//                getLumiAppInstaller().showMultiInstaller(layoutParams);
+//            } else {
+//                dialogManager.showWarningDialog("Auto Installer", "Auto installing has not been enabled.");
+//            }
+//        });
+//
+//        //file transfer button
+//        mainLeader.findViewById(R.id.file_core_btn).setOnClickListener(view -> {
+//            if(!getConnectedLearnersAdapter().someoneIsSelected()) {
+//                Toast.makeText(context, "Peers need to be selected.", Toast.LENGTH_LONG).show();
+//                return;
+//            }
+//
+//            if(fileTransferEnabled) {
+//                if(isMiUiV9()) {
+//                    alternateFileChoice(TRANSFER_FILE_CHOICE);
+//                } else {
+//                    FileUtilities.browseFiles(this, TRANSFER_FILE_CHOICE);
+//                }
+//            } else {
+//                dialogManager.showWarningDialog("File Transfer", "File transfer has not been enabled.");
+//            }
+//        });
+//
+//        //Custom VR button
+//        mainLeader.findViewById(R.id.vr_core_btn).setOnClickListener(view -> {
+//            if(vrVideoPath == null) {
+//                getVrEmbedPlayer().showPlaybackPreview();
+//            } else {
+//                getVrEmbedPlayer().openVideoController();
+//            }
+//        });
         //TODO End section
     }
 
@@ -1759,8 +1774,19 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
         //direct ip input connection
         optionsScreen.findViewById(R.id.manual_connect).setOnClickListener(view -> {
-            //TODO update the ip address formatter (might include IPv6)
-            String ipAddress = Formatter.formatIpAddress(wifiManager.getConnectionInfo().getIpAddress());
+            String ipAddress = null;
+            try {
+                ipAddress = InetAddress.getByAddress(
+                        ByteBuffer
+                                .allocate(Integer.BYTES)
+                                .order(ByteOrder.LITTLE_ENDIAN)
+                                .putInt(wifiManager.getConnectionInfo().getIpAddress())
+                                .array()
+                ).getHostAddress();
+            } catch (UnknownHostException e) {
+                e.printStackTrace();
+            }
+
             dialogManager.showManualDialog(isGuide, ipAddress);
         });
 
@@ -1909,13 +1935,25 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         editor.putBoolean(SESSION_MANUAL_TAG, sessionManual);
         editor.apply();
 
-        //TODO if logged in as learner skip
         if(isManual && isGuide) {
-            String ipAddress = Formatter.formatIpAddress(wifiManager.getConnectionInfo().getIpAddress());
+            String ipAddress = null;
+            try {
+                ipAddress = InetAddress.getByAddress(
+                        ByteBuffer
+                                .allocate(Integer.BYTES)
+                                .order(ByteOrder.LITTLE_ENDIAN)
+                                .putInt(wifiManager.getConnectionInfo().getIpAddress())
+                                .array()
+                ).getHostAddress();
+            } catch (UnknownHostException e) {
+                e.printStackTrace();
+            }
+
             getAuthenticationManager().createManualConnection(ipAddress);
-        } else {
-            //remove listeners for followers
         }
+//        else {
+            //remove listeners for followers
+//        }
     }
 
     public void composeEmail(String[] addresses, String subject) {
@@ -1967,6 +2005,8 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         LinearLayout parentLayout = findViewById(R.id.c__leader_main);
         overlayView = LayoutInflater.from(context).inflate(R.layout.transparent_overlay, parentLayout, false);
         overlayView.findViewById(R.id.blocking_view).setVisibility(View.GONE); //default is this should be hidden
+
+        url_overlay = LayoutInflater.from(context).inflate(R.layout.transparent_url_overlay, parentLayout, false);
     }
 
     public boolean overlayInitialised = false;
@@ -1990,11 +2030,15 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         windowManager.updateViewLayout(overlayView, overlayParams);
         overlayView.setVisibility(View.INVISIBLE);
 
+        //add the url overlay to the window manager
+        windowManager.addView(url_overlay, url_overlayParams);
+        windowManager.updateViewLayout(url_overlay, url_overlayParams);
+        url_overlay.setVisibility(View.INVISIBLE);
+
         overlayInitialised = true; //must set this before calling disable interaction
 
         //set default state
         getDispatcher().disableInteraction(ConnectedPeer.STATUS_UNLOCK);
-
     }
 
     /**
@@ -2029,7 +2073,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         } else if (!permissionManager.isStoragePermissionsGranted()) {
             learnerWaitingText.setText(getResources().getString(R.string.enable_storage));
             permissionManager.checkStoragePermission();
-        } else {
+        } else if (!getNearbyManager().isConnectedAsFollower()) {
             if(sessionManual) {
                 initiateManualLeaderDiscovery();
             }
@@ -2280,14 +2324,26 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
             //if it is a manual connection session, create a firebase lookup entry
             if(sessionManual) {
-                String ipAddress = Formatter.formatIpAddress(wifiManager.getConnectionInfo().getIpAddress());
+                String ipAddress = null;
+                try {
+                    ipAddress = InetAddress.getByAddress(
+                            ByteBuffer
+                                    .allocate(Integer.BYTES)
+                                    .order(ByteOrder.LITTLE_ENDIAN)
+                                    .putInt(wifiManager.getConnectionInfo().getIpAddress())
+                                    .array()
+                    ).getHostAddress();
+                } catch (UnknownHostException e) {
+                    e.printStackTrace();
+                }
+
                 getAuthenticationManager().createManualConnection(ipAddress);
             }
 
             //TODO AUTO INSTALLER AND FILE TRANSFER
             //display the auto installing application toggle and file transfer toggle
-            autoToggle.setVisibility(View.VISIBLE);
-            transferToggle.setVisibility(View.VISIBLE);
+//            autoToggle.setVisibility(View.VISIBLE);
+//            transferToggle.setVisibility(View.VISIBLE);
         } else {
             //display main student view
             leadmeAnimator.setDisplayedChild(ANIM_LEARNER_INDEX);
@@ -2308,6 +2364,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
             //remove the Firebase listener if connection was manual
             getAuthenticationManager().removeUserListener();
+
             //NOTE: this may cause an issue as it was inside the above function to being with...
             getNearbyManager().networkAdapter.stopDiscovery();
         }
@@ -2332,11 +2389,13 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         calcParams();
         if (overlayInitialised && overlayView != null) {
             windowManager.updateViewLayout(overlayView, overlayParams);
+            windowManager.updateViewLayout(url_overlay, url_overlayParams);
         }
 
         if (appHasFocus) {
             assert overlayView != null;
             overlayView.setVisibility(View.INVISIBLE); //NEVER want this over LeadMe
+            url_overlay.setVisibility(View.INVISIBLE);
         }
     }
 
@@ -2370,6 +2429,20 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         );
         overlayParams.gravity = Gravity.TOP | Gravity.START;
         overlayView.setFitsSystemWindows(false); // allow us to draw over status bar, navigation bar
+
+        //Purpose: Blocking the URL bar at the top of the screen when launching websites
+        url_overlayParams = new WindowManager.LayoutParams(
+                size.x,
+                220,
+                0,
+                0,
+                LAYOUT_FLAG, // TYPE_SYSTEM_ALERT is denied in apiLevel >=19
+                CORE_FLAGS,
+                PixelFormat.OPAQUE
+//                PixelFormat.TRANSLUCENT
+        );
+        url_overlayParams.gravity = Gravity.TOP | Gravity.START;
+        url_overlay.setFitsSystemWindows(false); // allow us to draw over status bar, navigation bar
     }
 
     public boolean isMuted = false;
@@ -2475,6 +2548,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                     case ConnectedPeer.STATUS_BLACKOUT:
                         if (!getPermissionsManager().waitingForPermission) {
                             overlayView.setVisibility(View.VISIBLE);
+                            url_overlay.setVisibility(View.INVISIBLE);
                         }
                         break;
                     case ConnectedPeer.STATUS_UNLOCK:
