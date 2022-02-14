@@ -49,14 +49,9 @@ public class XrayManager {
 
     ScreenshotManager screenshotManager;
 
-//    String ipAddress;
-//    Intent screen_share_intent = null;
-//    private MediaProjectionManager projectionManager = null;
-
     public Bitmap response;
     Boolean monitorInProgress = false;
     ServerSocket serverSocket = null;
-    int screenshotRate = 200;
 
     private TextView xrayStudentSelectedView, xrayStudentDisplayNameView;
     private ImageView xrayStudentIcon, xrayScreenshotView;
@@ -75,8 +70,6 @@ public class XrayManager {
         //spinner to let the teachers know it is loading
         loadingPanel = xrayScreen.findViewById(R.id.xrayLoadingPanel);
     }
-
-//    boolean screenCapPermission = false;
 
     private void setupXrayView() {
         xrayStudentIcon = xrayScreen.findViewById(R.id.student_icon);
@@ -347,26 +340,6 @@ public class XrayManager {
         //xrayStudentSelectedView.invalidate();
     }
 
-//Old code
-//    public void startServer() {
-//        Log.w(TAG, "Starting server...");
-//        main.getPermissionsManager().waitingForPermission = true;
-//        if (!screenCapPermission) {
-//            projectionManager = (MediaProjectionManager) main.getSystemService(Context.MEDIA_PROJECTION_SERVICE);
-//
-//            //start service class
-//            screen_share_intent = new Intent(main.getApplicationContext(), ScreensharingService.class);
-//            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-//                main.startForegroundService(screen_share_intent);
-//            } else {
-//                main.startService(screen_share_intent);
-//            }
-//
-//            //start screen capturing
-//            main.startActivityForResult(projectionManager.createScreenCaptureIntent(), main.SCREEN_CAPTURE);
-//        }
-//    }
-
     private void imageRunnableFunction(String imgPeer) {
         Log.e(TAG, "Starting imageRunnable: " + serverSocket.isClosed() + ", " + serverSocket.isBound());
         Socket socket;
@@ -470,12 +443,16 @@ public class XrayManager {
         }
     }
 
+    public void removePeerFromMap(String peer) {
+        Log.d(TAG, "Peer removed: " + peer);
+        clientSocketThreads.remove(peer);
+        clientRecentScreenshots.remove(peer);
+    }
+
     public void resetClientMaps(String peer) {
         //Removing a single peer from the HashMaps
         if(peer != null) {
-            Log.d(TAG, "Peer removed: " + peer);
-            clientSocketThreads.remove(peer);
-            clientRecentScreenshots.remove(peer);
+            removePeerFromMap(peer);
         } else {
             Log.d(TAG, "Resetting hash maps");
 

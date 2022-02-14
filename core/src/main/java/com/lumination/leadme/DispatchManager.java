@@ -22,7 +22,7 @@ import java.util.Set;
 
 public class DispatchManager {
     private final String TAG = "Dispatcher";
-    private LeadMeMain main;
+    private final LeadMeMain main;
     protected String[] launchAppOnFocus = null;
     String tagRepush;
     String packageNameRepush;
@@ -210,6 +210,7 @@ public class DispatchManager {
                 action.startsWith(LeadMeMain.PING_TAG) ||
                 action.startsWith(LeadMeMain.LAUNCH_SUCCESS) ||
                 action.startsWith(LeadMeMain.STUDENT_NO_XRAY) ||
+                action.startsWith(LeadMeMain.DISCONNECTION) ||
                 action.startsWith(LeadMeMain.NAME_REQUEST)) {
             main.getNearbyManager().sendToSelected(Payload.fromBytes(bytes), selectedPeerIDs);
         } else {
@@ -376,6 +377,9 @@ public class DispatchManager {
 
                     } else if(action.startsWith(LeadMeMain.AUTO_UNINSTALL)) {
                         dispatchAction.uninstallApplication(action);
+
+                    } else if (action.startsWith(LeadMeMain.DISCONNECTION)) {
+                        dispatchAction.disconnectLearner(action);
 
                     } else if (action.startsWith(LeadMeMain.LAUNCH_URL)) {
                         dispatchAction.launchURL(action);
@@ -887,6 +891,19 @@ public class DispatchManager {
             Collections.addAll(main.getLumiAppInstaller().appsToManage, appArray);
 
             main.getLumiAppInstaller().runUninstaller();
+        }
+
+        /**
+         * The guide is recieving a message that a learner has just abruptly disconnected.
+         * @param action A string of the incoming action, it contains the ID of the disconnecting
+         *               peer.
+         */
+        private void disconnectLearner(String action) {
+            String[] split = action.split(":"); //get the peer ID
+
+            //TODO disconnect this student
+            Log.e(TAG, split[1] + " has just disconnected");
+            main.getNearbyManager().networkAdapter.updateParent("Blah", Integer.parseInt(split[1]), "LOST");
         }
 
         /**

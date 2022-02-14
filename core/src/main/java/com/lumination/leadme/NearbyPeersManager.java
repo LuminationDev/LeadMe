@@ -32,6 +32,7 @@ public class NearbyPeersManager {
     boolean discovering;
 
     public String myName;
+    private int tryConnect = 0;
 
     /**
      * Constructor which initiates the networkAdapter class.
@@ -80,12 +81,12 @@ public class NearbyPeersManager {
         Log.d(TAG, "onBackPressed: deprecated");
     }
 
-    int tryConnect = 0;
     protected void connectToSelectedLeader() {
         String Name = selectedLeader.getDisplayName();
+
         if(manInfo == null) {
             ArrayList<NsdServiceInfo> discoveredLeaders = networkAdapter.discoveredLeaders;
-
+            Log.d(TAG, "Leaders array: " + discoveredLeaders.size());
             for (NsdServiceInfo info : discoveredLeaders) {
                 Log.d(TAG, "connectToSelectedLeader: " + info.getServiceName());
                 if (info.getServiceName().equals(Name + "#Teacher")) {
@@ -130,8 +131,8 @@ public class NearbyPeersManager {
             info.setPort(54321);
             info.setServiceName("Manual#Teacher");
             info.setServiceType("_http._tcp.");
-                    Log.d(TAG, "run: "+info);
-                    manInfo = info;
+            Log.d(TAG, "run: "+info);
+            manInfo = info;
             networkAdapter.discoveredLeaders.add(info);
             selectedLeader = new ConnectedPeer("Manual", IpAddress);
             main.runOnUiThread(this::connectToSelectedLeader);
