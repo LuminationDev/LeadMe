@@ -141,6 +141,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     static final String BLACKOUT_TAG = "LumiBlackout";
     static final String APP_LOCK_TAG = "LumiWakeLock";
 
+    static final String DISCONNECTION = "LumiDisconnect";
     static final String TRANSFER_ERROR = "LumiTransferError";
     static final String VR_PLAYER_TAG = "LumiVRPlayer";
     static final String FILE_REQUEST_TAG = "LumiFileRequest";
@@ -1075,6 +1076,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     private void destroyAndReset() {
         destroying = true;
         init = false;
+
 //        if (wakeLock.isHeld()) {
 //                wakeLock.release(); //release this when the app is destroyed
 //            }
@@ -1777,11 +1779,11 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             String ipAddress = null;
             try {
                 ipAddress = InetAddress.getByAddress(
-                        ByteBuffer
-                                .allocate(Integer.BYTES)
-                                .order(ByteOrder.LITTLE_ENDIAN)
-                                .putInt(wifiManager.getConnectionInfo().getIpAddress())
-                                .array()
+                    ByteBuffer
+                        .allocate(Integer.BYTES)
+                        .order(ByteOrder.LITTLE_ENDIAN)
+                        .putInt(wifiManager.getConnectionInfo().getIpAddress())
+                        .array()
                 ).getHostAddress();
             } catch (UnknownHostException e) {
                 e.printStackTrace();
@@ -2078,7 +2080,9 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                 initiateManualLeaderDiscovery();
             }
             else {
-                initiateLeaderDiscovery();
+                if (!nearbyManager.isDiscovering()) {
+                    initiateLeaderDiscovery();
+                }
             }
 
             learnerWaitingText.setText(getResources().getString(R.string.waiting_for_leaders));
@@ -2168,9 +2172,11 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
     //MANUAL CONNECTION FOR LEARNERS
     public void initiateManualLeaderDiscovery() {
-        Log.d(TAG, "Initiating Leader Discovery");
+        Log.d(TAG, "Initiating Manual Leader Discovery");
         isReadyToConnect = true;
-        getNearbyManager().networkAdapter.startDiscovery();
+        if (!nearbyManager.isDiscovering()) {
+            getNearbyManager().networkAdapter.startDiscovery();
+        }
         getAuthenticationManager().retrieveLeaders();
     }
 
@@ -2327,11 +2333,11 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                 String ipAddress = null;
                 try {
                     ipAddress = InetAddress.getByAddress(
-                            ByteBuffer
-                                    .allocate(Integer.BYTES)
-                                    .order(ByteOrder.LITTLE_ENDIAN)
-                                    .putInt(wifiManager.getConnectionInfo().getIpAddress())
-                                    .array()
+                        ByteBuffer
+                            .allocate(Integer.BYTES)
+                            .order(ByteOrder.LITTLE_ENDIAN)
+                            .putInt(wifiManager.getConnectionInfo().getIpAddress())
+                            .array()
                     ).getHostAddress();
                 } catch (UnknownHostException e) {
                     e.printStackTrace();
@@ -2419,26 +2425,26 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                 WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES;
 
         overlayParams = new WindowManager.LayoutParams(
-                size.x,
-                size.y + 160,
-                0,
-                -80,
-                LAYOUT_FLAG, // TYPE_SYSTEM_ALERT is denied in apiLevel >=19
-                CORE_FLAGS,
-                PixelFormat.TRANSLUCENT
+            size.x,
+            size.y + 160,
+            0,
+            -80,
+            LAYOUT_FLAG, // TYPE_SYSTEM_ALERT is denied in apiLevel >=19
+            CORE_FLAGS,
+            PixelFormat.TRANSLUCENT
         );
         overlayParams.gravity = Gravity.TOP | Gravity.START;
         overlayView.setFitsSystemWindows(false); // allow us to draw over status bar, navigation bar
 
         //Purpose: Blocking the URL bar at the top of the screen when launching websites
         url_overlayParams = new WindowManager.LayoutParams(
-                size.x,
-                220,
-                0,
-                0,
-                LAYOUT_FLAG, // TYPE_SYSTEM_ALERT is denied in apiLevel >=19
-                CORE_FLAGS,
-                PixelFormat.OPAQUE
+            size.x,
+            220,
+            0,
+            0,
+            LAYOUT_FLAG, // TYPE_SYSTEM_ALERT is denied in apiLevel >=19
+            CORE_FLAGS,
+            PixelFormat.OPAQUE
 //                PixelFormat.TRANSLUCENT
         );
         url_overlayParams.gravity = Gravity.TOP | Gravity.START;
@@ -2722,16 +2728,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         }
     }
 
-//    public void displayLearnerMain(String leaderName) {
-//        TextView leaderTitle = mainLearner.findViewById(R.id.leader_name);
-//
-//        studentImg.setImageResource(R.drawable.connected_student);
-//        leaderTitle.setText(leaderName);
-//
-//        TextView learnerTitle = mainLearner.findViewById(R.id.learner_title);
-//        learnerTitle.setText(getNearbyManager().getName());
-//    }
-
     //UPDATE OPTIONS PAGE
     public void setUIDisconnected() {
         //reset state
@@ -2767,7 +2763,9 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         prepLoginSwitcher();
         leadmeAnimator.setDisplayedChild(ANIM_START_SWITCH_INDEX);
 
-        initiateLeaderDiscovery();
+        if (!nearbyManager.isDiscovering()) {
+            initiateLeaderDiscovery();
+        }
     }
 
     public void collapseStatus() {
@@ -3608,6 +3606,19 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     public void transferError(String error, String peerID) {
         getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG,
                 LeadMeMain.TRANSFER_ERROR + ":" + peerID + ":" + error,
+                getNearbyManager().getSelectedPeerIDsOrAll());
+    }
+
+    //TODO This isn't used but can be implemented in the future.
+    /**
+     * Send an action to the guide on the destruction of a learners application. Notifying the guide
+     * that the learner has abruptly disconnected.
+     * @param peerID A string representing the ID of the disconnected peer.
+     */
+    public void disconnection(String peerID) {
+        Log.e(TAG, "Sending disconnection");
+        getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG,
+                LeadMeMain.DISCONNECTION + ":" + peerID,
                 getNearbyManager().getSelectedPeerIDsOrAll());
     }
 

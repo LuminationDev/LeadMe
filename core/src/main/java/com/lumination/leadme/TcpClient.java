@@ -18,7 +18,7 @@ import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 public class TcpClient extends Thread{
-    public InetAddress IpAdress;
+    public InetAddress IpAddress;
     public int port;
     public int ID;
     String TAG = "TcpClient: ";
@@ -54,16 +54,17 @@ public class TcpClient extends Thread{
     };
     Runnable ConnectionCheck = () -> {
         try {
+            Log.d(TAG, "Sending Ping to: " + ID);
             PrintWriter out = new PrintWriter(client.getOutputStream(), true);
-            out.println("PING,"+ID); //set to be ignored at the client end, tcp will tell us if they have disconnected
-            if (out.checkError()){
+            out.println("PING," + ID); //set to be ignored at the client end, tcp will tell us if they have disconnected
+            if (out.checkError()) {
                 Log.e(TAG, "ERROR writing data to socket student has disconnected");
                 parent.executorService.submit(new Runnable() {
-                                                  @Override
-                                                  public void run() {
-                                                      parent.updateParent(Name, ID, "LOST");
-                                                  }
-                                              });
+                    @Override
+                    public void run() {
+                      parent.updateParent(Name, ID, "LOST");
+                    }
+                });
 
                 scheduledExecutor.shutdown();
                 runAgain=false;
@@ -80,7 +81,7 @@ public class TcpClient extends Thread{
                 BufferedReader in = new BufferedReader(inreader);
                 String Input = in.readLine();
 
-                inputRecieved(Input);
+                inputReceived(Input);
                 if (Input == null) {
                     checkIn = false;
                 }
@@ -94,7 +95,7 @@ public class TcpClient extends Thread{
     public TcpClient(Socket clientSocket, NetworkAdapter netContext, int clientID) {
 
         TAG += clientID; //ensures logs are identifiable
-        IpAdress = clientSocket.getInetAddress();
+        IpAddress = clientSocket.getInetAddress();
         port = clientSocket.getPort();
         try {
             clientSocket.setKeepAlive(true);
@@ -114,7 +115,7 @@ public class TcpClient extends Thread{
         //new Thread(inputRun).start();
         scheduledExecutor.scheduleAtFixedRate(inputRun,0,1000, TimeUnit.MILLISECONDS);
     }
-    private void inputRecieved(String input) {
+    private void inputReceived(String input) {
         if(input==null || !input.contains(",")){
             return;
         }
@@ -136,7 +137,7 @@ public class TcpClient extends Thread{
                     inputActionHandler(inputList.get(1));
                     break;
                 case "PING":
-                    Log.d(TAG, "inputRecieved: ping messages are purposely ignored");
+                    Log.d(TAG, "inputReceived: ping messages are purposely ignored");
                     break;
                 case "IMAGE":
                     parent.executorService.submit(() -> parent.updateParent(inputList.get(1),ID,"IMAGE"));
@@ -149,64 +150,48 @@ public class TcpClient extends Thread{
 
     private void inputActionHandler(String action) {
         //not sure why student would send action but implemented anyway
-        Log.d(TAG, "inputActionHandler: Action recieved: "+action);
-        parent.executorService.submit(new Runnable() {
-            @Override
-            public void run() {
-                parent.updateParent(action,ID,"ACTION");
-            }
-        });
+        Log.d(TAG, "inputActionHandler: Action received: "+action);
+        parent.executorService.submit(() -> parent.updateParent(action,ID,"ACTION"));
 
     }
 
-    //updates parent with name
+    /**
+     * Updates parent with name.
+     * @param name A string representing the name of the student.
+     */
     public void setLocalName(String name){
         Name=name;
-        parent.executorService.submit(new Runnable() {
-            @Override
-            public void run() {
-                parent.updateParent(name+":"+IpAdress.toString(),ID,"NAME");
-            }
-        });
-
+        parent.executorService.submit(() -> parent.updateParent(name+":"+IpAddress.toString(),ID,"NAME"));
     }
 
     void sendToClient(String message, String type){
         Log.d(TAG, "sendToClient: "+message+" Type: "+type);
 
        // simply sends message to the client attached to this process
-        scheduledExecutor.schedule(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    PrintWriter out =   new PrintWriter(
-                            new BufferedWriter(
-                                    new OutputStreamWriter(client.getOutputStream())), true);
-                    out.println(type + "," + message);
-                    out.flush();
-                } catch (IOException e) {
-                    Log.d(TAG, "sendToClient: failed to write message to client, checking if there is a connection");
-                    //checkConnection();
-                    e.printStackTrace();
-                }
-                if(type=="DISCONNECT"){
-                    try {
-                        client.close();
-                        runAgain=false;
-                        checkIn=false;
-                        scheduledExecutor.shutdown();
-                        Log.d(TAG, "sendToClient: client socket closed and student disconnected");
-                        parent.executorService.submit(new Runnable() {
-                            @Override
-                            public void run() {
-                                parent.updateParent("disconnect complete",ID,"DISCONNECT");
-                            }
-                        });
+        scheduledExecutor.schedule(() -> {
+            try {
+                PrintWriter out =   new PrintWriter(
+                        new BufferedWriter(
+                                new OutputStreamWriter(client.getOutputStream())), true);
+                out.println(type + "," + message);
+                out.flush();
+            } catch (IOException e) {
+                Log.d(TAG, "sendToClient: failed to write message to client, checking if there is a connection");
+                //checkConnection();
+                e.printStackTrace();
+            }
 
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                    return;
+            if(type.equals("DISCONNECT")){
+                try {
+                    client.close();
+                    runAgain=false;
+                    checkIn=false;
+                    scheduledExecutor.shutdown();
+                    Log.d(TAG, "sendToClient: client socket closed and student disconnected");
+                    parent.executorService.submit(() -> parent.updateParent("disconnect complete",ID,"DISCONNECT"));
+
+                } catch (IOException e) {
+                    e.printStackTrace();
                 }
             }
         },0L,TimeUnit.MILLISECONDS);

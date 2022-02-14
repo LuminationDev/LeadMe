@@ -80,7 +80,7 @@
             android:paddingEnd="20dp"/>
     </LinearLayout>
 
-<!--Layout for after Updates have been enabled-->
+    <!--Layout for after Updates have been enabled-->
 <!--    <HorizontalScrollView-->
 <!--        android:layout_width="350dp"-->
 <!--        android:layout_height="wrap_content"-->
@@ -288,9 +288,10 @@
 <!--                app:layout_gravity="center_horizontal|top" />-->
 
 <!--        </LinearLayout>-->
-
 <!--    </HorizontalScrollView>-->
+    <!--End Layout for after Updates have been enabled-->
 
+    <!--Old title layout-->
     <LinearLayout
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
@@ -406,6 +407,7 @@
             app:layout_gravity="center_horizontal|top" />
 
     </LinearLayout>
+    <!--End Old title layout-->
 
 
     <RelativeLayout
