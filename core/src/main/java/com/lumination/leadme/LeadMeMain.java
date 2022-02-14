@@ -1495,40 +1495,40 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         //TODO VR PLAYER, AUTO INSTALLER AND FILE TRANSFER
         //Code in LeadMe Main & AppManager
         //multi install button
-//        mainLeader.findViewById(R.id.installer_core_btn).setOnClickListener(view -> {
-//            if(autoInstallApps) {
-//                getLumiAppInstaller().showMultiInstaller(layoutParams);
-//            } else {
-//                dialogManager.showWarningDialog("Auto Installer", "Auto installing has not been enabled.");
-//            }
-//        });
-//
-//        //file transfer button
-//        mainLeader.findViewById(R.id.file_core_btn).setOnClickListener(view -> {
-//            if(!getConnectedLearnersAdapter().someoneIsSelected()) {
-//                Toast.makeText(context, "Peers need to be selected.", Toast.LENGTH_LONG).show();
-//                return;
-//            }
-//
-//            if(fileTransferEnabled) {
-//                if(isMiUiV9()) {
-//                    alternateFileChoice(TRANSFER_FILE_CHOICE);
-//                } else {
-//                    FileUtilities.browseFiles(this, TRANSFER_FILE_CHOICE);
-//                }
-//            } else {
-//                dialogManager.showWarningDialog("File Transfer", "File transfer has not been enabled.");
-//            }
-//        });
-//
-//        //Custom VR button
-//        mainLeader.findViewById(R.id.vr_core_btn).setOnClickListener(view -> {
-//            if(vrVideoPath == null) {
-//                getVrEmbedPlayer().showPlaybackPreview();
-//            } else {
-//                getVrEmbedPlayer().openVideoController();
-//            }
-//        });
+        mainLeader.findViewById(R.id.installer_core_btn).setOnClickListener(view -> {
+            if(autoInstallApps) {
+                getLumiAppInstaller().showMultiInstaller(layoutParams);
+            } else {
+                dialogManager.showWarningDialog("Auto Installer", "Auto installing has not been enabled.");
+            }
+        });
+
+        //file transfer button
+        mainLeader.findViewById(R.id.file_core_btn).setOnClickListener(view -> {
+            if(!getConnectedLearnersAdapter().someoneIsSelected()) {
+                Toast.makeText(context, "Peers need to be selected.", Toast.LENGTH_LONG).show();
+                return;
+            }
+
+            if(fileTransferEnabled) {
+                if(isMiUiV9()) {
+                    alternateFileChoice(TRANSFER_FILE_CHOICE);
+                } else {
+                    FileUtilities.browseFiles(this, TRANSFER_FILE_CHOICE);
+                }
+            } else {
+                dialogManager.showWarningDialog("File Transfer", "File transfer has not been enabled.");
+            }
+        });
+
+        //Custom VR button
+        mainLeader.findViewById(R.id.vr_core_btn).setOnClickListener(view -> {
+            if(vrVideoPath == null) {
+                getVrEmbedPlayer().showPlaybackPreview();
+            } else {
+                getVrEmbedPlayer().openVideoController();
+            }
+        });
         //TODO End section
     }
 
@@ -1547,7 +1547,17 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
      * @return A boolean representing if the MIUI version is 9.5 or below.
      */
     public static boolean isMiUiV9() {
-        return !TextUtils.isEmpty(getSystemProperty("ro.miui.ui.version.name"));
+        String version = getSystemProperty("ro.miui.ui.version.name");
+
+        //If empty then it is a different type of phone
+        if(TextUtils.isEmpty(version)) {
+            return false;
+        }
+
+        String[] num = version.split("V");
+        int versionNum = Integer.parseInt(num[1]);
+
+        return versionNum <= 10;
     }
 
     private static String getSystemProperty(String propName) {
@@ -1837,6 +1847,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         }
 
         learner_toggle.setOnClickListener(v -> {
+            initiateLeaderDiscovery();
             displayLearnerStartToggle();
             if (getAuthenticationManager().getCurrentAuthUser() == null) {
                 dialogManager.changeLoginViewOptions(View.GONE, View.GONE, View.VISIBLE);
@@ -2348,8 +2359,8 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
             //TODO AUTO INSTALLER AND FILE TRANSFER
             //display the auto installing application toggle and file transfer toggle
-//            autoToggle.setVisibility(View.VISIBLE);
-//            transferToggle.setVisibility(View.VISIBLE);
+            autoToggle.setVisibility(View.VISIBLE);
+            transferToggle.setVisibility(View.VISIBLE);
         } else {
             //display main student view
             leadmeAnimator.setDisplayedChild(ANIM_LEARNER_INDEX);
