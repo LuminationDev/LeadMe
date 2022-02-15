@@ -173,18 +173,13 @@ public class NetworkAdapter {
                         Log.d(TAG, "onServiceFound: attempting to resolve " + service.getServiceName());
 
                         //fixes the resolve 3 error
-                        executorService.submit(new Runnable() {
-                            @Override
-                            public void run() {
-                                mNsdManager.resolveService(service, new resListener());
-                                try {
-                                    Thread.currentThread();
-                                    Thread.sleep(500); //sleeps thread
-                                } catch (InterruptedException e) {
-                                    e.printStackTrace();
-                                }
-                            }
-                        });
+                        try {
+                            executorService.submit(() -> mNsdManager.resolveService(service, new resListener()));
+                            Thread.currentThread();
+                            Thread.sleep(200); //purposely block
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
                     }
                 }
 
@@ -513,6 +508,7 @@ public class NetworkAdapter {
 //            });
         }
     }
+
 //    int testing = 20;
     //discovers services, is not continuous so will need to be called in a runnable to implement a scan
     public void startDiscovery() {
@@ -528,9 +524,7 @@ public class NetworkAdapter {
 
         //new Thread so server messages can be read from a while loop without impacting the UI
         if(recieveInput == null) {
-            //recieveInput = new Thread() {
             recieveInput = main.serverThreadPool.submit(new Runnable() {
-//            recieveInput = main.backgroundExecutor.submit(new Runnable() {
                 @Override
                 public void run() {
                     while (allowInput) {
@@ -566,17 +560,6 @@ public class NetworkAdapter {
                                         Log.e(TAG, "FAILED! {1}");
                                         Log.e(TAG, "Attempting to reconnect");
 
-                                        //Do not try to reconnect if main is destroyed
-//                                        if (main.destroying) {
-//                                            main.runOnUiThread(() -> {
-//                                                main.setUIDisconnected();
-//                                            });
-//
-//                                            allowInput = false;
-//
-//                                            return;
-//                                        }
-
                                         connectToServer(mService);
                                     }
 
@@ -594,7 +577,7 @@ public class NetworkAdapter {
                                                 allowInput = false;
                                                 return;
                                             }
-                                            //Log.d(TAG, "run: server said: " + input);
+
                                             netAdapt.messageReceivedFromServer(input);
                                         }
                                     }
@@ -607,17 +590,6 @@ public class NetworkAdapter {
                                 Log.e(TAG, "FAILED! {3}");
                                 Log.e(TAG, "Attempting to reconnect");
 
-                                //Do not try to reconnect if main is destroyed
-//                                if (main.destroying) {
-//                                    main.runOnUiThread(() -> {
-//                                        main.setUIDisconnected();
-//                                    });
-//
-//                                    allowInput = false;
-//
-//                                    return;
-//                                }
-
                                 connectToServer(mService);
                             }
                         }
@@ -625,9 +597,6 @@ public class NetworkAdapter {
                     Log.e(TAG, "FAILED! {4}");
                 }
             });
-
-//            recieveInput.setPriority(Thread.MAX_PRIORITY);
-//            recieveInput.start();
         }
     }
 
@@ -753,8 +722,6 @@ public class NetworkAdapter {
         public void run() {
 
             try {
-//                setMulticastLock();
-
                 // Since discovery will happen via Nsd, we don't need to care which port is
                 // used.  Just grab an available one and advertise it via Nsd.
                 mServerSocket = new ServerSocket();
@@ -803,7 +770,6 @@ public class NetworkAdapter {
             Log.d(TAG, "startAdvertising: ERROR - Server not started");
         }
 
-//        serviceInfo.setAttribute("IP", mServerSocket.getInetAddress().toString());
         String hardIpAddress = null;
         try {
             hardIpAddress = InetAddress.getByAddress(
@@ -817,17 +783,12 @@ public class NetworkAdapter {
             e.printStackTrace();
         }
 
-//        serviceInfo.setPort(localport);
         serviceInfo.setPort(PORT); //Use the hard coded port
         serviceInfo.setServiceName(Name + "#Teacher#" + hardIpAddress);
         serviceInfo.setServiceType(SERVICE_TYPE);
-
         serviceInfo.setAttribute("IP", hardIpAddress);
-
-        //host must be set as NSD can get incorrect addresses on busy networks - keep for backup if attribute isn't sent?
         serviceInfo.setHost(mServerSocket.getInetAddress());
 
-        Log.e(TAG, serviceInfo.toString());
         mNsdManager.registerService(serviceInfo, NsdManager.PROTOCOL_DNS_SD, mRegistrationListener);
     }
 
