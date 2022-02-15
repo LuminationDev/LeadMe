@@ -157,7 +157,7 @@
                     android:layout_width="@dimen/standard_btn_width"
                     android:layout_height="@dimen/standard_btn_height"
                     android:layout_gravity="center_horizontal"
-                    android:background="@{foundURL.length() == 0 ? @drawable/bg_disabled : @drawable/bg_active}"
+                    android:background="@{foundURL.length() == 0 ? @drawable/bg_disabled : @drawable/bg_active, default=@drawable/bg_active}"
                     android:focusable="true"
                     android:fontFamily="@font/poppins_semibold"
                     android:text="@string/next"
