@@ -1,192 +1,204 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:layout_height="match_parent"
-    android:layout_width="match_parent">
+    xmlns:tools="http://schemas.android.com/tools">
 
-    <LinearLayout
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:layout_centerInParent="true"
-        android:layout_centerHorizontal="true"
-        android:layout_centerVertical="true"
-        android:background="@drawable/rounded_popup_white"
-        android:gravity="center"
-        android:orientation="vertical"
-        android:showDividers="middle|beginning|end">
+    <data>
+        <import type="android.view.View"/>
+        <variable
+            name="foundURL"
+            type="String" />
 
+    </data>
+
+    <FrameLayout
+        android:layout_height="match_parent"
+        android:layout_width="match_parent">
 
         <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="50dp"
-        android:gravity="center|center_horizontal"
-        android:orientation="horizontal">
-
-        <Space
-            android:layout_width="47dp"
-            android:layout_height="wrap_content" />
-
-        <TextView
-            android:id="@+id/title"
-            android:layout_width="wrap_content"
-            android:layout_height="50dp"
-            android:layout_gravity="center_vertical"
-            android:layout_weight="1"
-            android:fontFamily="@font/poppins_semibold"
-            android:foregroundGravity="center_vertical"
-            android:gravity="center_horizontal|center_vertical"
-            android:includeFontPadding="false"
-            android:text="Browsing Within VR"
-            android:textAlignment="center"
-            android:textSize="16sp" />
-
-        <androidx.cardview.widget.CardView
-            android:layout_width="47dp"
-            android:layout_height="match_parent"
-            android:layout_marginTop="5dp"
-            android:layout_marginEnd="5dp"
-            android:layout_marginBottom="5dp"
-            app:cardBackgroundColor="@color/leadme_white"
-            app:cardCornerRadius="10dp"
-            app:cardElevation="3dp"
-            app:layout_gravity="center_vertical">
-
-            <ImageView
-                android:id="@+id/down_arrow"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="start|center_vertical"
-                android:paddingStart="3dp"
-                android:src="@drawable/down_arrow" />
-
-            <Spinner
-                android:id="@+id/search_spinner"
-                android:layout_width="78dp"
-                android:layout_height="65dp"
-                android:layout_marginStart="-13dp"
-                android:layout_marginTop="-12dp"
-                android:background="@color/leadme_white"
-                android:dropDownWidth="wrap_content"
-                android:gravity="top"
-                android:padding="0dp"
-                android:popupBackground="@drawable/rounded_popup_white"
-                android:popupElevation="5dp"
-                android:popupTheme="@style/popupStyle"
-                android:spinnerMode="dropdown"
-                android:theme="@style/MatchSpinnerTheme"
-                android:translationZ="-10dp"
-                tools:listitem="@layout/row_search_spinner" />
-        </androidx.cardview.widget.CardView>
-
-    </LinearLayout>
-
-        <LinearLayout
-            android:id="@+id/preview_view"
             android:layout_width="fill_parent"
-            android:layout_height="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:layout_centerHorizontal="true"
+            android:layout_centerVertical="true"
+            android:background="@drawable/rounded_popup_white"
             android:gravity="center"
             android:orientation="vertical"
-            android:showDividers="middle|beginning|end"
-            android:visibility="visible">
+            android:showDividers="middle|beginning|end">
 
 
-            <WebView
-                android:id="@+id/within_webview_search"
+            <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="360dp"
-                android:background="@color/leadme_black"
-                android:tag="search_webview">
+                android:layout_height="50dp"
+                android:gravity="center|center_horizontal"
+                android:orientation="horizontal">
 
-            </WebView>
+                <Space
+                    android:layout_width="47dp"
+                    android:layout_height="wrap_content" />
 
-            <TextView
-                android:id="@+id/no_internet"
+                <TextView
+                    android:id="@+id/title"
+                    android:layout_width="wrap_content"
+                    android:layout_height="50dp"
+                    android:layout_gravity="center_vertical"
+                    android:layout_weight="1"
+                    android:fontFamily="@font/poppins_semibold"
+                    android:foregroundGravity="center_vertical"
+                    android:gravity="center_horizontal|center_vertical"
+                    android:includeFontPadding="false"
+                    android:text="Browsing Within VR"
+                    android:textAlignment="center"
+                    android:textSize="16sp" />
+
+                <androidx.cardview.widget.CardView
+                    android:layout_width="47dp"
+                    android:layout_height="match_parent"
+                    android:layout_marginTop="5dp"
+                    android:layout_marginEnd="5dp"
+                    android:layout_marginBottom="5dp"
+                    app:cardBackgroundColor="@color/leadme_white"
+                    app:cardCornerRadius="10dp"
+                    app:cardElevation="3dp"
+                    app:layout_gravity="center_vertical">
+
+                    <ImageView
+                        android:id="@+id/down_arrow"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="start|center_vertical"
+                        android:paddingStart="3dp"
+                        android:src="@drawable/down_arrow" />
+
+                    <Spinner
+                        android:id="@+id/search_spinner"
+                        android:layout_width="78dp"
+                        android:layout_height="65dp"
+                        android:layout_marginStart="-13dp"
+                        android:layout_marginTop="-12dp"
+                        android:background="@color/leadme_white"
+                        android:dropDownWidth="wrap_content"
+                        android:gravity="top"
+                        android:padding="0dp"
+                        android:popupBackground="@drawable/rounded_popup_white"
+                        android:popupElevation="5dp"
+                        android:popupTheme="@style/popupStyle"
+                        android:spinnerMode="dropdown"
+                        android:theme="@style/MatchSpinnerTheme"
+                        android:translationZ="-10dp"
+                        tools:listitem="@layout/row_search_spinner" />
+                </androidx.cardview.widget.CardView>
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/preview_view"
                 android:layout_width="fill_parent"
-                android:layout_height="350dp"
-                android:background="@color/leadme_darkest_grey"
-                android:drawableBottom="@drawable/icon_restart"
-                android:drawablePadding="20dp"
-                android:fontFamily="@font/poppins_semibold"
+                android:layout_height="match_parent"
                 android:gravity="center"
-                android:padding="50dp"
-                android:text="Internet unavailable\n\nPlease check your connection and tap to retry."
-                android:textColor="@color/leadme_white"
-                android:textSize="16sp"
-                android:visibility="gone" />
+                android:orientation="vertical"
+                android:showDividers="middle|beginning|end"
+                android:visibility="visible">
+
+
+                <WebView
+                    android:id="@+id/within_webview_search"
+                    android:layout_width="match_parent"
+                    android:layout_height="360dp"
+                    android:background="@color/leadme_black"
+                    android:tag="search_webview">
+
+                </WebView>
+
+                <TextView
+                    android:id="@+id/no_internet"
+                    android:layout_width="fill_parent"
+                    android:layout_height="350dp"
+                    android:background="@color/leadme_darkest_grey"
+                    android:drawableBottom="@drawable/icon_restart"
+                    android:drawablePadding="20dp"
+                    android:fontFamily="@font/poppins_semibold"
+                    android:gravity="center"
+                    android:padding="50dp"
+                    android:text="Internet unavailable\n\nPlease check your connection and tap to retry."
+                    android:textColor="@color/leadme_white"
+                    android:textSize="16sp"
+                    android:visibility="gone" />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/playback_btns"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:orientation="vertical"
+                android:paddingBottom="10dp">
+
+                <TextView
+                    android:id="@+id/open_favourites"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_marginTop="10dp"
+                    android:layout_marginBottom="20dp"
+                    android:layout_weight="1"
+                    android:drawableLeft="@drawable/icon_fav_star_solid"
+                    android:drawablePadding="5dp"
+                    android:fontFamily="@font/poppins_semibold"
+                    android:includeFontPadding="false"
+                    android:text="Browse favourites"
+                    android:textColor="@color/leadme_darkest_grey"
+                    android:textSize="12sp" />
+
+                <Button
+                    android:id="@+id/select_btn"
+                    style="?android:attr/borderlessButtonStyle"
+                    android:layout_width="@dimen/standard_btn_width"
+                    android:layout_height="@dimen/standard_btn_height"
+                    android:layout_gravity="center_horizontal"
+                    android:background="@{foundURL.length() == 0 ? @drawable/bg_disabled : @drawable/bg_active, default=@drawable/bg_active}"
+                    android:focusable="true"
+                    android:fontFamily="@font/poppins_semibold"
+                    android:text="@string/next"
+                    android:textAllCaps="false"
+                    android:textColor="@color/leadme_white"
+                    android:textSize="16sp"
+                    app:layout_gravity="center_horizontal" />
+
+                <Space
+                    android:layout_width="52dp"
+                    android:layout_height="match_parent" />
+
+                <Button
+                    android:id="@+id/within_back"
+                    style="?android:attr/borderlessButtonStyle"
+                    android:layout_width="@dimen/standard_btn_width"
+                    android:layout_height="@dimen/standard_btn_height"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_marginTop="10dp"
+                    android:layout_marginBottom="15dp"
+                    android:background="@drawable/bg_passive"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:fontFamily="@font/poppins_semibold"
+                    android:text="@string/back"
+                    android:textAllCaps="false"
+                    android:textColor="@color/leadme_darkest_grey"
+                    android:textSize="16sp" />
+
+            </LinearLayout>
 
         </LinearLayout>
 
-        <LinearLayout
-        android:id="@+id/playback_btns"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"
-        android:orientation="vertical"
-        android:paddingBottom="10dp">
-
-        <TextView
-            android:id="@+id/open_favourites"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center_horizontal"
-            android:layout_marginTop="10dp"
-            android:layout_marginBottom="20dp"
-            android:layout_weight="1"
-            android:drawableLeft="@drawable/icon_fav_star_solid"
-            android:drawablePadding="5dp"
-            android:fontFamily="@font/poppins_semibold"
-            android:includeFontPadding="false"
-            android:text="Browse favourites"
-            android:textColor="@color/leadme_darkest_grey"
-            android:textSize="12sp" />
-
         <Button
-            android:id="@+id/select_btn"
-            style="?android:attr/borderlessButtonStyle"
-            android:layout_width="@dimen/standard_btn_width"
-            android:layout_height="@dimen/standard_btn_height"
-            android:layout_gravity="center_horizontal"
-            android:background="@drawable/bg_disabled"
-            android:focusable="true"
-            android:fontFamily="@font/poppins_semibold"
-            android:text="@string/next"
-            android:textAllCaps="false"
-            android:textColor="@color/leadme_white"
-            android:textSize="16sp"
-            app:layout_gravity="center_horizontal" />
-
-        <Space
-            android:layout_width="52dp"
-            android:layout_height="match_parent" />
-
-        <Button
-            android:id="@+id/within_back"
-            style="?android:attr/borderlessButtonStyle"
-            android:layout_width="@dimen/standard_btn_width"
-            android:layout_height="@dimen/standard_btn_height"
-            android:layout_gravity="center_horizontal"
-            android:layout_marginTop="10dp"
-            android:layout_marginBottom="15dp"
-            android:background="@drawable/bg_passive"
-            android:clickable="true"
-            android:focusable="true"
-            android:fontFamily="@font/poppins_semibold"
-            android:text="@string/back"
-            android:textAllCaps="false"
-            android:textColor="@color/leadme_darkest_grey"
-            android:textSize="16sp" />
-
-    </LinearLayout>
-
-    </LinearLayout>
-
-    <Button
-        android:id="@+id/within_back_btn"
-        android:layout_width="40dp"
-        android:layout_height="40dp"
-        android:layout_marginLeft="10dp"
-        android:layout_marginTop="60dp"
-        android:background="@drawable/back_circle"
-        android:contentDescription="Back" />
-</FrameLayout>
+            android:id="@+id/within_back_btn"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginLeft="10dp"
+            android:layout_marginTop="60dp"
+            android:visibility="@{foundURL.length() == 0 ? View.INVISIBLE : View.VISIBLE}"
+            android:background="@drawable/back_circle"
+            android:contentDescription="Back" />
+    </FrameLayout>
+</layout>
