@@ -1020,6 +1020,8 @@ public class NetworkAdapter {
             entry.getValue().t.interrupt();
         }
 
+        studentThreadArray.clear();
+        clientSocketArray.clear();
         clientID = 0;
     }
 
