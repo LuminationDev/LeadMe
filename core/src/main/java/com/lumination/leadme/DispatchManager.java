@@ -294,6 +294,10 @@ public class DispatchManager {
                     dispatchAction.turnOffXray();
                     break;
 
+                case LeadMeMain.XRAY_REQUEST:
+                    dispatchAction.requestXray();
+                    break;
+
                 case LeadMeMain.PING_ACTION:
                     dispatchAction.stillAlivePing(action);
                     break;
@@ -941,6 +945,15 @@ public class DispatchManager {
             } else if(action.startsWith(LeadMeMain.AUTO_INSTALL)) {
                 main.askForPeerPermission(LeadMeMain.AUTO_INSTALL, Boolean.parseBoolean(split[1]));
             }
+        }
+
+        /**
+         * Ask a learner to turn on the screen sharing service. Is only activated if the service is
+         * not accepted initially or the service is terminated during a session through the
+         * student alerts area.
+         */
+        private void requestXray() {
+            main.screenCap.startService(false);
         }
 
         /**

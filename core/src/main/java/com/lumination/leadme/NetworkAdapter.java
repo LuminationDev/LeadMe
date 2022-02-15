@@ -97,12 +97,12 @@ public class NetworkAdapter {
     /**
      * Keep track of the student threads that are currently being managed by the leader device.
      */
-    public HashMap<Integer, studentThread> studentThreadArray = new HashMap<>();
+    public HashMap<Integer, studentThread> studentThreadArray;
     /**
      * Keep Track of the Client ID as the key and student socket as the value. It can then be used
      * to determine if a student is reconnecting or is a new user.
      */
-    HashMap<Integer, Map.Entry<Socket, Boolean>> clientSocketArray = new HashMap<>();
+    HashMap<Integer, Map.Entry<Socket, Boolean>> clientSocketArray;
 
     // Acquire multicast lock
     WifiManager.MulticastLock multicastLock;
@@ -115,7 +115,7 @@ public class NetworkAdapter {
     private boolean resInProgress=false;
     ArrayList<NsdServiceInfo> serviceQueue;
 
-    public ExecutorService executorService = Executors.newFixedThreadPool(1);
+    public ExecutorService executorService = Executors.newFixedThreadPool(2);
     ScheduledExecutorService scheduledExecutor = new ScheduledThreadPoolExecutor(1);
 
 
@@ -129,6 +129,8 @@ public class NetworkAdapter {
         mNsdManager = (NsdManager) context.getSystemService(Context.NSD_SERVICE);
         resolver = new resListener();
         serviceQueue = new ArrayList<>();
+        studentThreadArray = new HashMap<>();
+        clientSocketArray = new HashMap<>();
         setMulticastLock(); //should be set for learners and leaders?
     }
 
@@ -759,10 +761,6 @@ public class NetworkAdapter {
                 mServerSocket.setReuseAddress(true);
                 mServerSocket.bind(new InetSocketAddress(PORT));
 
-                //Let the system pick the first available port number?
-                //Port may be blocked by the school or network connection
-//                mServerSocket.bind(new InetSocketAddress(0));
-
                 localport = mServerSocket.getLocalPort();
 
                 while (true) {
@@ -848,6 +846,27 @@ public class NetworkAdapter {
     //starts a new server thread as seen below
     public void startServer() {
         Server = main.backgroundExecutor.submit(new ServerThread());
+    }
+
+    //will drop all currently connected clients
+    public void stopServer() {
+        if(Server != null) {
+            Log.e(TAG, "Server cancel");
+            Server.cancel(true);
+        }
+
+        if(mServerSocket != null) {
+            try {
+                mServerSocket.close();
+                Log.e("CLOSING PORT", "Server closing is bound: " + mServerSocket.isBound());
+                if (multicastLock != null) {
+                    multicastLock.release();
+                    multicastLock = null;
+                }
+            } catch (IOException ioe) {
+                Log.e(TAG, "Error when closing server socket.");
+            }
+        }
     }
 
     /*
@@ -968,27 +987,6 @@ public class NetworkAdapter {
         }
     }
 
-    //will drop all currently connected clients
-    public void stopServer() {
-        if(Server != null) {
-            Log.e(TAG, "Server cancel");
-            Server.cancel(true);
-        }
-
-        if(mServerSocket != null) {
-            try {
-                mServerSocket.close();
-                Log.e("CLOSING PORT", "Server closing");
-                if (multicastLock != null) {
-                    multicastLock.release();
-                    multicastLock = null;
-                }
-            } catch (IOException ioe) {
-                Log.e(TAG, "Error when closing server socket.");
-            }
-        }
-    }
-
     /*
     both functions add messages to the message queue which is then checked by each student thread
      */
@@ -1010,8 +1008,20 @@ public class NetworkAdapter {
 
     }
 
-    //Needs to be reset on logout otherwise ID and xray ID do not match and client ID consecutively grows
+    /**
+     * Cycle through the student thread container. Interrupt each student thread running in
+     * the background and remove it from the array. To be used on logout or session end to stop
+     * hanging connections on the student devices.
+     * Reset the client ID count on logout otherwise ID and xray ID do not match and client ID
+     * consecutively grows
+     */
     public void resetClientIDs() {
+        for(Map.Entry<Integer, studentThread> entry : studentThreadArray.entrySet()) {
+            entry.getValue().t.interrupt();
+        }
+
+        studentThreadArray.clear();
+        clientSocketArray.clear();
         clientID = 0;
     }
 
