@@ -32,6 +32,8 @@ import java.util.Scanner;
 
 import androidx.core.content.ContextCompat;
 import androidx.core.widget.ImageViewCompat;
+import androidx.databinding.DataBindingUtil;
+import androidx.databinding.ViewDataBinding;
 
 public class WithinEmbedPlayer {
 
@@ -64,6 +66,7 @@ public class WithinEmbedPlayer {
 
     private String attemptedURL = "";
     boolean pageLoaded = false;
+    public ViewDataBinding binding;
 
     private boolean stream = true;
     private boolean vrMode = true;
@@ -82,6 +85,9 @@ public class WithinEmbedPlayer {
     public WithinEmbedPlayer(LeadMeMain main) {
         this.main = main;
         withinSearchDialogView = View.inflate(main, R.layout.f__selection_popup_within, null);
+        binding = DataBindingUtil.bind(withinSearchDialogView);
+        binding.setLifecycleOwner(main);
+        binding.setVariable(BR.foundURL, foundURL);
         searchWebView = withinSearchDialogView.findViewById(R.id.within_webview_search);
         searchBackupParams = searchWebView.getLayoutParams();
         searchUnavailableMsg = withinSearchDialogView.findViewById(R.id.no_internet);
@@ -152,8 +158,6 @@ public class WithinEmbedPlayer {
 
             }
         });
-
-        withinSearchDialogView.findViewById(R.id.select_btn).setBackground(main.getResources().getDrawable(R.drawable.bg_active, null));
     }
 
     boolean selectedOnly=false;
@@ -296,8 +300,14 @@ public class WithinEmbedPlayer {
     private final String urlPrefix = "https://with.in/watch/";
     private final String foundPrefix = "https://cms.with.in/v1/content/";
     private final String foundSuffix = "?platform=webplayer&list=Main-Web";
-    String foundURL = "";
+    public String foundURL = "";
     private String foundTitle = "";
+
+    private String setFoundURL (String value) {
+        foundURL = value;
+        binding.setVariable(BR.foundURL, foundURL);
+        return foundURL;
+    }
 
     private void setupWebClient(WebView tmpWebView, boolean searchView) {
         tmpWebView.setWebContentsDebuggingEnabled(true);
@@ -360,8 +370,7 @@ public class WithinEmbedPlayer {
 
                 if (searchView && url.startsWith(foundPrefix) && url.endsWith(foundSuffix)) {
                     foundTitle = url.replace(foundPrefix, "").replace(foundSuffix, "");
-                    foundURL = urlPrefix + foundTitle;
-                    withinSearchDialogView.findViewById(R.id.select_btn).setBackground(main.getResources().getDrawable(R.drawable.bg_active, null));
+                    setFoundURL(urlPrefix + foundTitle);
                     Log.w(TAG, "EXTRACTED! " + foundURL + ", " + main.getFavouritesManager().isInFavourites(foundURL));
 
                 } else if (url.startsWith("https://cms.with.in/v1/category/all?page=")) {
@@ -399,6 +408,7 @@ public class WithinEmbedPlayer {
         //set up standard dialog buttons
         withinBackBtn.setOnClickListener(v -> {
             searchWebView.goBack();
+            setFoundURL("");
         });
 
         withinSearchDialogView.findViewById(R.id.within_back).setOnClickListener(v -> {
@@ -589,7 +599,7 @@ public class WithinEmbedPlayer {
     }
 
     private void showWithinSearch() {
-        foundURL = ""; //reset
+        setFoundURL("");
         foundTitle = "";
         attemptedURL = "";
         searchSpinner.setSelection(0);
@@ -612,10 +622,8 @@ public class WithinEmbedPlayer {
     //for web manager to call when URL contains with.in/watch
     //could be entered directly or from favourites
     public void showController(String url) {
-        foundURL = url;
-//        foundURL = foundURL.replace("/watch/", "/embed/"); //moved this to showGuideController
+        setFoundURL(url);
         Log.d(TAG, "showController: " + foundURL);
-        withinSearchDialogView.findViewById(R.id.select_btn).setBackground(main.getResources().getDrawable(R.drawable.bg_active, null));
         showGuideController(true);
     }
 
@@ -646,8 +654,8 @@ public class WithinEmbedPlayer {
             toggleVRBtn();
 
             pageLoaded = false; //reset flag
-            foundURL = foundURL.replace("/watch/", "/embed/");
-            foundURL = foundURL.replace("https", "http");
+            setFoundURL(foundURL.replace("/watch/", "/embed/"));
+            setFoundURL(foundURL.replace("https", "http"));
             loadVideoGuideURL(foundURL); //display embedded version
             //controllerWebView.scrollTo(0, 200);
         }
@@ -699,11 +707,9 @@ public class WithinEmbedPlayer {
 
     public void resetControllerState() {
         videoCurrentDisplayMode = STD_MODE;
-        foundURL = "";
+        setFoundURL("");
         foundTitle = "";
         attemptedURL = "";
-
-        withinSearchDialogView.findViewById(R.id.select_btn).setBackground(main.getResources().getDrawable(R.drawable.bg_disabled, null));
     }
 
     public void onDestroy() {
