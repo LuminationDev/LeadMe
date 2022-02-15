@@ -36,7 +36,6 @@ import android.text.Editable;
 import android.text.Html;
 import android.text.TextUtils;
 import android.text.TextWatcher;
-import android.text.format.Formatter;
 import android.util.Log;
 import android.view.ActionMode;
 import android.view.Display;
@@ -179,6 +178,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     final static String SESSION_UUID_TAG = "SessionUUID";
     final static String SESSION_MANUAL_TAG = "SessionManual";
 
+    static final String XRAY_REQUEST = "LumiXrayRequest";
     static final String XRAY_ON = "LumiXrayOn";
     static final String XRAY_OFF = "LumiXrayOff";
 
@@ -2262,7 +2262,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         authenticationManager.removeAddress();
         xrayManager.resetClientMaps(null);
         getDispatcher().alertLogout(); //need to send this before resetting 'isGuide'
-        isGuide = false;
         getNearbyManager().networkAdapter.resetClientIDs();
         getConnectedLearnersAdapter().resetOnLogout();
         getNearbyManager().onStop();
@@ -2272,6 +2271,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         setUIDisconnected();
         showSplashScreen();
         moveAwayFromSplashScreen();
+        isGuide = false;
     }
 
     boolean loginAttemptInAction = false;
@@ -2317,13 +2317,13 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         ((TextView) optionsScreen.findViewById(R.id.student_name)).setText(name);
         optionsScreen.findViewById(R.id.connected_only_view).setVisibility(View.VISIBLE);
 
+        leaderAdditionalOptions(isGuide ? View.VISIBLE : View.GONE);
+
         if (isGuide) {
             //display main guide view
             leadmeAnimator.setDisplayedChild(ANIM_LEADER_INDEX);
 
-
             //update options
-//            optionsScreen.findViewById(R.id.auto_install_checkbox).setVisibility(View.VISIBLE);
             ((TextView) optionsScreen.findViewById(R.id.logout_btn)).setTextColor(getResources().getColor(R.color.light, null));
             TextView title = leadmeAnimator.getCurrentView().findViewById(R.id.leader_title);
             title.setText("Hi " + name + "!");
@@ -2331,7 +2331,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             ((TextView) optionsScreen.findViewById(R.id.connected_as_role)).setTextColor(getResources().getColor(R.color.accent, null));
 
             SharedPreferences sharedPreferences = getSharedPreferences(getResources().getString(R.string.preference_file_key), Context.MODE_PRIVATE);
-//            if a UUID exists, retrieve it
+            //if a UUID exists, retrieve it
             if (!sharedPreferences.contains("ONBOARD")) {
                 SharedPreferences.Editor editor = sharedPreferences.edit();
                 editor.putBoolean("ONBOARD", true);
@@ -2356,11 +2356,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
                 getAuthenticationManager().createManualConnection(ipAddress);
             }
-
-            //TODO AUTO INSTALLER AND FILE TRANSFER
-            //display the auto installing application toggle and file transfer toggle
-            autoToggle.setVisibility(View.VISIBLE);
-            transferToggle.setVisibility(View.VISIBLE);
         } else {
             //display main student view
             leadmeAnimator.setDisplayedChild(ANIM_LEARNER_INDEX);
@@ -2373,18 +2368,28 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             ((TextView) optionsScreen.findViewById(R.id.connected_as_role)).setText(getResources().getText(R.string.learner));
             ((TextView) optionsScreen.findViewById(R.id.connected_as_role)).setTextColor(getResources().getColor(R.color.medium, null));
 
-            optionsScreen.findViewById(R.id.how_to_use_btn).setVisibility(View.GONE);
-            optionsScreen.findViewById(R.id.on_boarding).setVisibility(View.GONE);
-            optionsScreen.findViewById(R.id.help_support_btn).setVisibility(View.GONE);
-            //refresh overlay
-            // verifyOverlay();
-
             //remove the Firebase listener if connection was manual
             getAuthenticationManager().removeUserListener();
 
             //NOTE: this may cause an issue as it was inside the above function to being with...
             getNearbyManager().networkAdapter.stopDiscovery();
         }
+    }
+
+    /**
+     * Disabling or enabling the visibility of additional option menu items depending on if the
+     * user is a guide or not.
+     * TODO: 15/02/2022 Implement data binding to reduce the code.
+     * @param enabled An int representing if the views are to be enabled or disabled.
+     */
+    public void leaderAdditionalOptions(int enabled) {
+        optionsScreen.findViewById(R.id.on_boarding).setVisibility(enabled);
+        optionsScreen.findViewById(R.id.how_to_use_btn).setVisibility(enabled);
+        optionsScreen.findViewById(R.id.help_support_btn).setVisibility(enabled);
+
+        //TODO AUTO next update variables. do not include in the production just yet
+        autoToggle.setVisibility(enabled);
+        transferToggle.setVisibility(enabled);
     }
 
     /**

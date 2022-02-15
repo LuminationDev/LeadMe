@@ -144,6 +144,7 @@ public class NearbyPeersManager {
      * advertising for a connection.
      */
     public void setAsGuide() {
+        Log.e(TAG, "Server starting for leader");
         main.isGuide = true;
         networkAdapter.startServer();
 

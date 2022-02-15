@@ -15,6 +15,11 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
+/**
+ * This class needs updating, has not had a major modification since V1 and still uses hard coded
+ * values for alerts and descriptions.
+ * Not high on the priority list but be aware adding extra alerts is ... painful.
+ */
 public class StudentAlertsAdapter extends BaseAdapter {
 
     private final String TAG = "StudentAlerts";
@@ -239,7 +244,7 @@ public class StudentAlertsAdapter extends BaseAdapter {
             "Clear",
 //            "Proceed Offline",
             "Re-push",
-            "Clear",
+            "Enable Xray",
             "Enable Transfer",
             "Enable Installer"};
 
@@ -314,14 +319,14 @@ public class StudentAlertsAdapter extends BaseAdapter {
                         Set<String> selectedPeerIDs = new HashSet<>(ids);
                         main.getDispatcher().repushApp(selectedPeerIDs);
                     }
-                }else if(alertBtn.getText().equals("Recall")){
+                } else if(alertBtn.getText().equals("Recall")){
                     main.getConnectedLearnersAdapter().selectAllPeers(false);
                     for(int i=0; i<AlertsByCategories.get(position).size();i++){
                         main.getConnectedLearnersAdapter().selectPeer(AlertsByCategories.get(position).get(i).getID(),true);
                     }
                     main.returnToAppFromMainAction(false);
                     main.getConnectedLearnersAdapter().selectAllPeers(false);
-                }else if(alertBtn.getText().equals("Block")){
+                } else if(alertBtn.getText().equals("Block")){
                     main.getConnectedLearnersAdapter().selectAllPeers(false);
                     for(int i=0; i<AlertsByCategories.get(position).size();i++){
                         main.getConnectedLearnersAdapter().selectPeer(AlertsByCategories.get(position).get(i).getID(),true);
@@ -335,7 +340,16 @@ public class StudentAlertsAdapter extends BaseAdapter {
 //                        AlertsByCategories.get(position).get(i).hideAlerts(true);
 //                    }
 //                }
-                else if(alertBtn.getText().equals("Launch")) {
+                else if(alertBtn.getText().equals("Enable Xray")) {
+                    ArrayList<String> ids = new ArrayList<>();
+                    for (int i = 0; i < AlertsByCategories.get(5).size(); i++) {
+                        ids.add(String.valueOf(AlertsByCategories.get(5).get(i).getID()));
+                    }
+                    if (ids.size() > 0) {
+                        Set<String> selectedPeerIDs = new HashSet<>(ids);
+                        main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.XRAY_REQUEST, selectedPeerIDs);
+                    }
+                } else if(alertBtn.getText().equals("Launch")) {
                     ArrayList<String> ids = new ArrayList<>();
                     for (int i = 0; i < AlertsByCategories.get(2).size(); i++) {
                         ids.add(String.valueOf(AlertsByCategories.get(2).get(i).getID()));
@@ -344,7 +358,7 @@ public class StudentAlertsAdapter extends BaseAdapter {
                         Set<String> selectedPeerIDs = new HashSet<>(ids);
                         main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG,LeadMeMain.LAUNCH_ACCESS,selectedPeerIDs);
                     }
-                }else if(alertBtn.getText().equals("Enable Transfer")) {
+                } else if(alertBtn.getText().equals("Enable Transfer")) {
                     ArrayList<String> ids = new ArrayList<>();
                     for (int i = 0; i < AlertsByCategories.get(6).size(); i++) {
                         ids.add(String.valueOf(AlertsByCategories.get(6).get(i).getID()));
@@ -355,7 +369,7 @@ public class StudentAlertsAdapter extends BaseAdapter {
                         main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.FILE_TRANSFER + ":"
                                 + true, selectedPeerIDs);
                     }
-                }else if(alertBtn.getText().equals("Enable Installer")) {
+                } else if(alertBtn.getText().equals("Enable Installer")) {
                     ArrayList<String> ids = new ArrayList<>();
                     for (int i = 0; i < AlertsByCategories.get(7).size(); i++) {
                         ids.add(String.valueOf(AlertsByCategories.get(7).get(i).getID()));
