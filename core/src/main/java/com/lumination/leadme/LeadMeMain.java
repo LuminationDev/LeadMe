@@ -2076,6 +2076,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         leaderLearnerSwitcher.setDisplayedChild(SWITCH_LEADER_INDEX);
         leader_toggle.setBackground(ResourcesCompat.getDrawable(getResources(), R.drawable.bg_active_right_leader, null));
         learner_toggle.setBackground(ResourcesCompat.getDrawable(getResources(), R.drawable.bg_passive_left_white, null));
+        getNearbyManager().networkAdapter.stopDiscovery();
     }
 
     private void displayLearnerStartToggle() {
