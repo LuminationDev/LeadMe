@@ -1,12 +1,12 @@
 package com.lumination.leadme;
 
+import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.res.ColorStateList;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.util.Log;
-import android.util.TypedValue;
 import android.view.View;
 import android.view.ViewGroup;
 import android.webkit.JavascriptInterface;
@@ -21,7 +21,6 @@ import android.webkit.WebViewClient;
 import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.CheckBox;
-import android.widget.CompoundButton;
 import android.widget.ImageView;
 import android.widget.Spinner;
 import android.widget.Switch;
@@ -39,9 +38,6 @@ public class WithinEmbedPlayer {
 
     private final static String TAG = "embedPlayerWithin";
 
-    public int resumeState = 0;
-
-
     //static variables
     private static final int VR_MODE = 1;
     private static final int STD_MODE = 0;
@@ -51,18 +47,15 @@ public class WithinEmbedPlayer {
 
     private AlertDialog videoControlDialog, videoSearchDialog;
     private final Button pushBtn;
-    private TextView repushBtn;
+    private final TextView repushBtn;
     private final CheckBox favCheck;
     private final View withinControllerDialogView, withinSearchDialogView;
-    private final TextView internetUnavailableMsg;
-    private final TextView searchUnavailableMsg;
+    private final TextView internetUnavailableMsg, searchUnavailableMsg, downModeText;
     public WebView controllerWebView, searchWebView;
-   // private final TextView streamBtn, downloadBtn;
     private final Switch vrModeBtn, downModeBtn;
     private final ImageView vrIcon;
     private final Spinner lockSpinner;
     private final Spinner searchSpinner;
-    private String[] searchSpinnerItems;
 
     private String attemptedURL = "";
     boolean pageLoaded = false;
@@ -80,7 +73,7 @@ public class WithinEmbedPlayer {
      * https://developers.google.com/youtube/iframe_api_reference
      */
 
-    private ViewGroup.LayoutParams searchBackupParams, controllerBackupParams;
+    private final ViewGroup.LayoutParams searchBackupParams, controllerBackupParams;
 
     public WithinEmbedPlayer(LeadMeMain main) {
         this.main = main;
@@ -94,15 +87,13 @@ public class WithinEmbedPlayer {
         searchUnavailableMsg.setOnClickListener(v -> searchWebView.reload());
         setupWebView(searchWebView);
         setupWebClient(searchWebView, true);
-        withinBackBtn = withinSearchDialogView.findViewById(R.id.within_back_btn);
         setupWithinSearchButtons();
 
         withinControllerDialogView = View.inflate(main, R.layout.f__playback_within, null);
         favCheck = withinControllerDialogView.findViewById(R.id.fav_checkbox_within);
         vrModeBtn = withinControllerDialogView.findViewById(R.id.vr_mode_toggle);
-//        streamBtn = withinControllerDialogView.findViewById(R.id.stream_btn);
-//        downloadBtn = withinControllerDialogView.findViewById(R.id.download_btn);
         downModeBtn = withinControllerDialogView.findViewById(R.id.down_mode_toggle);
+        downModeText = withinControllerDialogView.findViewById(R.id.predowload_text);
         lockSpinner = (Spinner) withinControllerDialogView.findViewById(R.id.push_spinner);
         pushBtn = withinControllerDialogView.findViewById(R.id.push_btn);
         repushBtn = withinControllerDialogView.findViewById(R.id.push_again_btn);
@@ -114,7 +105,8 @@ public class WithinEmbedPlayer {
         setupWebView(controllerWebView);
         setupWebClient(controllerWebView, false);
         setupGuideVideoControllerButtons();
-        setupPushToggle();
+        main.getDialogManager().setupPushToggle(withinControllerDialogView, false);
+
         withinSearchDialogView.findViewById(R.id.open_favourites).setOnClickListener(v -> {
             main.closeKeyboard();
             main.hideSystemUI();
@@ -123,7 +115,7 @@ public class WithinEmbedPlayer {
         });
 
         searchSpinner = (Spinner) withinSearchDialogView.findViewById(R.id.search_spinner);
-        searchSpinnerItems = new String[3];
+        String[] searchSpinnerItems = new String[3];
         searchSpinnerItems[0] = "Default";
         searchSpinnerItems[1] = "Within search";
         searchSpinnerItems[2] = "YouTube search";
@@ -160,44 +152,7 @@ public class WithinEmbedPlayer {
         });
     }
 
-    boolean selectedOnly=false;
-    private void setupPushToggle() {
-        Button leftToggle = withinControllerDialogView.findViewById(R.id.selected_btn);
-        Button rightToggle = withinControllerDialogView.findViewById(R.id.everyone_btn);
-        leftToggle.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                selectedOnly=true;
-                withinControllerDialogView.findViewById(R.id.everyone_btn).setBackground(main.getResources().getDrawable(R.drawable.bg_passive_left_white, null));
-                ((Button) withinControllerDialogView.findViewById(R.id.everyone_btn)).setCompoundDrawablesWithIntrinsicBounds(0, 0, 0, 0);
-
-                withinControllerDialogView.findViewById(R.id.selected_btn).setBackground(main.getResources().getDrawable(R.drawable.bg_passive_right, null));
-                ((Button) withinControllerDialogView.findViewById(R.id.selected_btn)).setCompoundDrawablesWithIntrinsicBounds(R.drawable.icon_fav_star_check, 0, 0, 0);
-                pushBtn.setText(main.getResources().getString(R.string.push_this_to_selected));
-                ((Button) withinControllerDialogView.findViewById(R.id.everyone_btn)).setElevation(Math.round(TypedValue.applyDimension(
-                        TypedValue.COMPLEX_UNIT_DIP, 5,main.getResources().getDisplayMetrics())));
-                ((Button) withinControllerDialogView.findViewById(R.id.selected_btn)).setElevation(0);
-
-            }
-        });
-        rightToggle.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                selectedOnly=false;
-                withinControllerDialogView.findViewById(R.id.everyone_btn).setBackground(main.getResources().getDrawable(R.drawable.bg_passive_left, null));
-                ((Button) withinControllerDialogView.findViewById(R.id.everyone_btn)).setCompoundDrawablesRelativeWithIntrinsicBounds(R.drawable.icon_fav_star_check, 0, 0, 0);
-
-                withinControllerDialogView.findViewById(R.id.selected_btn).setBackground(main.getResources().getDrawable(R.drawable.bg_passive_right_white, null));
-                ((Button) withinControllerDialogView.findViewById(R.id.selected_btn)).setCompoundDrawablesWithIntrinsicBounds(0, 0, 0, 0);
-                pushBtn.setText(main.getResources().getString(R.string.push_this_to_everyone));
-                ((Button) withinControllerDialogView.findViewById(R.id.selected_btn)).setElevation(Math.round(TypedValue.applyDimension(
-                        TypedValue.COMPLEX_UNIT_DIP, 5,main.getResources().getDisplayMetrics())));
-                ((Button) withinControllerDialogView.findViewById(R.id.everyone_btn)).setElevation(0);
-            }
-        });
-        rightToggle.callOnClick();
-    }
-
+    @SuppressLint("SetJavaScriptEnabled")
     private void setupWebView(WebView tmpWebView) {
         tmpWebView.setWebChromeClient(new WebChromeClient());
         tmpWebView.getSettings().setJavaScriptEnabled(true); // enable javascript
@@ -212,13 +167,8 @@ public class WithinEmbedPlayer {
             tmpWebView.getSettings().setRenderPriority(WebSettings.RenderPriority.HIGH);
         }
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-            // chromium, enable hardware acceleration
-            tmpWebView.setLayerType(View.LAYER_TYPE_HARDWARE, null);
-        } else {
-            // older android version, disable hardware acceleration
-            tmpWebView.setLayerType(View.LAYER_TYPE_SOFTWARE, null);
-        }
+        // chromium, enable hardware acceleration
+        tmpWebView.setLayerType(View.LAYER_TYPE_HARDWARE, null);
 
         // this is required to show the video preview
         tmpWebView.getSettings().setDomStorageEnabled(true);
@@ -237,7 +187,6 @@ public class WithinEmbedPlayer {
         setDesktopMode(tmpWebView, true);
     }
 
-    //String newUA = "Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.9.0.4) Gecko/20100101 Firefox/4.0";
     private void setDesktopMode(WebView webView, boolean enabled) {
         String newUserAgent = webView.getSettings().getUserAgentString();
         if (enabled) {
@@ -255,21 +204,6 @@ public class WithinEmbedPlayer {
         webView.getSettings().setUserAgentString(newUserAgent);
         webView.reload();
     }
-
-//    private void toggleStreamBtn() {
-//        if (stream) {
-//            streamBtn.setBackground(main.getResources().getDrawable(R.drawable.bg_passive_right, null));
-//            downloadBtn.setBackground(main.getResources().getDrawable(R.drawable.bg_passive_left_white, null));
-//            streamBtn.setElevation(2);
-//            downloadBtn.setElevation(3);
-//
-//        } else {
-//            streamBtn.setBackground(main.getResources().getDrawable(R.drawable.bg_passive_right_white, null));
-//            downloadBtn.setBackground(main.getResources().getDrawable(R.drawable.bg_passive_left, null));
-//            streamBtn.setElevation(3);
-//            downloadBtn.setElevation(2);
-//        }
-//    }
 
     private void toggleVRBtn() {
         if (vrMode) {
@@ -366,8 +300,6 @@ public class WithinEmbedPlayer {
             }
 
             public void onLoadResource(WebView view, String url) {
-                //Log.d(TAG, "WITHIN GUIDE] onLoadResource: " + url + " (" + attemptedURL + ")");
-
                 if (searchView && url.startsWith(foundPrefix) && url.endsWith(foundSuffix)) {
                     foundTitle = url.replace(foundPrefix, "").replace(foundSuffix, "");
                     setFoundURL(urlPrefix + foundTitle);
@@ -398,13 +330,10 @@ public class WithinEmbedPlayer {
         });
     }
 
-    Drawable disabledBg;
-
-    private Button withinBackBtn;
-
     private void setupWithinSearchButtons() {
+        Drawable disabledBg = main.getResources().getDrawable(R.drawable.bg_disabled, null);
+        Button withinBackBtn = withinSearchDialogView.findViewById(R.id.within_back_btn);
 
-        disabledBg = main.getResources().getDrawable(R.drawable.bg_disabled, null);
         //set up standard dialog buttons
         withinBackBtn.setOnClickListener(v -> {
             searchWebView.goBack();
@@ -425,7 +354,6 @@ public class WithinEmbedPlayer {
                 showToast("No experience selected!");
             }
         });
-
     }
 
     private void showPushConfirmed() {
@@ -436,36 +364,38 @@ public class WithinEmbedPlayer {
                 .setView(confirmPushDialogView)
                 .show();
         ((TextView)confirmPushDialogView.findViewById(R.id.push_success_comment)).setText("Your video was successfully launched.");
+
         Button ok = confirmPushDialogView.findViewById(R.id.ok_btn);
-        ok.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                confirmPopup.dismiss();
-                updateControllerUI(true);
-            }
+        ok.setOnClickListener(v -> {
+            confirmPopup.dismiss();
+            updateControllerUI(true);
         });
     }
 
     private void updateControllerUI(boolean isPlaybackController) {
         if (isPlaybackController) {
             videoControlDialog.show();
-            withinControllerDialogView.findViewById(R.id.download_buttons).setVisibility(View.GONE);
-            withinControllerDialogView.findViewById(R.id.basic_controls).setVisibility(View.VISIBLE);
-            withinControllerDialogView.findViewById(R.id.vr_selection).setVisibility(View.GONE);
+
             withinControllerDialogView.findViewById(R.id.view_mode_controls).setVisibility(View.VISIBLE);
+            withinControllerDialogView.findViewById(R.id.basic_controls).setVisibility(View.VISIBLE);
             withinControllerDialogView.findViewById(R.id.playback_btns).setVisibility(View.VISIBLE);
-            withinControllerDialogView.findViewById(R.id.within_select_btns).setVisibility(View.GONE);
             withinControllerDialogView.findViewById(R.id.vr_status_bar).setVisibility(View.VISIBLE);
+
+            withinControllerDialogView.findViewById(R.id.vr_selection).setVisibility(View.GONE);
+            withinControllerDialogView.findViewById(R.id.download_buttons).setVisibility(View.GONE);
+            withinControllerDialogView.findViewById(R.id.within_select_btns).setVisibility(View.GONE);
+
             repushBtn.setVisibility(View.VISIBLE);
             ((TextView) withinControllerDialogView.findViewById(R.id.title)).setText(main.getResources().getText(R.string.playback_controls_title));
 
         } else {
-            withinControllerDialogView.findViewById(R.id.download_buttons).setVisibility(View.VISIBLE);
-            withinControllerDialogView.findViewById(R.id.basic_controls).setVisibility(View.GONE);
-            withinControllerDialogView.findViewById(R.id.vr_selection).setVisibility(View.VISIBLE);
             withinControllerDialogView.findViewById(R.id.view_mode_controls).setVisibility(View.GONE);
+            withinControllerDialogView.findViewById(R.id.basic_controls).setVisibility(View.GONE);
             withinControllerDialogView.findViewById(R.id.vr_status_bar).setVisibility(View.GONE);
             withinControllerDialogView.findViewById(R.id.playback_btns).setVisibility(View.GONE);
+
+            withinControllerDialogView.findViewById(R.id.vr_selection).setVisibility(View.VISIBLE);
+            withinControllerDialogView.findViewById(R.id.download_buttons).setVisibility(View.VISIBLE);
             withinControllerDialogView.findViewById(R.id.within_select_btns).setVisibility(View.VISIBLE);
 
             repushBtn.setVisibility(View.INVISIBLE);
@@ -518,75 +448,53 @@ public class WithinEmbedPlayer {
             vrMode = isChecked;
             toggleVRBtn();
         });
-        downModeBtn.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                if(isChecked){
-                    downModeBtn.setText("Predownload ON");
-                    ImageViewCompat.setImageTintList(withinControllerDialogView.findViewById(R.id.download_icon), ColorStateList.valueOf(ContextCompat.getColor(main, R.color.leadme_blue)));
 
-                    stream=false;
-                }else{
-                    ImageViewCompat.setImageTintList(withinControllerDialogView.findViewById(R.id.download_icon), ColorStateList.valueOf(ContextCompat.getColor(main, R.color.leadme_medium_grey)));
-                    downModeBtn.setText("Predownload OFF");
-                    stream=true;
-                }
+        downModeBtn.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            if (isChecked){
+                downModeBtn.setText("Predownload ON");
+                ImageViewCompat.setImageTintList(withinControllerDialogView.findViewById(R.id.download_icon), ColorStateList.valueOf(ContextCompat.getColor(main, R.color.leadme_blue)));
+                downModeText.setText(R.string.will_download_via_internet);
+
+                stream=false;
+            } else {
+                downModeBtn.setText("Predownload OFF");
+                ImageViewCompat.setImageTintList(withinControllerDialogView.findViewById(R.id.download_icon), ColorStateList.valueOf(ContextCompat.getColor(main, R.color.leadme_medium_grey)));
+                downModeText.setText(R.string.will_stream_via_internet);
+
+                stream=true;
             }
         });
+
         Switch viewModeToggle = withinControllerDialogView.findViewById(R.id.view_mode_toggle);
-        viewModeToggle.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                if(isChecked){
-                    viewModeToggle.setText("View Mode ON");
-                    ImageViewCompat.setImageTintList(withinControllerDialogView.findViewById(R.id.view_mode_icon), ColorStateList.valueOf(ContextCompat.getColor(main, R.color.leadme_blue)));
-                    main.lockFromMainAction();
-//                    stream=false;
-                }else{
-                    ImageViewCompat.setImageTintList(withinControllerDialogView.findViewById(R.id.view_mode_icon), ColorStateList.valueOf(ContextCompat.getColor(main, R.color.leadme_medium_grey)));
-                    viewModeToggle.setText("View Mode OFF");
-                    main.unlockFromMainAction();
-//                    stream=true;
-                }
+        viewModeToggle.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            if(isChecked){
+                viewModeToggle.setText("View Mode ON");
+                ImageViewCompat.setImageTintList(withinControllerDialogView.findViewById(R.id.view_mode_icon), ColorStateList.valueOf(ContextCompat.getColor(main, R.color.leadme_blue)));
+                main.lockFromMainAction();
+            }else{
+                ImageViewCompat.setImageTintList(withinControllerDialogView.findViewById(R.id.view_mode_icon), ColorStateList.valueOf(ContextCompat.getColor(main, R.color.leadme_medium_grey)));
+                viewModeToggle.setText("View Mode OFF");
+                main.unlockFromMainAction();
             }
         });
-
-//        streamBtn.setOnClickListener(v -> {
-//            stream = true;
-//            toggleStreamBtn();
-//        });
-//
-//        downloadBtn.setOnClickListener(v -> {
-//            stream = false;
-//            toggleStreamBtn();
-//        });
-
     }
 
     private void pushWithin() {
         attemptedURL = foundURL;
         Log.d(TAG, "Launching WithinVR for students: " + attemptedURL + ", [STR] " + stream + ", [VR] " + vrMode);
-        main.getAppManager().launchWithin(attemptedURL, stream, vrMode, selectedOnly);
+        main.getAppManager().launchWithin(attemptedURL, stream, vrMode, main.getSelectedOnly());
         main.updateFollowerCurrentTask(main.getAppManager().withinPackage, "Within VR", "VR Video", attemptedURL, foundTitle);
-        //String packageName, String appName, String taskType, String url, String urlTitle)
 
         //update UI
         showPushConfirmed();
-//        updateControllerUI(true);
 
         //add to favourites
         if (favCheck.isChecked()) {
             main.getWebManager().getYouTubeFavouritesManager().addToFavourites(foundURL, foundTitle, null);
         }
-//        TextView vr_mode = withinControllerDialogView.findViewById(R.id.vr_mode);
-        if (vrMode) {
-            //TODO AUTO PLAY VIDEO
-            withinControllerDialogView.findViewById(R.id.vr_mode).setVisibility(View.VISIBLE);
-            withinControllerDialogView.findViewById(R.id.phone_mode).setVisibility(View.GONE);
-        } else {
-            withinControllerDialogView.findViewById(R.id.vr_mode).setVisibility(View.GONE);
-            withinControllerDialogView.findViewById(R.id.phone_mode).setVisibility(View.VISIBLE);
-        }
+
+        withinControllerDialogView.findViewById(R.id.vr_mode).setVisibility(vrMode ? View.VISIBLE : View.GONE);
+        withinControllerDialogView.findViewById(R.id.phone_mode).setVisibility(vrMode ? View.GONE : View.VISIBLE);
     }
 
     public void showWithin() {
@@ -607,16 +515,13 @@ public class WithinEmbedPlayer {
             videoSearchDialog = new AlertDialog.Builder(main)
                     .setView(withinSearchDialogView)
                     .create();
-            videoSearchDialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
-                @Override
-                public void onDismiss(DialogInterface dialog) {
-                    main.hideSystemUI();
-                }
-            });
+            videoSearchDialog.setOnDismissListener(dialog -> main.hideSystemUI());
         }
+
+        main.getDialogManager().toggleSelectedView(withinControllerDialogView);
+
         loadSearchView();
         videoSearchDialog.show();
-
     }
 
     //for web manager to call when URL contains with.in/watch
@@ -637,18 +542,7 @@ public class WithinEmbedPlayer {
         }
 
         if (isFresh) {
-            //update buttons
-            if (!main.getConnectedLearnersAdapter().someoneIsSelected()) {
-                //if no-one is selected, prompt to push to everyone
-                pushBtn.setText(main.getResources().getString(R.string.push_this_to_everyone));
-            } else {
-                //if someone is selected, prompt to push to selected
-                pushBtn.setText(main.getResources().getString(R.string.push_this_to_selected));
-            }
-
             downModeBtn.setChecked(false);
-            //stream = true;
-            //toggleStreamBtn();
 
             vrMode = true;
             toggleVRBtn();
@@ -656,12 +550,10 @@ public class WithinEmbedPlayer {
             pageLoaded = false; //reset flag
             setFoundURL(foundURL.replace("/watch/", "/embed/"));
             setFoundURL(foundURL.replace("https", "http"));
-            loadVideoGuideURL(foundURL); //display embedded version
-            //controllerWebView.scrollTo(0, 200);
+            loadVideoGuideURL(foundURL); //display embedded version;
         }
 
         videoControlDialog.show();
-        //updateControllerUI(false);
         //return to main screen
         main.getDialogManager().hideConfirmPushDialog();
     }
@@ -733,6 +625,4 @@ public class WithinEmbedPlayer {
         searchWebView.destroy();
         searchWebView = null;
     }
-
-
 }

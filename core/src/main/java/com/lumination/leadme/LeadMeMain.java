@@ -239,6 +239,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     public boolean isGuide = false;
     public boolean isReadyToConnect = false;
     public boolean studentLockOn = true; //students start locked
+    private boolean selectedOnly = false; //sending to all learners or just selected
 
     public String lastLockState = LOCK_TAG;
     public String lastAppID;
@@ -311,7 +312,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     Toast appToast = null;
     private boolean returningToApp = false;
 
-    public boolean returnEveryone = true;
+//    public boolean returnEveryone = true;
 
     private boolean init = false;
 
@@ -3762,5 +3763,20 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
         getAuthenticationManager().setServerIP(IpEnter.getText().toString());
         loginAction(true);
+    }
+
+    /**
+     * Set the value of the selected only boolean.
+     * @param selected A boolean representing the new value of selectedOnly
+     */
+    public void setSelectedOnly(boolean selected) {
+        selectedOnly = selected;
+    }
+
+    /**
+     * Get the value of the selected only boolean.
+     */
+    public boolean getSelectedOnly() {
+        return selectedOnly;
     }
 }
