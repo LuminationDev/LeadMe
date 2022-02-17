@@ -264,7 +264,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     public View waitingForLearners, appLauncherScreen;
     private View splashscreen, startLearner, mainLearner, startLeader, mainLeader, optionsScreen, switcherView, xrayScreen;
     protected View multiAppManager;
-    private TextView learnerWaitingText;
+    private TextView learnerWaitingText, manualConnect;
     public Button alertsBtn;
     private Button leader_toggle, learner_toggle;
     private ImageView logo, studentImg;
@@ -290,6 +290,8 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     protected WifiManager wifiManager;
     private XrayManager xrayManager;
     private AppInstaller lumiAppInstaller;
+
+    private Switch serverDiscoveryToggle = null;
 
     //File transfer
     public Boolean fileTransferEnabled = false; //hard coded so have to enable each session
@@ -1096,8 +1098,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         isGuide = false;
         isReadyToConnect = false;
         getNearbyManager().onStop();
-        getNearbyManager().stopAdvertising();
-        getNearbyManager().disconnectFromAllEndpoints();
 
         //remove the overlay if necessary
         if (overlayView != null && overlayView.isAttachedToWindow()) {
@@ -1720,14 +1720,14 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         });
 
         //change the shared preferences, do the rest on login for guide or learner button select
-        Switch manualToggle = optionsScreen.findViewById(R.id.server_discovery);
-        manualToggle.setChecked(sessionManual);
-        manualToggle.setOnCheckedChangeListener((buttonView, isChecked) -> {
+        serverDiscoveryToggle = optionsScreen.findViewById(R.id.server_discovery);
+        serverDiscoveryToggle.setChecked(sessionManual);
+        serverDiscoveryToggle.setOnCheckedChangeListener((buttonView, isChecked) -> {
             //Guide or student needs internet to access firebase database
             if(!PermissionManager.isInternetAvailable(context)) {
                 dialogManager.showWarningDialog("Currently Offline", "No internet access detected. Please connect to continue."
                         + "\n\n Note: Try our new manual connection feature if you're having trouble");
-                manualToggle.setChecked(false);
+                serverDiscoveryToggle.setChecked(false);
                 return;
             }
 
@@ -1785,7 +1785,8 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         });
 
         //direct ip input connection
-        optionsScreen.findViewById(R.id.manual_connect).setOnClickListener(view -> {
+        manualConnect = optionsScreen.findViewById(R.id.manual_connect);
+        manualConnect.setOnClickListener(view -> {
             String ipAddress = null;
             try {
                 ipAddress = InetAddress.getByAddress(
@@ -1822,7 +1823,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         });
 
         optionsScreen.findViewById(R.id.connected_only_view).setVisibility(View.GONE);
-        optionsScreen.findViewById(R.id.auto_install_checkbox).setVisibility(View.GONE);
     }
 
     /**
@@ -2265,9 +2265,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         getDispatcher().alertLogout(); //need to send this before resetting 'isGuide'
         getNearbyManager().networkAdapter.resetClientIDs();
         getConnectedLearnersAdapter().resetOnLogout();
-        getNearbyManager().onStop();
-        getNearbyManager().stopAdvertising();
-        getNearbyManager().disconnectFromAllEndpoints(); //disconnect everyone
+        getNearbyManager().onStop(); //disconnect everyone
         getLeaderSelectAdapter().setLeaderList(new ArrayList<>()); //empty the list
         setUIDisconnected();
         showSplashScreen();
@@ -2315,7 +2313,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         }
         Log.d(TAG, "Your name is " + name + ", are you a guide? " + isGuide);
 
-        ((TextView) optionsScreen.findViewById(R.id.student_name)).setText(name);
         optionsScreen.findViewById(R.id.connected_only_view).setVisibility(View.VISIBLE);
 
         leaderAdditionalOptions(isGuide ? View.VISIBLE : View.GONE);
@@ -2325,9 +2322,10 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             leadmeAnimator.setDisplayedChild(ANIM_LEADER_INDEX);
 
             //update options
-            ((TextView) optionsScreen.findViewById(R.id.logout_btn)).setTextColor(getResources().getColor(R.color.light, null));
-            TextView title = leadmeAnimator.getCurrentView().findViewById(R.id.leader_title);
+            TextView title = mainLeader.findViewById(R.id.leader_title);
             title.setText("Hi " + name + "!");
+
+            ((TextView) optionsScreen.findViewById(R.id.logout_btn)).setTextColor(getResources().getColor(R.color.light, null));
             ((TextView) optionsScreen.findViewById(R.id.connected_as_role)).setText(getResources().getText(R.string.leader));
             ((TextView) optionsScreen.findViewById(R.id.connected_as_role)).setTextColor(getResources().getColor(R.color.accent, null));
 
@@ -2362,12 +2360,16 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             leadmeAnimator.setDisplayedChild(ANIM_LEARNER_INDEX);
             allowHide = true;
             handler.postDelayed(this::hideSystemUIStudent, 1000);
+
+            changeStudentName(name);
+
             //update options
             ((TextView) optionsScreen.findViewById(R.id.logout_btn)).setTextColor(getResources().getColor(R.color.leadme_medium_grey, null));
-            TextView title = leadmeAnimator.getCurrentView().findViewById(R.id.learner_title);
-            title.setText(name);
             ((TextView) optionsScreen.findViewById(R.id.connected_as_role)).setText(getResources().getText(R.string.learner));
             ((TextView) optionsScreen.findViewById(R.id.connected_as_role)).setTextColor(getResources().getColor(R.color.medium, null));
+
+            //Remove connection options
+            toggleConnectionOptions(View.GONE);
 
             //remove the Firebase listener if connection was manual
             getAuthenticationManager().removeUserListener();
@@ -2375,6 +2377,16 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             //NOTE: this may cause an issue as it was inside the above function to being with...
             getNearbyManager().networkAdapter.stopDiscovery();
         }
+    }
+
+    /**
+     * Set or change a students name on a learner device. Used in login action as well as name
+     * change requests.
+     * @param name A string representing the name that is to be set.
+     */
+    public void changeStudentName(String name) {
+        ((TextView) optionsScreen.findViewById(R.id.student_name)).setText(name);
+        ((TextView) mainLearner.findViewById(R.id.learner_title)).setText(name);
     }
 
     /**
@@ -2391,6 +2403,15 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         //TODO AUTO next update variables. do not include in the production just yet
         autoToggle.setVisibility(enabled);
         transferToggle.setVisibility(enabled);
+    }
+
+    /**
+     * Disabling or enabling the visibility of connection options for learner devices, the connection
+     * options should not be available if the learner is already signed in.
+     * @param enabled An int representing if the views are to be enabled or disabled.
+     */
+    public void toggleConnectionOptions(int enabled) {
+        optionsScreen.findViewById(R.id.help_menu).setVisibility(enabled);
     }
 
     /**
@@ -2775,6 +2796,8 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         optionsScreen.findViewById(R.id.connected_only_view).setVisibility(View.GONE);
         ((TextView) optionsScreen.findViewById(R.id.logout_btn)).setTextColor(getResources().getColor(R.color.light, null));
 
+        //Display connection options for learners
+        toggleConnectionOptions(View.VISIBLE);
 
         //display login view
         prepLoginSwitcher();

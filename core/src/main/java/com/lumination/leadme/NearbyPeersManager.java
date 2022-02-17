@@ -74,7 +74,8 @@ public class NearbyPeersManager {
 
     public void onStop() {
         Log.d(TAG, "onStop: deprecated");
-        networkAdapter.closeSocket = true;
+        stopAdvertising();
+        disconnectFromAllEndpoints();
     }
 
     public void onBackPressed() {
