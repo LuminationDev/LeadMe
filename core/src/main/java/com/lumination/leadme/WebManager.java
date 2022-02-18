@@ -70,8 +70,6 @@ public class WebManager {
     private TextView previewMessage;
     private ProgressBar previewProgress;
     private Button previewPushBtn;
-    private Button selected;
-    private Button everyone;
     private boolean isYouTube = false;
     private boolean isWithin = false;
     private String pushURL = "";
@@ -101,15 +99,13 @@ public class WebManager {
         this.main = main;
         this.dialogManager = main.getDialogManager();
         thread = Thread.currentThread();
-        youTubeEmbedPlayer = new YouTubeEmbedPlayer(main, this);
 
         websiteLaunchDialogView = View.inflate(main, R.layout.d__enter_url, null);
         previewDialogView = View.inflate(main, R.layout.e__preview_url_push, null);
         searchDialogView = View.inflate(main, R.layout.e__preview_url_search, null);
+        previewPushBtn = previewDialogView.findViewById(R.id.push_btn);
 
-        toggleSelectedBtn = previewDialogView.findViewById(R.id.toggleBtnView);
-        selected = previewDialogView.findViewById(R.id.selected_btn);
-        everyone = previewDialogView.findViewById(R.id.everyone_btn);
+        youTubeEmbedPlayer = new YouTubeEmbedPlayer(main, this);
 
         //set up lock spinner
         lockSpinnerParent = previewDialogView.findViewById(R.id.lock_spinner);
@@ -137,7 +133,6 @@ public class WebManager {
         webYouTubeFavView = View.inflate(main, R.layout.d__url_yt_favourites, null);
         favCheckbox = previewDialogView.findViewById(R.id.fav_checkbox);
         setupWarningDialog();
-
 
         websiteLaunchDialogView.findViewById(R.id.url_search_btn).setOnClickListener(v -> {
             hidePreviewDialog();
@@ -268,7 +263,6 @@ public class WebManager {
         add(new ComponentName("com.android.browser", "com.android.browser.BrowserActivity"));
     }};
 
-
     public FavouritesManager getUrlFavouritesManager() {
         return urlFavouritesManager;
     }
@@ -296,7 +290,6 @@ public class WebManager {
         webYouTubeFavView.findViewById(R.id.yt_del_btn).setOnClickListener(v -> showClearWebFavDialog(CLEAR_VID));
         webYouTubeFavView.findViewById(R.id.url_del_btn).setOnClickListener(v -> showClearWebFavDialog(CLEAR_URL));
     }
-
 
     final private static int CLEAR_ALL = 0;
     final private static int CLEAR_VID = 1;
@@ -372,10 +365,9 @@ public class WebManager {
         previewTitle = previewDialogView.findViewById(R.id.popup_title);
         previewMessage = previewDialogView.findViewById(R.id.preview_message);
         previewProgress = previewDialogView.findViewById(R.id.preview_progress);
-        previewPushBtn = previewDialogView.findViewById(R.id.push_btn);
 
         final CheckBox saveWebToFav = previewDialogView.findViewById(R.id.fav_checkbox);
-        setupPushToggle();
+        main.getDialogManager().setupPushToggle(previewDialogView, false);
 
         previewPushBtn.setOnClickListener(v -> {
             //save to favourites if needed
@@ -497,14 +489,14 @@ public class WebManager {
         //update lock status
         if (lockSpinner.getSelectedItem().toString().startsWith("View")) {
             //locked by default
-            if(selectedOnly) {
+            if(main.getSelectedOnly()) {
                 main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.LOCK_TAG, main.getNearbyManager().getSelectedPeerIDsOrAll());
             }else{
                 main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.LOCK_TAG, main.getNearbyManager().getAllPeerIDs());
             }
         } else {
             //unlocked if selected
-            if(selectedOnly) {
+            if(main.getSelectedOnly()) {
                 main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.UNLOCK_TAG, main.getNearbyManager().getSelectedPeerIDsOrAll());
             }else{
                 main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.UNLOCK_TAG, main.getNearbyManager().getAllPeerIDs());
@@ -512,7 +504,7 @@ public class WebManager {
         }
 
         //push the right instruction to the receivers
-        if(selectedOnly) {
+        if(main.getSelectedOnly()) {
             main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.LAUNCH_URL + url + ":::" + urlTitle, main.getNearbyManager().getSelectedPeerIDsOrAll());
         }else{
             main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.LAUNCH_URL + url + ":::" + urlTitle, main.getNearbyManager().getAllPeerIDs());
@@ -733,6 +725,7 @@ public class WebManager {
             pushTitle = previewTitle.getText().toString();
         }
 
+        main.getDialogManager().toggleSelectedView(previewDialogView);
 
         //set up preview to appear correctly
         if (adding_to_fav) {
@@ -748,11 +741,6 @@ public class WebManager {
 
         } else {
             //lockSpinnerParent.setVisibility(View.VISIBLE);
-            if (main.getConnectedLearnersAdapter().someoneIsSelected()) {
-                selectedOnly();
-            } else {
-                previewPushBtn.setText(main.getResources().getString(R.string.push_this_to_everyone));
-            }
             favCheckbox.setChecked(urlFavouritesManager.isInFavourites(url));
             favCheckbox.setVisibility(View.VISIBLE);
         }
@@ -781,12 +769,6 @@ public class WebManager {
     }
 
     void showWebLaunchDialog(boolean add_fav_mode) {
-        if(main.getConnectedLearnersAdapter().someoneIsSelected()) {
-            toggleSelectedBtn.setVisibility(View.VISIBLE);
-        } else {
-            toggleSelectedBtn.setVisibility(View.GONE);
-        }
-
         Log.d(TAG, "showWebLaunchDialog: ");
         if (isYouTube && lastWasGuideView) {
             youTubeEmbedPlayer.showVideoController(); //null, null);
@@ -814,8 +796,6 @@ public class WebManager {
 
     private void setupWebLaunchDialog() {
         Log.d(TAG, "setupWebLaunchDialog: ");
-        //((TextView) websiteLaunchDialogView.findViewById(R.id.url_input_field)).setText("https://www.youtube.com/watch?v=sPyAQQklc1s"); //sample for testing
-        //((TextView) websiteLaunchDialogView.findViewById(R.id.url_input_field)).setText("https://www.youtube.com/w/SEbqkn1TWTA"); //sample for testing
 
         websiteLaunchDialogView.findViewById(R.id.paste_from_clipboard).setOnClickListener(v -> {
             main.closeKeyboard();
@@ -866,23 +846,16 @@ public class WebManager {
         main.closeKeyboard();
         main.hideSystemUI();
 
-//        new Thread(() -> {
-        main.backgroundExecutor.submit(new Runnable() {
-            @Override
-            public void run() {
-                if (!main.getPermissionsManager().isInternetConnectionAvailable()) {
-                    Log.w(TAG, "No internet connection in showPreview");
-                    main.getHandler().post(() -> {
-                        dialogManager.showWarningDialog("No Internet Connection",
-                                "Internet based functions are unavailable at this time. " +
-                                        "Please check your WiFi connection and try again.");
-                    });
-                }
+        main.backgroundExecutor.submit(() -> {
+            if (!main.getPermissionsManager().isInternetConnectionAvailable()) {
+                Log.w(TAG, "No internet connection in showPreview");
+                main.getHandler().post(() -> {
+                    dialogManager.showWarningDialog("No Internet Connection",
+                            "Internet based functions are unavailable at this time. " +
+                                    "Please check your WiFi connection and try again.");
+                });
             }
         });
-
-//        }).start();
-
 
         url = assistWithUrl(url);
 
@@ -902,9 +875,7 @@ public class WebManager {
                 setErrorPreview(searchTerm);
                 return;
             }
-
         }
-
 
         String youTubeId = getYouTubeID(url);
         if (!youTubeId.isEmpty()) {
@@ -1080,24 +1051,18 @@ public class WebManager {
         pushTitle = urlTitle;
         main.getLumiAccessibilityConnector().resetState();
 
-//        new Thread(() -> {
-        main.backgroundExecutor.submit(new Runnable() {
-            @Override
-            public void run() {
-                if (!main.getPermissionsManager().isInternetConnectionAvailable()) {
-                    Log.w(TAG, "No internet connection in launchYouTube");
-                    main.getHandler().post(() -> {
-                        dialogManager.showWarningDialog("No Internet Connection",
-                                "Internet based functions are unavailable at this time. " +
-                                        "Please check your WiFi connection and try again.");
-                        main.getDispatcher().alertGuidePermissionGranted(LeadMeMain.STUDENT_NO_INTERNET, false);
-                        hideWebsiteLaunchDialog();
-                    });
-                }
+        main.backgroundExecutor.submit(() -> {
+            if (!main.getPermissionsManager().isInternetConnectionAvailable()) {
+                Log.w(TAG, "No internet connection in launchYouTube");
+                main.getHandler().post(() -> {
+                    dialogManager.showWarningDialog("No Internet Connection",
+                            "Internet based functions are unavailable at this time. " +
+                                    "Please check your WiFi connection and try again.");
+                    main.getDispatcher().alertGuidePermissionGranted(LeadMeMain.STUDENT_NO_INTERNET, false);
+                    hideWebsiteLaunchDialog();
+                });
             }
         });
-
-//        }).start();
 
         launchingVR = vrOn; //activate auto-VR mode
         enteredVR = false;
@@ -1224,28 +1189,21 @@ public class WebManager {
         searchDialogView.findViewById(R.id.url_error_layout).setVisibility(View.GONE);
         //placeholder URL for testing connection
         String finalUrl = "https://google.com";
-//        new Thread(() -> {
+
         main.backgroundExecutor.submit(new Runnable() {
             @Override
             public void run() {
                 if (!main.getPermissionsManager().isInternetConnectionAvailable()) {
                     Log.w(TAG, "No internet connection in buildAndShowSearch");
-                    main.getHandler().post(new Runnable() {
-                        @Override
-                        public void run() {
-                            //Toast.makeText(main, "Can't display preview, no Internet connection.", Toast.LENGTH_SHORT).show();
-                            dialogManager.showWarningDialog("No Internet Connection",
-                                    "Internet based functions are unavailable at this time. " +
-                                            "Please check your WiFi connection and try again.");
-                            hideSearchDialog();
-                        }
+                    main.getHandler().post(() -> {
+                        dialogManager.showWarningDialog("No Internet Connection",
+                                "Internet based functions are unavailable at this time. " +
+                                        "Please check your WiFi connection and try again.");
+                        hideSearchDialog();
                     });
                 }
             }
         });
-
-//        }).start();
-
 
         //instantiates the search dialog popup if it does not already exist
         if (searchDialog == null) {
@@ -1291,27 +1249,16 @@ public class WebManager {
                     if (searchSpinnerItems[position].startsWith("YouTube")) {
                         ((TextView) searchDialogView.findViewById(R.id.web_search_title)).setText("Search YouTube");
                         searchType = SEARCH_YOUTUBE;
-                        //searchView.setQuery(searchView.getQuery(), true);
 
                     } else if (searchSpinnerItems[position].startsWith("Google")) {
                         ((TextView) searchDialogView.findViewById(R.id.web_search_title)).setText("Search the web");
                         searchType = SEARCH_WEB;
-                        //searchView.setQuery(searchView.getQuery(), true);
 
                     } else if (searchSpinnerItems[position].startsWith("Within")) {
                         ((TextView) searchDialogView.findViewById(R.id.web_search_title)).setText("Search Within");
                         searchType = SEARCH_WITHIN;
-
-                        /*searchWebView.clearCache(false);
-                        searchDialog.dismiss();
-                        main.getAppManager().getWithinPlayer().showWithin();*/
-
-                        //searchView.setQuery(searchView.getQuery(), true);
                     }
                     searchText(searchView.getQuery().toString());
-                    //searchView.performClick();
-                    //populateSearch();
-
                 }
 
 
@@ -1348,13 +1295,7 @@ public class WebManager {
 
 
         Log.w(TAG, "Is this from YouTube? " + isYouTube);
-//        if (isYouTube) {
-//            //default to YouTube search
-//            searchSpinner.setSelection(1);
-//        } else {
-//            //default to web search
-//            searchSpinner.setSelection(0);
-//        }
+
         switch(searchType){
             case SEARCH_WEB:
                 isYouTube=false;
@@ -1375,9 +1316,7 @@ public class WebManager {
     private void populateSearch() {
         Log.d(TAG, "populateSearch: ");
         final SearchView searchView = searchDialogView.findViewById(R.id.url_search_bar);
-//        if (!(searchView.getQuery().length() > 0)) {
-//            web.setVisibility(View.GONE);
-//        }
+
         searchDialogView.findViewById(R.id.search_btn).setOnClickListener(v -> searchText(searchView.getQuery().toString()));
 
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
@@ -1577,53 +1516,5 @@ public class WebManager {
         });
 
         return false;
-    }
-
-    boolean selectedOnly=false;
-    private void setupPushToggle() {
-        Button leftToggle = previewDialogView.findViewById(R.id.selected_btn);
-        Button rightToggle = previewDialogView.findViewById(R.id.everyone_btn);
-        leftToggle.setOnClickListener(v -> selectedOnly());
-        rightToggle.setOnClickListener(v -> everyone());
-        rightToggle.callOnClick();
-    }
-
-    private void selectedOnly() {
-        selectedOnly=true;
-//        previewDialogView.findViewById(R.id.everyone_btn).setBackground(main.getResources().getDrawable(R.drawable.bg_passive_left_white, null));
-//        ((Button) previewDialogView.findViewById(R.id.everyone_btn)).setCompoundDrawablesWithIntrinsicBounds(0, 0, 0, 0);
-//        ((Button) previewDialogView.findViewById(R.id.everyone_btn)).setElevation(Math.round(TypedValue.applyDimension(
-//                TypedValue.COMPLEX_UNIT_DIP, 5,main.getResources().getDisplayMetrics())));
-//        ((Button) previewDialogView.findViewById(R.id.selected_btn)).setElevation(0);
-//        previewDialogView.findViewById(R.id.selected_btn).setBackground(main.getResources().getDrawable(R.drawable.bg_passive_right, null));
-//        //((Button) previewDialogView.findViewById(R.id.selected_btn)).setCompoundDrawablesWithIntrinsicBounds(R.drawable.icon_fav_star_check, 0, 0, 0);
-//        previewPushBtn.setText(main.getResources().getString(R.string.push_this_to_selected));
-
-        selected.setBackground(ResourcesCompat.getDrawable(main.getResources(), R.drawable.bg_active_right, null));
-        everyone.setBackground(ResourcesCompat.getDrawable(main.getResources(), R.drawable.bg_passive_left, null));
-        selected.setTextColor(main.getResources().getColor(R.color.leadme_light_grey, null));
-        everyone.setTextColor(main.getResources().getColor(R.color.light, null));
-
-        previewPushBtn.setText(main.getResources().getString(R.string.push_this_to_selected));
-    }
-
-    private void everyone() {
-        selectedOnly=false;
-//                previewDialogView.findViewById(R.id.everyone_btn).setBackground(main.getResources().getDrawable(R.drawable.bg_passive_left, null));
-//                //((Button) previewDialogView.findViewById(R.id.everyone_btn)).setCompoundDrawablesRelativeWithIntrinsicBounds(R.drawable.icon_fav_star_check, 0, 0, 0);
-//
-//                previewDialogView.findViewById(R.id.selected_btn).setBackground(main.getResources().getDrawable(R.drawable.bg_passive_right_white, null));
-//                ((Button) previewDialogView.findViewById(R.id.selected_btn)).setCompoundDrawablesWithIntrinsicBounds(0, 0, 0, 0);
-//                previewPushBtn.setText(main.getResources().getString(R.string.push_this_to_everyone));
-//                ((Button) previewDialogView.findViewById(R.id.selected_btn)).setElevation(Math.round(TypedValue.applyDimension(
-//                        TypedValue.COMPLEX_UNIT_DIP, 5,main.getResources().getDisplayMetrics())));
-//                ((Button) previewDialogView.findViewById(R.id.everyone_btn)).setElevation(0);
-
-        selected.setBackground(ResourcesCompat.getDrawable(main.getResources(), R.drawable.bg_passive_right, null));
-        everyone.setBackground(ResourcesCompat.getDrawable(main.getResources(), R.drawable.bg_active_left, null));
-        everyone.setTextColor(main.getResources().getColor(R.color.leadme_light_grey, null));
-        selected.setTextColor(main.getResources().getColor(R.color.light, null));
-
-        previewPushBtn.setText(main.getResources().getString(R.string.push_this_to_everyone));
     }
 }

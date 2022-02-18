@@ -276,7 +276,7 @@ public class YouTubeEmbedPlayer {
 
         repushBtn = videoControllerDialogView.findViewById(R.id.push_again_btn);
         repushBtn.setOnClickListener(v -> {
-            webManager.pushYouTube(attemptedURL, controllerTitle, lastStartFrom, lastLockState, isVROn(),selectedOnly);
+            webManager.pushYouTube(attemptedURL, controllerTitle, lastStartFrom, lastLockState, isVROn(), main.getSelectedOnly());
             syncNewStudentsWithCurrentState();
         });
 
@@ -697,7 +697,7 @@ public class YouTubeEmbedPlayer {
 
     private void createPlaybackSettingsPopup() {
         youtubeSettingsDialogView = View.inflate(main, R.layout.f__playback_settings_youtube, null);
-        youtubePreviewPushBtn = youtubeSettingsDialogView.findViewById(R.id.yt_push_btn);
+        youtubePreviewPushBtn = youtubeSettingsDialogView.findViewById(R.id.push_btn);
         youtubePreviewTitle = youtubeSettingsDialogView.findViewById(R.id.preview_title);
         youtubeInternetUnavailableMsg = youtubeSettingsDialogView.findViewById(R.id.no_internet);
         youtubeVideoControls = youtubeSettingsDialogView.findViewById(R.id.video_controls);
@@ -708,7 +708,7 @@ public class YouTubeEmbedPlayer {
         favCheck = youtubeSettingsDialogView.findViewById(R.id.fav_checkbox);
         youtubePreviewWebView = youtubeSettingsDialogView.findViewById(R.id.video_stream_webview);
         youtubePreviewWebView.setTag("PREVIEW/PLAYBACK SETTINGS");
-        setupPushToggle();
+        main.getDialogManager().setupPushToggle(youtubeSettingsDialogView, false);
         youtubeSettingsDialogView.findViewById(R.id.video_back_btn).setOnClickListener(v ->
                 playbackSettingsDialog.dismiss()
         );
@@ -740,7 +740,7 @@ public class YouTubeEmbedPlayer {
             playbackSettingsDialog.dismiss();
             int durationCalc = (int) ((progressBar.getProgress() / 100.0) * totalTime);
             lastLockState = lockSpinner.getSelectedItem().toString().startsWith("View");
-            webManager.pushYouTube(attemptedURL, controllerTitle, durationCalc, lastLockState, isVROn(),selectedOnly);
+            webManager.pushYouTube(attemptedURL, controllerTitle, durationCalc, lastLockState, isVROn(), main.getSelectedOnly());
             if (favCheck.isChecked()) {
                 webManager.getYouTubeFavouritesManager().addCurrentPreviewToFavourites();
             }
@@ -799,6 +799,8 @@ public class YouTubeEmbedPlayer {
             main.hideSystemUI();
         });
 
+        main.getDialogManager().toggleSelectedView(youtubeSettingsDialogView);
+
         init = false;
         activeWebView = youtubePreviewWebView;
         attemptedURL = embedYouTubeURL(url);
@@ -835,41 +837,4 @@ public class YouTubeEmbedPlayer {
         }
         Log.d(TAG, "showPlaybackPreview: 2");
     }
-    boolean selectedOnly=false;
-    private void setupPushToggle() {
-        Button leftToggle = youtubeSettingsDialogView.findViewById(R.id.selected_btn);
-        Button rightToggle = youtubeSettingsDialogView.findViewById(R.id.everyone_btn);
-        leftToggle.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                selectedOnly=true;
-                youtubeSettingsDialogView.findViewById(R.id.everyone_btn).setBackground(main.getResources().getDrawable(R.drawable.bg_passive_left_white, null));
-                ((Button) youtubeSettingsDialogView.findViewById(R.id.everyone_btn)).setCompoundDrawablesWithIntrinsicBounds(0, 0, 0, 0);
-                ((Button) youtubeSettingsDialogView.findViewById(R.id.everyone_btn)).setElevation(Math.round(TypedValue.applyDimension(
-                        TypedValue.COMPLEX_UNIT_DIP, 5,main.getResources().getDisplayMetrics())));
-                ((Button) youtubeSettingsDialogView.findViewById(R.id.selected_btn)).setElevation(0);
-                youtubeSettingsDialogView.findViewById(R.id.selected_btn).setBackground(main.getResources().getDrawable(R.drawable.bg_passive_right, null));
-                ((Button) youtubeSettingsDialogView.findViewById(R.id.selected_btn)).setCompoundDrawablesWithIntrinsicBounds(R.drawable.icon_fav_star_check, 0, 0, 0);
-                youtubePreviewPushBtn.setText(main.getResources().getString(R.string.push_this_to_selected));
-
-            }
-        });
-        rightToggle.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                selectedOnly=false;
-                youtubeSettingsDialogView.findViewById(R.id.everyone_btn).setBackground(main.getResources().getDrawable(R.drawable.bg_passive_left, null));
-                ((Button) youtubeSettingsDialogView.findViewById(R.id.everyone_btn)).setCompoundDrawablesRelativeWithIntrinsicBounds(R.drawable.icon_fav_star_check, 0, 0, 0);
-                ((Button) youtubeSettingsDialogView.findViewById(R.id.selected_btn)).setElevation(Math.round(TypedValue.applyDimension(
-                        TypedValue.COMPLEX_UNIT_DIP, 5,main.getResources().getDisplayMetrics())));
-
-                youtubeSettingsDialogView.findViewById(R.id.selected_btn).setBackground(main.getResources().getDrawable(R.drawable.bg_passive_right_white, null));
-                ((Button) youtubeSettingsDialogView.findViewById(R.id.selected_btn)).setCompoundDrawablesWithIntrinsicBounds(0, 0, 0, 0);
-                youtubePreviewPushBtn.setText(main.getResources().getString(R.string.push_this_to_everyone));
-                ((Button) youtubeSettingsDialogView.findViewById(R.id.everyone_btn)).setElevation(0);
-            }
-        });
-        rightToggle.callOnClick();
-    }
-
 }

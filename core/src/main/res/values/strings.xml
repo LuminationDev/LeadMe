@@ -149,5 +149,9 @@
     <string name="help">Help</string>
     <string name="display_onboarding">Display Onboarding</string>
     <string name="begin">Begin</string>
+    <string name="selected">Selected</string>
+    <string name="everyone">Everyone</string>
+    <string name="will_stream_via_internet">*will stream via internet</string>
+    <string name="will_download_via_internet">*will download via internet</string>
 
 </resources>
