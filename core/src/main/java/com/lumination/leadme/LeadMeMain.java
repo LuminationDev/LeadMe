@@ -310,9 +310,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
     Intent appIntentOnFocus = null;
     Toast appToast = null;
-    private boolean returningToApp = false;
-
-//    public boolean returnEveryone = true;
 
     private boolean init = false;
 
@@ -1823,7 +1820,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         });
 
         optionsScreen.findViewById(R.id.connected_only_view).setVisibility(View.GONE);
-        optionsScreen.findViewById(R.id.auto_install_checkbox).setVisibility(View.GONE);
     }
 
     /**
@@ -2689,7 +2685,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         activityManager.moveTaskToFront(getTaskId(), ActivityManager.MOVE_TASK_WITH_HOME);
 
         if (appToast == null) {
-            returningToApp = true;
             appToast = Toast.makeText(context, "Returning to " + getResources().getString(R.string.app_title), Toast.LENGTH_SHORT);
             appToast.show();
         }
@@ -2740,7 +2735,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.RETURN_TAG, chosenPeers);
 
         if (appToast == null) {
-            returningToApp = true;
             appToast = Toast.makeText(context, "Returning selected followers to Lumination Lead Me app", Toast.LENGTH_SHORT);
             appToast.show();
         }
