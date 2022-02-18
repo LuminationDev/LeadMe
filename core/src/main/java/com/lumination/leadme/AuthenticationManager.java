@@ -70,6 +70,7 @@ public class AuthenticationManager {
     private final FirebaseFirestore db = FirebaseFirestore.getInstance();
     private FirebaseAuth mAuth;
     private FirebaseUser currentUser = null;
+    private CollectionReference collRef = null;
     private ListenerRegistration manualUserListener;
     private GoogleSignInClient mGoogleSignInClient;
     private String regoCode = "";
@@ -201,7 +202,7 @@ public class AuthenticationManager {
 
     //THE SECTION BELOW IS FOR MANUAL CONNECTIONS ONLY
     //MANUAL CONNECTION FOR LEARNERS START
-    /*
+    /**
      * A call to firebase to retrieve any leaders registered to a peer's publicIP address. If there
      * are no records the function will repeat every x seconds where x is an integer (waitForGuide).
      * Will only return leaders who have been active within a certain period of time (inactiveUser).
@@ -209,7 +210,9 @@ public class AuthenticationManager {
      * attached to wait for any chances in the firebase.
      * */
     public void retrieveLeaders() {
-        waitForPublic();
+        if(publicIP == null) {
+            waitForPublic();
+        }
 
         Log.d(TAG, "retrieveLeaders: " + publicIP);
 
@@ -220,12 +223,13 @@ public class AuthenticationManager {
             return;
         } else if (!InetAddresses.isInetAddress(publicIP)) {
             Log.d(TAG, "PublicIP address not valid");
+            publicIP = null;
             main.getDialogManager().showWarningDialog("Public IP", "Public IP address not valid" +
                     "\n firewall may be blocking the query.");
             return;
         }
 
-        CollectionReference collRef = db.collection("addresses").document(publicIP).collection("Leaders");
+        collRef = db.collection("addresses").document(publicIP).collection("Leaders");
 
         collRef.get().addOnCompleteListener(task -> {
             if (task.isSuccessful()) {
@@ -233,24 +237,14 @@ public class AuthenticationManager {
                 try {
                     if (Objects.requireNonNull(task.getResult()).size() == 0) {
                         //In case the user switches back to auto
-                        if(main.sessionManual && !main.directConnection) {
+                        if (main.sessionManual && !main.directConnection) {
                             scheduledExecutorService.schedule(() -> retrieveLeaders(), waitForGuide, TimeUnit.MILLISECONDS);
                         }
                     } else {
-                        for (QueryDocumentSnapshot document : Objects.requireNonNull(task.getResult())) {
-                            Date leaderTimeStamp = Objects.requireNonNull(document.getTimestamp("TimeStamp")).toDate();
-
-                            if (checkTimeDifference(leaderTimeStamp) >= inactiveUser) {
-                                return;
-                            }
-
-                            main.manuallyConnectLeader(document.get("Username").toString(), document.get("ServerIP").toString());
-                        }
-
                         //add listeners to track if leader hasn't logged in but publicIP exists (multiple leaders on network)
                         trackCollection(collRef);
                     }
-                } catch(NullPointerException e){
+                } catch (NullPointerException e) {
                     Log.d(TAG, "onComplete: " + e);
                 }
             } else {
@@ -261,7 +255,7 @@ public class AuthenticationManager {
 
     //add a listener to the Leader collection to wait for log in
     private void trackCollection(CollectionReference collRef) {
-        if(manualUserListener!=null){
+        if(manualUserListener != null){
             manualUserListener.remove();
         }
 
@@ -277,8 +271,14 @@ public class AuthenticationManager {
 
                 if (value != null) {
                     for (QueryDocumentSnapshot document : value) {
+                        Date leaderTimeStamp = Objects.requireNonNull(document.getTimestamp("TimeStamp")).toDate();
+
+                        if (checkTimeDifference(leaderTimeStamp) >= inactiveUser) {
+                            return;
+                        }
+
                         if (document.get("Username") != null) {
-                            main.manuallyConnectLeader(document.get("Username").toString(), document.get("ServerIP").toString());
+                            main.manuallyAddLeader(document.get("Username").toString(), document.get("ServerIP").toString());
                         }
                     }
                 } else {

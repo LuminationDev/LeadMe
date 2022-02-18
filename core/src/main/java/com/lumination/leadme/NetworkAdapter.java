@@ -336,8 +336,8 @@ public class NetworkAdapter {
      * @param serviceInfo An NsdServiceInfo object containing the details about the selected leader.
      */
     public void connectToServer(NsdServiceInfo serviceInfo) {
+        startClientInputListener();
         Log.d(TAG, "connectToServer: attempting to connect to " + serviceInfo.getHost() + ":" + serviceInfo.getPort());
-        Log.e(TAG, serviceInfo.toString());
 
         mService = serviceInfo;
 
@@ -414,7 +414,6 @@ public class NetworkAdapter {
 
                 if (clientsServerSocket != null && pingName) {
                     if (clientsServerSocket.isConnected()) {
-                        Log.e(TAG, "SENDING NAME");
                         Name = nearbyPeersManager.getName();
                         sendToServer(Name, "NAME");
                         pingName = false;
@@ -494,6 +493,7 @@ public class NetworkAdapter {
         }
     }
 
+    //Kept for future testing purposes
     int testing = 10;
 
     /**
@@ -510,10 +510,16 @@ public class NetworkAdapter {
 
         //Updates parent with the name, this acts as a ping mechanism.
         //on the fly name changes are supported, client is identified by assigned ID
+        startClientInputListener();
+    }
 
-        //new Thread so server messages can be read from a while loop without impacting the UI
+    /**
+     * Starts a client socket listener that receives messages from the leader server. Handles
+     * reconnection if a socket is closed prematurely.
+     */
+    public void startClientInputListener() {
         if(receiveInput == null) {
-
+            //new Thread so server messages can be read from a while loop without impacting the UI
             receiveInput = main.serverThreadPool.submit(() -> {
                 while (allowInput) {
                     if (clientsServerSocket != null) {
@@ -526,18 +532,18 @@ public class NetworkAdapter {
                                 in = new BufferedReader(inStream);
 
                                 try {
-                                    //Comments below are for testing purposes
+                                    //Kept for future testing purposes
                                     //Only need the input = in.readLine() for production
-//                                        Log.e(TAG, "TESTING COUNTDOWN: " + testing);
-//                                        if (testing == 0) {
-//                                            Log.e(TAG, "Throwing exception");
-//                                            testing = 10;
+//                                    Log.e(TAG, "TESTING COUNTDOWN: " + testing);
+//                                    if (testing == 0) {
+//                                        Log.e(TAG, "Throwing exception");
+//                                        testing = 10;
 //
-//                                            throw new SocketException();
-//                                        } else {
-//                                            testing--;
+//                                        throw new SocketException();
+//                                    } else {
+//                                        testing--;
                                         input = in.readLine();
-//                                        }
+//                                    }
                                 } catch (SocketException e) {
                                     if (clientsServerSocket != null) {
                                         clientsServerSocket.close();
@@ -546,7 +552,6 @@ public class NetworkAdapter {
 
                                     e.printStackTrace();
                                     Log.e(TAG, "FAILED! {1}");
-                                    Log.e(TAG, "Attempting to reconnect");
 
                                     connectToServer(getChosenServiceInfo());
                                 }
@@ -576,7 +581,6 @@ public class NetworkAdapter {
                         } else {
                             clientsServerSocket = null;
                             Log.e(TAG, "FAILED! {3}");
-                            Log.e(TAG, "Attempting to reconnect");
 
                             connectToServer(getChosenServiceInfo());
                         }
@@ -786,14 +790,14 @@ public class NetworkAdapter {
      */
     public void stopServer() {
         if(Server != null) {
-            Log.e(TAG, "Server cancel");
+            Log.d(TAG, "Server cancel");
             Server.cancel(true);
         }
 
         if(mServerSocket != null) {
             try {
                 mServerSocket.close();
-                Log.e("CLOSING PORT", "Server closing is bound: " + mServerSocket.isBound());
+                Log.d("CLOSING PORT", "Server closing is bound: " + mServerSocket.isBound());
                 if (multicastLock != null) {
                     multicastLock.release();
                     multicastLock = null;
@@ -1077,13 +1081,9 @@ public class NetworkAdapter {
      * @param clientSocket A socket object of the newly connected user.
      */
     public void studentThreadManager(Socket clientSocket) {
-        Log.e(TAG, clientSocket.toString());
-
         ClientResult result = manageClientID(clientSocket);
         int ID = result.getID();
         boolean reconnect = result.getReconnect();
-
-        Log.e(TAG, "Connecting Student: " + ID);
 
         TcpClient tcp = new TcpClient(clientSocket, netAdapt, ID);
         Thread client = new Thread(tcp); //new thread for every client
