@@ -52,13 +52,13 @@
             android:visibility="gone">
 
             <TextView
-                android:id="@+id/student_name"
+                android:id="@+id/user_name"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="20dp"
                 android:layout_marginBottom="10dp"
                 android:fontFamily="@font/poppins_semibold"
-                android:text="@string/student_name"
+                android:text="@string/users_name"
                 android:textColor="@color/leadme_black"
                 android:textSize="24sp" />
 

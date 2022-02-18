@@ -22,7 +22,6 @@ import android.widget.Toast;
 import android.widget.VideoView;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 
 import com.alimuzaffar.lib.pin.PinEntryEditText;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
@@ -30,7 +29,6 @@ import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInClient;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthCredential;
@@ -40,14 +38,11 @@ import com.google.firebase.auth.GoogleAuthProvider;
 import com.google.firebase.auth.UserProfileChangeRequest;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentSnapshot;
-import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.ListenerRegistration;
 import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
-import com.google.firebase.firestore.QuerySnapshot;
 import com.google.firebase.firestore.SetOptions;
 import com.himanshurawat.hasher.HashType;
 import com.himanshurawat.hasher.Hasher;
@@ -79,7 +74,7 @@ public class AuthenticationManager {
     private GoogleSignInClient mGoogleSignInClient;
     private String regoCode = "";
     private boolean hasScrolled = false;
-    private ScheduledExecutorService scheduledExecutorService = new ScheduledThreadPoolExecutor(1);
+    private final ScheduledExecutorService scheduledExecutorService = new ScheduledThreadPoolExecutor(1);
 
     //For Manual connections
     private final int leaderTimestampUpdate = 15; //update the leaders timestamp on firebase (mins)
@@ -87,7 +82,7 @@ public class AuthenticationManager {
     private final int waitForGuide = 10000; //how long to wait before peer re-query's firestore
     private String serverIP="";
     private String publicIP;
-    private HashMap<String, Object> manualConnectionDetails = new HashMap<String, Object>();
+    private final HashMap<String, Object> manualConnectionDetails = new HashMap<String, Object>();
 
     /**
      * A basic constructor that sets up the dialog objects.
@@ -232,84 +227,71 @@ public class AuthenticationManager {
 
         CollectionReference collRef = db.collection("addresses").document(publicIP).collection("Leaders");
 
-        collRef.get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
-            @Override
-            public void onComplete(@NonNull Task<QuerySnapshot> task) {
-                if (task.isSuccessful()) {
-                    //if no one has registered on the public IP yet, wait sometime and try again.
-                    try {
-                        if (Objects.requireNonNull(task.getResult()).size() == 0) {
-                            //In case the user switches back to auto
-                            if(main.sessionManual) {
-                                scheduledExecutorService.schedule(() -> retrieveLeaders(), waitForGuide, TimeUnit.MILLISECONDS);
-                            }
-                        } else {
-                            for (QueryDocumentSnapshot document : Objects.requireNonNull(task.getResult())) {
-                                Date leaderTimeStamp = Objects.requireNonNull(document.getTimestamp("TimeStamp")).toDate();
-
-                                if (checkTimeDifference(leaderTimeStamp) >= inactiveUser) {
-                                    return;
-                                }
-
-                                //add to the leaders list
-                                //runOnUiThread(() -> {
-                                    main.manuallyConnectLeader(document.get("Username").toString(), document.get("ServerIP").toString());
-                                //});
-                            }
-
-                            //add listeners to track if leader hasn't logged in but publicIP exists (multiple leaders on network)
-                            trackCollection(collRef);
+        collRef.get().addOnCompleteListener(task -> {
+            if (task.isSuccessful()) {
+                //if no one has registered on the public IP yet, wait sometime and try again.
+                try {
+                    if (Objects.requireNonNull(task.getResult()).size() == 0) {
+                        //In case the user switches back to auto
+                        if(main.sessionManual && !main.directConnection) {
+                            scheduledExecutorService.schedule(() -> retrieveLeaders(), waitForGuide, TimeUnit.MILLISECONDS);
                         }
-                    } catch(NullPointerException e){
-                        Log.d(TAG, "onComplete: " + e);
+                    } else {
+                        for (QueryDocumentSnapshot document : Objects.requireNonNull(task.getResult())) {
+                            Date leaderTimeStamp = Objects.requireNonNull(document.getTimestamp("TimeStamp")).toDate();
+
+                            if (checkTimeDifference(leaderTimeStamp) >= inactiveUser) {
+                                return;
+                            }
+
+                            main.manuallyConnectLeader(document.get("Username").toString(), document.get("ServerIP").toString());
+                        }
+
+                        //add listeners to track if leader hasn't logged in but publicIP exists (multiple leaders on network)
+                        trackCollection(collRef);
                     }
-                } else {
-                    Log.d(TAG, "Error getting documents: ", task.getException());
+                } catch(NullPointerException e){
+                    Log.d(TAG, "onComplete: " + e);
                 }
+            } else {
+                Log.d(TAG, "Error getting documents: ", task.getException());
             }
         });
     }
 
     //add a listener to the Leader collection to wait for log in
     private void trackCollection(CollectionReference collRef) {
-        //checkArray(document);
-        //adapter.notifyDataSetChanged();
         if(manualUserListener!=null){
             manualUserListener.remove();
         }
 
         if(!main.getNearbyManager().isConnectedAsFollower()) {
             Log.d(TAG, "trackCollection: listener added");
-            manualUserListener = collRef.addSnapshotListener(new EventListener<QuerySnapshot>() {
-                @Override
-                public void onEvent(@Nullable QuerySnapshot value, @Nullable FirebaseFirestoreException error) {
-                    Log.d(TAG, "onEvent: ip listener fired");
-                    if (error != null) {
-                        Log.w(TAG, "Listen failed.", error);
-                        return;
-                    }
 
-                    if (value != null) {
-                        for (QueryDocumentSnapshot document : value) {
-                            if (document.get("Username") != null) {
-                                //checkArray(document);
-                                //runOnUiThread(() -> {
-                                    main.manuallyConnectLeader(document.get("Username").toString(), document.get("ServerIP").toString());
-                                //});
-                            }
+            manualUserListener = collRef.addSnapshotListener((value, error) -> {
+                Log.d(TAG, "onEvent: ip listener fired");
+                if (error != null) {
+                    Log.w(TAG, "Listen failed.", error);
+                    return;
+                }
+
+                if (value != null) {
+                    for (QueryDocumentSnapshot document : value) {
+                        if (document.get("Username") != null) {
+                            main.manuallyConnectLeader(document.get("Username").toString(), document.get("ServerIP").toString());
                         }
-                        //adapter.notifyDataSetChanged();
-                    } else {
-                        Log.d(TAG, "Current data: null");
                     }
+                } else {
+                    Log.d(TAG, "Current data: null");
                 }
             });
         }
     }
 
     /**
-     * Removes the user entry listener attached to the firebase collection.
-     * */
+     * Removes the user entry listener attached to the firebase collection that looks for new
+     * leaders signing in.
+     */
     public void removeUserListener() {
         if(manualUserListener!=null){
             Log.d(TAG, "loginAction: listener removed");
@@ -360,7 +342,9 @@ public class AuthenticationManager {
         timestamp.scheduleAtFixedRate(updateTimestamp, 0L, leaderTimestampUpdate * (60 * 1000));
     }
 
-    //If the public IP is not null check for duplicate entries in the database.
+    /**
+     * If the public IP is not null check for duplicate entries in the database.
+     */
     private void updateAddress() {
         if(publicIP.length() == 0) {
             return;
@@ -370,27 +354,26 @@ public class AuthenticationManager {
         deleteDuplicates();
     }
 
-    //Collect any previous data entries for the same email and delete to avoid duplicate discovered leaders.
+    /**
+     * Collect any previous data entries for the same email and delete to avoid duplicate discovered leaders.
+     */
     private void deleteDuplicates() {
         Query query = db.collection("addresses").document(publicIP)
                 .collection("Leaders").whereEqualTo("Email", manualConnectionDetails.get("Email"));
 
-        query.get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
-            @Override
-            public void onComplete(@NonNull Task<QuerySnapshot> task) {
-                if (task.isSuccessful()) {
-                    Log.d(TAG, "Documents found.");
+        query.get().addOnCompleteListener(task -> {
+            if (task.isSuccessful()) {
+                Log.d(TAG, "Documents found.");
 
-                    for (DocumentSnapshot document : task.getResult()) {
-                        db.collection("addresses").document(publicIP)
-                                .collection("Leaders").document(document.getId()).delete();
-                    }
-
-                    //Register the new address.
-                    setNewAddress();
-                } else {
-                    Log.d(TAG, "Error getting documents: ", task.getException());
+                for (DocumentSnapshot document : task.getResult()) {
+                    db.collection("addresses").document(publicIP)
+                            .collection("Leaders").document(document.getId()).delete();
                 }
+
+                //Register the new address.
+                setNewAddress();
+            } else {
+                Log.d(TAG, "Error getting documents: ", task.getException());
             }
         });
     }
@@ -402,18 +385,8 @@ public class AuthenticationManager {
     private void setNewAddress() {
         db.collection("addresses").document(publicIP)
                 .collection("Leaders").document(serverIP).set(manualConnectionDetails, SetOptions.merge())
-                .addOnSuccessListener(new OnSuccessListener<Void>() {
-                    @Override
-                    public void onSuccess(Void aVoid) {
-                        Log.d(TAG, "DocumentSnapshot successfully written!");
-                    }
-                })
-                .addOnFailureListener(new OnFailureListener() {
-                    @Override
-                    public void onFailure(@NonNull Exception e) {
-                        Log.w(TAG, "Error writing document", e);
-                    }
-                });
+                .addOnSuccessListener(aVoid -> Log.d(TAG, "DocumentSnapshot successfully written!"))
+                .addOnFailureListener(e -> Log.w(TAG, "Error writing document", e));
     }
 
     /**
@@ -432,18 +405,8 @@ public class AuthenticationManager {
 
         db.collection("addresses").document(publicIP)
                 .collection("Leaders").document(serverIP).delete()
-                .addOnSuccessListener(new OnSuccessListener<Void>() {
-                    @Override
-                    public void onSuccess(Void aVoid) {
-                        Log.d(TAG, "DocumentSnapshot successfully written!");
-                    }
-                })
-                .addOnFailureListener(new OnFailureListener() {
-                    @Override
-                    public void onFailure(@NonNull Exception e) {
-                        Log.w(TAG, "Error writing document", e);
-                    }
-                });
+                .addOnSuccessListener(aVoid -> Log.d(TAG, "DocumentSnapshot successfully written!"))
+                .addOnFailureListener(e -> Log.w(TAG, "Error writing document", e));
     }
 
     //Attempt to get the public IP address of the current device (router address)
@@ -513,24 +476,18 @@ public class AuthenticationManager {
         progressBar.setVisibility(View.GONE);
         TextView support = loginView.findViewById(R.id.rego_contact_support);
         
-        support.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                String[] email = {"dev@lumination.com.au"};
-                //TODO perhaps change this later?
-                main.composeEmail(email,"LeadMe Support: Signup Issue");
-            }
+        support.setOnClickListener(v -> {
+            String[] email = {"dev@lumination.com.au"};
+            //TODO perhaps change this later?
+            main.composeEmail(email,"LeadMe Support: Signup Issue");
         });
 
         //page 0
         EditText loginCode = loginView.findViewById(R.id.rego_code_box);
         TextView regoLost = loginView.findViewById(R.id.rego_lost_code);
-        regoLost.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                String[] email = {"dev@lumination.com.au"};
-                main.composeEmail(email,"LeadMe Support: Signup Code Request");
-            }
+        regoLost.setOnClickListener(v -> {
+            String[] email = {"dev@lumination.com.au"};
+            main.composeEmail(email,"LeadMe Support: Signup Code Request");
         });
         TextView regoError = loginView.findViewById(R.id.rego_code_error);
         //page 2
@@ -590,9 +547,6 @@ public class AuthenticationManager {
                         if (s.length() == 6) {
                             closeKeyboard();
                         }
-//                        else if(s.length()>6){
-//                            loginCode.setText(s.subSequence(0,7));
-//                        }
                     }
 
                     @Override
@@ -997,7 +951,7 @@ public class AuthenticationManager {
                                     }
 
                                     main.setUserName((String) task1.getResult().get("name"), false);
-                                    Log.d(TAG, "onComplete: name found: " + (String) task1.getResult().get("name"));
+                                    Log.d(TAG, "onComplete: name found: " + task1.getResult().get("name"));
                                     main.animatorAsContentView();
                                 }
                             });

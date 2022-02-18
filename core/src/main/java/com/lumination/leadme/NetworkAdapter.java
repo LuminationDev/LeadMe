@@ -175,7 +175,7 @@ public class NetworkAdapter {
                 @Override
                 public void onServiceLost(NsdServiceInfo service) {
                     Log.e(TAG, "service lost" + service);
-                    if (mService == service) {
+                    if (getChosenServiceInfo() == service) {
                         mService = null;
                     }
                     //clear the list and then scan again
@@ -228,9 +228,7 @@ public class NetworkAdapter {
 
             Log.d(TAG, "onServiceResolved: " + serviceInfo);
 
-            executorService.submit(() -> {
-                resolveSingleService(serviceInfo);
-            });
+            executorService.submit(() -> resolveSingleService(serviceInfo));
         }
     }
 
@@ -274,7 +272,7 @@ public class NetworkAdapter {
     private void addToLeaderList(NsdServiceInfo serviceInfo) {
         List<String> leader = Arrays.asList(serviceInfo.getServiceName().split("#"));
 
-        if(!main.sessionManual) {
+        if(!main.sessionManual && !main.directConnection) {
             main.runOnUiThread(() -> {
                 main.getLeaderSelectAdapter().addLeader(new ConnectedPeer(leader.get(0), serviceInfo.getHost().toString()));
                 main.showLeaderWaitMsg(false);
@@ -282,8 +280,8 @@ public class NetworkAdapter {
         }
     }
 
-    /*
-    Initialises the registration listener allowing us to register the service
+    /**
+     * Initialises the registration listener allowing us to register the service
      */
     public void initializeRegistrationListener() {
         if (mRegistrationListener == null) {
@@ -344,31 +342,18 @@ public class NetworkAdapter {
         mService = serviceInfo;
 
         try {
-            clientsServerSocket = new Socket(mService.getHost(), mService.getPort());
+            if(clientsServerSocket != null) {
+                clientsServerSocket.close();
+            }
+            clientsServerSocket = new Socket(getChosenServiceInfo().getHost(), getChosenServiceInfo().getPort());
         } catch (IOException e) {
             e.printStackTrace();
         } finally {
             if (clientsServerSocket == null) {
                 tryReconnect();
+            } else {
+                clientSetup();
             }
-        }
-
-        if (clientsServerSocket != null) {
-            if (clientsServerSocket.isConnected()) {
-                connectionIsActive = 20;
-                allowInput = true;
-                Log.d(TAG, "connectToServer: connection successful");
-                Name = nearbyPeersManager.getName();
-                sendToServer(Name, "NAME"); //sends the student name to the teacher for a record
-                stopDiscovery();
-                main.runOnUiThread(() -> {
-                    main.findViewById(R.id.client_main).setVisibility(View.VISIBLE);
-                    List<String> inputList = Arrays.asList(mService.getServiceName().split("#"));
-                    main.setLeaderName(inputList.get(0));
-                });
-            }
-
-            startConnectionCheck();
         }
     }
 
@@ -382,7 +367,7 @@ public class NetworkAdapter {
             clientsServerSocket = null;
             if (tries <= 10) {
                 tries++;
-                connectToServer(mService);
+                connectToServer(getChosenServiceInfo());
             } else {
                 Log.d(TAG, "connectToServer: reconnection unsuccessful");
                 main.runOnUiThread(() -> main.setUIDisconnected());
@@ -391,10 +376,32 @@ public class NetworkAdapter {
     }
 
     /**
+     * If the socket is connected send the learners name back to the server to start the TCP client
+     * and then begin monitoring the connection.
+     */
+    private void clientSetup() {
+        if (clientsServerSocket.isConnected()) {
+            Log.d(TAG, "connectToServer: connection successful");
+            pingName = true; //Allows learner to send name again on reconnection
+            connectionIsActive = 20;
+            allowInput = true;
+            Name = nearbyPeersManager.getName();
+            stopDiscovery();
+            main.runOnUiThread(() -> {
+                main.findViewById(R.id.client_main).setVisibility(View.VISIBLE);
+                List<String> inputList = Arrays.asList(getChosenServiceInfo().getServiceName().split("#"));
+                main.setLeaderName(inputList.get(0));
+            });
+
+            startConnectionCheck();
+        }
+    }
+
+    /**
      * Start an executor to continually check if the leader has disconnected or is still active. If
      * not then move the learner from a logged in state to the splash screen.
      */
-    private void startConnectionCheck() {
+    public void startConnectionCheck() {
         if(clientsServerSocket != null) {
             scheduledExecutor.shutdown();
             scheduledExecutor = new ScheduledThreadPoolExecutor(1);
@@ -407,8 +414,10 @@ public class NetworkAdapter {
 
                 if (clientsServerSocket != null && pingName) {
                     if (clientsServerSocket.isConnected()) {
+                        Log.e(TAG, "SENDING NAME");
                         Name = nearbyPeersManager.getName();
                         sendToServer(Name, "NAME");
+                        pingName = false;
                     }
                 }
             }, 1, 8000, TimeUnit.MILLISECONDS);
@@ -436,8 +445,8 @@ public class NetworkAdapter {
         }
     }
 
-    /*
-    Sends message from student to Teacher
+    /**
+     * Sends message from student to Teacher.
      */
     public void sendToServer(String message, String type) {
         if (clientsServerSocket != null) {
@@ -485,9 +494,11 @@ public class NetworkAdapter {
         }
     }
 
-//    int testing = 20;
+    int testing = 10;
+
     /**
-     * Discovers services, is not continuous so will need to be called in a runnable to implement a scan
+     * Discovers services that are advertised by leaders, is not continuous so will need to be
+     * called in a runnable to implement a scan
      */
     public void startDiscovery() {
         Log.d(TAG, "startDiscovery: ");
@@ -502,78 +513,76 @@ public class NetworkAdapter {
 
         //new Thread so server messages can be read from a while loop without impacting the UI
         if(receiveInput == null) {
-            receiveInput = main.serverThreadPool.submit(new Runnable() {
-                @Override
-                public void run() {
-                    while (allowInput) {
-                        if (clientsServerSocket != null) {
-                            if (!clientsServerSocket.isClosed() && !clientsServerSocket.isInputShutdown()) {
 
-                                BufferedReader in;
-                                String input = "";
+            receiveInput = main.serverThreadPool.submit(() -> {
+                while (allowInput) {
+                    if (clientsServerSocket != null) {
+                        if (!clientsServerSocket.isClosed() && !clientsServerSocket.isInputShutdown()) {
+
+                            BufferedReader in;
+                            String input = "";
+                            try {
+                                InputStreamReader inStream = new InputStreamReader(clientsServerSocket.getInputStream());
+                                in = new BufferedReader(inStream);
+
                                 try {
-                                    InputStreamReader inStream = new InputStreamReader(clientsServerSocket.getInputStream());
-                                    in = new BufferedReader(inStream);
-
-                                    try {
-                                        //Comments below are for testing purposes
-                                        //Only need the input = in.readLine() for production
+                                    //Comments below are for testing purposes
+                                    //Only need the input = in.readLine() for production
 //                                        Log.e(TAG, "TESTING COUNTDOWN: " + testing);
 //                                        if (testing == 0) {
 //                                            Log.e(TAG, "Throwing exception");
-//                                            testing = 20;
+//                                            testing = 10;
 //
 //                                            throw new SocketException();
 //                                        } else {
 //                                            testing--;
-                                            input = in.readLine();
+                                        input = in.readLine();
 //                                        }
-                                    } catch (SocketException e) {
-                                        if (clientsServerSocket != null) {
-                                            clientsServerSocket.close();
-                                            clientsServerSocket = null;
-                                        }
-
-                                        e.printStackTrace();
-                                        Log.e(TAG, "FAILED! {1}");
-                                        Log.e(TAG, "Attempting to reconnect");
-
-                                        connectToServer(mService);
+                                } catch (SocketException e) {
+                                    if (clientsServerSocket != null) {
+                                        clientsServerSocket.close();
+                                        clientsServerSocket = null;
                                     }
 
-                                    if (input != null) {
-                                        if (input.length() > 0) {
-                                            Log.d(TAG, "allowInput is active");
+                                    e.printStackTrace();
+                                    Log.e(TAG, "FAILED! {1}");
+                                    Log.e(TAG, "Attempting to reconnect");
 
-                                            if (main.destroying) {
-                                                if (clientsServerSocket != null) {
-                                                    clientsServerSocket.close();
-                                                    clientsServerSocket = null;
-                                                }
+                                    connectToServer(getChosenServiceInfo());
+                                }
 
-                                                scheduledExecutor.shutdown();
-                                                allowInput = false;
-                                                return;
+                                if (input != null) {
+                                    if (input.length() > 0) {
+                                        Log.d(TAG, "allowInput is active");
+
+                                        if (main.destroying) {
+                                            if (clientsServerSocket != null) {
+                                                clientsServerSocket.close();
+                                                clientsServerSocket = null;
                                             }
 
-                                            netAdapt.messageReceivedFromServer(input);
+                                            scheduledExecutor.shutdown();
+                                            allowInput = false;
+                                            return;
                                         }
-                                    }
-                                } catch (IOException e) {
-                                    e.printStackTrace();
-                                    Log.e(TAG, "FAILED! {2}");
-                                }
-                            } else {
-                                clientsServerSocket = null;
-                                Log.e(TAG, "FAILED! {3}");
-                                Log.e(TAG, "Attempting to reconnect");
 
-                                connectToServer(mService);
+                                        netAdapt.messageReceivedFromServer(input);
+                                    }
+                                }
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                                Log.e(TAG, "FAILED! {2}");
                             }
+                        } else {
+                            clientsServerSocket = null;
+                            Log.e(TAG, "FAILED! {3}");
+                            Log.e(TAG, "Attempting to reconnect");
+
+                            connectToServer(getChosenServiceInfo());
                         }
                     }
-                    Log.e(TAG, "FAILED! {4}");
                 }
+                Log.e(TAG, "FAILED! {4}");
             });
         }
     }
@@ -732,20 +741,15 @@ public class NetworkAdapter {
     /*
     Server Functions Below:
      */
-
     //necessary to be on a separate thread as it runs an eternal server allowing any connections that come in
     class ServerThread implements Runnable {
 
         @Override
         public void run() {
-
             try {
-                // Since discovery will happen via Nsd, we don't need to care which port is
-                // used.  Just grab an available one and advertise it via Nsd.
                 mServerSocket = new ServerSocket();
                 mServerSocket.setReuseAddress(true);
                 mServerSocket.bind(new InetSocketAddress(PORT));
-
                 localport = mServerSocket.getLocalPort();
 
                 while (true) {
@@ -762,11 +766,8 @@ public class NetworkAdapter {
                         throw new RuntimeException("Error creating client", e);
                     }
 
-                    Log.d(TAG, "run: client connected");
-
                     studentThreadManager(clientSocket);
-
-                    Log.d(TAG, "Connected.");
+                    Log.d(TAG, "run: client connected");
                 }
             } catch (Exception e) {
                 Log.e(TAG, "Error creating ServerSocket: ", e);
@@ -803,6 +804,9 @@ public class NetworkAdapter {
         }
     }
 
+    /**
+     * Create a NSD service and register it with the details of a logged in leader.
+     */
     public void startAdvertising() {
         Name = nearbyPeersManager.getName();
         stopAdvertising();  // Cancel any previous registration request

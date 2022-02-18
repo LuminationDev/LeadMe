@@ -35,6 +35,7 @@ public class LeaderSelectAdapter extends BaseAdapter {
         notifyDataSetChanged();
     }
 
+    //TODO stop duplication of leaders when server discovery is toggled on/off
     public synchronized void addLeader(ConnectedPeer leader) {
         boolean needsRemoval = false;
         ArrayList<ConnectedPeer> peersForRemoval = new ArrayList<>();
@@ -71,6 +72,7 @@ public class LeaderSelectAdapter extends BaseAdapter {
     }
 
     public synchronized void removeLeader(ConnectedPeer leader) {
+        Log.d(TAG, "Removing leader " + leader + " from " + leader_list);
         leader_list.remove(leader);
         if (leader_list.isEmpty()) {
             main.showLeaderWaitMsg(true);
@@ -106,7 +108,6 @@ public class LeaderSelectAdapter extends BaseAdapter {
             Log.d(TAG, "Clicked view: " + textView.getText());
             main.getNearbyManager().setSelectedLeader(leader_list.get(position));
             main.showLoginDialog();
-
         });
 
         return convertView;

@@ -49,13 +49,16 @@ public class NearbyPeersManager {
         Log.d(TAG, "startPingThread: ping is now handled by the DNS-SD protocols");
     }
 
-    /*
+    /**
     * Resets the connection information for a manual connection, used when swapping from server discovery
     * back to normal connection mode.
      */
     protected void resetManualInfo() {
         Log.d(TAG, "Resetting manual connection details");
         manInfo = null;
+        if(!main.isGuide) { //do not want the guide to start searching for services
+            discoverLeaders();
+        }
     }
 
     protected void discoverLeaders() {
@@ -85,6 +88,8 @@ public class NearbyPeersManager {
     protected void connectToSelectedLeader() {
         String Name = selectedLeader.getDisplayName();
 
+        Log.e(TAG, "Teacher: " + Name);
+
         if(manInfo == null) {
             ArrayList<NsdServiceInfo> discoveredLeaders = networkAdapter.discoveredLeaders;
             Log.d(TAG, "Leaders array: " + discoveredLeaders.size());
@@ -103,7 +108,7 @@ public class NearbyPeersManager {
                 "again.");
 
         //In case the device is trying to connect manually when not in manual mode
-        if(!main.sessionManual && manInfo != null) {
+        if((!main.sessionManual || !main.directConnection) && manInfo != null) {
             manInfo = null;
         }
 
@@ -117,7 +122,8 @@ public class NearbyPeersManager {
         }
     }
 
-    protected void connectToManualLeader(String IpAddress) {
+    //TODO IpAddress sometimes had a '/' preceding it
+    protected void connectToManualLeader(String leaderName, String IpAddress) {
         Log.d(TAG, "connectToManualLeader: " + IpAddress);
         main.backgroundExecutor.submit(() -> {
             NsdServiceInfo info = new NsdServiceInfo();
@@ -130,12 +136,12 @@ public class NearbyPeersManager {
 
             info.setHost(inetAddress);
             info.setPort(54321);
-            info.setServiceName("Manual#Teacher");
+            info.setServiceName(leaderName + "#Teacher#" + IpAddress);
             info.setServiceType("_http._tcp.");
             Log.d(TAG, "run: "+info);
             manInfo = info;
             networkAdapter.discoveredLeaders.add(info);
-            selectedLeader = new ConnectedPeer("Manual", IpAddress);
+            selectedLeader = new ConnectedPeer(leaderName, IpAddress);
             main.runOnUiThread(this::connectToSelectedLeader);
         });
     }
