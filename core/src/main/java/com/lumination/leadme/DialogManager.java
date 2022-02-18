@@ -44,7 +44,7 @@ public class DialogManager {
     private View confirmPushDialogView, loginDialogView, toggleBtnView, manView, permissionDialogView, requestDialogView, fileTypeDialogView;
     private AlertDialog warningDialog, waitingDialog, appPushDialog, confirmPushDialog, studentAlertsDialog, loginDialog, recallPrompt, manualDialog, permissionDialog, requestDialog, fileTypeDialog;
     private TextView appPushMessageView, warningDialogTitle, warningDialogMessage, recallMessage, permissionDialogMessage, requestDialogMessage, fileTypeDialogMessage;
-    private Button appPushBtn, selectedBtn, everyoneBtn;
+    private Button appPushBtn;
     private String appPushPackageName, appPushTitle;
     private ArrayList<String> permissions = null;
 
@@ -97,6 +97,7 @@ public class DialogManager {
         setupLoginDialogView();
         setupLoginDialog();
         setupManualDialog();
+        setupRecallDialog();
         setupFileTypes();
         setupRequestDialog();
     }
@@ -126,6 +127,8 @@ public class DialogManager {
             hideAppPushDialogView();
             showConfirmPushDialog(true, false);
         });
+
+        setupPushToggle(appPushDialogView, false);
 
         appPushDialogView.findViewById(R.id.back_btn).setOnClickListener(v -> hideAppPushDialogView());
     }
@@ -444,22 +447,9 @@ public class DialogManager {
         if (appPushMessageView == null) {
             appPushMessageView = appPushDialogView.findViewById(R.id.push_confirm_txt);
             appPushBtn = appPushDialogView.findViewById(R.id.push_btn);
-
-            appPushDialogView.findViewById(R.id.everyone_btn).setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    setSelectedOrEveryoneBtn(false);
-                }
-            });
-
-            appPushDialogView.findViewById(R.id.selected_btn).setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    setSelectedOrEveryoneBtn(true);
-                }
-            });
-            setSelectedOrEveryoneBtn(true);
         }
+
+        toggleSelectedView(appPushDialogView);
 
         //display push
         if (appPushDialog == null) {
@@ -478,33 +468,6 @@ public class DialogManager {
             dialogShowing = false;
             appPushDialog.dismiss();
 
-        }
-    }
-
-    @SuppressLint("UseCompatLoadingForDrawables")
-    private void setSelectedOrEveryoneBtn(boolean selected) {
-        if (!selected) {
-            appPushDialogView.findViewById(R.id.everyone_btn).setBackground(resources.getDrawable(R.drawable.bg_passive_left, null));
-            ((Button) appPushDialogView.findViewById(R.id.everyone_btn)).setCompoundDrawablesRelativeWithIntrinsicBounds(R.drawable.icon_fav_star_check, 0, 0, 0);
-
-            appPushDialogView.findViewById(R.id.selected_btn).setBackground(resources.getDrawable(R.drawable.bg_passive_right_white, null));
-            ((Button) appPushDialogView.findViewById(R.id.selected_btn)).setCompoundDrawablesWithIntrinsicBounds(0, 0, 0, 0);
-            appPushBtn.setText(resources.getString(R.string.push_this_to_everyone));
-            ((Button) appPushDialogView.findViewById(R.id.selected_btn)).setElevation(Math.round(TypedValue.applyDimension(
-                    TypedValue.COMPLEX_UNIT_DIP, 5, resources.getDisplayMetrics())));
-            ((Button) appPushDialogView.findViewById(R.id.everyone_btn)).setElevation(0);
-
-
-        } else {
-            appPushDialogView.findViewById(R.id.everyone_btn).setBackground(resources.getDrawable(R.drawable.bg_passive_left_white, null));
-            ((Button) appPushDialogView.findViewById(R.id.everyone_btn)).setCompoundDrawablesWithIntrinsicBounds(0, 0, 0, 0);
-
-            appPushDialogView.findViewById(R.id.selected_btn).setBackground(resources.getDrawable(R.drawable.bg_passive_right, null));
-            ((Button) appPushDialogView.findViewById(R.id.selected_btn)).setCompoundDrawablesWithIntrinsicBounds(R.drawable.icon_fav_star_check, 0, 0, 0);
-            appPushBtn.setText(resources.getString(R.string.push_this_to_selected));
-            ((Button) appPushDialogView.findViewById(R.id.everyone_btn)).setElevation(Math.round(TypedValue.applyDimension(
-                    TypedValue.COMPLEX_UNIT_DIP, 5, resources.getDisplayMetrics())));
-            ((Button) appPushDialogView.findViewById(R.id.selected_btn)).setElevation(0);
         }
     }
 
@@ -631,6 +594,34 @@ public class DialogManager {
     }
 
     /**
+     * Setup the recall function for returning students to the LeadMe home screen.
+     */
+    public void setupRecallDialog() {
+        View recallView = View.inflate(main, R.layout.e__recall_confirm_popup, null);
+        recallMessage = recallView.findViewById(R.id.recall_comment);
+
+        toggleBtnView = recallView.findViewById(R.id.toggleBtnView);
+
+        recallView.findViewById(R.id.ok_btn).setOnClickListener(v -> {
+            main.returnToAppFromMainAction(main.getSelectedOnly());
+            dialogShowing = false;
+            recallPrompt.dismiss();
+        });
+
+        recallView.findViewById(R.id.back_btn).setOnClickListener(v -> {
+            dialogShowing = false;
+            recallPrompt.dismiss();
+        });
+
+        setupPushToggle(recallView, true);
+
+        recallPrompt = new AlertDialog.Builder(main)
+                .setView(recallView)
+                .create();
+        recallPrompt.setOnDismissListener(dialog -> hideSystemUI());
+    }
+
+    /**
      * Display an AlertDialog for confirming a recall of peers back to LeadMe.
      */
     public void showRecallDialog() {
@@ -638,37 +629,12 @@ public class DialogManager {
         Log.w(TAG, "Showing recall dialog");
 
         if (recallPrompt == null) {
-            View recallView = View.inflate(main, R.layout.e__recall_confirm_popup, null);
-            recallMessage = recallView.findViewById(R.id.recall_comment);
-            toggleBtnView = recallView.findViewById(R.id.toggleBtnView);
-            selectedBtn = recallView.findViewById(R.id.selected_btn);
-            everyoneBtn = recallView.findViewById(R.id.everyone_btn);
-
-            recallView.findViewById(R.id.ok_btn).setOnClickListener(v -> {
-                main.returnToAppFromMainAction(main.returnEveryone);
-                dialogShowing = false;
-                recallPrompt.dismiss();
-            });
-
-            recallView.findViewById(R.id.back_btn).setOnClickListener(v -> {
-                dialogShowing = false;
-                recallPrompt.dismiss();
-            });
-
-            recallView.findViewById(R.id.selected_btn).setOnClickListener(v -> makeSelectedBtnActive());
-
-            recallView.findViewById(R.id.everyone_btn).setOnClickListener(v -> makeEveryoneBtnActive());
-
-            recallPrompt = new AlertDialog.Builder(main)
-                    .setView(recallView)
-                    .create();
-            recallPrompt.setOnDismissListener(dialog -> hideSystemUI());
+            setupRecallDialog();
         }
 
         if (main.getConnectedLearnersAdapter().someoneIsSelected() && (main.getNearbyManager().getSelectedPeerIDs().size() < main.getNearbyManager().getAllPeerIDs().size())) {
             recallMessage.setText(resources.getString(R.string.recall_comment_selected));
             toggleBtnView.setVisibility(View.VISIBLE);
-            makeSelectedBtnActive();
         } else {
             recallMessage.setText(resources.getString(R.string.recall_comment_all));
             toggleBtnView.setVisibility(View.GONE);
@@ -678,20 +644,61 @@ public class DialogManager {
         dialogShowing = true;
     }
 
-    private void makeSelectedBtnActive() {
-        main.returnEveryone = false;
+    /**
+     * Control the visibility of the selected or everyone button in reference to pushing actions to
+     * learners.
+     * @param preview A view representing the action layout.
+     * @param recall A boolean representing if the related dialog is the recall function.
+     */
+    public void setupPushToggle(View preview, boolean recall) {
+        Button selectedBtn = preview.findViewById(R.id.selected_btn);
+        Button everyoneBtn = preview.findViewById(R.id.everyone_btn);
+        Button pushBtn = recall ? null : preview.findViewById(R.id.push_btn);
+
+        selectedBtn.setOnClickListener(v -> {
+            main.setSelectedOnly(true);
+            makeSelectedBtnActive(selectedBtn, everyoneBtn);
+            if (pushBtn != null) {
+                pushBtn.setText(main.getResources().getString(R.string.push_this_to_selected));
+            }
+        });
+
+        everyoneBtn.setOnClickListener(v -> {
+            main.setSelectedOnly(false);
+            makeEveryoneBtnActive(selectedBtn, everyoneBtn);
+            if (pushBtn != null) {
+                pushBtn.setText(main.getResources().getString(R.string.push_this_to_everyone));
+            }
+        });
+
+        everyoneBtn.callOnClick(); //Makes everyone the default each time a dialog is loaded.
+    }
+
+    private void makeSelectedBtnActive(Button selectedBtn, Button everyoneBtn) {
         selectedBtn.setBackground(ResourcesCompat.getDrawable(resources, R.drawable.bg_active_right, null));
         everyoneBtn.setBackground(ResourcesCompat.getDrawable(resources, R.drawable.bg_passive_left, null));
         selectedBtn.setTextColor(resources.getColor(R.color.leadme_light_grey, null));
         everyoneBtn.setTextColor(resources.getColor(R.color.light, null));
     }
 
-    private void makeEveryoneBtnActive() {
-        main.returnEveryone = true;
+    private void makeEveryoneBtnActive(Button selectedBtn, Button everyoneBtn) {
         selectedBtn.setBackground(ResourcesCompat.getDrawable(resources, R.drawable.bg_passive_right, null));
         everyoneBtn.setBackground(ResourcesCompat.getDrawable(resources, R.drawable.bg_active_left, null));
         everyoneBtn.setTextColor(resources.getColor(R.color.leadme_light_grey, null));
         selectedBtn.setTextColor(resources.getColor(R.color.light, null));
+    }
+
+    /**
+     * If a user is selected display the selection buttons to the guide so they can choose whether
+     * to launch the experience for just the selected or for everyone. Does not appear if there is
+     * only one learner.
+     * @param preview A view representing the action layout.
+     */
+    public void toggleSelectedView(View preview) {
+        View toggleSelectedBtn = preview.findViewById(R.id.toggleBtnView);
+        toggleSelectedBtn.setVisibility(main.getConnectedLearnersAdapter().someoneIsSelected()
+                && (main.getNearbyManager().getSelectedPeerIDs().size() < main.getNearbyManager().getAllPeerIDs().size())
+                ? View.VISIBLE : View.GONE);
     }
 
     /**
