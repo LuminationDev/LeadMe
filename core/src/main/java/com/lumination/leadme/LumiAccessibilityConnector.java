@@ -67,7 +67,7 @@ public class LumiAccessibilityConnector {
         List<CharSequence> nodes = getAllChildNodeText(rootWindow);
 
         for(CharSequence node : nodes) {
-            Log.e("SCREEN NODE", "Node: " + node);
+            Log.e(TAG, "Node: " + node);
         }
     }
 

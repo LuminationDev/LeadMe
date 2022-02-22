@@ -2750,12 +2750,11 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     }
 
     //main function, can return everyone or only selected learners
-    public void returnToAppFromMainAction(boolean returnEveryone) {
+    public void returnToAppFromMainAction(boolean returnSelected) {
         Log.d(TAG, "Returning to app from MAIN! " + appHasFocus + ", " + hasWindowFocus());
-        //String connections = getNearbyManager().getSelectedPeerIDsAsString();
 
         Set<String> chosenPeers;
-        if (!returnEveryone && getConnectedLearnersAdapter().someoneIsSelected()) {
+        if (returnSelected && getConnectedLearnersAdapter().someoneIsSelected()) {
             chosenPeers = getNearbyManager().getSelectedPeerIDs();
         } else {
             chosenPeers = getNearbyManager().getAllPeerIDs();
