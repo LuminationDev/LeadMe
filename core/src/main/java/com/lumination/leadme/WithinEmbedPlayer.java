@@ -2,7 +2,6 @@ package com.lumination.leadme;
 
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
-import android.content.DialogInterface;
 import android.content.res.ColorStateList;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
@@ -168,7 +167,9 @@ public class WithinEmbedPlayer {
         }
 
         // chromium, enable hardware acceleration
-        tmpWebView.setLayerType(View.LAYER_TYPE_HARDWARE, null);
+//        tmpWebView.setLayerType(View.LAYER_TYPE_HARDWARE, null);
+
+        tmpWebView.setLayerType(View.LAYER_TYPE_SOFTWARE, null);
 
         // this is required to show the video preview
         tmpWebView.getSettings().setDomStorageEnabled(true);
@@ -177,7 +178,7 @@ public class WithinEmbedPlayer {
         tmpWebView.getSettings().setJavaScriptCanOpenWindowsAutomatically(true);
         tmpWebView.getSettings().setAllowFileAccess(true);
         tmpWebView.getSettings().setAllowUniversalAccessFromFileURLs(true);
-        tmpWebView.getSettings().setPluginState(WebSettings.PluginState.ON);
+        tmpWebView.getSettings().setPluginState(WebSettings.PluginState.OFF);
         tmpWebView.getSettings().setAllowContentAccess(true);
         tmpWebView.getSettings().setLoadsImagesAutomatically(true);
 
@@ -410,6 +411,7 @@ public class WithinEmbedPlayer {
         });
 
         withinControllerDialogView.findViewById(R.id.new_video).setOnClickListener(v -> {
+            controllerWebView.loadUrl("about:blank");
             resetControllerState();
             videoControlDialog.dismiss();
             showWithinSearch();
@@ -553,6 +555,7 @@ public class WithinEmbedPlayer {
             loadVideoGuideURL(foundURL); //display embedded version;
         }
 
+        videoControlDialog.setCancelable(false);
         videoControlDialog.show();
         //return to main screen
         main.getDialogManager().hideConfirmPushDialog();
@@ -563,7 +566,9 @@ public class WithinEmbedPlayer {
             internetUnavailableMsg.setVisibility(View.GONE);
             controllerWebView.setVisibility(View.VISIBLE);
             Log.d(TAG, "Attempting to load " + url + " on controller");
+
             controllerWebView.loadDataWithBaseURL(null, getiFrameData(url), "text/html", "UTF-8", null);
+
             //update check if appropriate
             favCheck.setEnabled(true);
             favCheck.setChecked(main.getWebManager().getYouTubeFavouritesManager().isInFavourites(foundURL));

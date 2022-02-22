@@ -596,15 +596,13 @@ public class DispatchManager {
 
             TextView newName = NameChangeRequest.findViewById(R.id.name_request_newname);
             Button confirm = NameChangeRequest.findViewById(R.id.name_request_confirm);
-            confirm.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    if(newName.getText()!=null && newName.getText().toString().length()>0){
-                        TextView title = main.leadmeAnimator.getCurrentView().findViewById(R.id.learner_title);
-                        title.setText(newName.getText().toString());
-                        sendActionToSelected(LeadMeMain.ACTION_TAG,LeadMeMain.NAME_REQUEST+newName.getText().toString()+":"+main.getNearbyManager().getID(),main.getNearbyManager().getAllPeerIDs());
-                        studentNameChangeRequest.dismiss();
-                    }
+            confirm.setOnClickListener(v -> {
+                String name = newName.getText().toString();
+                if(newName.getText() != null && name.length() > 0){
+                    main.getNearbyManager().myName = name;
+                    main.changeStudentName(name);
+                    sendActionToSelected(LeadMeMain.ACTION_TAG,LeadMeMain.NAME_REQUEST+name+":"+main.getNearbyManager().getID(),main.getNearbyManager().getAllPeerIDs());
+                    studentNameChangeRequest.dismiss();
                 }
             });
         }
@@ -632,8 +630,7 @@ public class DispatchManager {
         private void nameChange(String action) {
             String[] Strsplit = action.split(":");
             main.getNearbyManager().myName=Strsplit[1];
-            TextView title = main.leadmeAnimator.getCurrentView().findViewById(R.id.learner_title);
-            title.setText(Strsplit[1]);
+            main.changeStudentName(Strsplit[1]);
         }
 
         /**
@@ -834,10 +831,10 @@ public class DispatchManager {
             Toast.makeText(main.getApplicationContext(), "Application needed on peer: " + split[3], Toast.LENGTH_SHORT).show();
 
             //TODO AUTO INSTALLER - uncomment below to enable auto installer
-            main.getLumiAppInstaller().peersToInstall.add(split[3]);
+            //main.getLumiAppInstaller().peersToInstall.add(split[3]);
 
             //open a dialog to confirm if wanting to install apps
-            main.getLumiAppInstaller().applicationsToInstallWarning(split[1], split[2], false); //should auto update number of devices need as the action come in
+            //main.getLumiAppInstaller().applicationsToInstallWarning(split[1], split[2], false); //should auto update number of devices need as the action come in
         }
 
         /**

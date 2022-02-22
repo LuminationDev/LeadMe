@@ -138,7 +138,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     static final String LOCK_TAG = "LumiLock";
     static final String UNLOCK_TAG = "LumiUnlock";
     static final String BLACKOUT_TAG = "LumiBlackout";
-    static final String APP_LOCK_TAG = "LumiWakeLock";
 
     static final String DISCONNECTION = "LumiDisconnect";
     static final String TRANSFER_ERROR = "LumiTransferError";
@@ -208,7 +207,10 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     private SharedPreferences sharedPreferences;
     //sessionUUID to enable disconnect/reconnect as same user
     private String sessionUUID = null;
+    //Used to determine if server discovery is on
     public Boolean sessionManual = null;
+    //Used to determine if connecting through direct IP input
+    public Boolean directConnection = false;
 
     private InputMethodManager imm;
     private LumiAccessibilityConnector lumiAccessibilityConnector;
@@ -231,7 +233,8 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
     /**
      * A String representing the last source pushed by the leader to a learner,
-     * saved in case a learners requests a file transfer. Used for Xiaomi 8 SE
+     * saved in case a learners requests a file transfer. Used for devices with MIUI version 9.5
+     * and below.
      */
     public String vrVideoPath;
 
@@ -268,7 +271,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     private TextView learnerWaitingText;
     public Button alertsBtn;
     private Button leader_toggle, learner_toggle;
-    private ImageView logo, studentImg;
+    private ImageView logo;
     private GridView connectedStudentsView;
 
     //Checking for updates on the Play Store
@@ -291,6 +294,8 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     protected WifiManager wifiManager;
     private XrayManager xrayManager;
     private AppInstaller lumiAppInstaller;
+
+    private Switch serverDiscoveryToggle = null;
 
     //File transfer
     public Boolean fileTransferEnabled = false; //hard coded so have to enable each session
@@ -315,6 +320,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
     boolean allowHide = false;
     ScheduledExecutorService scheduledExecutorService = new ScheduledThreadPoolExecutor(1);
+
     public ExecutorService backgroundExecutor = Executors.newCachedThreadPool();
     /**
      * Used exclusively for handling messages from a server on learner devices
@@ -903,9 +909,9 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             //do a delayed check to give Android OS time
             //to catch up from a permission being set
             if (!overlayInitialised) {
-                getHandler().postDelayed(() -> {
-                    getDispatcher().alertGuidePermissionGranted(LeadMeMain.STUDENT_NO_OVERLAY, permissionManager.isOverlayPermissionGranted());
-                }, 1000);
+                getHandler().postDelayed(() ->
+                        getDispatcher().alertGuidePermissionGranted(LeadMeMain.STUDENT_NO_OVERLAY, permissionManager.isOverlayPermissionGranted()),
+                        1000);
             }
 
             //check it again
@@ -954,9 +960,11 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         manageFocus();
     }
 
+    //TODO This is called and then there is no app recall?
     @OnLifecycleEvent(Lifecycle.Event.ON_STOP)
     public void onLifecycleStop() {
         Log.w(TAG, "LC Stop");
+        Log.d(TAG, "LeadMe: " + leadMePackageName + " Current package:" + currentTaskPackageName);
         appHasFocus = false;
         if (!permissionManager.waitingForPermission
                 && currentTaskPackageName != null && currentTaskPackageName.equals(leadMePackageName)
@@ -1027,7 +1035,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                         }
                     }
 
-                    //if we have launched at least one thing previously, we might want to reset the task icon to LeadMe
+                //if we have launched at least one thing previously, we might want to reset the task icon to LeadMe
                 } else if (currentTaskPackageName != null) {
                     Log.e(TAG, "IS NOW A GOOD TIME TO UPDATE TO TASK ICON??");
                     getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.LAUNCH_SUCCESS + currentTaskPackageName + ":" + getNearbyManager().getID() + ":" + currentTaskPackageName, getNearbyManager().getAllPeerIDs());
@@ -1075,11 +1083,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         destroying = true;
         init = false;
 
-//        if (wakeLock.isHeld()) {
-//                wakeLock.release(); //release this when the app is destroyed
-//            }
-        //getLumiAccessibilityService().disableSelf(); //manually turn off the Accessibility Service
-
         if (accessibilityReceiver != null) {
             try {
                 unregisterReceiver(accessibilityReceiver); //stop listening for re-broadcast intents
@@ -1094,8 +1097,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         isGuide = false;
         isReadyToConnect = false;
         getNearbyManager().onStop();
-        getNearbyManager().stopAdvertising();
-        getNearbyManager().disconnectFromAllEndpoints();
 
         //remove the overlay if necessary
         if (overlayView != null && overlayView.isAttachedToWindow()) {
@@ -1177,7 +1178,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
         //TODO needs to be signed into play store - have to add exception handling
 //        checkForUpdates();
-
         checkSharedPreferences();
         inflateViews();
         createAdapters();
@@ -1197,11 +1197,19 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         setupMenuButtons();
         setupOptionsScreen();
         prepareConnectionElements();
+        checkAppVersion();
 
         xrayManager.screenshotManager = new ScreenshotManagerBuilder(this).withPermissionRequestCode(REQUEST_SCREENSHOT_PERMISSION) //optional, 888 is the default
                 .build();
 
         firstTimeUser();
+    }
+
+    /**
+     * Check the firebase for the most current version number.
+     */
+    private void checkAppVersion() {
+        authenticationManager.checkCurrentVersion();
     }
 
     /**
@@ -1443,11 +1451,11 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         layoutParams.height = appGrid.getMeasuredHeight(); //this is in pixels
         appGrid.setLayoutParams(layoutParams);
         ((GridView) appLauncherScreen.findViewById(R.id.fav_list_grid)).setAdapter(getFavouritesManager());
-        ((LinearLayout) appLauncherScreen.findViewById(R.id.current_task_layout)).setVisibility(View.GONE);
-        ((TextView) appLauncherScreen.findViewById(R.id.text_current_task)).setVisibility(View.GONE);
+        (appLauncherScreen.findViewById(R.id.current_task_layout)).setVisibility(View.GONE);
+        (appLauncherScreen.findViewById(R.id.text_current_task)).setVisibility(View.GONE);
         ((ListView) startLearner.findViewById(R.id.leader_list_view)).setAdapter(getLeaderSelectAdapter());
 
-        ((ImageView) appLauncherScreen.findViewById(R.id.repush_btn)).setOnClickListener((View.OnClickListener) v -> {
+        (appLauncherScreen.findViewById(R.id.repush_btn)).setOnClickListener(v -> {
             Log.d(TAG, "Repushing " + lastAppID);
             //VR player needs to select the source before reopening, handle just like fresh start.
             if(lastAppID.equals(VREmbedPlayer.packageName)) {
@@ -1493,40 +1501,40 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         //TODO VR PLAYER, AUTO INSTALLER AND FILE TRANSFER
         //Code in LeadMe Main & AppManager
         //multi install button
-        mainLeader.findViewById(R.id.installer_core_btn).setOnClickListener(view -> {
-            if(autoInstallApps) {
-                getLumiAppInstaller().showMultiInstaller(layoutParams);
-            } else {
-                dialogManager.showWarningDialog("Auto Installer", "Auto installing has not been enabled.");
-            }
-        });
-
-        //file transfer button
-        mainLeader.findViewById(R.id.file_core_btn).setOnClickListener(view -> {
-            if(!getConnectedLearnersAdapter().someoneIsSelected()) {
-                Toast.makeText(context, "Peers need to be selected.", Toast.LENGTH_LONG).show();
-                return;
-            }
-
-            if(fileTransferEnabled) {
-                if(isMiUiV9()) {
-                    alternateFileChoice(TRANSFER_FILE_CHOICE);
-                } else {
-                    FileUtilities.browseFiles(this, TRANSFER_FILE_CHOICE);
-                }
-            } else {
-                dialogManager.showWarningDialog("File Transfer", "File transfer has not been enabled.");
-            }
-        });
-
-        //Custom VR button
-        mainLeader.findViewById(R.id.vr_core_btn).setOnClickListener(view -> {
-            if(vrVideoPath == null) {
-                getVrEmbedPlayer().showPlaybackPreview();
-            } else {
-                getVrEmbedPlayer().openVideoController();
-            }
-        });
+//        mainLeader.findViewById(R.id.installer_core_btn).setOnClickListener(view -> {
+//            if(autoInstallApps) {
+//                getLumiAppInstaller().showMultiInstaller(layoutParams);
+//            } else {
+//                dialogManager.showWarningDialog("Auto Installer", "Auto installing has not been enabled.");
+//            }
+//        });
+//
+//        //file transfer button
+//        mainLeader.findViewById(R.id.file_core_btn).setOnClickListener(view -> {
+//            if(!getConnectedLearnersAdapter().someoneIsSelected()) {
+//                Toast.makeText(context, "Peers need to be selected.", Toast.LENGTH_LONG).show();
+//                return;
+//            }
+//
+//            if(fileTransferEnabled) {
+//                if(isMiUiV9()) {
+//                    alternateFileChoice(TRANSFER_FILE_CHOICE);
+//                } else {
+//                    FileUtilities.browseFiles(this, TRANSFER_FILE_CHOICE);
+//                }
+//            } else {
+//                dialogManager.showWarningDialog("File Transfer", "File transfer has not been enabled.");
+//            }
+//        });
+//
+//        //Custom VR button
+//        mainLeader.findViewById(R.id.vr_core_btn).setOnClickListener(view -> {
+//            if(vrVideoPath == null) {
+//                getVrEmbedPlayer().showPlaybackPreview();
+//            } else {
+//                getVrEmbedPlayer().openVideoController();
+//            }
+//        });
         //TODO End section
     }
 
@@ -1578,7 +1586,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             }
         }
 
-        Log.e(TAG, "MIUI version: " + line);
+        Log.d(TAG, "MIUI version: " + line);
         return line;
     }
 
@@ -1718,24 +1726,19 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         });
 
         //change the shared preferences, do the rest on login for guide or learner button select
-        Switch manualToggle = optionsScreen.findViewById(R.id.server_discovery);
-        manualToggle.setChecked(sessionManual);
-        manualToggle.setOnCheckedChangeListener((buttonView, isChecked) -> {
+        serverDiscoveryToggle = optionsScreen.findViewById(R.id.server_discovery);
+        serverDiscoveryToggle.setChecked(sessionManual);
+        serverDiscoveryToggle.setOnCheckedChangeListener((buttonView, isChecked) -> {
             //Guide or student needs internet to access firebase database
             if(!PermissionManager.isInternetAvailable(context)) {
                 dialogManager.showWarningDialog("Currently Offline", "No internet access detected. Please connect to continue."
                         + "\n\n Note: Try our new manual connection feature if you're having trouble");
-                manualToggle.setChecked(false);
+                serverDiscoveryToggle.setChecked(false);
                 return;
             }
 
             //Learner cannot switch while logged in
             switchManualPreference(sharedPreferences, isChecked);
-
-            if(!isChecked) {
-                //reset manual connection info (switching between session discovery and other
-                nearbyManager.resetManualInfo();
-            }
         });
 
         //change the shared preferences for auto installing student devices
@@ -1749,7 +1752,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                 Toast.makeText(context, "Auto Installing now enabled.", Toast.LENGTH_SHORT).show();
             }
 
-            //TODO for shared preference settings
             SharedPreferences.Editor editor = sharedPreferences.edit();
             autoInstallApps = isChecked;
             editor.putBoolean(AUTO_INSTALL, autoInstallApps);
@@ -1771,7 +1773,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                 Toast.makeText(context, "File transfer is now enabled.", Toast.LENGTH_SHORT).show();
             }
 
-            //TODO for shared preference settings
             SharedPreferences.Editor editor = sharedPreferences.edit();
             fileTransferEnabled = isChecked;
             editor.putBoolean(FILE_TRANSFER, fileTransferEnabled);
@@ -1783,7 +1784,8 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         });
 
         //direct ip input connection
-        optionsScreen.findViewById(R.id.manual_connect).setOnClickListener(view -> {
+        TextView manualConnect = optionsScreen.findViewById(R.id.manual_connect);
+        manualConnect.setOnClickListener(view -> {
             String ipAddress = null;
             try {
                 ipAddress = InetAddress.getByAddress(
@@ -1844,7 +1846,9 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         }
 
         learner_toggle.setOnClickListener(v -> {
-            initiateLeaderDiscovery();
+            if(!sessionManual) {
+                initiateLeaderDiscovery();
+            }
             displayLearnerStartToggle();
             if (getAuthenticationManager().getCurrentAuthUser() == null) {
                 dialogManager.changeLoginViewOptions(View.GONE, View.GONE, View.VISIBLE);
@@ -1960,10 +1964,16 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             }
 
             getAuthenticationManager().createManualConnection(ipAddress);
+
+        } else if(!isManual) {
+            //reset manual connection info (switching between session discovery and other
+            nearbyManager.resetManualInfo();
+            getAuthenticationManager().removeUserListener();
+
+            if (!isGuide && !nearbyManager.isDiscovering()) {
+                initiateLeaderDiscovery();
+            }
         }
-//        else {
-            //remove listeners for followers
-//        }
     }
 
     public void composeEmail(String[] addresses, String subject) {
@@ -1997,14 +2007,14 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         if (indeterminate != null) {
             if (Time > 0) {
                 runOnUiThread(() -> indeterminate.setVisibility(View.VISIBLE));
-                scheduledExecutorService.schedule((Runnable) () -> runOnUiThread(() -> indeterminate.setVisibility(View.INVISIBLE)), (long) Time, TimeUnit.MILLISECONDS);
+                scheduledExecutorService.schedule(() -> runOnUiThread(() -> indeterminate.setVisibility(View.INVISIBLE)), Time, TimeUnit.MILLISECONDS);
             }
         }
         return indeterminate;
     }
 
     public void setAlertsBtnVisibility(int visibility) {
-        alertsBtn.setVisibility(View.VISIBLE);
+        alertsBtn.setVisibility(visibility);
     }
 
     /**
@@ -2166,26 +2176,36 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         } else if (!isGuide) {
             //only need this if we're a follower
             if (!permissionManager.isOverlayPermissionGranted()) {
-                //permissionManager.checkOverlayPermissions();
+//                permissionManager.checkOverlayPermissions();
             } else {
                 initialiseOverlayView();
             }
         }
     }
 
+    /**
+     * Empty the current leader list and start discovery of leaders using the Nsd Manager.
+     */
     public void initiateLeaderDiscovery() {
         Log.d(TAG, "Initiating Leader Discovery");
+        getLeaderSelectAdapter().setLeaderList(new ArrayList<>());
         isReadyToConnect = true;
         getNearbyManager().discoverLeaders();
     }
 
     //MANUAL CONNECTION FOR LEARNERS
+    /**
+     * Empty the current leader list and stop any Nsd discovery. Start the client socket listener
+     * and retrieve any a snapshot from Firebase with any leaders that are currently active.
+     */
     public void initiateManualLeaderDiscovery() {
         Log.d(TAG, "Initiating Manual Leader Discovery");
+        getLeaderSelectAdapter().setLeaderList(new ArrayList<>());
         isReadyToConnect = true;
-        if (!nearbyManager.isDiscovering()) {
-            getNearbyManager().networkAdapter.startDiscovery();
+        if (nearbyManager.isDiscovering()) {
+            getNearbyManager().networkAdapter.stopDiscovery();
         }
+        getNearbyManager().networkAdapter.startClientInputListener();
         getAuthenticationManager().retrieveLeaders();
     }
 
@@ -2262,9 +2282,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         getDispatcher().alertLogout(); //need to send this before resetting 'isGuide'
         getNearbyManager().networkAdapter.resetClientIDs();
         getConnectedLearnersAdapter().resetOnLogout();
-        getNearbyManager().onStop();
-        getNearbyManager().stopAdvertising();
-        getNearbyManager().disconnectFromAllEndpoints(); //disconnect everyone
+        getNearbyManager().onStop(); //disconnect everyone
         getLeaderSelectAdapter().setLeaderList(new ArrayList<>()); //empty the list
         setUIDisconnected();
         showSplashScreen();
@@ -2274,13 +2292,10 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
     boolean loginAttemptInAction = false;
 
-    // protected PowerManager.WakeLock wakeLock;
-
     void loginAction(boolean isManual) {
         Log.w(TAG, "LOGGING IN " + nearbyManager.getName());
-        //   wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, TAG + ":" + APP_LOCK_TAG);
-        //  wakeLock.acquire(); //this is to keep the device alive while logged in to LeadMe
         loginAttemptInAction = true;
+
         //if all permissions are already granted, just continue
         if(isManual){
             leaderLearnerSwitcher.setDisplayedChild(SWITCH_LEARNER_INDEX);
@@ -2312,9 +2327,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         }
         Log.d(TAG, "Your name is " + name + ", are you a guide? " + isGuide);
 
-        ((TextView) optionsScreen.findViewById(R.id.student_name)).setText(name);
-        optionsScreen.findViewById(R.id.connected_only_view).setVisibility(View.VISIBLE);
-
         leaderAdditionalOptions(isGuide ? View.VISIBLE : View.GONE);
 
         if (isGuide) {
@@ -2322,9 +2334,12 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             leadmeAnimator.setDisplayedChild(ANIM_LEADER_INDEX);
 
             //update options
-            ((TextView) optionsScreen.findViewById(R.id.logout_btn)).setTextColor(getResources().getColor(R.color.light, null));
-            TextView title = leadmeAnimator.getCurrentView().findViewById(R.id.leader_title);
+            TextView title = mainLeader.findViewById(R.id.leader_title);
             title.setText("Hi " + name + "!");
+
+            optionsScreen.findViewById(R.id.connected_only_view).setVisibility(View.VISIBLE);
+            ((TextView) optionsScreen.findViewById(R.id.user_name)).setText(name);
+            ((TextView) optionsScreen.findViewById(R.id.logout_btn)).setTextColor(getResources().getColor(R.color.light, null));
             ((TextView) optionsScreen.findViewById(R.id.connected_as_role)).setText(getResources().getText(R.string.leader));
             ((TextView) optionsScreen.findViewById(R.id.connected_as_role)).setTextColor(getResources().getColor(R.color.accent, null));
 
@@ -2359,19 +2374,24 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             leadmeAnimator.setDisplayedChild(ANIM_LEARNER_INDEX);
             allowHide = true;
             handler.postDelayed(this::hideSystemUIStudent, 1000);
+
+            changeStudentName(name);
+
             //update options
             ((TextView) optionsScreen.findViewById(R.id.logout_btn)).setTextColor(getResources().getColor(R.color.leadme_medium_grey, null));
-            TextView title = leadmeAnimator.getCurrentView().findViewById(R.id.learner_title);
-            title.setText(name);
             ((TextView) optionsScreen.findViewById(R.id.connected_as_role)).setText(getResources().getText(R.string.learner));
             ((TextView) optionsScreen.findViewById(R.id.connected_as_role)).setTextColor(getResources().getColor(R.color.medium, null));
-
-            //remove the Firebase listener if connection was manual
-            getAuthenticationManager().removeUserListener();
-
-            //NOTE: this may cause an issue as it was inside the above function to being with...
-            getNearbyManager().networkAdapter.stopDiscovery();
         }
+    }
+
+    /**
+     * Set or change a students name on a learner device. Used in login action as well as name
+     * change requests.
+     * @param name A string representing the name that is to be set.
+     */
+    public void changeStudentName(String name) {
+        ((TextView) optionsScreen.findViewById(R.id.user_name)).setText(name);
+        ((TextView) mainLearner.findViewById(R.id.learner_title)).setText(name);
     }
 
     /**
@@ -2386,8 +2406,17 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         optionsScreen.findViewById(R.id.help_support_btn).setVisibility(enabled);
 
         //TODO AUTO next update variables. do not include in the production just yet
-        autoToggle.setVisibility(enabled);
-        transferToggle.setVisibility(enabled);
+//        autoToggle.setVisibility(enabled);
+//        transferToggle.setVisibility(enabled);
+    }
+
+    /**
+     * Disabling or enabling the visibility of connection options for learner devices, the connection
+     * options should not be available if the learner is already signed in.
+     * @param enabled An int representing if the views are to be enabled or disabled.
+     */
+    public void toggleConnectionOptions(int enabled) {
+        optionsScreen.findViewById(R.id.help_menu).setVisibility(enabled);
     }
 
     /**
@@ -2721,12 +2750,11 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     }
 
     //main function, can return everyone or only selected learners
-    public void returnToAppFromMainAction(boolean returnEveryone) {
+    public void returnToAppFromMainAction(boolean returnSelected) {
         Log.d(TAG, "Returning to app from MAIN! " + appHasFocus + ", " + hasWindowFocus());
-        //String connections = getNearbyManager().getSelectedPeerIDsAsString();
 
         Set<String> chosenPeers;
-        if (!returnEveryone && getConnectedLearnersAdapter().someoneIsSelected()) {
+        if (returnSelected && getConnectedLearnersAdapter().someoneIsSelected()) {
             chosenPeers = getNearbyManager().getSelectedPeerIDs();
         } else {
             chosenPeers = getNearbyManager().getAllPeerIDs();
@@ -2744,9 +2772,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     public void setUIDisconnected() {
         //reset state
         isReadyToConnect = false; //need to press button first
-//        if (wakeLock.isHeld()) {
-//            wakeLock.release(); //release the wakeLock when disconnected
-//        }
         getLumiAccessibilityConnector().resetState();
 
         cleanDialogs();
@@ -2770,6 +2795,8 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         optionsScreen.findViewById(R.id.connected_only_view).setVisibility(View.GONE);
         ((TextView) optionsScreen.findViewById(R.id.logout_btn)).setTextColor(getResources().getColor(R.color.light, null));
 
+        //Display connection options for learners
+        toggleConnectionOptions(View.VISIBLE);
 
         //display login view
         prepLoginSwitcher();
@@ -2822,7 +2849,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
      * @param message An integer representing the string table value of the text to be set.
      */
     public void setDeviceStatusMessage(int message) {
-        TextView peerDeviceStatus = (TextView) mainLearner.findViewById(R.id.connected_txt);
+        TextView peerDeviceStatus = mainLearner.findViewById(R.id.connected_txt);
         runOnUiThread(() -> peerDeviceStatus.setText(getApplicationContext().getString(message)));
     }
 
@@ -2864,8 +2891,8 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         lastAppID = appID;
         lastLockState = lock;
         Log.d(TAG, "updateLastTask: " + Name);
-        ((LinearLayout) appLauncherScreen.findViewById(R.id.current_task_layout)).setVisibility(View.VISIBLE);
-        ((TextView) appLauncherScreen.findViewById(R.id.text_current_task)).setVisibility(View.VISIBLE);
+        (appLauncherScreen.findViewById(R.id.current_task_layout)).setVisibility(View.VISIBLE);
+        (appLauncherScreen.findViewById(R.id.text_current_task)).setVisibility(View.VISIBLE);
         ((ImageView) appLauncherScreen.findViewById(R.id.current_icon)).setImageDrawable(icon);
         ((TextView) appLauncherScreen.findViewById(R.id.current_app_name)).setText(Name);
         appLauncherScreen.invalidate();
@@ -2874,9 +2901,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
     public void updateLastOffTask() {
         int offTask = getConnectedLearnersAdapter().alertsAdapter.getCount();
-        //String.valueOf(offTask)
         ((TextView) appLauncherScreen.findViewById(R.id.current_offtask)).setText(Html.fromHtml("<font color=#1599F3>" + offTask + "</font><font color=#AFB7CB> may be off task</font>", Html.FROM_HTML_MODE_LEGACY));
-
     }
 
     public void displaySelectBar(int numSelected) {
@@ -3021,11 +3046,10 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             video.setVideoURI(videos[onBoardPage]);
             video.requestFocus();
             video.start();
-            //  pageHolder.setImageResource(imageToDraw[index]);
+
             if (onBoardPage == 4) {
                 skipIntro.setVisibility(View.GONE);
                 nextButton.setVisibility(View.GONE);
-//                onboardPages.setVisibility(View.GONE);
                 buttonsLayout.setVisibility(View.VISIBLE);
                 OnBoard.findViewById(R.id.onboard_ok_btn).setOnClickListener(v1 -> {
                     video.setBackgroundColor(Color.WHITE);
@@ -3122,8 +3146,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
             //Check if LeadMe has focus, only try to connect if in the application
             scheduledCheck = scheduledExecutorService.scheduleAtFixedRate(() -> {
-                Log.e("Focus", String.valueOf(appHasFocus));
-
                 if (appHasFocus) {
                     runOnUiThread(() -> connectOnReturn(page));
                 }
@@ -3141,17 +3163,26 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             scheduledCheck.cancel(true);
         }
 
-        if(page==2 && !sessionManual) {
+        if(page==2 && !sessionManual && !directConnection) {
             getNearbyManager().connectToSelectedLeader();
             dialogManager.showWaitingForConnectDialog();
-        } else if(sessionManual) {
+        } else if(sessionManual || directConnection) {
             //If the serverIP address has not changed set it to the locally found guide
             if(getAuthenticationManager().getServerIP().equals("")) {
                 getAuthenticationManager().setServerIP(getNearbyManager().selectedLeader.getID());
             }
 
-            getNearbyManager().connectToManualLeader(getAuthenticationManager().getServerIP());
+            getNearbyManager().connectToManualLeader(getNearbyManager().selectedLeader.getDisplayName(),
+                    getAuthenticationManager().getServerIP());
+
+            directConnection = false;
         }
+
+        toggleConnectionOptions(View.GONE); //Remove connection options
+        getAuthenticationManager().removeUserListener(); //remove the Firebase listener if connection was manual
+        getNearbyManager().networkAdapter.stopDiscovery();
+
+        optionsScreen.findViewById(R.id.connected_only_view).setVisibility(View.VISIBLE);
 
         screenCap.startService(false);
     }
@@ -3219,7 +3250,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                 if(scheduledExecutorService.isShutdown()){
                     scheduledExecutorService = new ScheduledThreadPoolExecutor(1);
                 }
-                scheduledExecutorService.schedule(() -> runOnUiThread(() -> indeterminate.setVisibility(View.INVISIBLE)), (long) Time, TimeUnit.MILLISECONDS);
+                scheduledExecutorService.schedule(() -> runOnUiThread(() -> indeterminate.setVisibility(View.INVISIBLE)), Time, TimeUnit.MILLISECONDS);
             }
         }
     }
@@ -3628,7 +3659,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
      * @param peerID A string representing the ID of the disconnected peer.
      */
     public void disconnection(String peerID) {
-        Log.e(TAG, "Sending disconnection");
         getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG,
                 LeadMeMain.DISCONNECTION + ":" + peerID,
                 getNearbyManager().getSelectedPeerIDsOrAll());
@@ -3735,11 +3765,11 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     }
 
     /**
-     * Connecting to a leader by manually entering the IP address.
+     * Adding a leader to the learner display adapter manually through a firebase call.
      * @param username A String representing the name of the peer that is connecting.
      * @param serverIP A String representing the local IP address of the guide.
      * */
-    public void manuallyConnectLeader(String username, String serverIP) {
+    public void manuallyAddLeader(String username, String serverIP) {
         runOnUiThread(() -> { //not sure if needed - check later
             getLeaderSelectAdapter().addLeader(new ConnectedPeer(username, serverIP));
             showLeaderWaitMsg(false);
@@ -3753,8 +3783,8 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
      */
     public void directIpConnection(TextView ManName, TextView IpEnter) {
         getNearbyManager().myName = ManName.getText().toString();
-        runOnUiThread(() -> getLeaderSelectAdapter().addLeader(new ConnectedPeer("key", IpEnter.getText().toString())));
-
+//        runOnUiThread(() -> getLeaderSelectAdapter().addLeader(new ConnectedPeer("key", IpEnter.getText().toString())));
+        directConnection = true;
         getAuthenticationManager().setServerIP(IpEnter.getText().toString());
         loginAction(true);
     }

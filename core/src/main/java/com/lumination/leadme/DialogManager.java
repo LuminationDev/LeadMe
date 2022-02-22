@@ -10,7 +10,6 @@ import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.util.Log;
-import android.util.TypedValue;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
@@ -284,7 +283,6 @@ public class DialogManager {
     public void showRequestDialog(int delay) {
         if(requestDialog.isShowing()) {
             //in case a guide switched on auto installer and transfer quickly
-            Log.e("REQUEST", "Is showing");
             requestDialogMessage.setText(main.fileRequests.size() + " learners do not have the video. " +
                     "\nDo you want to transfer it?"); //update the text if there are more requests
         } else {
@@ -339,7 +337,6 @@ public class DialogManager {
 
         if(permissionDialog.isShowing()) {
             //in case a guide switched on auto installer and transfer quickly
-            Log.e("PERMISSION", "Is showing");
             permissionDialogMessage.setText(permissionDialogMessage.getText() + "\n\n" + msg); //update the text
         } else {
             permissionDialogMessage.setText(msg);

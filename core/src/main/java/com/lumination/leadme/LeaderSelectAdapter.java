@@ -9,20 +9,21 @@ import android.widget.TextView;
 
 import java.util.ArrayList;
 
-
+/**
+ * Control the list of leaders available for connection by learners. This is controlled either by
+ * the Nsd Services a learner has resolved or by the retrieveLeaders call to the Firestore. Each
+ * leader element contains a teachers username and IP address.
+ */
 public class LeaderSelectAdapter extends BaseAdapter {
+    private static final String TAG = "LeaderSelect";
     private final LayoutInflater inflater;
     private final ArrayList<ConnectedPeer> leader_list = new ArrayList<>();
     private final LeadMeMain main;
-    private static final String TAG = "LeaderSelect";
 
     public LeaderSelectAdapter(LeadMeMain main) {
         this.main = main;
         inflater = (LayoutInflater.from(main));
-//        leader_list.add(new ConnectedPeer("Sam Smith", "1234"));
-//        leader_list.add(new ConnectedPeer("Anna Apple", "5678"));
         Log.d(TAG, "Created adapter!!");
-
     }
 
     public synchronized void setLeaderList(ArrayList<ConnectedPeer> leaders) {
@@ -36,11 +37,10 @@ public class LeaderSelectAdapter extends BaseAdapter {
     }
 
     public synchronized void addLeader(ConnectedPeer leader) {
-        boolean needsRemoval = false;
         ArrayList<ConnectedPeer> peersForRemoval = new ArrayList<>();
         for (ConnectedPeer peer : leader_list) {
             if (peer.getID().equals(leader.getID())) {
-                Log.d(TAG, "This one already exists " + leader.getDisplayName());
+                Log.d(TAG, "This one already exists: " + leader.getDisplayName() + " : " + leader.getID());
                 peersForRemoval.add(peer);
             }
         }
@@ -52,29 +52,6 @@ public class LeaderSelectAdapter extends BaseAdapter {
         //this leader is not in the list, so add it
         Log.d(TAG, "Adding " + leader.getDisplayName());
         leader_list.add(leader);
-        notifyDataSetChanged();
-    }
-
-    public synchronized void removeLeader(String leaderID) {
-        Log.d(TAG, "Removing leader " + leaderID + " from " + leader_list);
-        ArrayList<ConnectedPeer> peersToRemove = new ArrayList<>();
-        for (ConnectedPeer peer : leader_list) {
-            Log.d(TAG, "Comparing: " + peer.getID() + " vs " + leaderID);
-            if (peer.getID().equals(leaderID)) {
-                peersToRemove.add(peer);
-            }
-        }
-        for (ConnectedPeer removalPeer : peersToRemove) {
-            removeLeader(removalPeer);
-        }
-        notifyDataSetChanged();
-    }
-
-    public synchronized void removeLeader(ConnectedPeer leader) {
-        leader_list.remove(leader);
-        if (leader_list.isEmpty()) {
-            main.showLeaderWaitMsg(true);
-        }
         notifyDataSetChanged();
     }
 
@@ -106,7 +83,6 @@ public class LeaderSelectAdapter extends BaseAdapter {
             Log.d(TAG, "Clicked view: " + textView.getText());
             main.getNearbyManager().setSelectedLeader(leader_list.get(position));
             main.showLoginDialog();
-
         });
 
         return convertView;

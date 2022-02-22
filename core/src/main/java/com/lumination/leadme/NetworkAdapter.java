@@ -6,7 +6,6 @@ import android.net.nsd.NsdServiceInfo;
 import android.net.wifi.WifiManager;
 import android.os.Build;
 import android.os.Parcel;
-import android.text.format.Formatter;
 import android.util.Log;
 import android.view.View;
 
@@ -29,12 +28,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -62,7 +59,6 @@ class msg {
 }
 
 public class NetworkAdapter {
-
     Context mContext;
     NetworkAdapter netAdapt;
     NearbyPeersManager nearbyPeersManager;
@@ -80,15 +76,14 @@ public class NetworkAdapter {
 
     public ServerSocket mServerSocket = null; //server socket for server
     Socket clientsServerSocket = null;//server socket for client
-//    Thread mThread = null;
+
     Future<?> Server = null;
-    Future<?> recieveInput = null;
+    Future<?> receiveInput = null;
 
     public int localport = -1;
     public boolean allowConnections = true;
     public boolean allowInput = true;
     boolean pingName = true;
-    boolean closeSocket;
     int clientID = 0;
     int connectionIsActive = 0;
     int timeOut = 2;
@@ -107,34 +102,28 @@ public class NetworkAdapter {
     // Acquire multicast lock
     WifiManager.MulticastLock multicastLock;
 
-    public ArrayList<studentThread> clientThreadList = new ArrayList<>();
     public ArrayList<client> currentClients = new ArrayList<>();
     public ArrayList<NsdServiceInfo> discoveredLeaders = new ArrayList<>();
 
-    private resListener resolver;
-    private boolean resInProgress=false;
-    ArrayList<NsdServiceInfo> serviceQueue;
-
-    public ExecutorService executorService = Executors.newFixedThreadPool(2);
-    ScheduledExecutorService scheduledExecutor = new ScheduledThreadPoolExecutor(1);
+    public ExecutorService executorService = Executors.newCachedThreadPool();
+    private ScheduledExecutorService scheduledExecutor = new ScheduledThreadPoolExecutor(1);
 
 
     public NetworkAdapter(Context context, LeadMeMain main, NearbyPeersManager nearbyPeersManager) {
-        closeSocket = false;
+        this.nearbyPeersManager = nearbyPeersManager;
+        this.main = main;
         Name = nearbyPeersManager.getName();
         mContext = context;
         netAdapt = this;
-        this.nearbyPeersManager = nearbyPeersManager;
-        this.main = main;
         mNsdManager = (NsdManager) context.getSystemService(Context.NSD_SERVICE);
-        resolver = new resListener();
-        serviceQueue = new ArrayList<>();
         studentThreadArray = new HashMap<>();
         clientSocketArray = new HashMap<>();
         setMulticastLock(); //should be set for learners and leaders?
     }
 
-    // Acquire multicast lock - required for pre API 11 and some devices.
+    /**
+     * Acquire multicast lock - required for pre API 11 and some devices.
+     */
     private void setMulticastLock() {
         WifiManager wifi = (WifiManager) main.getSystemService(Context.WIFI_SERVICE);
         multicastLock = wifi.createMulticastLock("multicastLock");
@@ -186,7 +175,7 @@ public class NetworkAdapter {
                 @Override
                 public void onServiceLost(NsdServiceInfo service) {
                     Log.e(TAG, "service lost" + service);
-                    if (mService == service) {
+                    if (getChosenServiceInfo() == service) {
                         mService = null;
                     }
                     //clear the list and then scan again
@@ -234,63 +223,65 @@ public class NetworkAdapter {
             //stop it from detecting its own service, not relevant for LeadMe as it is either in discovery or advertising mode
             if (serviceInfo.getServiceName().equals(Name)) {
                 Log.d(TAG, "Same IP.");
-                resInProgress=false;
                 return;
             }
 
             Log.d(TAG, "onServiceResolved: " + serviceInfo);
 
-            executorService.submit(() -> {
-                mService = serviceInfo;
-                if (!discoveredLeaders.contains(serviceInfo)) {
-                    Log.d(TAG, "run: added leader");
+            executorService.submit(() -> resolveSingleService(serviceInfo));
+        }
+    }
 
-                    //Get the hard coded IP address set across in the Service info attributes
-                    String ipAddress_hard = new String(serviceInfo.getAttributes().get("IP"));
-                    InetAddress hardCoded = null;
+    /**
+     * Add the details of the new service to the leader list.
+     * @param serviceInfo An NsdServiceInfo object relating to the newly found service.
+     */
+    private void resolveSingleService(NsdServiceInfo serviceInfo) {
+        if (!discoveredLeaders.contains(serviceInfo)) {
+            Log.d(TAG, "run: added leader");
+            InetAddress hardCoded = null, hardCoded_alt = null;
 
-                    //Get the IP address from the name, not a good method
-                    //Use to see if the set attributes function is the problem
-                    List<String> alt = Arrays.asList(serviceInfo.getServiceName().split("#"));
-                    String ipAddress_hard_alt = alt.get(2);
-                    InetAddress hardCoded_alt = null;
+            //Get the IP address from the name
+            List<String> alt = Arrays.asList(serviceInfo.getServiceName().split("#"));
 
-                    try {
-                        hardCoded = InetAddress.getByName(ipAddress_hard);
-                        hardCoded_alt = InetAddress.getByName(ipAddress_hard_alt);
-                    } catch (UnknownHostException e) {
-                        e.printStackTrace();
-                    }
+            try {
+                //Get the hard coded IP address set across in the Service info attributes
+                hardCoded = InetAddress.getByName(new String(serviceInfo.getAttributes().get("IP")));
+                hardCoded_alt = InetAddress.getByName(alt.get(2)); //Used as a backup and for comparison
+            } catch (UnknownHostException e) {
+                e.printStackTrace();
+            }
 
-                    //Override the captured IP address with the hardcoded one
-                    if(hardCoded != null) {
-                        Log.d(TAG, "Hard coded IP Address: " + ipAddress_hard);
-                        Log.d(TAG, "Alternate IP Address: " + ipAddress_hard_alt);
-                        serviceInfo.setHost(hardCoded);
-                    } else if (hardCoded_alt != null) {
-                        serviceInfo.setHost(hardCoded_alt);
-                    }
+            //Override the captured IP address with the hardcoded one
+            if(hardCoded != null) {
+                serviceInfo.setHost(hardCoded);
+            } else if (hardCoded_alt != null) {
+                serviceInfo.setHost(hardCoded_alt);
+            }
 
-                    serviceInfo.setServiceName(alt.get(0) + "#Teacher");
-                    discoveredLeaders.add(serviceInfo);
-                }
+            serviceInfo.setServiceName(alt.get(0) + "#Teacher");
+            discoveredLeaders.add(serviceInfo);
+        }
 
-                List<String> leader = Arrays.asList(serviceInfo.getServiceName().split("#"));
+        addToLeaderList(serviceInfo);
+    }
 
-                //add to the leaders list
-                if(!main.sessionManual) {
-                    main.runOnUiThread(() -> {
-                        main.getLeaderSelectAdapter().addLeader(new ConnectedPeer(leader.get(0), serviceInfo.getHost().toString()));
-                        main.showLeaderWaitMsg(false);
-                    });
-                }
-                resInProgress=false;
+    /**
+     * Add a leader to the UI leader list for learner devices to connect to.
+     */
+    private void addToLeaderList(NsdServiceInfo serviceInfo) {
+        List<String> leader = Arrays.asList(serviceInfo.getServiceName().split("#"));
+
+        if(!main.sessionManual && !main.directConnection) {
+            main.runOnUiThread(() -> {
+                main.getLeaderSelectAdapter().addLeader(new ConnectedPeer(leader.get(0), serviceInfo.getHost().toString()));
+                main.showLeaderWaitMsg(false);
             });
         }
     }
 
-    /*
-    Initialises the registration listener allowing us to register the service
+    /**
+     * Initialises the registration listener allowing us to register the service
      */
     public void initializeRegistrationListener() {
         if (mRegistrationListener == null) {
@@ -340,112 +331,121 @@ public class NetworkAdapter {
         return false;
     }
 
+    /**
+     * Using a supplied NsdService connect to a server using the details provided.
+     * @param serviceInfo An NsdServiceInfo object containing the details about the selected leader.
+     */
     public void connectToServer(NsdServiceInfo serviceInfo) {
-        mService=serviceInfo;
-        Log.e(TAG, "LEARNER CONNECTION");
-        Log.e(TAG, serviceInfo.toString());
+        startClientInputListener();
+        Log.d(TAG, "connectToServer: attempting to connect to " + serviceInfo.getHost() + ":" + serviceInfo.getPort());
 
-        if (clientsServerSocket == null) {
-            try {
-                Log.d(TAG, "connectToServer: attempting to connect to " + serviceInfo.getHost() + ":" + serviceInfo.getPort());
-                clientsServerSocket = new Socket(serviceInfo.getHost(), serviceInfo.getPort());
-            } catch (IOException e) {
-                e.printStackTrace();
-            } finally {
-                tryReconnect(serviceInfo);
+        mService = serviceInfo;
 
-                if (clientsServerSocket == null) {
-                    main.runOnUiThread(() -> main.setUIDisconnected());
-                }
+        try {
+            if(clientsServerSocket != null) {
+                clientsServerSocket.close();
             }
-            if (clientsServerSocket != null) {
-                if (clientsServerSocket.isConnected()) {
-                    connectionIsActive = 20;
-                    allowInput = true;
-                    Log.d(TAG, "connectToServer: connection successful");
-                    Name = nearbyPeersManager.getName();
-                    sendToServer(Name, "NAME"); //sends the student name to the teacher for a record
-                    stopDiscovery();
-                    main.runOnUiThread(() -> {
-                        main.findViewById(R.id.client_main).setVisibility(View.VISIBLE);
-                        List<String> inputList = Arrays.asList(serviceInfo.getServiceName().split("#"));
-                        main.setLeaderName(inputList.get(0));
-                        //main.startServer();
-                    });
-                }
-            }
-        }
-        else if (clientsServerSocket.isConnected()) {
-            if (clientsServerSocket.getInetAddress().equals(serviceInfo.getHost()) && clientsServerSocket.getPort() == serviceInfo.getPort()) {
-                Log.d(TAG, "connectToServer: socket already connected");
-                try {
-                    clientsServerSocket = new Socket(serviceInfo.getHost(), serviceInfo.getPort());
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-                if (clientsServerSocket != null) {
-                    if (clientsServerSocket.isConnected()) {
-                        connectionIsActive = 20;
-                        Log.d(TAG, "connectToServer: connection successful");
-                        Name = nearbyPeersManager.getName();
-                        sendToServer(Name, "NAME"); //sends the student name to the teacher for a record
-
-                        main.runOnUiThread(() -> {
-                            main.findViewById(R.id.client_main).setVisibility(View.VISIBLE);
-                            List<String> inputList = Arrays.asList(serviceInfo.getServiceName().split("#"));
-                            main.setLeaderName(inputList.get(0));
-                            //main.startServer();
-                        });
-                    }
-                }
+            clientsServerSocket = new Socket(getChosenServiceInfo().getHost(), getChosenServiceInfo().getPort());
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            if (clientsServerSocket == null) {
+                tryReconnect();
             } else {
-                Log.d(TAG, "connectToServer: connected to : " + clientsServerSocket.getInetAddress() + ":" + clientsServerSocket.getPort());
-                Log.d(TAG, "connectToServer: connecting to :" + serviceInfo.getHost() + ":" + serviceInfo.getPort());
-                try {
-                    clientsServerSocket = new Socket(serviceInfo.getHost(), serviceInfo.getPort());
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+                clientSetup();
             }
-        } else {
-            Log.d(TAG, "connectToServer: not really sure how we ended up here");
         }
-
-        scheduledExecutor.shutdown();
-        scheduledExecutor = new ScheduledThreadPoolExecutor(1);
-        scheduledExecutor.scheduleAtFixedRate(new Runnable() {
-            @Override
-            public void run() {
-                if (clientsServerSocket != null) {
-                    if (clientsServerSocket.isConnected()) {
-                        checkConnection();
-                    }
-                }
-                if (clientsServerSocket != null && pingName) {
-                    if (clientsServerSocket.isConnected()) {
-                        //Log.d(TAG, "run: pinging parent");
-                        Name = nearbyPeersManager.getName();
-                        sendToServer(Name, "NAME");
-                    }
-                }
-            }
-        }, 1, 8000, TimeUnit.MILLISECONDS);
     }
 
-    private void tryReconnect(NsdServiceInfo serviceInfo) {
+    /**
+     * If the initial connection attempt fails try again before sending the learner back to the
+     * splash screen.
+     */
+    private void tryReconnect() {
         if (!clientsServerSocket.isConnected()) {
             Log.d(TAG, "connectToServer: Socket disconnected attempting to reconnect");
             clientsServerSocket = null;
             if (tries <= 10) {
                 tries++;
-                connectToServer(serviceInfo);
+                connectToServer(getChosenServiceInfo());
+            } else {
+                Log.d(TAG, "connectToServer: reconnection unsuccessful");
+                main.runOnUiThread(() -> main.setUIDisconnected());
             }
-            Log.d(TAG, "connectToServer: reconnection unsuccessful");
         }
     }
 
-    /*
-    Sends message from student to Teacher
+    /**
+     * If the socket is connected send the learners name back to the server to start the TCP client
+     * and then begin monitoring the connection.
+     */
+    private void clientSetup() {
+        if (clientsServerSocket.isConnected()) {
+            Log.d(TAG, "connectToServer: connection successful");
+            pingName = true; //Allows learner to send name again on reconnection
+            connectionIsActive = 20;
+            allowInput = true;
+            Name = nearbyPeersManager.getName();
+            stopDiscovery();
+            main.runOnUiThread(() -> {
+                main.findViewById(R.id.client_main).setVisibility(View.VISIBLE);
+                List<String> inputList = Arrays.asList(getChosenServiceInfo().getServiceName().split("#"));
+                main.setLeaderName(inputList.get(0));
+            });
+
+            startConnectionCheck();
+        }
+    }
+
+    /**
+     * Start an executor to continually check if the leader has disconnected or is still active. If
+     * not then move the learner from a logged in state to the splash screen.
+     */
+    public void startConnectionCheck() {
+        if(clientsServerSocket != null) {
+            scheduledExecutor.shutdown();
+            scheduledExecutor = new ScheduledThreadPoolExecutor(1);
+            scheduledExecutor.scheduleAtFixedRate(() -> {
+                if (clientsServerSocket != null) {
+                    if (clientsServerSocket.isConnected()) {
+                        checkConnection();
+                    }
+                }
+
+                if (clientsServerSocket != null && pingName) {
+                    if (clientsServerSocket.isConnected()) {
+                        Name = nearbyPeersManager.getName();
+                        sendToServer(Name, "NAME");
+                        pingName = false;
+                    }
+                }
+            }, 1, 8000, TimeUnit.MILLISECONDS);
+        }
+    }
+
+
+    private void checkConnection() {
+        if (connectionIsActive > 0) {
+            connectionIsActive--;
+            Log.d(TAG, "checkConnection: connection " + connectionIsActive);
+        } else if (connectionIsActive == 0) {
+            Log.d(TAG, "checkConnection: connection " + connectionIsActive);
+            main.runOnUiThread(() -> {
+                try {
+                    clientsServerSocket.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                clientsServerSocket = null;
+                Log.d(TAG, "checkConnection: connection timed out");
+                main.setUIDisconnected();
+                connectionIsActive--;
+            });
+        }
+    }
+
+    /**
+     * Sends message from student to Teacher.
      */
     public void sendToServer(String message, String type) {
         if (clientsServerSocket != null) {
@@ -472,6 +472,11 @@ public class NetworkAdapter {
         Log.e(TAG, "FAILED! Tried to send from " + main.getNearbyManager().getName() + " to server >> " + message + ", " + type);
     }
 
+    /**
+     * Disconnect a student from the leaders side. Sends an action to the client to know they
+     * have been disconnected.
+     * @param id An int representing the ID of the learner who is being disconnected.
+     */
     public void removeClient(int id) {
         ArrayList<Integer> selected = new ArrayList<>();
         selected.add(id);
@@ -488,29 +493,13 @@ public class NetworkAdapter {
         }
     }
 
-    private void checkConnection() {
-        //Log.d(TAG, "checkConnection: checking connection");
-        if (connectionIsActive > 0) {
-            connectionIsActive--;
-            Log.d(TAG, "checkConnection: connection " + connectionIsActive);
-        } else if (connectionIsActive == 0) {
-            Log.d(TAG, "checkConnection: connection " + connectionIsActive);
-//            main.runOnUiThread(() -> {
-//                try {
-//                    clientsServerSocket.close();
-//                } catch (IOException e) {
-//                    e.printStackTrace();
-//                }
-//                clientsServerSocket = null;
-//                Log.d(TAG, "checkConnection: connection timed out");
-//                main.setUIDisconnected();
-//                connectionIsActive--;
-//            });
-        }
-    }
+    //Kept for future testing purposes
+    int testing = 10;
 
-//    int testing = 20;
-    //discovers services, is not continuous so will need to be called in a runnable to implement a scan
+    /**
+     * Discovers services that are advertised by leaders, is not continuous so will need to be
+     * called in a runnable to implement a scan
+     */
     public void startDiscovery() {
         Log.d(TAG, "startDiscovery: ");
         discoveredLeaders = new ArrayList<>();
@@ -521,81 +510,83 @@ public class NetworkAdapter {
 
         //Updates parent with the name, this acts as a ping mechanism.
         //on the fly name changes are supported, client is identified by assigned ID
+        startClientInputListener();
+    }
 
-        //new Thread so server messages can be read from a while loop without impacting the UI
-        if(recieveInput == null) {
-            recieveInput = main.serverThreadPool.submit(new Runnable() {
-                @Override
-                public void run() {
-                    while (allowInput) {
-                        if (clientsServerSocket != null) {
-                            if (!clientsServerSocket.isClosed() && !clientsServerSocket.isInputShutdown()) {
+    /**
+     * Starts a client socket listener that receives messages from the leader server. Handles
+     * reconnection if a socket is closed prematurely.
+     */
+    public void startClientInputListener() {
+        if(receiveInput == null) {
+            //new Thread so server messages can be read from a while loop without impacting the UI
+            receiveInput = main.serverThreadPool.submit(() -> {
+                while (allowInput) {
+                    if (clientsServerSocket != null) {
+                        if (!clientsServerSocket.isClosed() && !clientsServerSocket.isInputShutdown()) {
 
-                                BufferedReader in;
-                                String input = "";
+                            BufferedReader in;
+                            String input = "";
+                            try {
+                                InputStreamReader inStream = new InputStreamReader(clientsServerSocket.getInputStream());
+                                in = new BufferedReader(inStream);
+
                                 try {
-                                    InputStreamReader inStream = new InputStreamReader(clientsServerSocket.getInputStream());
-                                    in = new BufferedReader(inStream);
-
-                                    try {
-                                        //Comments below are for testing purposes
-                                        //Only need the input = in.readLine() for production
-//                                        Log.e(TAG, "TESTING COUNTDOWN: " + testing);
-//                                        if (testing == 0) {
-//                                            Log.e(TAG, "Throwing exception");
-//                                            testing = 20;
+                                    //Kept for future testing purposes
+                                    //Only need the input = in.readLine() for production
+//                                    Log.e(TAG, "TESTING COUNTDOWN: " + testing);
+//                                    if (testing == 0) {
+//                                        Log.e(TAG, "Throwing exception");
+//                                        testing = 10;
 //
-//                                            throw new SocketException();
-//                                        } else {
-//                                            testing--;
-                                            input = in.readLine();
-//                                        }
-                                    } catch (SocketException e) {
-                                        if (clientsServerSocket != null) {
-                                            clientsServerSocket.close();
-                                            clientsServerSocket = null;
-                                        }
-
-                                        e.printStackTrace();
-                                        Log.e(TAG, "FAILED! {1}");
-                                        Log.e(TAG, "Attempting to reconnect");
-
-                                        connectToServer(mService);
+//                                        throw new SocketException();
+//                                    } else {
+//                                        testing--;
+                                        input = in.readLine();
+//                                    }
+                                } catch (SocketException e) {
+                                    if (clientsServerSocket != null) {
+                                        clientsServerSocket.close();
+                                        clientsServerSocket = null;
                                     }
 
-                                    if (input != null) {
-                                        if (input.length() > 0) {
-                                            Log.d(TAG, "allowInput is active");
+                                    e.printStackTrace();
+                                    Log.e(TAG, "FAILED! {1}");
 
-                                            if (main.destroying) {
-                                                if (clientsServerSocket != null) {
-                                                    clientsServerSocket.close();
-                                                    clientsServerSocket = null;
-                                                }
+                                    connectToServer(getChosenServiceInfo());
+                                }
 
-                                                scheduledExecutor.shutdown();
-                                                allowInput = false;
-                                                return;
+                                if (input != null) {
+                                    if (input.length() > 0) {
+                                        Log.d(TAG, "allowInput is active");
+
+                                        if (main.destroying) {
+                                            if (clientsServerSocket != null) {
+                                                clientsServerSocket.close();
+                                                clientsServerSocket = null;
                                             }
 
-                                            netAdapt.messageReceivedFromServer(input);
+                                            scheduledExecutor.shutdown();
+                                            allowInput = false;
+                                            return;
                                         }
-                                    }
-                                } catch (IOException e) {
-                                    e.printStackTrace();
-                                    Log.e(TAG, "FAILED! {2}");
-                                }
-                            } else {
-                                clientsServerSocket = null;
-                                Log.e(TAG, "FAILED! {3}");
-                                Log.e(TAG, "Attempting to reconnect");
 
-                                connectToServer(mService);
+                                        netAdapt.messageReceivedFromServer(input);
+                                    }
+                                }
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                                Log.e(TAG, "FAILED! {2}");
                             }
+                        } else {
+                            clientsServerSocket = null;
+                            Log.e(TAG, "FAILED! {3}");
+
+                            connectToServer(getChosenServiceInfo());
                         }
                     }
-                    Log.e(TAG, "FAILED! {4}");
                 }
+                Log.e(TAG, "FAILED! {4}");
             });
         }
     }
@@ -623,82 +614,122 @@ public class NetworkAdapter {
         List<String> inputList = Arrays.asList(input.split(","));
         switch (inputList.get(0)) {
             case "COMMUNICATION":
-                Log.d(TAG, "messageReceivedFromServer: [COMM] " + inputList.get(1));
-                if (inputList.get(1).length() > 6 && inputList.get(1).contains("Thanks")) {
-                    main.closeDialogController(true);
-                    pingName = false;
-                }
-
-                //pingName=false;
+                receivedCommunication(inputList.get(1));
                 break;
 
             case "ACTION":
-                byte[] bytes = new byte[0];
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                    bytes = Base64.getDecoder().decode(inputList.get(1).getBytes());
-                } else {
-                    bytes = android.util.Base64.decode(inputList.get(1), android.util.Base64.DEFAULT);
-                }
-                //extract the parcel and package it into a payload to integrate with the pre existing functions
-                Parcel p = Parcel.obtain();
-                p.unmarshall(bytes, 0, bytes.length);
-                p.setDataPosition(0);
-                Payload payload = fromBytes(bytes);
-
-                final String timestamp = System.currentTimeMillis() + "MS";
-                Log.d(TAG, timestamp + "]] messageReceivedFromServer: [ACTION] " + p.readString() + ", " + payload);
-                //main.getHandler().removeCallbacks(null);
-                main.getHandler().postAtFrontOfQueue(() -> {
-                    Log.d(TAG, timestamp + "]] messageReceivedFromServer: [ACTION] INSIDE MAIN THREAD");
-                    main.handlePayload(payload.asBytes());
-                    try {
-                        Thread.sleep(100);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                    Log.d(TAG, timestamp + "]] done!");
-                });
-                try {
-                    Thread.sleep(100);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-                break;
-
-            case "DISCONNECT":
-                Log.w(TAG, "Disconnect. Guide? " + main.isGuide);
-                try {
-                    clientsServerSocket.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-                clientsServerSocket = null;
-                nearbyPeersManager.disconnectFromEndpoint("");
+                receivedAction(inputList.get(1));
                 break;
 
             case "PING":
-                nearbyPeersManager.myID = inputList.get(1);
-                connectionIsActive = timeOut;
-                Log.d(TAG, "messageReceivedFromServer: PING!!");
-                pingName = false;
-                Log.d(TAG, "messageReceivedFromServer: received ping and subsequently ignoring it");
+                receivedPing(inputList.get(1));
                 break;
 
             case "FILE":
-                List<String> inputList2 = Arrays.asList(inputList.get(1).split(":"));
-                Log.e(TAG, clientsServerSocket.getInetAddress() + " : " + inputList2);
-                if(main.fileTransferEnabled) {
-                    FileTransfer.setFileType(inputList2.get(2));
-                    main.getFileTransfer().receivingFile(clientsServerSocket.getInetAddress(), Integer.parseInt(inputList2.get(1)));
-                } else {
-                    main.permissionDenied(LeadMeMain.FILE_TRANSFER);
-                }
+                receivedFile(inputList.get(1));
+                break;
+
+            case "DISCONNECT":
+                receivedDisconnect();
                 break;
 
             default:
                 Log.d(TAG, "messageReceivedFromServer: Invalid message type");
                 break;
         }
+    }
+
+    /**
+     * Decipher what communication has been sent from the server.
+     * @param input A string representing from the communication from the server.
+     */
+    private void receivedCommunication(String input) {
+        Log.d(TAG, "messageReceivedFromServer: [COMM] " + input);
+        if (input.length() > 6 && input.contains("Thanks")) {
+            main.closeDialogController(true);
+            pingName = false;
+        }
+    }
+
+    /**
+     * Decide what action should be taken depending on what is contained within the input string.
+     * @param input A string containing the action to be handled by the learner device.
+     */
+    private void receivedAction(String input) {
+        byte[] bytes;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            bytes = Base64.getDecoder().decode(input.getBytes());
+        } else {
+            bytes = android.util.Base64.decode(input, android.util.Base64.DEFAULT);
+        }
+        //extract the parcel and package it into a payload to integrate with the pre existing functions
+        Parcel p = Parcel.obtain();
+        p.unmarshall(bytes, 0, bytes.length);
+        p.setDataPosition(0);
+        Payload payload = fromBytes(bytes);
+
+        final String timestamp = System.currentTimeMillis() + "MS";
+        Log.d(TAG, timestamp + "]] messageReceivedFromServer: [ACTION] " + p.readString() + ", " + payload);
+        //main.getHandler().removeCallbacks(null);
+        main.getHandler().postAtFrontOfQueue(() -> {
+            Log.d(TAG, timestamp + "]] messageReceivedFromServer: [ACTION] INSIDE MAIN THREAD");
+            main.handlePayload(payload.asBytes());
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            Log.d(TAG, timestamp + "]] done!");
+        });
+        try {
+            Thread.sleep(100);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        p.recycle();
+    }
+
+    /**
+     * Ignore the ping from the server and reset the timeOut limit for the learners socket
+     * connection.
+     * @param input A string containing the ID of the device being pinged.
+     */
+    private void receivedPing(String input) {
+        nearbyPeersManager.myID = input;
+        connectionIsActive = timeOut;
+        Log.d(TAG, "messageReceivedFromServer: PING!!");
+        pingName = false;
+        Log.d(TAG, "messageReceivedFromServer: received ping and subsequently ignoring it");
+    }
+
+    /**
+     * Connect to the file server to receive the file from the leader.
+     * @param input A String containing the PORT of the file server.
+     */
+    private void receivedFile(String input) {
+        List<String> inputList2 = Arrays.asList(input.split(":"));
+        Log.e(TAG, clientsServerSocket.getInetAddress() + " : " + inputList2);
+        if(main.fileTransferEnabled) {
+            FileTransfer.setFileType(inputList2.get(2));
+            main.getFileTransfer().receivingFile(clientsServerSocket.getInetAddress(), Integer.parseInt(inputList2.get(1)));
+        } else {
+            main.permissionDenied(LeadMeMain.FILE_TRANSFER);
+        }
+    }
+
+    /**
+     * If the device is not connected as a guide, disconnect from all endpoints.
+     */
+    private void receivedDisconnect() {
+        Log.w(TAG, "Disconnect. Guide? " + main.isGuide);
+        try {
+            clientsServerSocket.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        clientsServerSocket = null;
+        nearbyPeersManager.disconnectFromEndpoint("");
     }
 
 
@@ -714,20 +745,15 @@ public class NetworkAdapter {
     /*
     Server Functions Below:
      */
-
     //necessary to be on a separate thread as it runs an eternal server allowing any connections that come in
     class ServerThread implements Runnable {
 
         @Override
         public void run() {
-
             try {
-                // Since discovery will happen via Nsd, we don't need to care which port is
-                // used.  Just grab an available one and advertise it via Nsd.
                 mServerSocket = new ServerSocket();
                 mServerSocket.setReuseAddress(true);
                 mServerSocket.bind(new InetSocketAddress(PORT));
-
                 localport = mServerSocket.getLocalPort();
 
                 while (true) {
@@ -744,11 +770,8 @@ public class NetworkAdapter {
                         throw new RuntimeException("Error creating client", e);
                     }
 
-                    Log.d(TAG, "run: client connected");
-
                     studentThreadManager(clientSocket);
-
-                    Log.d(TAG, "Connected.");
+                    Log.d(TAG, "run: client connected");
                 }
             } catch (Exception e) {
                 Log.e(TAG, "Error creating ServerSocket: ", e);
@@ -757,6 +780,37 @@ public class NetworkAdapter {
         }
     }
 
+    //starts a new server thread as seen below
+    public void startServer() {
+        Server = main.backgroundExecutor.submit(new ServerThread());
+    }
+
+    /**
+     * Stop the leaders socket server. This will drop all currently connected clients.
+     */
+    public void stopServer() {
+        if(Server != null) {
+            Log.d(TAG, "Server cancel");
+            Server.cancel(true);
+        }
+
+        if(mServerSocket != null) {
+            try {
+                mServerSocket.close();
+                Log.d("CLOSING PORT", "Server closing is bound: " + mServerSocket.isBound());
+                if (multicastLock != null) {
+                    multicastLock.release();
+                    multicastLock = null;
+                }
+            } catch (IOException ioe) {
+                Log.e(TAG, "Error when closing server socket.");
+            }
+        }
+    }
+
+    /**
+     * Create a NSD service and register it with the details of a logged in leader.
+     */
     public void startAdvertising() {
         Name = nearbyPeersManager.getName();
         stopAdvertising();  // Cancel any previous registration request
@@ -792,7 +846,11 @@ public class NetworkAdapter {
         mNsdManager.registerService(serviceInfo, NsdManager.PROTOCOL_DNS_SD, mRegistrationListener);
     }
 
-    //only stops the service from being discoverable and should not drop current connections
+    /**
+     * Only stops the Nsd service from being discoverable and should not drop current connections.
+     * This should only be called on logout as student should be able to connect at any point during
+     * a session.
+     */
     public void stopAdvertising() {
         if (mRegistrationListener != null) {
             try {
@@ -804,152 +862,159 @@ public class NetworkAdapter {
         }
     }
 
-    //starts a new server thread as seen below
-    public void startServer() {
-        Server = main.backgroundExecutor.submit(new ServerThread());
-    }
-
-    //will drop all currently connected clients
-    public void stopServer() {
-        if(Server != null) {
-            Log.e(TAG, "Server cancel");
-            Server.cancel(true);
-        }
-
-        if(mServerSocket != null) {
-            try {
-                mServerSocket.close();
-                Log.e("CLOSING PORT", "Server closing is bound: " + mServerSocket.isBound());
-                if (multicastLock != null) {
-                    multicastLock.release();
-                    multicastLock = null;
-                }
-            } catch (IOException ioe) {
-                Log.e(TAG, "Error when closing server socket.");
-            }
-        }
-    }
-
-    /*
-    called by the TCP clients to update the parent thread with information
-    types defined as such:
-    NAME: client server pings name through on first use it will update the parent with the clients name,
-          if its changed then subsequent run throughs will rectify that. Also acts as a pinging, once name
-          is recieved a response will be sent letting the student know they are still connected.
+    /**
+     * called by the TCP clients to update the parent thread with information
+     * types defined as such:
+     * NAME: client server pings name through on first use it will update the parent with the clients name,
+     *      if its changed then subsequent run throughs will rectify that. Also acts as a pinging, once name
+     *      is received a response will be sent letting the student know they are still connected.
+     * @param message A string containing information relevant to the switch case functions.
+     * @param clientID An int representing which learner this update relates to.
+     * @param type A string to determine what action is being taken.
      */
-    boolean imgInProgress = false;
-
     public void updateParent(String message, int clientID, String type) {
-        Log.d(TAG, "updateParent: ");
         switch (type) {
             case "NAME":
-                boolean exists = false;
-                Log.e(TAG, String.valueOf(currentClients.size()));
-                for (int i = 0; i < currentClients.size(); i++) {
-                    Log.e(TAG, String.valueOf(currentClients.get(i).ID));
-                    if (currentClients.get(i).ID == clientID) {
-                        if (!currentClients.get(i).name.equals(message)) {
-                            Log.d(TAG, "updateParent: " + currentClients.get(i).name + " has changed to " + message);
-                            currentClients.get(i).name = message;
-                        }
-                        exists = true;
-                        currentClients.get(i).pingCycle = 1;
-                        Log.d(TAG, "updateParent: ID:" + clientID + " name: " + message + " is active");
-                        ArrayList<Integer> selected = new ArrayList<>();
-                        selected.add(clientID);
-                        sendToSelectedClients("Thanks " + message, "COMMUNICATION", selected);//lets client know their name has been saved
-                    }
-                }
-                if (!exists) {
-                    Log.d(TAG, "updateParent: creating new client: ID:" + clientID + " name is: " + message);
-                    client temp = new client();
-                    temp.name = message;
-                    temp.ID = clientID;
-                    temp.pingCycle = 1;
-                    currentClients.add(temp);
-                    NearbyPeersManager.Endpoint endpoint = new NearbyPeersManager.Endpoint();
-                    endpoint.name = message;
-                    endpoint.Id = String.valueOf(clientID);
-                    ConnectedPeer thisPeer = new ConnectedPeer(endpoint);
-                    main.runOnUiThread(() -> {
-                        main.getConnectedLearnersAdapter().addStudent(thisPeer);
-                        main.showConnectedStudents(true);
-                    });
-                    ArrayList<Integer> selected = new ArrayList<>();
-                    selected.add(clientID);
-                    sendToSelectedClients("Thanks " + message, "COMMUNICATION", selected);//lets client know their name has been saved
-                }
+                parentUpdateName(message, clientID);
                 break;
 
             case "DISCONNECT":
-                //todo fix waiting on clients message
-                Log.d(TAG, "updateParent: student has been disconnected");
-                for (int i = 0; i < currentClients.size(); i++) {
-                    Log.d(TAG, "updateParent: ");
-                    if (currentClients.get(i).ID == clientID) {
-                        Log.d(TAG, "updateParent: ");
-                        currentClients.remove(i);
-                        if (currentClients.size() == 0) {
-                            main.runOnUiThread(() -> main.waitingForLearners.setVisibility(View.VISIBLE));
-                        } else {
-                            Log.d(TAG, "updateParent: " + currentClients.size() + " remaining students");
-                        }
-                        return;
-                    }
-                }
+                parentUpdateDisconnect(clientID);
                 break;
 
             case "LOST":
-                if(clientSocketArray.get(clientID).getValue()) {
-                    Log.d(TAG, "updateParent: client: " + clientID + " is reconnecting");
-                    clientSocketArray.get(clientID).setValue(false);
-                } else {
-                    //TODO fix this as it immediately removes the student - by main.getConnectedLearnersAdapter().removeStudent(String.valueOf(clientID));
-                    Log.d(TAG, "updateParent: client: " + clientID + " has lost connection");
-
-                    //TODO this is no necessary yet
-                    Objects.requireNonNull(studentThreadArray.get(clientID)).t.interrupt();
-//                    clientSocketArray.remove((clientID));
-
-                    currentClients.remove(clientID);
-//                    main.getConnectedLearnersAdapter().removeStudent(String.valueOf(clientID));
-                    main.getXrayManager().removePeerFromMap(String.valueOf(clientID));
-
-                    main.runOnUiThread(() -> {
-                        if (main.getConnectedLearnersAdapter().getMatchingPeer(String.valueOf(clientID)) != null) {
-                            if (main.getConnectedLearnersAdapter().getMatchingPeer(String.valueOf(clientID)).getStatus() != ConnectedPeer.STATUS_ERROR) {
-                                main.getConnectedLearnersAdapter().updateStatus(String.valueOf(clientID), ConnectedPeer.STATUS_ERROR);
-                            }
-                        }
-                    });
-                }
+                parentUpdateLost(clientID);
                 break;
 
             case "ACTION":
-                byte[] bytes = new byte[0];
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                    bytes = Base64.getDecoder().decode(message);
-                } else {
-                    bytes = android.util.Base64.decode(message, android.util.Base64.DEFAULT);
-                }
-                //extract the parcel and package it into a payload to integrate with the pre existing functions
-                Parcel p = Parcel.obtain();
-                p.unmarshall(bytes, 0, bytes.length);
-                p.setDataPosition(0);
-                Log.d(TAG, "messageReceivedFromServer: " + p.readString());
-                Payload payload = fromBytes(bytes);
-                main.runOnUiThread(() -> {
-                    main.handlePayload(payload.asBytes());
-                });
+                parentUpdateAction(message);
                 break;
+
             default:
                 Log.d(TAG, "updateParent: invalid type: " + type + " message: " + message);
                 break;
         }
     }
 
-    /*
-    both functions add messages to the message queue which is then checked by each student thread
+    /**
+     * Detect if the most recent connection is a reconnect or a new learner, handle any name changes
+     * or client creation appropriately.
+     * @param message A string containing the name of the learner and the IP address of the device,
+     *                separated by a ':'.
+     * @param clientID An integer representing the clients ID saved within the student class on a
+     *                 leaders device.
+     */
+    private void parentUpdateName(String message, int clientID) {
+        boolean exists = false;
+        ArrayList<Integer> selected = new ArrayList<>();
+
+        for (int i = 0; i < currentClients.size(); i++) {
+            if (currentClients.get(i).ID == clientID) {
+                if (!currentClients.get(i).name.equals(message)) {
+                    Log.d(TAG, "updateParent: " + currentClients.get(i).name + " has changed to " + message);
+                    currentClients.get(i).name = message;
+                    String[] spilt = message.split(":");
+                    main.getConnectedLearnersAdapter().getMatchingPeer(String.valueOf(clientID)).setName(spilt[0]);
+                }
+                exists = true;
+                currentClients.get(i).pingCycle = 1;
+                Log.d(TAG, "updateParent: ID:" + clientID + " name: " + message + " is active");
+            }
+        }
+
+        if (!exists) {
+            Log.d(TAG, "updateParent: creating new client: ID:" + clientID + " name is: " + message);
+            client temp = new client();
+            temp.name = message;
+            temp.ID = clientID;
+            temp.pingCycle = 1;
+            currentClients.add(temp);
+            NearbyPeersManager.Endpoint endpoint = new NearbyPeersManager.Endpoint();
+            endpoint.name = message;
+            endpoint.Id = String.valueOf(clientID);
+            ConnectedPeer thisPeer = new ConnectedPeer(endpoint);
+            main.runOnUiThread(() -> {
+                main.getConnectedLearnersAdapter().addStudent(thisPeer);
+                main.showConnectedStudents(true);
+            });
+        }
+
+        selected.add(clientID);
+        sendToSelectedClients("Thanks " + message, "COMMUNICATION", selected);//lets client know their name has been saved
+    }
+
+    /**
+     * A learner has disconnected, remove the client from the clients array list and display the
+     * waiting text if there are no longer any learners connected.
+     * @param clientID An integer representing the clients ID saved within the student class on a
+     *                 leaders device.
+     */
+    private void parentUpdateDisconnect(int clientID) {
+        for (int i = 0; i < currentClients.size(); i++) {
+            if (currentClients.get(i).ID == clientID) {
+                Log.d(TAG, "updateParent: student has been disconnected: " + clientID);
+                currentClients.remove(i);
+                if (currentClients.size() == 0) {
+                    main.runOnUiThread(() -> main.waitingForLearners.setVisibility(View.VISIBLE));
+                } else {
+                    Log.d(TAG, "updateParent: " + currentClients.size() + " remaining students");
+                }
+                return;
+            }
+        }
+    }
+
+    /**
+     * A leader has lost connection with a learner device, determine if the learner is trying to
+     * reconnect or if they have disconnected entirely.
+     * @param clientID An integer representing the clients ID saved within the student class on a
+     *                 leaders device.
+     */
+    private void parentUpdateLost(int clientID) {
+        if(clientSocketArray.get(clientID).getValue()) {
+            Log.d(TAG, "updateParent: client: " + clientID + " is reconnecting");
+            clientSocketArray.get(clientID).setValue(false);
+        } else {
+            Log.d(TAG, "updateParent: client: " + clientID + " has lost connection");
+            Objects.requireNonNull(studentThreadArray.get(clientID)).t.interrupt();
+            currentClients.remove(clientID);
+            main.getXrayManager().removePeerFromMap(String.valueOf(clientID));
+
+            main.runOnUiThread(() -> {
+                if (main.getConnectedLearnersAdapter().getMatchingPeer(String.valueOf(clientID)) != null) {
+                    if (main.getConnectedLearnersAdapter().getMatchingPeer(String.valueOf(clientID)).getStatus() != ConnectedPeer.STATUS_ERROR) {
+                        main.getConnectedLearnersAdapter().updateStatus(String.valueOf(clientID), ConnectedPeer.STATUS_ERROR);
+                    }
+                }
+            });
+        }
+    }
+
+    /**
+     * Determine what action has been taken by a learner device and respond appropriately.
+     * @param message A string representing the action a learner has taken.
+     */
+    private void parentUpdateAction(String message) {
+        byte[] bytes;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            bytes = Base64.getDecoder().decode(message);
+        } else {
+            bytes = android.util.Base64.decode(message, android.util.Base64.DEFAULT);
+        }
+        //extract the parcel and package it into a payload to integrate with the pre existing functions
+        Parcel p = Parcel.obtain();
+        p.unmarshall(bytes, 0, bytes.length);
+        p.setDataPosition(0);
+        Log.d(TAG, "messageReceivedFromServer: " + p.readString());
+        Payload payload = fromBytes(bytes);
+        main.runOnUiThread(() -> {
+            main.handlePayload(payload.asBytes());
+        });
+        p.recycle();
+    }
+
+    /**
+     * Add messages to the message queue which is then checked by each student thread.
      */
     public void sendToSelectedClients(String message, String type, ArrayList<Integer> selectedClientIDs) {
         Log.d(TAG, "sendToSelectedClients: " + selectedClientIDs + " " + currentClients.size());
@@ -1016,13 +1081,9 @@ public class NetworkAdapter {
      * @param clientSocket A socket object of the newly connected user.
      */
     public void studentThreadManager(Socket clientSocket) {
-        Log.e(TAG, clientSocket.toString());
-
         ClientResult result = manageClientID(clientSocket);
         int ID = result.getID();
         boolean reconnect = result.getReconnect();
-
-        Log.e(TAG, "Connecting Student: " + ID);
 
         TcpClient tcp = new TcpClient(clientSocket, netAdapt, ID);
         Thread client = new Thread(tcp); //new thread for every client

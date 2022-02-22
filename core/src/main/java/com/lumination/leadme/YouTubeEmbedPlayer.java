@@ -241,12 +241,24 @@ public class YouTubeEmbedPlayer {
         });
     }
 
+    /**
+     * Notify the leader if any learners are still watching ads on Youtube. If the number of peers
+     * ready is greater or equal to the number of connected peers then the video can be controlled,
+     * this is incase a learner leaves while on youtube so the guide does not get stuck.
+     * @return A boolean representing if the ads have finished.
+     */
     private boolean peerWaitingForAds() {
-        if(peersAdControl != main.getConnectedLearnersAdapter().mData.size()) {
-            main.getDialogManager().showWarningDialog("Waiting for Ads","Student devices are still \n" +
-                    "waiting for ads to finish.");
-        }
+//        if(peersAdControl >= main.getConnectedLearnersAdapter().mData.size()) {
+//            main.getDialogManager().showWarningDialog("Waiting for Ads","Student devices are still \n" +
+//                    "waiting for ads to finish.");
+//        } else {
+//            adsFinished = true;
+//        }
+//
+        //Above is disabled for now, if a single student is not signed in to youtube the guide
+        //will not be able to start the video.
 
+        adsFinished = true;
         return !adsFinished;
     }
 
@@ -549,6 +561,7 @@ public class YouTubeEmbedPlayer {
         pageLoaded = false; //reset flag
         Log.d(TAG, "Attempting to show video controller for " + attemptedURL);
         loadVideoGuideURL(attemptedURL);
+        videoControlDialog.setCancelable(false);
         videoControlDialog.show();
         webManager.lastWasGuideView = true;
     }

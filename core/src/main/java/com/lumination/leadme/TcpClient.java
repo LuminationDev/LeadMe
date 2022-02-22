@@ -17,6 +17,10 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * Class to handle the connections to individual students, runs three separate threads to send
+ * messages, check connection and handle input.
+ */
 public class TcpClient extends Thread{
     public InetAddress IpAddress;
     public int port;
@@ -31,6 +35,27 @@ public class TcpClient extends Thread{
     boolean runAgain=true;
     boolean checkIn = true;
     ScheduledExecutorService scheduledExecutor = new ScheduledThreadPoolExecutor(3);
+
+    public TcpClient(Socket clientSocket, NetworkAdapter netContext, int clientID) {
+        TAG += clientID; //ensures logs are identifiable
+        IpAddress = clientSocket.getInetAddress();
+        port = clientSocket.getPort();
+        try {
+            clientSocket.setKeepAlive(true);
+        } catch (SocketException e) {
+            Log.d(TAG, "TcpClient: keep alive failed");
+            e.printStackTrace();
+        }
+        ID = clientID;
+        parent = netContext;
+        client = clientSocket;
+        tcp = this;
+
+        scheduledExecutor.scheduleAtFixedRate(tcpRunner,0,1500, TimeUnit.MILLISECONDS);
+        scheduledExecutor.scheduleAtFixedRate(ConnectionCheck,300,2000, TimeUnit.MILLISECONDS);
+        scheduledExecutor.scheduleAtFixedRate(inputRun,0,1000, TimeUnit.MILLISECONDS);
+    }
+
     Runnable tcpRunner = () -> {
         if (client.isConnected() && !client.isClosed()) {
             for (int i = 0; i < parent.currentClients.size(); i++) {
@@ -49,7 +74,6 @@ public class TcpClient extends Thread{
                     }
                 }
             }
-            //Log.d(TAG, "run: checking for messages");
         }
     };
     Runnable ConnectionCheck = () -> {
@@ -92,29 +116,6 @@ public class TcpClient extends Thread{
         }
     };
 
-    public TcpClient(Socket clientSocket, NetworkAdapter netContext, int clientID) {
-
-        TAG += clientID; //ensures logs are identifiable
-        IpAddress = clientSocket.getInetAddress();
-        port = clientSocket.getPort();
-        try {
-            clientSocket.setKeepAlive(true);
-        } catch (SocketException e) {
-            Log.d(TAG, "TcpClient: keep alive failed");
-            e.printStackTrace();
-        }
-        ID = clientID;
-        parent = netContext;
-        client = clientSocket;
-        tcp = this;
-
-        scheduledExecutor.scheduleAtFixedRate(tcpRunner,0,1500, TimeUnit.MILLISECONDS);
-
-        scheduledExecutor.scheduleAtFixedRate(ConnectionCheck,300,2000, TimeUnit.MILLISECONDS);
-
-        //new Thread(inputRun).start();
-        scheduledExecutor.scheduleAtFixedRate(inputRun,0,1000, TimeUnit.MILLISECONDS);
-    }
     private void inputReceived(String input) {
         if(input==null || !input.contains(",")){
             return;

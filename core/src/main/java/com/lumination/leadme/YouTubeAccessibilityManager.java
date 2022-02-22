@@ -91,21 +91,16 @@ public class YouTubeAccessibilityManager {
 
         //send ready status to guide if the ads have finished
         if(!adFinished) {
-            main.backgroundExecutor.submit(new Runnable() {
-                @Override
-                public void run() {
-                    //Delay the message in case an Ad starts after a half second delay
-                    try {
-                        Thread.sleep(1500);
+            main.backgroundExecutor.submit(() -> {
+                //Delay the message in case an Ad starts after a half second delay
+                try {
+                    Thread.sleep(1500);
 
-                        if(adFinished) {
-                            main.getHandler().post(() -> {
-                                alertGuideAdsHaveFinished();
-                            });
-                        }
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
+                    if(adFinished) {
+                        main.getHandler().post(this::alertGuideAdsHaveFinished);
                     }
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
                 }
             });
 
@@ -159,7 +154,7 @@ public class YouTubeAccessibilityManager {
 
         if (!videoPlayStarted) {
             Log.e(TAG, "Not ready to manage this video yet! " + pushTitle + ", " + adNodes + " // " + pushURL);
-            return; //not ready for the rest yet
+            //return; //not ready for the rest yet
         }
 
         //check if this should auto-enter VR mode
@@ -217,8 +212,26 @@ public class YouTubeAccessibilityManager {
             return; //nothing to do!
         }
 
-
         //TODO whatever is killing the UI is AFTER this point
+        ArrayList<AccessibilityNodeInfo> forceFullNodes = connector.collectChildren(rootInActiveWindow, getFullscreenPhrases(), 0);
+        if (!forceFullNodes.isEmpty()) {
+            Log.e(TAG, "Still needs to go into fullscreen and most likely pause");
+
+            tapVideoScreen();
+            for (AccessibilityNodeInfo thisInfo : forceFullNodes) {
+                Log.w(TAG, "-- Tapping " + thisInfo.getContentDescription() + "/" + thisInfo.getText());
+                boolean success = gestureTap(thisInfo, CUE_FS_ONLY);
+                if (success) {
+                    inVR = false;
+                }
+            }
+
+            ArrayList<AccessibilityNodeInfo> forcePauseNodes = connector.collectChildren(rootInActiveWindow, getPausePhrases(), 0);
+            Log.e(TAG, "GOT PAUSE! " + forcePauseNodes.size());
+            for (AccessibilityNodeInfo thisInfo : forcePauseNodes) {
+                gestureTap(thisInfo, CUE_PAUSE);
+            }
+        }
 
 
         //String[] selectedPhrases = {};

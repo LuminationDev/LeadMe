@@ -67,7 +67,7 @@
 
     <string name="code_hint">0</string>
     <string name="how_to_use_leadme">How to use LeadMe</string>
-    <string name="student_name">Student Name</string>
+    <string name="users_name">Username</string>
 
     <string name="preference_file_key">com.lumination.leadme.PREFERENCES</string>
     <string name="preference_fav_app_prefix">com.lumination.leadme.FAVAPP</string>
