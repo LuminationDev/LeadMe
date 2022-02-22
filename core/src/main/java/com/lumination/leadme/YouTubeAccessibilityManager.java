@@ -217,7 +217,6 @@ public class YouTubeAccessibilityManager {
             return; //nothing to do!
         }
 
-
         //TODO whatever is killing the UI is AFTER this point
 
 

@@ -320,6 +320,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
     boolean allowHide = false;
     ScheduledExecutorService scheduledExecutorService = new ScheduledThreadPoolExecutor(1);
+
     public ExecutorService backgroundExecutor = Executors.newCachedThreadPool();
     /**
      * Used exclusively for handling messages from a server on learner devices
@@ -959,9 +960,11 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         manageFocus();
     }
 
+    //TODO This is called and then there is no app recall?
     @OnLifecycleEvent(Lifecycle.Event.ON_STOP)
     public void onLifecycleStop() {
         Log.w(TAG, "LC Stop");
+        Log.d(TAG, "LeadMe: " + leadMePackageName + " Current package:" + currentTaskPackageName);
         appHasFocus = false;
         if (!permissionManager.waitingForPermission
                 && currentTaskPackageName != null && currentTaskPackageName.equals(leadMePackageName)
@@ -1032,7 +1035,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                         }
                     }
 
-                    //if we have launched at least one thing previously, we might want to reset the task icon to LeadMe
+                //if we have launched at least one thing previously, we might want to reset the task icon to LeadMe
                 } else if (currentTaskPackageName != null) {
                     Log.e(TAG, "IS NOW A GOOD TIME TO UPDATE TO TASK ICON??");
                     getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.LAUNCH_SUCCESS + currentTaskPackageName + ":" + getNearbyManager().getID() + ":" + currentTaskPackageName, getNearbyManager().getAllPeerIDs());
@@ -1175,7 +1178,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
         //TODO needs to be signed into play store - have to add exception handling
 //        checkForUpdates();
-
         checkSharedPreferences();
         inflateViews();
         createAdapters();
@@ -1195,11 +1197,19 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         setupMenuButtons();
         setupOptionsScreen();
         prepareConnectionElements();
+        checkAppVersion();
 
         xrayManager.screenshotManager = new ScreenshotManagerBuilder(this).withPermissionRequestCode(REQUEST_SCREENSHOT_PERMISSION) //optional, 888 is the default
                 .build();
 
         firstTimeUser();
+    }
+
+    /**
+     * Check the firebase for the most current version number.
+     */
+    private void checkAppVersion() {
+        authenticationManager.checkCurrentVersion();
     }
 
     /**

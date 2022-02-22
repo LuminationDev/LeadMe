@@ -22,11 +22,10 @@ public class LumiAccessibilityConnector {
 
     public static final String PROPAGATE_ACTION = "com.lumination.leadme.PROPAGATED_ACTION";
 
-    private LeadMeMain main;
-//    private String lastAppName, lastPackageName;
+    private final LeadMeMain main;
 
     //handler for executing on the main thread
-    private DispatchManager dispatcher;
+    private final DispatchManager dispatcher;
     private static boolean waitingForStateChange = false;
 
     public boolean gestureInProgress = false;
@@ -44,6 +43,7 @@ public class LumiAccessibilityConnector {
 
     public void resetState() {
         ytManager.adFinished = false;
+        withinManager.resetTapInit();
 //        Log.d(TAG, "resetState: ");
 //        ytManager.resetState();
 //        withinManager.cleanUpVideo();
@@ -256,6 +256,7 @@ public class LumiAccessibilityConnector {
 
             } else if (!appInForeground && event.getSource() != null && event.getSource().getPackageName().toString().contains(main.getAppManager().youtubePackage)) {
                 executor.execute(() -> {
+                    Log.e(TAG, "Youtube: " + finalEvent);
                     //non-UI work here
                     ytManager.manageYouTubeAccess(finalEvent, finalRootInActiveWindow);
                 });

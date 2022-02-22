@@ -2,6 +2,7 @@ package com.lumination.leadme;
 
 import android.app.AlertDialog;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
@@ -37,6 +38,7 @@ import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.GoogleAuthProvider;
 import com.google.firebase.auth.UserProfileChangeRequest;
 import com.google.firebase.firestore.CollectionReference;
+import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -71,6 +73,7 @@ public class AuthenticationManager {
     private FirebaseAuth mAuth;
     private FirebaseUser currentUser = null;
     private CollectionReference collRef = null;
+    private DocumentReference docRef = null;
     private ListenerRegistration manualUserListener;
     private GoogleSignInClient mGoogleSignInClient;
     private String regoCode = "";
@@ -115,6 +118,52 @@ public class AuthenticationManager {
     public void logoutAction() {
         mAuth.signOut();
         currentUser = mAuth.getCurrentUser();
+    }
+
+    /**
+     * Call the firebase to get the current version of the application that is on the play store.
+     */
+    public void checkCurrentVersion() {
+        docRef = db.collection("version").document("production");
+
+        docRef.get().addOnCompleteListener(task -> {
+            if (task.isSuccessful()) {
+                //if no one has registered on the public IP yet, wait sometime and try again.
+                try {
+                    String version = task.getResult().get("version_id").toString();
+                    compareVersions(version);
+
+                } catch (NullPointerException e) {
+                    Log.d(TAG, "onComplete: " + e);
+                }
+            } else {
+                Log.d(TAG, "Error getting documents: ", task.getException());
+            }
+        });
+    }
+
+    private void compareVersions(String productionVersion) {
+        String runningVersion = "";
+
+        Log.d(TAG, "Production version: " + productionVersion);
+
+        if (!productionVersion.equals("")) {
+            try {
+                runningVersion = main.context.getPackageManager()
+                        .getPackageInfo(main.context.getPackageName(), 0)
+                        .versionName;
+            } catch (PackageManager.NameNotFoundException e) {
+                e.printStackTrace();
+            }
+
+            Log.d(TAG, "Running version: " + runningVersion);
+
+            if(!runningVersion.equals(productionVersion)) {
+                main.getDialogManager().showWarningDialog("Update",
+                        "There is a new version of LeadMe \n" +
+                        "available on the play store.");
+            }
+        }
     }
 
     /**

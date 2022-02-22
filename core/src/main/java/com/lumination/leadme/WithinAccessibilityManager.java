@@ -110,7 +110,7 @@ public class WithinAccessibilityManager {
     private void extractTapLocations(AccessibilityNodeInfo rootInActiveWindow) {
         Log.d(TAG, "extractTapLocations: ");
         try {
-            Thread.currentThread().sleep(1000);
+            Thread.currentThread().sleep(1000); //purposely block, waiting for screen to load
         } catch (InterruptedException e) {
             e.printStackTrace();
             Log.d(TAG, "extractTapLocations: thread won't sleep");
@@ -397,7 +397,7 @@ public class WithinAccessibilityManager {
     private void endOfVideo() {
         Log.w(TAG, "The video is done!");
         cleanUpVideo();
-        main.runOnUiThread(() -> main.updateFollowerCurrentTaskToLeadMe());
+        main.runOnUiThread(main::updateFollowerCurrentTaskToLeadMe);
         connector.bringMainToFront();
     }
 
@@ -435,4 +435,11 @@ public class WithinAccessibilityManager {
         }
     }
 
+    /**
+     * Resets the tap location check. Looks for the tap locations each time a video is launched,
+     * minimises the risk of continuously tap misses.
+     */
+    public void resetTapInit() {
+        initTapLocations = false;
+    }
 }

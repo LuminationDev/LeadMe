@@ -105,7 +105,7 @@ public class NetworkAdapter {
     public ArrayList<client> currentClients = new ArrayList<>();
     public ArrayList<NsdServiceInfo> discoveredLeaders = new ArrayList<>();
 
-    public ExecutorService executorService = Executors.newFixedThreadPool(2);
+    public ExecutorService executorService = Executors.newCachedThreadPool();
     private ScheduledExecutorService scheduledExecutor = new ScheduledThreadPoolExecutor(1);
 
 
