@@ -831,10 +831,10 @@ public class DispatchManager {
             Toast.makeText(main.getApplicationContext(), "Application needed on peer: " + split[3], Toast.LENGTH_SHORT).show();
 
             //TODO AUTO INSTALLER - uncomment below to enable auto installer
-            //main.getLumiAppInstaller().peersToInstall.add(split[3]);
+            main.getLumiAppInstaller().peersToInstall.add(split[3]);
 
             //open a dialog to confirm if wanting to install apps
-            //main.getLumiAppInstaller().applicationsToInstallWarning(split[1], split[2], false); //should auto update number of devices need as the action come in
+            main.getLumiAppInstaller().applicationsToInstallWarning(split[1], split[2], false); //should auto update number of devices need as the action come in
         }
 
         /**

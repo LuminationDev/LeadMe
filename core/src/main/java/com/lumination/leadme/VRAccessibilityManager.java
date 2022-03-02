@@ -4,7 +4,10 @@ import android.content.ComponentName;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Build;
+import android.os.Environment;
 import android.util.Log;
+
+import java.io.File;
 
 public class VRAccessibilityManager {
     private final static String TAG = "VRAccessibilityManager";
@@ -103,13 +106,13 @@ public class VRAccessibilityManager {
                 absFilepath = FileUtilities.getPath(main, source);
             }
         } else {
-            String filePath = main.searchForFile(this.fileName);
+            File temp = FileUtilities.findFile(Environment.getExternalStorageDirectory(), this.fileName);
 
-            if(filePath == null) {
+            if(temp == null) {
                 requestFile();
                 return;
             } else {
-                absFilepath = filePath;
+                absFilepath = temp.getPath();
             }
         }
 

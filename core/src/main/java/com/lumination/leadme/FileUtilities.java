@@ -68,7 +68,7 @@ public class FileUtilities {
         Uri uri = MediaStore.Video.Media.EXTERNAL_CONTENT_URI;
 
         String selection = MediaStore.Video.Media.DISPLAY_NAME + "= ?";
-        String[] selectionArguments = { fileName };
+        String[] selectionArguments = {fileName};
 
         Cursor cursor = cr.query(uri, null, selection, selectionArguments, null);
 
@@ -81,6 +81,31 @@ public class FileUtilities {
         }
 
         return videoUri;
+    }
+
+    /**
+     * Search for a file on older android versions. Currently searches through all the storage
+     * directories, if supplied with Environment.getExternalDirectories().
+     * @param directory A String representing the root directory of where to start the search.
+     * @param name A string representing the name of the file being searched for.
+     */
+    public static File findFile(File directory, String name) {
+        File[] children = directory.listFiles();
+
+        for(File child : children) {
+            if(child.isDirectory()) {
+                File found = findFile(child, name);
+                if(found != null) {
+                    return found;
+                }
+            } else {
+                if(name.equals(child.getName())) {
+                    return child;
+                }
+            }
+        }
+
+        return null;
     }
 
     /**

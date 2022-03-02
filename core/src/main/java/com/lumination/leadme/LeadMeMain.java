@@ -1501,40 +1501,40 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         //TODO VR PLAYER, AUTO INSTALLER AND FILE TRANSFER
         //Code in LeadMe Main & AppManager
         //multi install button
-//        mainLeader.findViewById(R.id.installer_core_btn).setOnClickListener(view -> {
-//            if(autoInstallApps) {
-//                getLumiAppInstaller().showMultiInstaller(layoutParams);
-//            } else {
-//                dialogManager.showWarningDialog("Auto Installer", "Auto installing has not been enabled.");
-//            }
-//        });
-//
-//        //file transfer button
-//        mainLeader.findViewById(R.id.file_core_btn).setOnClickListener(view -> {
-//            if(!getConnectedLearnersAdapter().someoneIsSelected()) {
-//                Toast.makeText(context, "Peers need to be selected.", Toast.LENGTH_LONG).show();
-//                return;
-//            }
-//
-//            if(fileTransferEnabled) {
-//                if(isMiUiV9()) {
-//                    alternateFileChoice(TRANSFER_FILE_CHOICE);
-//                } else {
-//                    FileUtilities.browseFiles(this, TRANSFER_FILE_CHOICE);
-//                }
-//            } else {
-//                dialogManager.showWarningDialog("File Transfer", "File transfer has not been enabled.");
-//            }
-//        });
-//
-//        //Custom VR button
-//        mainLeader.findViewById(R.id.vr_core_btn).setOnClickListener(view -> {
-//            if(vrVideoPath == null) {
-//                getVrEmbedPlayer().showPlaybackPreview();
-//            } else {
-//                getVrEmbedPlayer().openVideoController();
-//            }
-//        });
+        mainLeader.findViewById(R.id.installer_core_btn).setOnClickListener(view -> {
+            if(autoInstallApps) {
+                getLumiAppInstaller().showMultiInstaller(layoutParams);
+            } else {
+                dialogManager.showWarningDialog("Auto Installer", "Auto installing has not been enabled.");
+            }
+        });
+
+        //file transfer button
+        mainLeader.findViewById(R.id.file_core_btn).setOnClickListener(view -> {
+            if(!getConnectedLearnersAdapter().someoneIsSelected()) {
+                Toast.makeText(context, "Peers need to be selected.", Toast.LENGTH_LONG).show();
+                return;
+            }
+
+            if(fileTransferEnabled) {
+                if(isMiUiV9()) {
+                    alternateFileChoice(TRANSFER_FILE_CHOICE);
+                } else {
+                    FileUtilities.browseFiles(this, TRANSFER_FILE_CHOICE);
+                }
+            } else {
+                dialogManager.showWarningDialog("File Transfer", "File transfer has not been enabled.");
+            }
+        });
+
+        //Custom VR button
+        mainLeader.findViewById(R.id.vr_core_btn).setOnClickListener(view -> {
+            if(vrVideoPath == null) {
+                getVrEmbedPlayer().showPlaybackPreview();
+            } else {
+                getVrEmbedPlayer().openVideoController();
+            }
+        });
         //TODO End section
     }
 
@@ -2406,8 +2406,8 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         optionsScreen.findViewById(R.id.help_support_btn).setVisibility(enabled);
 
         //TODO AUTO next update variables. do not include in the production just yet
-//        autoToggle.setVisibility(enabled);
-//        transferToggle.setVisibility(enabled);
+        autoToggle.setVisibility(enabled);
+        transferToggle.setVisibility(enabled);
     }
 
     /**
@@ -3608,28 +3608,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         if(managingAutoInstaller) {
             lumiAppInstaller.install(event);
         }
-    }
-
-    /**
-     * Search for a file on older android versions. Currently searches through the Movie and Download
-     * directories.
-     * @param fileName A String representing the file that is being searched for.
-     */
-    public String searchForFile(String fileName) {
-        String[] directories = {Environment.DIRECTORY_MOVIES, Environment.DIRECTORY_DOWNLOADS};
-
-        for(String directory : directories) {
-            Log.d(TAG, Environment.getExternalStoragePublicDirectory(directory).toString());
-
-            File path = Environment.getExternalStoragePublicDirectory(directory);
-            File file = new File(path, fileName);
-
-            if(file.exists()) {
-                return file.getPath();
-            }
-        }
-
-        return null;
     }
 
     /**
