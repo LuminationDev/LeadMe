@@ -28,7 +28,6 @@ import android.net.Uri;
 import android.net.wifi.WifiManager;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
 import android.os.PowerManager;
@@ -89,7 +88,6 @@ import com.himanshurawat.hasher.HashType;
 import com.himanshurawat.hasher.Hasher;
 
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.InetAddress;
@@ -174,8 +172,9 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     static final String PERMISSION_AUTOINSTALL_DENIED = "LumiAutoInstaller:";
     static final String LAUNCH_SUCCESS = "LumiSuccess:";
 
-    final static String SESSION_UUID_TAG = "SessionUUID";
-    final static String SESSION_MANUAL_TAG = "SessionManual";
+    static final String SESSION_UUID_TAG = "SessionUUID";
+    static final String SESSION_MANUAL_TAG = "SessionManual";
+    static final String SESSION_VR_TAG = "SessionFirstVR";
 
     static final String XRAY_REQUEST = "LumiXrayRequest";
     static final String XRAY_ON = "LumiXrayOn";
@@ -205,11 +204,21 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     private static final float SHAKE_THRESHOLD_GRAVITY = 2;
 
     private SharedPreferences sharedPreferences;
-    //sessionUUID to enable disconnect/reconnect as same user
+    /**
+     * sessionUUID to enable disconnect/reconnect as same user
+     */
     private String sessionUUID = null;
-    //Used to determine if server discovery is on
+    /**
+     * Used to determine if server discovery is on
+     */
     public Boolean sessionManual = null;
-    //Used to determine if connecting through direct IP input
+    /**
+     * Used to determine if the user has used the VR player before
+     */
+    public Boolean vrFirstTime = null;
+    /**
+     * Used to determine if connecting through direct IP input
+     */
     public Boolean directConnection = false;
 
     private InputMethodManager imm;
@@ -844,8 +853,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             Path swipePath = new Path();
             swipePath.setLastPoint(x, y);
             swipePath.moveTo(x, y);
-//            swipePath.lineTo(x + 200, y);
-//            swipePath.lineTo(x - 200, y);
             GestureDescription.Builder gestureBuilder = new GestureDescription.Builder();
             gestureBuilder.addStroke(new GestureDescription.StrokeDescription(swipePath, 0, 200)); //50 was too short for Within
             GestureDescription swipe = gestureBuilder.build();
@@ -1241,6 +1248,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
      */
     private void checkSharedPreferences() {
         sharedPreferences = getSharedPreferences(getResources().getString(R.string.preference_file_key), Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPreferences.edit();
 
         //if a UUID exists, retrieve it
         if (sharedPreferences.contains(SESSION_UUID_TAG)) {
@@ -1249,7 +1257,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
         //if none exists, make one and store it
         if (sessionUUID == null) {
-            SharedPreferences.Editor editor = sharedPreferences.edit();
             sessionUUID = UUID.randomUUID().toString();
             editor.putString(SESSION_UUID_TAG, sessionUUID);
             editor.apply();
@@ -1261,11 +1268,33 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         }
 
         if (sessionManual == null) {
-            SharedPreferences.Editor editor = sharedPreferences.edit();
             sessionManual = false;
             editor.putBoolean(SESSION_MANUAL_TAG, sessionManual);
             editor.apply();
         }
+
+        //Check if the vr player has been used before
+        if(sharedPreferences.contains(SESSION_VR_TAG)) {
+            vrFirstTime = sharedPreferences.getBoolean(SESSION_VR_TAG, true);
+        }
+
+        if (vrFirstTime == null) {
+            vrFirstTime = true;
+            editor.putBoolean(SESSION_VR_TAG, vrFirstTime);
+            editor.apply();
+        }
+    }
+
+    /**
+     * Change the shared preferences after the initial viewing of the VR player controls. Meaning
+     * that a user has seen the pop up and does not need to in the future.
+     * @param change A boolean determining if the user has viewed the pop up.
+     */
+    public void changeVRFirstTime(boolean change) {
+        sharedPreferences = getSharedPreferences(getResources().getString(R.string.preference_file_key), Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.putBoolean(SESSION_VR_TAG, change);
+        editor.apply();
     }
 
     /**
@@ -1529,10 +1558,18 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
         //Custom VR button
         mainLeader.findViewById(R.id.vr_core_btn).setOnClickListener(view -> {
-            if(vrVideoPath == null) {
-                getVrEmbedPlayer().showPlaybackPreview();
-            } else {
-                getVrEmbedPlayer().openVideoController();
+//            if(vrVideoPath == null) {
+            getVrEmbedPlayer().showPlaybackPreview();
+//            } else {
+//                getVrEmbedPlayer().openVideoController();
+//            }
+
+            if(vrFirstTime) {
+                vrFirstTime = false;
+                changeVRFirstTime(vrFirstTime);
+
+                //Function to let leaders know what files can be picked
+                getDialogManager().showVRFirstTimeDialog();
             }
         });
         //TODO End section
@@ -1711,9 +1748,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             getAuthenticationManager().buildloginsignup(0);
         });
 
-        optionsScreen.findViewById(R.id.on_boarding).setOnClickListener(view -> {
-            buildAndDisplayOnBoard(false);
-        });
+        optionsScreen.findViewById(R.id.on_boarding).setOnClickListener(view -> buildAndDisplayOnBoard(false));
 
         optionsScreen.findViewById(R.id.how_to_use_btn).setOnClickListener(view -> {
             Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://drive.google.com/file/d/1LrbQ5I1jlf-OQyIgr2q3Tg3sCo00x5lu/view"));
@@ -2369,6 +2404,9 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
                 getAuthenticationManager().createManualConnection(ipAddress);
             }
+
+            //remove the Firebase listener if server discovery was enabled before logging in
+            getAuthenticationManager().removeUserListener();
         } else {
             //display main student view
             leadmeAnimator.setDisplayedChild(ANIM_LEARNER_INDEX);

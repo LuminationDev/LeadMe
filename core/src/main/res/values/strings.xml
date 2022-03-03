@@ -153,5 +153,19 @@
     <string name="everyone">Everyone</string>
     <string name="will_stream_via_internet">*will stream via internet</string>
     <string name="will_download_via_internet">*will download via internet</string>
+    <string name="currently_playing">Currently Playing</string>
+    <string name="touch_screens_disabled">*Touch screens disabled</string>
+    <string name="touch_screens_enabled">*Touch screens enabled</string>
+    <string name="transfer_file">Transfer file</string>
+    <string name="file_requested">File Requested</string>
+    <string name="first_time_vr">Display and share your own\n videos in VR!</string>
+    <string name="vr_file_type">Only 360 video files can be selected for the VR Player</string>
+    <string name="selected_file_types">Selected File Types Allowed</string>
+    <string name="warning_icon">Warning icon</string>
+    <string name="no_video">You\'ve not chosen\n a video yet!</string>
+    <string name="video_launch_confirm">Your video was successfully launched.</string>
+    <string name="view_mode_on">View Mode ON</string>
+    <string name="view_mode_off">View Mode OFF</string>
+    <string name="zero_seconds">00:00</string>
 
 </resources>
