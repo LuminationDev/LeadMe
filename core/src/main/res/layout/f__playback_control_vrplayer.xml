@@ -40,12 +40,12 @@
                 android:text="Push\nagain"
                 android:textAllCaps="false"
                 android:textColor="@color/leadme_dark_grey"
-                android:textSize="10sp"
+                android:textSize="11sp"
                 android:visibility="invisible" />
 
             <TextView
                 android:id="@+id/popup_title"
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_vertical"
                 android:layout_marginTop="15dp"
@@ -53,7 +53,7 @@
                 android:layout_weight="1"
                 android:fontFamily="@font/poppins_semibold"
                 android:gravity="center_horizontal"
-                android:text="@string/playback_controls_title"
+                android:text="@string/currently_playing"
                 android:textAlignment="center"
                 android:textColor="@color/leadme_black"
                 android:textSize="16sp" />
@@ -259,10 +259,10 @@
                                 android:track="@drawable/toggle_track" />
 
                             <TextView
-                                android:id="@+id/textView3"
+                                android:id="@+id/touch_screen_desc"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:text="*Touch screens disabled"
+                                android:text="@string/touch_screens_disabled"
                                 android:textColor="@color/leadme_white" />
                         </LinearLayout>
 
@@ -285,7 +285,7 @@
         android:paddingBottom="10dp">
 
         <Button
-            android:id="@+id/push_btn"
+            android:id="@+id/new_video_btn"
             style="?android:attr/borderlessButtonStyle"
             android:layout_width="@dimen/standard_btn_width"
             android:layout_height="@dimen/standard_btn_height"

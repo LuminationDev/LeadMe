@@ -419,7 +419,7 @@ public class FileTransfer {
                 DataInputStream dis = new DataInputStream(fileSocket.getInputStream());
                 OutputStream fos; //file output stream - depends on the SDK
                 Uri fileURI = null;
-                String fileExists = null;
+                File fileExists = null;
 
                 String fileName = dis.readUTF();
 
@@ -429,15 +429,13 @@ public class FileTransfer {
                 if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                     fileURI = FileUtilities.getFileByName(main, fileName);
                 } else {
-                    //Currently only checks Movies and Downloads folder
-                    fileExists = main.searchForFile(fileName);
+                    fileExists = FileUtilities.findFile(Environment.getExternalStorageDirectory(), fileName);
                 }
 
                 Log.d(TAG, "File URI: " + fileURI + "File exists: " + fileExists);
 
                 //Send message to guide that it already has the video
                 if(fileURI != null || fileExists != null) {
-                    //getFilePath(fileURI);
                     main.transferError(fileOnDevice, main.getNearbyManager().myID);
                     return;
                 }

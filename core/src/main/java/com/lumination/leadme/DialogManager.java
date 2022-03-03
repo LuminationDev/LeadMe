@@ -40,10 +40,9 @@ public class DialogManager {
     private final LeadMeMain main;
     private final Resources resources;
 
-    private View confirmPushDialogView, loginDialogView, toggleBtnView, manView, permissionDialogView, requestDialogView, fileTypeDialogView;
-    private AlertDialog warningDialog, waitingDialog, appPushDialog, confirmPushDialog, studentAlertsDialog, loginDialog, recallPrompt, manualDialog, permissionDialog, requestDialog, fileTypeDialog;
-    private TextView appPushMessageView, warningDialogTitle, warningDialogMessage, recallMessage, permissionDialogMessage, requestDialogMessage, fileTypeDialogMessage;
-    private Button appPushBtn;
+    private View confirmPushDialogView, loginDialogView, toggleBtnView, manView, permissionDialogView, requestDialogView;
+    private AlertDialog warningDialog, waitingDialog, appPushDialog, confirmPushDialog, studentAlertsDialog, loginDialog, recallPrompt, manualDialog, permissionDialog, requestDialog, fileTypeDialog, firstTimeVRDialog;
+    private TextView appPushMessageView, warningDialogTitle, warningDialogMessage, recallMessage, permissionDialogMessage, requestDialogMessage;
     private String appPushPackageName, appPushTitle;
     private ArrayList<String> permissions = null;
 
@@ -97,6 +96,7 @@ public class DialogManager {
         setupLoginDialog();
         setupManualDialog();
         setupRecallDialog();
+        setupVRFirstTime();
         setupFileTypes();
         setupRequestDialog();
     }
@@ -191,10 +191,35 @@ public class DialogManager {
 //
 //    }
 
+    //Dialog to show information about the VR player on the first time usage
+    private void setupVRFirstTime() {
+        View firstTimeVRDialogView = View.inflate(main, R.layout.e__leader_vr_popup, null);
+        firstTimeVRDialog = new AlertDialog.Builder(main)
+                .setView(firstTimeVRDialogView)
+                .create();
+
+        firstTimeVRDialog.setOnDismissListener(dialog -> {
+            dialogShowing = false;
+            hideSystemUI();
+        });
+
+        Button allowBtn = firstTimeVRDialogView.findViewById(R.id.select_source_btn);
+        Button cancelBtn = firstTimeVRDialogView.findViewById(R.id.cancel_btn);
+
+        allowBtn.setOnClickListener(v -> {
+            firstTimeVRDialog.dismiss();
+
+            showFileTypeDialog();
+        });
+
+        cancelBtn.setOnClickListener(v -> {
+            firstTimeVRDialog.dismiss();
+        });
+    }
+
     //Dialog to describe what sort of files can be choosen
     private void setupFileTypes() {
-        fileTypeDialogView = View.inflate(main, R.layout.e__leader_filetype_popup, null);
-        fileTypeDialogMessage = fileTypeDialogView.findViewById(R.id.filetype_comment);
+        View fileTypeDialogView = View.inflate(main, R.layout.e__leader_filetype_popup, null);
         fileTypeDialog = new AlertDialog.Builder(main)
                 .setView(fileTypeDialogView)
                 .create();
@@ -368,17 +393,28 @@ public class DialogManager {
     /**
      * Show a dialog alert that describes what file types can be selected for a certain application.
      */
-    public void showFileTypeDialog(String message) {
+    public void showFileTypeDialog() {
         if (destroying) {
             return;
         }
         if (fileTypeDialog == null) {
-            setupWarningDialog();
+            setupFileTypes();
         }
 
-        fileTypeDialogMessage.setText(message);
-        fileTypeDialogMessage.setVisibility(View.VISIBLE);
         fileTypeDialog.show();
+        hideSystemUI();
+        dialogShowing = true;
+    }
+
+    /**
+     * Show a dialog alert that describes the first time use for the VR player
+     */
+    public void showVRFirstTimeDialog() {
+        if(firstTimeVRDialog == null) {
+            setupVRFirstTime();
+        }
+
+        firstTimeVRDialog.show();
         hideSystemUI();
         dialogShowing = true;
     }
@@ -443,7 +479,7 @@ public class DialogManager {
 
         if (appPushMessageView == null) {
             appPushMessageView = appPushDialogView.findViewById(R.id.push_confirm_txt);
-            appPushBtn = appPushDialogView.findViewById(R.id.push_btn);
+            Button appPushBtn = appPushDialogView.findViewById(R.id.push_btn);
         }
 
         toggleSelectedView(appPushDialogView);

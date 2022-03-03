@@ -278,6 +278,11 @@ public class AuthenticationManager {
             return;
         }
 
+        //if a user has logged in as a guide then this function should not be triggered anymore
+        if(main.isGuide) {
+            return;
+        }
+
         collRef = db.collection("addresses").document(publicIP).collection("Leaders");
 
         collRef.get().addOnCompleteListener(task -> {
@@ -287,7 +292,7 @@ public class AuthenticationManager {
                     if (Objects.requireNonNull(task.getResult()).size() == 0) {
                         //In case the user switches back to auto
                         if (main.sessionManual && !main.directConnection) {
-                            scheduledExecutorService.schedule(() -> retrieveLeaders(), waitForGuide, TimeUnit.MILLISECONDS);
+                            scheduledExecutorService.schedule(this::retrieveLeaders, waitForGuide, TimeUnit.MILLISECONDS);
                         }
                     } else {
                         //add listeners to track if leader hasn't logged in but publicIP exists (multiple leaders on network)
@@ -342,10 +347,10 @@ public class AuthenticationManager {
      * leaders signing in.
      */
     public void removeUserListener() {
-        if(manualUserListener!=null){
+        if (manualUserListener != null) {
             Log.d(TAG, "loginAction: listener removed");
             manualUserListener.remove();
-            manualUserListener=null;
+            manualUserListener = null;
         }
     }
 

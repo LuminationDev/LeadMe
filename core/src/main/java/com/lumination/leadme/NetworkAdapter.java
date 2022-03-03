@@ -758,7 +758,7 @@ public class NetworkAdapter {
 
                 while (true) {
                     Log.d(TAG, "ServerSocket Created, awaiting connection");
-                    Socket clientSocket = null;
+                    Socket clientSocket;
 
                     try {
                         clientSocket = mServerSocket.accept();//blocks the thread until client is accepted
@@ -767,6 +767,7 @@ public class NetworkAdapter {
                             Log.d(TAG, "Server: server stopped");
                             return;
                         }
+                        //Exits the server loop on session end
                         throw new RuntimeException("Error creating client", e);
                     }
 
@@ -856,7 +857,8 @@ public class NetworkAdapter {
             try {
                 Log.d(TAG, "Unregister nsd service");
                 mNsdManager.unregisterService(mRegistrationListener);
-            } finally {
+            }
+            finally {
                 mRegistrationListener = null;
             }
         }
@@ -1007,9 +1009,7 @@ public class NetworkAdapter {
         p.setDataPosition(0);
         Log.d(TAG, "messageReceivedFromServer: " + p.readString());
         Payload payload = fromBytes(bytes);
-        main.runOnUiThread(() -> {
-            main.handlePayload(payload.asBytes());
-        });
+        main.runOnUiThread(() -> main.handlePayload(payload.asBytes()));
         p.recycle();
     }
 
