@@ -177,7 +177,7 @@ public class VREmbedPlayer {
             video.seekTo(startFromTime * 1000);
         } else {
             //display the first frame instead of black space
-            video.seekTo(10);
+            video.seekTo(1);
         }
 
         TextView touchDesc = videoControllerDialogView.findViewById(R.id.touch_screen_desc);
