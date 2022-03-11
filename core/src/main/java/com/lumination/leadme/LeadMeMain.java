@@ -68,6 +68,8 @@ import android.widget.ViewAnimator;
 import android.widget.ViewSwitcher;
 
 import androidx.core.content.res.ResourcesCompat;
+import androidx.databinding.DataBindingUtil;
+import androidx.databinding.ViewDataBinding;
 import androidx.fragment.app.FragmentActivity;
 import androidx.lifecycle.Lifecycle;
 import androidx.lifecycle.LifecycleObserver;
@@ -273,6 +275,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     private final int ANIM_OPTIONS_INDEX = 5;
     private final int ANIM_XRAY_INDEX = 6;
     protected final int ANIM_MULTI_INDEX = 7;
+    private final int ANIM_CURATED_CONTENT_LAUNCH_INDEX = 8;
 
     public View waitingForLearners, appLauncherScreen;
     private View splashscreen, startLearner, mainLearner, startLeader, mainLeader, optionsScreen, switcherView, xrayScreen;
@@ -284,6 +287,9 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     private GridView connectedStudentsView;
 
     public ArrayList<CuratedContentItem> curatedContentList;
+    public View curatedContentScreen;
+    public ViewDataBinding curatedContentBinding;
+    public CuratedContentAdapter curatedContentAdapter;
 
     //Checking for updates on the Play Store
     private final int UPDATE_REQUEST_CODE = 100;
@@ -1218,8 +1224,8 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
     public void initializeCuratedContent(ArrayList<CuratedContentItem> curatedContentList) {
         this.curatedContentList = curatedContentList;
-        dialogManager.curatedContentBinding.setVariable(BR.curatedContentList, this.curatedContentList);
-        dialogManager.curatedContentAdapter.curatedContentList = this.curatedContentList;
+        curatedContentBinding.setVariable(BR.curatedContentList, this.curatedContentList);
+        curatedContentAdapter.curatedContentList = this.curatedContentList;
     }
 
     /**
@@ -1355,6 +1361,15 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         appLauncherScreen = View.inflate(context, R.layout.d__app_list, null);
         learnerWaitingText = startLearner.findViewById(R.id.waiting_text);
         multiAppManager = View.inflate(context, R.layout.d__app_manager_list, null);
+
+//        todo - can probably move the binding init stuff to a separate method to keep this cleanr 11/03/22
+        curatedContentScreen = View.inflate(context, R.layout.d__curated_content_list, null);
+        curatedContentBinding = DataBindingUtil.bind(curatedContentScreen);
+        curatedContentBinding.setLifecycleOwner(this);
+        curatedContentBinding.setVariable(BR.curatedContentList, curatedContentList);
+        ListView curatedContentList = curatedContentScreen.findViewById(R.id.curated_content_list);
+        curatedContentAdapter = new CuratedContentAdapter(this, curatedContentScreen.findViewById(R.id.curated_content_list));
+        curatedContentList.setAdapter(curatedContentAdapter);
     }
 
     /**
@@ -1527,6 +1542,11 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             appLauncherScreen.findViewById(R.id.app_scroll_view).scrollTo(0, 0);
         });
 
+        mainLeader.findViewById(R.id.curated_content_btn).setOnClickListener(view -> {
+            showCuratedContentScreen();
+            appLauncherScreen.findViewById(R.id.app_scroll_view).scrollTo(0, 0);
+        });
+
         mainLeader.findViewById(R.id.xray_core_btn).setOnClickListener(v -> {
             if (getConnectedLearnersAdapter().getCount() > 0) {
                 xrayManager.showXrayView("");
@@ -1657,6 +1677,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         leadmeAnimator.addView(optionsScreen);
         leadmeAnimator.addView(xrayScreen);
         leadmeAnimator.addView(multiAppManager);
+        leadmeAnimator.addView(curatedContentScreen);
     }
 
     /**
@@ -1704,6 +1725,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
         //set up back buttons
         appLauncherScreen.findViewById(R.id.back_btn).setOnClickListener(view -> leadmeAnimator.setDisplayedChild(ANIM_LEADER_INDEX));
+        curatedContentScreen.findViewById(R.id.back_btn).setOnClickListener(view -> leadmeAnimator.setDisplayedChild(ANIM_LEADER_INDEX));
 
         //multi installer screen back button
         multiAppManager.findViewById(R.id.back_btn).setOnClickListener(view -> {
@@ -2033,6 +2055,10 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
     private void showAppLaunchScreen() {
         leadmeAnimator.setDisplayedChild(ANIM_APP_LAUNCH_INDEX);
+    }
+
+    private void showCuratedContentScreen() {
+        leadmeAnimator.setDisplayedChild(ANIM_CURATED_CONTENT_LAUNCH_INDEX);
     }
 
     public void showMultiAppInstallerScreen() {

@@ -133,6 +133,34 @@
                 android:visibility="visible" />
 
             <Button
+                android:id="@+id/curated_content_btn"
+                style="@style/EmptyStyle"
+                android:layout_width="@dimen/pushbtn_size"
+                android:layout_height="@dimen/pushbtn_size"
+                android:layout_gravity="center"
+                android:layout_marginTop="15dp"
+                android:layout_marginBottom="25dp"
+                android:background="@drawable/circle_btn"
+                android:drawableTop="@drawable/core_app_icon"
+                android:drawablePadding="-10dp"
+                android:elevation="15dp"
+                android:fontFamily="@font/poppins_semibold"
+                android:includeFontPadding="false"
+                android:paddingTop="13dp"
+                android:singleLine="true"
+                android:text="@string/curated_content"
+                android:textAllCaps="false"
+                android:textColor="@color/leadme_black"
+                android:textSize="12sp"
+                app:layout_gravity="center_horizontal|top" />
+
+            <Space
+                android:layout_width="15dp"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:visibility="visible" />
+
+            <Button
                 android:id="@+id/url_core_btn"
                 style="@style/EmptyStyle"
                 android:layout_width="@dimen/pushbtn_size"

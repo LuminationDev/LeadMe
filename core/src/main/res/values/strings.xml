@@ -8,6 +8,7 @@
     <string name="logo_txt">Lumination Logo</string>
     <string name="icon_desc">App Icon</string>
     <string name="label_apps">Applications</string>
+    <string name="label_curated_content">Curated Content</string>
     <string name="label_students">Active Learners</string>
     <string name="favourites">Favourites</string>
     <string name="all_apps">All Apps</string>
@@ -25,6 +26,7 @@
     <string name="learners">Learners</string>
     <string name="leaders">Leaders</string>
     <string name="app">App</string>
+    <string name="curated_content">Curated Content</string>
     <string name="url">URL</string>
     <string name="yt_vr">YT VR</string>
     <string name="textview">TextView</string>

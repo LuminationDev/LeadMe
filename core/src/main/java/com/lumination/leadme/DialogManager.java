@@ -43,7 +43,7 @@ public class DialogManager {
     private final Resources resources;
 
     private View confirmPushDialogView, loginDialogView, toggleBtnView, manView, permissionDialogView, requestDialogView;
-    private AlertDialog warningDialog, waitingDialog, appPushDialog, confirmPushDialog, studentAlertsDialog, loginDialog, recallPrompt, manualDialog, permissionDialog, requestDialog, fileTypeDialog, firstTimeVRDialog, curatedContentDialog;
+    private AlertDialog warningDialog, waitingDialog, appPushDialog, confirmPushDialog, studentAlertsDialog, loginDialog, recallPrompt, manualDialog, permissionDialog, requestDialog, fileTypeDialog, firstTimeVRDialog;
     private TextView appPushMessageView, warningDialogTitle, warningDialogMessage, recallMessage, permissionDialogMessage, requestDialogMessage;
     private String appPushPackageName, appPushTitle;
     private ArrayList<String> permissions = null;
@@ -61,10 +61,6 @@ public class DialogManager {
      * View displayed for showing student alerts to a guide.
      * */
     public View studentAlertsView;
-
-    public View curatedContentView;
-    public ViewDataBinding curatedContentBinding;
-    public CuratedContentAdapter curatedContentAdapter;
 
     /**
      * If a dialog is currently open.
@@ -98,7 +94,6 @@ public class DialogManager {
         setupConfirmPushDialog();
         setupWarningDialog();
         setupAlertsViewDialog();
-        setupCuratedContentView();
         setupLoginDialogView();
         setupLoginDialog();
         setupManualDialog();
@@ -174,18 +169,6 @@ public class DialogManager {
         studentAlertsView.findViewById(R.id.confirm_btn).setOnClickListener(v -> hideAlertsDialog());
 
         studentAlertsView.findViewById(R.id.clear_alerts_btn).setOnClickListener(v -> alertsAdapter.hideCurrentAlerts());
-    }
-
-    private void setupCuratedContentView() {
-        curatedContentView = View.inflate(main, R.layout.d__curated_content_list, null);
-        curatedContentBinding = DataBindingUtil.bind(curatedContentView);
-        curatedContentBinding.setLifecycleOwner(main);
-        curatedContentBinding.setVariable(BR.curatedContentList, main.curatedContentList);
-
-        ListView curatedContentList = curatedContentView.findViewById(R.id.curated_content_list);
-
-        curatedContentAdapter = new CuratedContentAdapter(main, curatedContentView.findViewById(R.id.curated_content_list));
-        curatedContentList.setAdapter(curatedContentAdapter);
     }
 
 //    /**
@@ -616,23 +599,6 @@ public class DialogManager {
         warningDialog.show();
         hideSystemUI();
         dialogShowing = true;
-    }
-
-    public void showCuratedContentDialog() {
-        if (destroying) {
-            return;
-        }
-
-        if (curatedContentDialog == null) {
-            curatedContentDialog = new AlertDialog.Builder(main)
-                    .setView(curatedContentView)
-                    .create();
-            curatedContentDialog.setOnDismissListener(dialog -> hideSystemUI());
-        }
-
-        hideSystemUI();
-        dialogShowing = true;
-        curatedContentDialog.show();
     }
 
     public void showAlertsDialog() {
