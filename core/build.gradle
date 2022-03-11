@@ -89,6 +89,9 @@ dependencies {
     //noinspection GradleCompatible
     implementation 'com.android.support:design:28.0.0'
     implementation 'com.github.BoardiesITSolutions:FileDirectoryPicker:1.0.0.7'
+
+    // for connecting to google sheets for curated content
+    implementation 'com.squareup.okhttp3:okhttp:4.9.3'
 }
 
 configurations.all {

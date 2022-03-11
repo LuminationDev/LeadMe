@@ -283,6 +283,8 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     private ImageView logo;
     private GridView connectedStudentsView;
 
+    public ArrayList<CuratedContentItem> curatedContentList;
+
     //Checking for updates on the Play Store
     private final int UPDATE_REQUEST_CODE = 100;
 
@@ -1210,6 +1212,14 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                 .build();
 
         firstTimeUser();
+
+        CuratedContentManager.getCuratedContent(this);
+    }
+
+    public void initializeCuratedContent(ArrayList<CuratedContentItem> curatedContentList) {
+        this.curatedContentList = curatedContentList;
+        dialogManager.curatedContentBinding.setVariable(BR.curatedContentList, this.curatedContentList);
+        dialogManager.curatedContentAdapter.curatedContentList = this.curatedContentList;
     }
 
     /**

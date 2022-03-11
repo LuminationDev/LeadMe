@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <data>
+        <import type="java.util.ArrayList"></import>
+        <variable
+            name="curatedContentList"
+            type="ArrayList" />
+    </data>
+
+    <LinearLayout
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:layout_centerHorizontal="true"
+        android:layout_centerVertical="true"
+        android:background="@drawable/rounded_popup_white"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:paddingTop="20dp"
+        android:paddingBottom="30dp"
+        android:showDividers="middle|beginning|end">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginBottom="20dp"
+            android:foregroundGravity="center_horizontal"
+            android:gravity="left"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/hard_space"
+                android:layout_width="60dp"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
+                android:paddingStart="20dp"
+                android:drawableLeft="@drawable/arrow_icon" />
+
+            <TextView
+                android:id="@+id/alerts_title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal|center_vertical"
+                android:drawablePadding="5dp"
+                android:fontFamily="@font/poppins_semibold"
+                android:foregroundGravity="center_horizontal"
+                android:gravity="center_horizontal|center_vertical"
+                android:includeFontPadding="false"
+                android:text="Curated Content"
+                android:textColor="@color/leadme_black"
+                android:textSize="16sp" />
+        </LinearLayout>
+
+        <ListView
+            android:id="@+id/curated_content_list"
+            android:layout_width="fill_parent"
+            android:layout_height="315dp"
+            android:layout_marginStart="20dp"
+            android:layout_marginEnd="20dp"
+            android:background="@color/leadme_light_grey"
+            android:fontFamily="@font/poppins_regular"
+            android:gravity="center"
+            android:isScrollContainer="true"
+            android:padding="10dp"
+            android:scrollbarAlwaysDrawHorizontalTrack="false"
+            android:scrollbarStyle="insideInset"
+            android:scrollbars="vertical"
+            android:textColor="@color/leadme_light_grey"
+            android:visibility="visible"
+            tools:listitem="@layout/row_curated_content_item"></ListView>
+
+        <TextView
+            android:id="@+id/no_curated_content_message"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="20dp"
+            android:layout_marginEnd="20dp"
+            android:background="@drawable/rounded_btn_highlight"
+            android:fontFamily="@font/poppins_semibold"
+            android:gravity="center"
+            android:padding="30dp"
+            android:text="No curated content"
+            android:textAlignment="center"
+            android:visibility="gone"
+            android:textSize="14sp" />
+    </LinearLayout>
+</layout>
