@@ -4,7 +4,6 @@ import android.app.AlertDialog;
 import android.content.ClipboardManager;
 import android.content.ComponentName;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.pm.ApplicationInfo;
@@ -16,7 +15,6 @@ import android.net.Uri;
 import android.os.Build;
 import android.util.DisplayMetrics;
 import android.util.Log;
-import android.util.TypedValue;
 import android.view.View;
 import android.webkit.URLUtil;
 import android.webkit.WebResourceRequest;
@@ -28,14 +26,11 @@ import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.GridView;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.SearchView;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
-
-import androidx.core.content.res.ResourcesCompat;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
@@ -56,7 +51,7 @@ public class WebManager {
 
     //tag for debugging
     private static final String TAG = "WebManager";
-    private TextCrawler textCrawler = new TextCrawler(this);
+    private final TextCrawler textCrawler = new TextCrawler(this);
 
     private AlertDialog websiteLaunchDialog, previewDialog, urlYtFavDialog, searchDialog;
     private final View websiteLaunchDialogView;
@@ -69,27 +64,24 @@ public class WebManager {
     private TextView previewTitle;
     private TextView previewMessage;
     private ProgressBar previewProgress;
-    private Button previewPushBtn;
     private boolean isYouTube = false;
-    private boolean isWithin = false;
     private String pushURL = "";
     private String pushTitle = "";
     String controllerURL = "";
 
-    private View webYouTubeFavView;
-    private LinearLayout toggleSelectedBtn;
-    private FavouritesManager urlFavouritesManager;
-    private FavouritesManager youTubeFavouritesManager;
+    private final Button previewPushBtn;
 
-    private LeadMeMain main;
-    private DialogManager dialogManager;
-    private CheckBox favCheckbox;
+    private final View webYouTubeFavView;
+    private final FavouritesManager urlFavouritesManager;
+    private final FavouritesManager youTubeFavouritesManager;
 
-    private Spinner lockSpinner, searchSpinner;
-    private View lockSpinnerParent;
-    private String[] searchSpinnerItems, lockSpinnerItems;
+    private final LeadMeMain main;
+    private final DialogManager dialogManager;
+    private final CheckBox favCheckbox;
 
-    private YouTubeEmbedPlayer youTubeEmbedPlayer;
+    private final Spinner lockSpinner, searchSpinner;
+    private final String[] searchSpinnerItems;
+    private final YouTubeEmbedPlayer youTubeEmbedPlayer;
 
     public Thread thread;
 
@@ -108,9 +100,8 @@ public class WebManager {
         youTubeEmbedPlayer = new YouTubeEmbedPlayer(main, this);
 
         //set up lock spinner
-        lockSpinnerParent = previewDialogView.findViewById(R.id.lock_spinner);
         lockSpinner = (Spinner) previewDialogView.findViewById(R.id.push_spinner);
-        lockSpinnerItems = new String[2];
+        String[] lockSpinnerItems = new String[2];
         lockSpinnerItems[0] = "View only";
         lockSpinnerItems[1] = "Free play";
         Integer[] push_imgs = {R.drawable.controls_view, R.drawable.controls_play};
@@ -136,7 +127,7 @@ public class WebManager {
 
         websiteLaunchDialogView.findViewById(R.id.url_search_btn).setOnClickListener(v -> {
             hidePreviewDialog();
-            buildAndShowSearchDialog(SEARCH_WEB);
+            buildAndShowSearchDialog();
         });
 
         urlFavouritesManager = new FavouritesManager(main, this, FavouritesManager.FAVTYPE_URL, 10);
@@ -170,7 +161,6 @@ public class WebManager {
     }
 
     private boolean error = false;
-    private boolean generatingPreview = false;
     // Create the callbacks to handle pre and post execution of the preview
     LinkPreviewCallback linkPreviewCallback = new LinkPreviewCallback() {
 
@@ -191,7 +181,6 @@ public class WebManager {
                 isYouTube = false;
                 setErrorPreview(searchTerm);
             } else {
-                generatingPreview = false;
                 // Populate your preview layout with the results of sourceContent.
                 String title = sourceContent.getTitle();
                 if (title.isEmpty()) {
@@ -328,12 +317,7 @@ public class WebManager {
         warningDialog = new AlertDialog.Builder(main)
                 .setView(warningDialogView)
                 .create();
-        warningDialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
-            @Override
-            public void onDismiss(DialogInterface dialog) {
-                main.hideSystemUI();
-            }
-        });
+        warningDialog.setOnDismissListener(dialog -> main.hideSystemUI());
 
     }
 
@@ -535,42 +519,33 @@ public class WebManager {
 
     public void launchWebsite(String url, String urlTitle, boolean updateCurrentTask) {
         Log.d(TAG, "launchWebsite: ");
-        String finalUrl = url;
         pushTitle = urlTitle;
         pushURL = url;
         freshPlay = true;
         lastWasGuideView = false;
         main.getLumiAccessibilityConnector().resetState();
-        //new Thread(() -> {
-        main.backgroundExecutor.submit(new Runnable() {
-            @Override
-            public void run() {
-                if (!main.getPermissionsManager().isInternetConnectionAvailable()) {
-                    Log.w(TAG, "No internet connection in LaunchWebsite");
-                    main.getHandler().post(new Runnable() {
-                        @Override
-                        public void run() {
-                            //Toast.makeText(main, "Can't launch URL, no Internet connection.", Toast.LENGTH_SHORT).show();
-                            dialogManager.showWarningDialog("No Internet Connection",
-                                    "Internet based functions are unavailable at this time. " +
-                                            "Please check your WiFi connection and try again.");
-                            main.getDispatcher().alertGuidePermissionGranted(LeadMeMain.STUDENT_NO_INTERNET, false);
-                            hideWebsiteLaunchDialog();
-                        }
-                    });
-                }
+
+        main.backgroundExecutor.submit(() -> {
+            if (!main.getPermissionsManager().isInternetConnectionAvailable()) {
+                Log.w(TAG, "No internet connection in LaunchWebsite");
+
+                main.getHandler().post(() -> {
+                    dialogManager.showWarningDialog("No Internet Connection",
+                            "Internet based functions are unavailable at this time. " +
+                                    "Please check your WiFi connection and try again.");
+                    main.getDispatcher().alertGuidePermissionGranted(LeadMeMain.STUDENT_NO_INTERNET, false);
+                    hideWebsiteLaunchDialog();
+                });
             }
         });
-
-//        }).start();
 
         main.getDispatcher().alertGuidePermissionGranted(LeadMeMain.STUDENT_NO_INTERNET, true); //reset it
 
         //check it's a minimally sensible url
         if (url == null || url.length() < 3 || !url.contains(".")) {
-            Toast toast = Toast.makeText(main, "Invalid URL", Toast.LENGTH_SHORT);
-            toast.show();
+            main.runOnUiThread(() -> Toast.makeText(main.getApplicationContext(), "Invalid URL", Toast.LENGTH_SHORT).show());
             main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.AUTO_INSTALL_FAILED + "Invalid URL:" + main.getNearbyManager().getID(), main.getNearbyManager().getSelectedPeerIDsOrAll());
+            return;
         }
 
         if (!url.startsWith("http://") && !url.startsWith("https://")) {
@@ -623,11 +598,9 @@ public class WebManager {
             main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG,
                     LeadMeMain.LAUNCH_SUCCESS + uri.getHost() + ":" + main.getNearbyManager().getID() + ":" + browserIntent.getStringExtra("packageName"), main.getNearbyManager().getSelectedPeerIDsOrAll());
             //success!
-            return;
 
         } else {
-            Toast toast = Toast.makeText(main, "No browser available", Toast.LENGTH_SHORT);
-            toast.show();
+            main.runOnUiThread(() -> Toast.makeText(main.getApplicationContext(), "No browser available", Toast.LENGTH_SHORT).show());
             main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG,
                     LeadMeMain.AUTO_INSTALL_FAILED + "No browser:" + main.getNearbyManager().getID(), main.getNearbyManager().getSelectedPeerIDsOrAll());
             //no browser, failure
@@ -729,7 +702,6 @@ public class WebManager {
 
         //set up preview to appear correctly
         if (adding_to_fav) {
-           // lockSpinnerParent.setVisibility(View.INVISIBLE);
             previewPushBtn.setText(main.getResources().getString(R.string.add_this_app_to_favourites));
             favCheckbox.setChecked(true);
             favCheckbox.setVisibility(View.GONE);
@@ -740,7 +712,6 @@ public class WebManager {
             return;
 
         } else {
-            //lockSpinnerParent.setVisibility(View.VISIBLE);
             favCheckbox.setChecked(urlFavouritesManager.isInFavourites(url));
             favCheckbox.setVisibility(View.VISIBLE);
         }
@@ -749,12 +720,7 @@ public class WebManager {
             previewDialog = new AlertDialog.Builder(main)
                     .setView(previewDialogView)
                     .show();
-            previewDialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
-                @Override
-                public void onDismiss(DialogInterface dialog) {
-                    main.hideSystemUI();
-                }
-            });
+            previewDialog.setOnDismissListener(dialog -> main.hideSystemUI());
         } else {
             previewDialog.show();
         }
@@ -779,12 +745,7 @@ public class WebManager {
             websiteLaunchDialog = new AlertDialog.Builder(main)
                     .setView(websiteLaunchDialogView)
                     .create();
-            websiteLaunchDialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
-                @Override
-                public void onDismiss(DialogInterface dialog) {
-                    main.hideSystemUI();
-                }
-            });
+            websiteLaunchDialog.setOnDismissListener(dialog -> main.hideSystemUI());
         }
 
         adding_to_fav = add_fav_mode;
@@ -849,11 +810,11 @@ public class WebManager {
         main.backgroundExecutor.submit(() -> {
             if (!main.getPermissionsManager().isInternetConnectionAvailable()) {
                 Log.w(TAG, "No internet connection in showPreview");
-                main.getHandler().post(() -> {
+                main.getHandler().post(() ->
                     dialogManager.showWarningDialog("No Internet Connection",
                             "Internet based functions are unavailable at this time. " +
-                                    "Please check your WiFi connection and try again.");
-                });
+                                    "Please check your WiFi connection and try again.")
+                );
             }
         });
 
@@ -863,7 +824,6 @@ public class WebManager {
             if (url.contains(".")) {
                 if (!url.startsWith("http")) {
                     url = "http://" + url; //append a protocol
-                    //url=url.replace("www.","http://www.");
                 }
                 url = URLUtil.guessUrl(url); //do a bit more checking/auto-fixing
             }
@@ -899,8 +859,8 @@ public class WebManager {
         previewMessage.setText("");
         previewImage.setImageDrawable(null);
 
-        Drawable preview = null;
-        String title = null;
+        Drawable preview;
+        String title;
         if (isYouTube) {
             title = youTubeFavouritesManager.getTitle(url);
             preview = youTubeFavouritesManager.getPreview(url);
@@ -911,7 +871,6 @@ public class WebManager {
 
         if (preview == null || title == null) {
             //generate correct information
-            generatingPreview = true;
             textCrawler.makePreview(linkPreviewCallback, url);
         }
 
@@ -966,12 +925,7 @@ public class WebManager {
             urlYtFavDialog = new AlertDialog.Builder(main)
                     .setView(webYouTubeFavView)
                     .create();
-            urlYtFavDialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
-                @Override
-                public void onDismiss(DialogInterface dialog) {
-                    main.hideSystemUI();
-                }
-            });
+            urlYtFavDialog.setOnDismissListener(dialog -> main.hideSystemUI());
 
             webYouTubeFavView.findViewById(R.id.back_btn).setOnClickListener(v -> urlYtFavDialog.dismiss());
         }
@@ -988,18 +942,6 @@ public class WebManager {
         }
     }
 
-    public String cleanYouTubeURLWithoutStart(String url) {
-        Log.d(TAG, "cleanYouTubeURLWithoutStart: ");
-        String id = getYouTubeID(url);
-        //Log.i(TAG, "YouTube ID = " + id + " from " + url);
-        if (id.isEmpty()) {
-            return "";
-        }
-        String finalURL = "https://www.youtube.com/watch/" + id + suffix;
-        Log.d(TAG, "Final URL: " + finalURL);
-        return finalURL;
-    }
-
     public String cleanYouTubeURL(String url) {
         Log.d(TAG, "cleanYouTubeURL: ");
         String id = getYouTubeID(url);
@@ -1007,9 +949,9 @@ public class WebManager {
         if (id.isEmpty()) {
             return "";
         }
-        String startSubstring = "";
+        String startSubstring;
         if (url.contains("&start=")) {
-            int startIndex = url.indexOf("&start=", 0) + 7;
+            int startIndex = url.indexOf("&start=") + 7;
             int endIndex = url.indexOf("&", startIndex);
             if (endIndex == -1) {
                 endIndex = url.length();
@@ -1032,7 +974,7 @@ public class WebManager {
         return youTubeEmbedPlayer;
     }
 
-    private String suffix = "?rel=0&autoplay=0"; //&autoplay=1&start=1&end=10&controls=0&rel=0";
+    private final String suffix = "?rel=0&autoplay=0"; //&autoplay=1&start=1&end=10&controls=0&rel=0";
 
     public String getSuffix() {
         return suffix;
@@ -1081,10 +1023,7 @@ public class WebManager {
 
         main.unMuteAudio(); //turn sound back on, in case muted earlier
         Intent appIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(pushURL));
-        //appIntent.putExtra("force_fullscreen",true); //DON'T TURN THIS ON, WON'T RECALL TO LEADME
-        //appIntent.putExtra("finishOnEnd", true);
         appIntent.setPackage(youTubePackageName);
-        //startActivity(appIntent);
 
         boolean youTubeExists = true;
         //test if the YouTube app exists
@@ -1161,11 +1100,6 @@ public class WebManager {
         youTubeEmbedPlayer.dismissDialogs();
     }
 
-    protected TextCrawler getTextCrawler() {
-        return textCrawler;
-    }
-
-
     /////////////////////////////
     // JAKE'S SEARCH CODE
     /////////////////////////////
@@ -1187,21 +1121,16 @@ public class WebManager {
         hideWebsiteLaunchDialog();
         searchDialogView.findViewById(R.id.web_search_title).setVisibility(View.VISIBLE);
         searchDialogView.findViewById(R.id.url_error_layout).setVisibility(View.GONE);
-        //placeholder URL for testing connection
-        String finalUrl = "https://google.com";
 
-        main.backgroundExecutor.submit(new Runnable() {
-            @Override
-            public void run() {
-                if (!main.getPermissionsManager().isInternetConnectionAvailable()) {
-                    Log.w(TAG, "No internet connection in buildAndShowSearch");
-                    main.getHandler().post(() -> {
-                        dialogManager.showWarningDialog("No Internet Connection",
-                                "Internet based functions are unavailable at this time. " +
-                                        "Please check your WiFi connection and try again.");
-                        hideSearchDialog();
-                    });
-                }
+        main.backgroundExecutor.submit(() -> {
+            if (!main.getPermissionsManager().isInternetConnectionAvailable()) {
+                Log.w(TAG, "No internet connection in buildAndShowSearch");
+                main.getHandler().post(() -> {
+                    dialogManager.showWarningDialog("No Internet Connection",
+                            "Internet based functions are unavailable at this time. " +
+                                    "Please check your WiFi connection and try again.");
+                    hideSearchDialog();
+                });
             }
         });
 
@@ -1210,12 +1139,7 @@ public class WebManager {
             searchDialog = new AlertDialog.Builder(main)
                     .setView(searchDialogView)
                     .show();
-            searchDialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
-                @Override
-                public void onDismiss(DialogInterface dialog) {
-                    main.hideSystemUI();
-                }
-            });
+            searchDialog.setOnDismissListener(dialog -> main.hideSystemUI());
             DisplayMetrics displayMetrics = main.getResources().getDisplayMetrics();
             searchDialogView.getLayoutParams().width = displayMetrics.widthPixels - 140;
 
@@ -1226,7 +1150,6 @@ public class WebManager {
             searchWebView.getSettings().setJavaScriptEnabled(true); // enable javascript
             searchWebView.canGoBack();
             searchWebView.setVisibility(View.GONE);
-            //web.setWebViewClient(new WebViewClient());
 
             final SearchView searchView = searchDialogView.findViewById(R.id.url_search_bar);
             searchView.setMaxWidth(Integer.MAX_VALUE); //ensures it fills whole space on init
@@ -1238,7 +1161,7 @@ public class WebManager {
                     searchWebView.loadUrl("https://www.google.com/search?q=" + searchView.getQuery());
                 }
             }
-            if(searchType== SEARCH_YOUTUBE){
+            if(searchType == SEARCH_YOUTUBE){
                 searchSpinner.setSelection(1);
             }
             searchSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
@@ -1247,15 +1170,15 @@ public class WebManager {
                     Log.d(TAG, "Search mode: " + searchSpinnerItems[position]);
 
                     if (searchSpinnerItems[position].startsWith("YouTube")) {
-                        ((TextView) searchDialogView.findViewById(R.id.web_search_title)).setText("Search YouTube");
+                        ((TextView) searchDialogView.findViewById(R.id.web_search_title)).setText(R.string.search_youtube);
                         searchType = SEARCH_YOUTUBE;
 
                     } else if (searchSpinnerItems[position].startsWith("Google")) {
-                        ((TextView) searchDialogView.findViewById(R.id.web_search_title)).setText("Search the web");
+                        ((TextView) searchDialogView.findViewById(R.id.web_search_title)).setText(R.string.search_web);
                         searchType = SEARCH_WEB;
 
                     } else if (searchSpinnerItems[position].startsWith("Within")) {
-                        ((TextView) searchDialogView.findViewById(R.id.web_search_title)).setText("Search Within");
+                        ((TextView) searchDialogView.findViewById(R.id.web_search_title)).setText(R.string.search_within);
                         searchType = SEARCH_WITHIN;
                     }
                     searchText(searchView.getQuery().toString());
@@ -1367,9 +1290,9 @@ public class WebManager {
                 if (url.startsWith("https://www.google.com/gen_204") && url.contains("&url=")) { //avoid the preloaded link powered by amp
                     //find the real url hidden in the url
                     String[] parts = url.split("&");
-                    for (int i = 0; i < parts.length; i++) {
-                        if (parts[i].startsWith("url=")) {
-                            url = parts[i].substring(4);
+                    for (String part : parts) {
+                        if (part.startsWith("url=")) {
+                            url = part.substring(4);
                         }
                     }
                     Log.d(TAG, "onLoadResource valid: " + url);
@@ -1450,7 +1373,7 @@ public class WebManager {
 
                     if(bitmap == null) {
                         Log.d(TAG, "intercepted jpg: null exception");
-                        Toast.makeText(main.getApplicationContext(), "An image was unable to be displayed.", Toast.LENGTH_SHORT).show();
+                        main.runOnUiThread(() -> Toast.makeText(main.getApplicationContext(), "An image was unable to be displayed.", Toast.LENGTH_SHORT).show());
                         return null;
                     }
 
@@ -1470,7 +1393,7 @@ public class WebManager {
 
                     if(bitmap == null) {
                         Log.d(TAG, "intercepted png: null exception");
-                        Toast.makeText(main.getApplicationContext(), "An image was unable to be displayed.", Toast.LENGTH_SHORT).show();
+                        main.runOnUiThread(() -> Toast.makeText(main.getApplicationContext(), "An image was unable to be displayed.", Toast.LENGTH_SHORT).show());
                         return null;
                     }
 
@@ -1490,7 +1413,7 @@ public class WebManager {
 
                     if(bitmap == null) {
                         Log.d(TAG, "intercepted webp: null exception");
-                        Toast.makeText(main.getApplicationContext(), "An image was unable to be displayed.", Toast.LENGTH_SHORT).show();
+                        main.runOnUiThread(() -> Toast.makeText(main.getApplicationContext(), "An image was unable to be displayed.", Toast.LENGTH_SHORT).show());
                         return null;
                     }
 

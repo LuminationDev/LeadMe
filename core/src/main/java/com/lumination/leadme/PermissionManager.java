@@ -280,6 +280,22 @@ public class PermissionManager {
     }
 
     public boolean isAccessibilityGranted() {
+
+//        Skipping the accessibility option for previously enabled?
+//        ComponentName expectedComponentName = new ComponentName(main, LumiAccessibilityService.class);
+//
+//        String enabledServicesSetting = Settings.Secure.getString(main.getContentResolver(), Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES);
+//        Log.d(TAG, enabledServicesSetting);
+//
+//        //TODO add a flag to bypass if on miraki profile
+//        if(true) {
+//            Log.i(TAG, "***ACCESSIBILITY IS ENABLED, IS IT RUNNING? (" + isMyServiceRunning(LumiAccessibilityService.class) + ") ***");
+//            needsRecall = true;
+//            waitingForPermission = false;
+//            return true;
+//        }
+
+
         ComponentName expectedComponentName = new ComponentName(main, LumiAccessibilityService.class);
 
         String enabledServicesSetting = Settings.Secure.getString(main.getContentResolver(), Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES);

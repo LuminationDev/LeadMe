@@ -44,6 +44,4 @@ public class LumiSpinnerAdapter extends ArrayAdapter<String> {
 
         return row;
     }
-
-
 }

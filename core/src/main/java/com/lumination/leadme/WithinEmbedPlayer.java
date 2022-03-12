@@ -304,7 +304,7 @@ public class WithinEmbedPlayer {
                 if (searchView && url.startsWith(foundPrefix) && url.endsWith(foundSuffix)) {
                     foundTitle = url.replace(foundPrefix, "").replace(foundSuffix, "");
                     setFoundURL(urlPrefix + foundTitle);
-                    Log.w(TAG, "EXTRACTED! " + foundURL + ", " + main.getFavouritesManager().isInFavourites(foundURL));
+                    Log.w(TAG, "EXTRACTED! " + foundURL + ", " + main.getAppManager().getFavouritesManager().isInFavourites(foundURL));
 
                 } else if (url.startsWith("https://cms.with.in/v1/category/all?page=")) {
                     view.stopLoading();

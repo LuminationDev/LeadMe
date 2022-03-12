@@ -56,6 +56,10 @@ public class TcpClient extends Thread{
         scheduledExecutor.scheduleAtFixedRate(inputRun,0,1000, TimeUnit.MILLISECONDS);
     }
 
+    /**
+     * Responsible for sending messages to the learner from a leader, sends the messages in a
+     * que so only one action is taken at a time.
+     */
     Runnable tcpRunner = () -> {
         if (client.isConnected() && !client.isClosed()) {
             for (int i = 0; i < parent.currentClients.size(); i++) {
@@ -76,6 +80,12 @@ public class TcpClient extends Thread{
             }
         }
     };
+
+    /**
+     * Responsible for checking the connection between the Leader and the Leaner associated with
+     * this socket connection. Sends a ping every set time period if no other messages are being
+     * sent.
+     */
     Runnable ConnectionCheck = () -> {
         try {
             Log.d(TAG, "Sending Ping to: " + ID);
@@ -98,6 +108,11 @@ public class TcpClient extends Thread{
             e.printStackTrace();
         }
     };
+
+    /**
+     * Responsible for handling incoming messages from the learner socket connection. Passes the
+     * message of to the inputReceived function to determine an action.
+     */
     Runnable inputRun = () -> {
         while(checkIn) {
             try {

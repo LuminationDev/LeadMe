@@ -206,6 +206,7 @@ public class ConnectedLearnersAdapter extends BaseAdapter {
         ConnectedPeer thisPeer = getMatchingPeer(id);
         thisPeer.setLastLaunchedApp(lastApp);
         thisPeer.setWarning(LeadMeMain.APP_TAG, false);
+        refresh();
     }
 
     public void appLaunchSuccess(String id, String lastApp) {
@@ -213,6 +214,7 @@ public class ConnectedLearnersAdapter extends BaseAdapter {
         if (thisPeer != null) {
             thisPeer.setLastLaunchedApp(lastApp);
             thisPeer.setWarning(LeadMeMain.APP_TAG, true);
+            refresh();
         }
     }
 

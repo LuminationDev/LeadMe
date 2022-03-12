@@ -106,9 +106,9 @@ public class DialogManager {
         View waitingDialogView = View.inflate(main, R.layout.e__waiting_to_connect, null);
         Button backBtn = waitingDialogView.findViewById(R.id.back_btn);
         backBtn.setOnClickListener(v -> {
-            waitingDialog.dismiss();
             dialogShowing = false;
             main.getNearbyManager().cancelConnection();
+            waitingDialog.dismiss();
         });
 
         waitingDialog = new AlertDialog.Builder(main)
@@ -262,7 +262,7 @@ public class DialogManager {
             if(LeadMeMain.isMiUiV9()) {
                 main.getFileTransfer().startFileServer(main.vrVideoPath, true);
             } else {
-                main.transferFile(main.vrVideoURI, true);
+                main.getFileTransfer().startFileServer(main.vrVideoURI, true);
             }
 
             Set<String> peerSet = new HashSet<>();
@@ -824,15 +824,19 @@ public class DialogManager {
         Log.d(TAG, "Closing waiting dialog! " + success + ", " + waitingDialog + ", " + loginDialog);
 
         if (waitingDialog != null && waitingDialog.isShowing()) {
+            dialogShowing = false;
             waitingDialog.dismiss();
         }
 
         if (loginDialog != null && loginDialog.isShowing()) {
+            dialogShowing = false;
             loginDialog.dismiss();
         }
 
         dialogShowing = (waitingDialog != null && waitingDialog.isShowing()) || (loginDialog != null && loginDialog.isShowing());
         Log.d(TAG, "Are they showing now?? " + (waitingDialog != null && waitingDialog.isShowing()) + " || " + (loginDialog != null && loginDialog.isShowing()));
+
+
     }
 
     private void setupLoginDialogView() {
@@ -867,12 +871,7 @@ public class DialogManager {
         }
 
         TextView forgotPin = loginDialogView.findViewById(R.id.login_forgot_pin);
-        forgotPin.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                main.setAndDisplayPinReset(0);
-            }
-        });
+        forgotPin.setOnClickListener(v -> main.setAndDisplayPinReset(0));
     }
 
     private void setupLoginDialog() {
@@ -909,13 +908,9 @@ public class DialogManager {
             }
         });
 
-        forgotPassword.setOnClickListener(view -> {
-            main.forgotPasswordController(loginDialog);
-        });
+        forgotPassword.setOnClickListener(view -> main.forgotPasswordController(loginDialog));
 
-        googleSignin.setOnClickListener(view -> {
-            main.googleSignIn();
-        });
+        googleSignin.setOnClickListener(view -> main.googleSignIn());
 
         signup.setOnClickListener(view -> {
             loginDialog.dismiss();
@@ -939,6 +934,11 @@ public class DialogManager {
             loginDialog.dismiss();
             if (cancelled) {
                 main.startShakeDetection();
+
+                //Only start discovery again if trying to login as a learner
+                if(main.loginActor.equals("learner")) {
+                    main.getNearbyManager().networkAdapter.startDiscovery();
+                }
             }
         }
     }

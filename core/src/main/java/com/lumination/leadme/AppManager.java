@@ -24,16 +24,18 @@ import java.util.List;
 import java.util.Set;
 
 public class AppManager extends BaseAdapter {
-    private LeadMeMain main;
-    private PackageManager pm;
+    private final String TAG = "AppLauncher";
+
+    private final LeadMeMain main;
+    private final PackageManager pm;
+    private FavouritesManager favouritesManager; //TODO shift to app manager
+    private final WithinEmbedPlayer withinPlayer;
+
     private List<ApplicationInfo> appList;
     private ArrayList<String> appNameList;
     private final LayoutInflater inflater;
     private String defaultBrowserUrl = "";
     protected Drawable app_placeholder;
-    private WithinEmbedPlayer withinPlayer;
-
-    private final String TAG = "AppLauncher";
 
     public final String vrplayerPackage = "com.Edward.VRPlayer";
     public final String withinPackage = "com.shakingearthdigital.vrsecardboard";
@@ -41,6 +43,7 @@ public class AppManager extends BaseAdapter {
 
     public AppManager(LeadMeMain main) {
         this.main = main;
+        favouritesManager = new FavouritesManager(main, null, FavouritesManager.FAVTYPE_APP, 4);
         withinPlayer = new WithinEmbedPlayer(main);
         app_placeholder = main.getDrawable(R.drawable.icon_unknown_browser);
         defaultBrowserUrl = main.getResources().getString(R.string.default_browser_url);
@@ -60,6 +63,10 @@ public class AppManager extends BaseAdapter {
 
         LumiSpinnerAdapter withinAdapter = new LumiSpinnerAdapter(main, R.layout.row_push_spinner, items, imgs);
         withinLockSpinner.setAdapter(withinAdapter);
+    }
+
+    public FavouritesManager getFavouritesManager() {
+        return favouritesManager;
     }
 
     public Drawable getAppIcon(String packageName) {
@@ -191,7 +198,7 @@ public class AppManager extends BaseAdapter {
 
                 //prepare to install, which includes temporarily turning off
                 //overlay to allow capture of accessibility events
-            } else if (main.autoInstallApps) {
+            } else if (main.autoInstallApps && LeadMeMain.FLAG_UPDATES) {
                 main.getLumiAppInstaller().autoInstall(packageName, appName, install, multipleInstall);
                 return;
 
@@ -369,7 +376,7 @@ public class AppManager extends BaseAdapter {
 
             convertView.setLongClickable(true);
             convertView.setOnLongClickListener(v -> {
-                main.getFavouritesManager().manageFavouritesEntry(packageName);
+                favouritesManager.manageFavouritesEntry(packageName);
                 return true; //true if event is consumed
             });
 

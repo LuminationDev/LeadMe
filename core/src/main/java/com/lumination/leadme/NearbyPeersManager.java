@@ -72,7 +72,7 @@ public class NearbyPeersManager {
     }
 
     protected void cancelConnection() {
-        networkAdapter.stopServer();
+        networkAdapter.receivedDisconnect();
     }
 
     public void onStop() {

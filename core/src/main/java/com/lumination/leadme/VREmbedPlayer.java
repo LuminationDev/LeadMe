@@ -215,9 +215,10 @@ public class VREmbedPlayer {
 
         vrplayerSettingsDialogView.findViewById(R.id.video_back_btn).setOnClickListener(v -> {
             this.fileName = null;
+            main.vrVideoPath = null;
+            main.vrVideoURI = null;
             playbackSettingsDialog.dismiss();
         });
-
 
         progressBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
@@ -369,7 +370,7 @@ public class VREmbedPlayer {
     }
 
     private void openPreview(String title) {
-        if(main.vrVideoURI != null) {
+        if(main.vrVideoURI != null || main.vrVideoPath != null) {
             if(LeadMeMain.isMiUiV9()) {
                 //setting the playback video controller
                 setupVideoPreview(vrplayerPreviewVideoView);

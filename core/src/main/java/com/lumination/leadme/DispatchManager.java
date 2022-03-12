@@ -14,6 +14,7 @@ import android.widget.Toast;
 import com.google.android.gms.nearby.connection.Payload;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -168,9 +169,7 @@ public class DispatchManager {
         //sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.LOGOUT_TAG + ":" + main.getNearbyManager().getID(), main.getNearbyManager().getAllPeerIDs());
 
         ArrayList<Integer> selected = new ArrayList<>();
-        Iterator<String> iterator = main.getNearbyManager().getAllPeerIDs().iterator();
-        while (iterator.hasNext()) {
-            String peer = (String) iterator.next();
+        for (String peer : main.getNearbyManager().getAllPeerIDs()) {
             Log.d(TAG, "sendToSelected: " + peer);
             selected.add(Integer.parseInt(peer));
         }
@@ -410,7 +409,7 @@ public class DispatchManager {
 
     public void launchDelayedApp() {
         main.verifyOverlay();
-        Log.d(TAG, "[XX] Have something to launch? " + launchAppOnFocus);
+        Log.d(TAG, "[XX] Have something to launch? " + Arrays.toString(launchAppOnFocus));
         if (launchAppOnFocus != null) {
             final String[] tmp = launchAppOnFocus;
             launchAppOnFocus = null; //reset
@@ -828,13 +827,15 @@ public class DispatchManager {
             //get the student id add it to the need to install array.
             Log.d(TAG, "Application needed on peer: " + split[3]);
 
-            Toast.makeText(main.getApplicationContext(), "Application needed on peer: " + split[3], Toast.LENGTH_SHORT).show();
+            main.getConnectedLearnersAdapter().appLaunchFail(split[3], appNameRepush);
 
-            //TODO AUTO INSTALLER - uncomment below to enable auto installer
-            main.getLumiAppInstaller().peersToInstall.add(split[3]);
-
-            //open a dialog to confirm if wanting to install apps
-            main.getLumiAppInstaller().applicationsToInstallWarning(split[1], split[2], false); //should auto update number of devices need as the action come in
+            //TODO AUTO INSTALLER
+//            if(LeadMeMain.FLAG_UPDATES) {
+//                main.getLumiAppInstaller().peersToInstall.add(split[3]);
+//
+//                //open a dialog to confirm if wanting to install apps
+//                main.getLumiAppInstaller().applicationsToInstallWarning(split[1], split[2], false); //should auto update number of devices need as the action come in
+//            }
         }
 
         /**
@@ -997,12 +998,14 @@ public class DispatchManager {
                     if (split[1].equalsIgnoreCase("OK")) {
                         main.updatePeerStatus(split[2], ConnectedPeer.STATUS_SUCCESS, LeadMeMain.PERMISSION_TRANSFER_DENIED);
                     } else {
+                        main.updatePeerStatus(split[2], ConnectedPeer.STATUS_INSTALLED, null);
                         main.updatePeerStatus(split[2], ConnectedPeer.STATUS_WARNING, LeadMeMain.PERMISSION_TRANSFER_DENIED);
                     }
                 } else if (split[3].equals(LeadMeMain.AUTO_INSTALL)) {
                     if (split[1].equalsIgnoreCase("OK")) {
                         main.updatePeerStatus(split[2], ConnectedPeer.STATUS_SUCCESS, LeadMeMain.PERMISSION_AUTOINSTALL_DENIED);
                     } else {
+                        main.updatePeerStatus(split[2], ConnectedPeer.STATUS_INSTALLED, null);
                         main.updatePeerStatus(split[2], ConnectedPeer.STATUS_WARNING, LeadMeMain.PERMISSION_AUTOINSTALL_DENIED);
                     }
                 }

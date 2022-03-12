@@ -25,9 +25,9 @@ public class StudentAlertsAdapter extends BaseAdapter {
     private final String TAG = "StudentAlerts";
 
     public ArrayList<ConnectedPeer> mData = new ArrayList<>();
-    private LayoutInflater mInflater;
-    private LeadMeMain main;
-    private View list_view, no_alerts_view;
+    private final LayoutInflater mInflater;
+    private final LeadMeMain main;
+    private final View list_view, no_alerts_view;
 
     /* Alerts By Categories
     0. Disconnected
@@ -63,8 +63,7 @@ public class StudentAlertsAdapter extends BaseAdapter {
     public void hideCurrentAlerts() {
         //can't remove items from a list while iterating over it,
         //so create a temp list for iterating and make changes to the real list
-        ArrayList<ConnectedPeer> tmpPeers = new ArrayList<>();
-        tmpPeers.addAll(mData);
+        ArrayList<ConnectedPeer> tmpPeers = new ArrayList<>(mData);
         for (ConnectedPeer peer : tmpPeers) {
             peer.hideAlerts(true);
             if (!peer.hasWarning()) {
@@ -97,9 +96,8 @@ public class StudentAlertsAdapter extends BaseAdapter {
 
     public int countArray(){
         int count=0;
-        Iterator<ArrayList<ConnectedPeer>> iterator = AlertsByCategories.iterator();
-        while(iterator.hasNext()){
-            if(iterator.next().size()>0){
+        for (ArrayList<ConnectedPeer> alertsByCategory : AlertsByCategories) {
+            if (alertsByCategory.size() > 0) {
                 count++;
             }
         }
@@ -116,87 +114,77 @@ public class StudentAlertsAdapter extends BaseAdapter {
         for(int position=0; position<9; position++) {
             switch (position) {
                 case 0:
-                    Iterator<ConnectedPeer> iterator0 = mData.iterator();
-                    while (iterator0.hasNext()) {
-                        ConnectedPeer peer = iterator0.next();
+                    for (ConnectedPeer peer : mData) {
                         if (peer.getAlertsList().contains("DISCONNECTED FROM GUIDE")) {
                             AlertsByCategories.get(0).add(peer);
                         }
                     }
                     break;
+
                 case 1:
-                    Iterator<ConnectedPeer> iterator1 = mData.iterator();
-                    while (iterator1.hasNext()) {
-                        ConnectedPeer peer = iterator1.next();
+                    for (ConnectedPeer peer : mData) {
                         if (peer.getAlertsList().contains("did not launch")) {
                             AlertsByCategories.get(1).add(peer);
                         }
                     }
                     break;
+
                 case 2:
-                    Iterator<ConnectedPeer> iterator2 = mData.iterator();
-                    while (iterator2.hasNext()) {
-                        ConnectedPeer peer = iterator2.next();
+                    for (ConnectedPeer peer : mData) {
                         if (peer.getAlertsList().contains("Accessibility service disabled")) {
                             AlertsByCategories.get(2).add(peer);
                         }
                     }
                     break;
+
                 case 3:
-                    Iterator<ConnectedPeer> iterator3 = mData.iterator();
-                    while (iterator3.hasNext()) {
-                        ConnectedPeer peer = iterator3.next();
+                    for (ConnectedPeer peer : mData) {
                         if (peer.getAlertsList().contains("Locking overlay disabled")) {
                             AlertsByCategories.get(3).add(peer);
                         }
                     }
-
                     break;
+
                 case 4:
-                    Iterator<ConnectedPeer> iterator4 = mData.iterator();
-                    while (iterator4.hasNext()) {
-                        ConnectedPeer peer = iterator4.next();
+                    for (ConnectedPeer peer : mData) {
                         if (peer.getAlertsList().contains("Might be off task")) {
                             AlertsByCategories.get(4).add(peer);
                         }
                     }
                     break;
+
                 case 5:
-                    Iterator<ConnectedPeer> iterator5 = mData.iterator();
-                    while (iterator5.hasNext()) {
-                        ConnectedPeer peer = iterator5.next();
+                    for (ConnectedPeer peer : mData) {
                         if (peer.getAlertsList().contains("Xray permission is disabled")) {
                             AlertsByCategories.get(5).add(peer);
                         }
                     }
                     break;
+
                 case 6:
-                    Iterator<ConnectedPeer> iterator6 = mData.iterator();
-                    while (iterator6.hasNext()) {
-                        ConnectedPeer peer = iterator6.next();
+                    for (ConnectedPeer peer : mData) {
                         if (peer.getAlertsList().contains("Transfer permission is disabled")) {
                             AlertsByCategories.get(6).add(peer);
                         }
                     }
                     break;
+
                 case 7:
-                    Iterator<ConnectedPeer> iterator7 = mData.iterator();
-                    while (iterator7.hasNext()) {
-                        ConnectedPeer peer = iterator7.next();
+                    for (ConnectedPeer peer : mData) {
                         if (peer.getAlertsList().contains("Auto installer permission is disabled")) {
                             AlertsByCategories.get(7).add(peer);
                         }
                     }
                     break;
+
                 case 8:
-                    Iterator<ConnectedPeer> iterator8 = mData.iterator();
-                    while (iterator8.hasNext()) {
-                        ConnectedPeer peer = iterator8.next();
+                    for (ConnectedPeer peer : mData) {
                         if (peer.getAlertsList().contains("Unspecified warning")) {
                             AlertsByCategories.get(8).add(peer);
                         }
                     }
                     break;
+
                 default:
                     break;
             }
@@ -216,7 +204,7 @@ public class StudentAlertsAdapter extends BaseAdapter {
 
     private String lastClickedID = "";
     ArrayList<View> nullViews = new ArrayList<>();
-    String Types[] = {"Disconnected",
+    String[] Types = {"Disconnected",
             "Last App Didn't Launch",
             "Accessibility is Disabled",
             "Overlay is Disabled",
@@ -227,7 +215,7 @@ public class StudentAlertsAdapter extends BaseAdapter {
             "Installer is Disabled",
             "Uncategorised Warnings"};
 
-    String Desc[] ={"Learners have disconnected from LeadMe.\n",
+    String[] Desc ={"Learners have disconnected from LeadMe.\n",
             "The application that was pushed does not exist on learner devices.\n",
             "Learners have no enabled accessibility for LeadMe.\n",
             "Learner has not enabled screen overlay for LeadMe.\n",
@@ -238,8 +226,8 @@ public class StudentAlertsAdapter extends BaseAdapter {
             "The learner has not accepted the Auto Installer permission. The prompt will be displayed again if .....\n",
             "To be completely honest, I'm not really sure how we got here.\n"
     };
-    String buttonTxt[] = {"Clear",
-            "Re-push",
+    String[] buttonTxt = {"Clear",
+            "Clear", //Install - add later?
             "Launch",
             "Clear",
 //            "Proceed Offline",
@@ -248,7 +236,7 @@ public class StudentAlertsAdapter extends BaseAdapter {
             "Enable Transfer",
             "Enable Installer"};
 
-    int button_icons[] = {R.drawable.icon_clear,R.drawable.icon_repush,R.drawable.ic_settings,R.drawable.icon_clear,R.drawable.icon_clear,R.drawable.icon_repush,R.drawable.icon_clear,R.drawable.ic_settings,R.drawable.ic_settings};
+    int[] button_icons = {R.drawable.icon_clear,R.drawable.icon_repush,R.drawable.ic_settings,R.drawable.icon_clear,R.drawable.icon_clear,R.drawable.icon_repush,R.drawable.icon_clear,R.drawable.ic_settings,R.drawable.ic_settings};
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
         //if (convertView == null) {
@@ -257,25 +245,21 @@ public class StudentAlertsAdapter extends BaseAdapter {
 
         TextView alertType = convertView.findViewById(R.id.list_alert_type);
         ImageView listIcon = convertView.findViewById(R.id.list_drop_icon);
-        //ImageView infoIcon = convertView.findViewById(R.id.list_info_button);
         TextView alertList = convertView.findViewById(R.id.warning_list);
         TextView alertDesc = convertView.findViewById(R.id.warning_desc);
         Button alertBtn = convertView.findViewById(R.id.warning_button);
 
-        convertView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if(alertList.getVisibility() == View.VISIBLE){
-                    alertList.setVisibility(View.GONE);
-                    alertDesc.setVisibility(View.GONE);
-                    alertBtn.setVisibility(View.GONE);
-                    listIcon.setImageResource(R.drawable.icon_list_right);
-                }else{
-                    alertList.setVisibility(View.VISIBLE);
-                    alertDesc.setVisibility(View.VISIBLE);
-                    alertBtn.setVisibility(View.VISIBLE);
-                    listIcon.setImageResource(R.drawable.icon_list_down);
-                }
+        convertView.setOnClickListener(v -> {
+            if(alertList.getVisibility() == View.VISIBLE){
+                alertList.setVisibility(View.GONE);
+                alertDesc.setVisibility(View.GONE);
+                alertBtn.setVisibility(View.GONE);
+                listIcon.setImageResource(R.drawable.icon_list_right);
+            } else {
+                alertList.setVisibility(View.VISIBLE);
+                alertDesc.setVisibility(View.VISIBLE);
+                alertBtn.setVisibility(View.VISIBLE);
+                listIcon.setImageResource(R.drawable.icon_list_down);
             }
         });
 
@@ -296,7 +280,13 @@ public class StudentAlertsAdapter extends BaseAdapter {
                     }
 
                     alertType.setText(Types[i]+" ("+numStud+")");
-                    alertDesc.setText(Desc[i]);
+
+                    if(i == 1) {
+                        alertDesc.setText(Desc[i] + "\nApplication: " + main.getDispatcher().appNameRepush + "\n");
+                    } else {
+                        alertDesc.setText(Desc[i]);
+                    }
+
                     alertBtn.setText(buttonTxt[i]);
                     alertBtn.setCompoundDrawablesWithIntrinsicBounds(button_icons[i], 0, 0, 0);
                 }
@@ -306,18 +296,23 @@ public class StudentAlertsAdapter extends BaseAdapter {
 
         final int finalcount =index;
         alertBtn.setOnClickListener(new View.OnClickListener() {
-            int position = finalcount;
+            final int position = finalcount;
             @Override
             public void onClick(View v) {
-                if(alertBtn.getText().equals("Re-push")){
-                    Log.d(TAG, "onClick: "+alertBtn);
+                if(alertBtn.getText().equals("Re-push")) {
+                    Log.d(TAG, "onClick: " + alertBtn);
                     ArrayList<String> ids = new ArrayList<>();
-                    for(int i=0; i<AlertsByCategories.get(5).size();i++){
+                    for (int i = 0; i < AlertsByCategories.get(5).size(); i++) {
                         ids.add(String.valueOf(AlertsByCategories.get(5).get(i).getID()));
                     }
-                    if(ids.size()>0) {
+                    if (ids.size() > 0) {
                         Set<String> selectedPeerIDs = new HashSet<>(ids);
                         main.getDispatcher().repushApp(selectedPeerIDs);
+                    }
+                } else if(alertBtn.getText().equals("Install")){
+                    //Implement auto installer here? - probably not a good idea though
+                    for(int i=0; i<AlertsByCategories.get(position).size();i++){
+                        AlertsByCategories.get(position).get(i).hideAlerts(true);
                     }
                 } else if(alertBtn.getText().equals("Recall")){
                     main.getConnectedLearnersAdapter().selectAllPeers(false);
@@ -334,12 +329,12 @@ public class StudentAlertsAdapter extends BaseAdapter {
                     main.blackoutFromMainAction();
                     main.getConnectedLearnersAdapter().selectAllPeers(false);
                 }
-//                else if(alertBtn.getText().equals("Clear")||alertBtn.getText().equals("Proceed Offline")){
-//                    hideCurrentAlerts();
-//                    for(int i=0; i<AlertsByCategories.get(position).size();i++){
-//                        AlertsByCategories.get(position).get(i).hideAlerts(true);
-//                    }
-//                }
+                else if(alertBtn.getText().equals("Clear")){
+                    hideCurrentAlerts();
+                    for(int i=0; i<AlertsByCategories.get(position).size();i++){
+                        AlertsByCategories.get(position).get(i).hideAlerts(true);
+                    }
+                }
                 else if(alertBtn.getText().equals("Enable Xray")) {
                     ArrayList<String> ids = new ArrayList<>();
                     for (int i = 0; i < AlertsByCategories.get(5).size(); i++) {
@@ -389,7 +384,4 @@ public class StudentAlertsAdapter extends BaseAdapter {
         //refresh();
         return convertView;
     }
-
-
-
 }

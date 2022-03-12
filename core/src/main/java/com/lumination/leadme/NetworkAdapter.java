@@ -84,6 +84,7 @@ public class NetworkAdapter {
     public boolean allowConnections = true;
     public boolean allowInput = true;
     boolean pingName = true;
+    boolean init = false; //check if connection has been initialised
     int clientID = 0;
     int connectionIsActive = 0;
     int timeOut = 2;
@@ -107,6 +108,12 @@ public class NetworkAdapter {
 
     public ExecutorService executorService = Executors.newCachedThreadPool();
     private ScheduledExecutorService scheduledExecutor = new ScheduledThreadPoolExecutor(1);
+
+    /**
+     * Specific executor just for the server, has not automatic cut off period like the
+     * CachedThreadPool.
+     */
+    private final ExecutorService serverService = Executors.newFixedThreadPool(1);
 
 
     public NetworkAdapter(Context context, LeadMeMain main, NearbyPeersManager nearbyPeersManager) {
@@ -175,9 +182,12 @@ public class NetworkAdapter {
                 @Override
                 public void onServiceLost(NsdServiceInfo service) {
                     Log.e(TAG, "service lost" + service);
-                    if (getChosenServiceInfo() == service) {
-                        mService = null;
-                    }
+
+                    //TODO Causes hanging connections if user is halfway through sign in and NSD is glitching
+                    //TODO Commenting this out does pose a new issue where if the guide does disconnect
+//                    if (getChosenServiceInfo() == service) {
+//                        mService = null;
+//                    }
                     //clear the list and then scan again
                     main.runOnUiThread(() -> {
                         ArrayList<ConnectedPeer> temp = new ArrayList<>();
@@ -493,9 +503,6 @@ public class NetworkAdapter {
         }
     }
 
-    //Kept for future testing purposes
-    int testing = 10;
-
     /**
      * Discovers services that are advertised by leaders, is not continuous so will need to be
      * called in a runnable to implement a scan
@@ -512,6 +519,9 @@ public class NetworkAdapter {
         //on the fly name changes are supported, client is identified by assigned ID
         startClientInputListener();
     }
+
+    //Kept for future testing purposes
+    int testing = 10;
 
     /**
      * Starts a client socket listener that receives messages from the leader server. Handles
@@ -533,7 +543,7 @@ public class NetworkAdapter {
 
                                 try {
                                     //Kept for future testing purposes
-                                    //Only need the input = in.readLine() for production
+//                                    Only need the input = in.readLine() for production
 //                                    Log.e(TAG, "TESTING COUNTDOWN: " + testing);
 //                                    if (testing == 0) {
 //                                        Log.e(TAG, "Throwing exception");
@@ -645,8 +655,9 @@ public class NetworkAdapter {
      */
     private void receivedCommunication(String input) {
         Log.d(TAG, "messageReceivedFromServer: [COMM] " + input);
-        if (input.length() > 6 && input.contains("Thanks")) {
+        if (input.contains("Thanks")) {
             main.closeDialogController(true);
+            init = true;
             pingName = false;
         }
     }
@@ -701,6 +712,11 @@ public class NetworkAdapter {
         Log.d(TAG, "messageReceivedFromServer: PING!!");
         pingName = false;
         Log.d(TAG, "messageReceivedFromServer: received ping and subsequently ignoring it");
+
+        if(!init) {
+            main.closeDialogController(true);
+            init = true;
+        }
     }
 
     /**
@@ -713,22 +729,26 @@ public class NetworkAdapter {
         if(main.fileTransferEnabled) {
             FileTransfer.setFileType(inputList2.get(2));
             main.getFileTransfer().receivingFile(clientsServerSocket.getInetAddress(), Integer.parseInt(inputList2.get(1)));
-        } else {
-            main.permissionDenied(LeadMeMain.FILE_TRANSFER);
         }
+//        else {
+//            main.permissionDenied(LeadMeMain.FILE_TRANSFER);
+//        }
     }
 
     /**
      * If the device is not connected as a guide, disconnect from all endpoints.
      */
-    private void receivedDisconnect() {
+    public void receivedDisconnect() {
         Log.w(TAG, "Disconnect. Guide? " + main.isGuide);
-        try {
-            clientsServerSocket.close();
-        } catch (IOException e) {
-            e.printStackTrace();
+        if(clientsServerSocket != null) {
+            try {
+                clientsServerSocket.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            clientsServerSocket = null;
         }
-        clientsServerSocket = null;
+
         nearbyPeersManager.disconnectFromEndpoint("");
     }
 
@@ -783,7 +803,7 @@ public class NetworkAdapter {
 
     //starts a new server thread as seen below
     public void startServer() {
-        Server = main.backgroundExecutor.submit(new ServerThread());
+        Server = serverService.submit(new ServerThread());
     }
 
     /**

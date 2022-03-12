@@ -10,6 +10,8 @@ import android.os.Build;
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.util.Log;
+import android.view.View;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import androidx.core.app.NotificationCompat;
@@ -38,10 +40,13 @@ import java.util.concurrent.ThreadPoolExecutor;
 public class FileTransfer {
     private static final String TAG = "FileTransfer";
 
+    private final LeadMeMain main;
+
     private static final int NOTIFICATION_ID = 1;
     private static final String CHANNEL_ID = "FileTransfer";
 
     private final int numberOfThreads = 2; //how many transfers can operate simultaneously
+    private Thread serverThread;
     private ThreadPoolExecutor executor;
 
     //Notification Alerts
@@ -55,6 +60,8 @@ public class FileTransfer {
 
     private NotificationManager notifyManager;
     private NotificationCompat.Builder builder;
+    private ProgressBar transferBar;
+    private final boolean testBar = true;
 
     private ServerSocket serverSocket = null;
     private Socket fileSocket = null;
@@ -68,8 +75,6 @@ public class FileTransfer {
     private boolean request = false; //if a learner is requesting a file
     private double transfer_progress;
     private File file;
-
-    private final LeadMeMain main;
 
     /**
      * Learner devices track the file type being sent, used to handle the transfer completion on
@@ -106,6 +111,7 @@ public class FileTransfer {
      */
     public FileTransfer(LeadMeMain main) {
         this.main = main;
+        transferBar = main.mainLearner.findViewById(R.id.transfer_progress_bar);
         setupNotificationChannel();
     }
 
@@ -189,10 +195,7 @@ public class FileTransfer {
             path = FileUtilities.getPath(main.context, fileUri);
         } catch (Exception e) {
             Log.e(TAG,"Error: " + e);
-//            Toast.makeText(main.context, "Error: " + e, Toast.LENGTH_SHORT).show();
         }
-
-//        Toast.makeText(main.context, "Path: " + path, Toast.LENGTH_LONG).show();
 
         Log.d(TAG + " File", path);
 
@@ -239,6 +242,8 @@ public class FileTransfer {
      * completed.
      */
     public void startServer() {
+        stopServer();
+
         //TODO test with 10+ phones in case the server shuts down before finishing
         final ExecutorService clientProcessingPool = Executors.newFixedThreadPool(10);
 
@@ -259,15 +264,34 @@ public class FileTransfer {
                 isRunning = true;
 
             } catch (IOException e) {
-                Log.e(TAG, "Unable to process client request");
+                Log.e(TAG, "Unable to start or continue transfer server");
                 e.printStackTrace();
             }
         };
 
-        Thread serverThread = new Thread(serverTask);
+        serverThread = new Thread(serverTask);
         serverThread.start();
     }
 
+    /**
+     * Stop any current or old instances of the server thread and socket.
+     */
+    private void stopServer() {
+        if(serverThread != null) {
+            serverThread.interrupt();
+            Log.d(TAG, "Old server thread interrupted");
+        }
+
+        if(serverSocket != null) {
+            try {
+                serverSocket.close();
+                Log.d(TAG, "Old server socket interrupted");
+            } catch (IOException e) {
+                Log.e(TAG, "Unable to stop old server socket");
+                e.printStackTrace();
+            }
+        }
+    }
 
     /**
      * Get the correct file path, selected peers and start the thread executor.
@@ -315,7 +339,10 @@ public class FileTransfer {
         }
 
         if (selected.size() < 1) {
-            Toast.makeText(main.context, "Peers need to be selected.", Toast.LENGTH_LONG).show();
+            main.runOnUiThread(() -> Toast.makeText(
+                    main.context,
+                    "Peers need to be selected.", Toast.LENGTH_LONG).show());
+
             return false;
         }
 
@@ -350,7 +377,10 @@ public class FileTransfer {
         transfers = new HashMap<>();
 
         for (int x = 0; x < selected.size(); x++) {
-            main.updatePeerStatus(String.valueOf(selected.get(x)), ConnectedPeer.STATUS_FILE_TRANSFER, null);
+            int finalX = x;
+            main.runOnUiThread(() -> main.updatePeerStatus(
+                    String.valueOf(selected.get(finalX)),
+                    ConnectedPeer.STATUS_FILE_TRANSFER, null));
 
             transfers.put(selected.get(x), 0.0); //initial peers and default starting value
             Transfer transfer = new Transfer(selected.get(x));
@@ -414,8 +444,6 @@ public class FileTransfer {
     private void saveFile() {
         Thread saveFile = new Thread(() -> {
             try {
-                main.setDeviceStatusMessage(R.string.transfer_in_progress);
-
                 DataInputStream dis = new DataInputStream(fileSocket.getInputStream());
                 OutputStream fos; //file output stream - depends on the SDK
                 Uri fileURI = null;
@@ -440,11 +468,26 @@ public class FileTransfer {
                     return;
                 }
 
+                main.setDeviceStatusMessage(R.string.transfer_in_progress);
+
+                if(testBar) {
+                    main.runOnUiThread(() -> transferBar.setVisibility(View.VISIBLE));
+                }
+
                 builder.setProgress(100, 0, false)
                         .setContentText(notificationDescription)
                         .setOngoing(true);
                 builder.setStyle(new NotificationCompat.BigTextStyle().bigText("File Name: " + fileName));
                 notifyManager.notify(NOTIFICATION_ID, builder.build());
+
+                //TODO determine file type - extend this in the future
+                boolean isMovie = fileName.toLowerCase().contains(".mp4")
+                        || fileName.toLowerCase().contains(".mov");
+
+                boolean isPicture = fileName.toLowerCase().contains(".jpg")
+                        || fileName.toLowerCase().contains(".png");
+
+                boolean isDocument = fileName.toLowerCase().contains(".pdf");
 
                 //Only use MediaStore for API 29+
                 if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
@@ -453,26 +496,42 @@ public class FileTransfer {
                     ContentResolver resolver = main.getContentResolver();
                     ContentValues newCaptureDetails = new ContentValues();
 
-                    //TODO determine file type - extend this in the future
-                    if (fileName.toLowerCase().contains(".jpg") || fileName.toLowerCase().contains(".png")) {
+                    if (isPicture) {
                         mediaCollection = MediaStore.Images.Media.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY);
                         newCaptureDetails.put(MediaStore.Images.Media.DISPLAY_NAME, fileName);
-                    } else if (fileName.toLowerCase().contains(".mp4") || fileName.toLowerCase().contains(".mov")) {
+                    } else if (isMovie) {
                         mediaCollection = MediaStore.Video.Media.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY);
                         newCaptureDetails.put(MediaStore.Video.Media.RELATIVE_PATH, "Movies/");
                         newCaptureDetails.put(MediaStore.Video.Media.TITLE, fileName);
                         newCaptureDetails.put(MediaStore.Video.Media.DISPLAY_NAME, fileName);
                         //newCaptureDetails.put(MediaStore.Video.Media.MIME_TYPE, "video/mp4");
-                    } else return;
+                    } else if (isDocument) {
+                        mediaCollection = MediaStore.Files.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY);
+                        newCaptureDetails.put(MediaStore.Files.FileColumns.DISPLAY_NAME, fileName);
+                    } else {
+                        return;
+                    }
 
                     Uri newCaptureUri = resolver.insert(mediaCollection, newCaptureDetails);
                     fos = resolver.openOutputStream(newCaptureUri);
 
                 } else {
                     Log.d(TAG, "Pre API 29 way to save the file");
-                    String videoDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MOVIES).toString();
-                    File video = new File(videoDir, fileName);
-                    fos = new FileOutputStream(video);
+
+                    String directory;
+
+                    if (isPicture) {
+                        directory = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES).toString();
+                    } else if (isMovie) {
+                        directory = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MOVIES).toString();
+                    } else if (isDocument) {
+                        directory = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS).toString();
+                    } else {
+                        return;
+                    }
+
+                    File newFile = new File(directory, fileName);
+                    fos = new FileOutputStream(newFile);
                 }
 
                 byte[] buffer = new byte[4096];
@@ -508,6 +567,15 @@ public class FileTransfer {
                 main.transferError(transferNotSaved, main.getNearbyManager().myID);
             } finally {
                 //while transferring show a loading screen
+                try {
+                    fileSocket.close();
+                } catch (IOException ioException) {
+                    ioException.printStackTrace();
+                }
+
+                if(testBar) {
+                    main.runOnUiThread(() -> transferBar.setVisibility(View.GONE));
+                }
                 dismissPopup();
                 main.setDeviceStatusMessage(R.string.connected_label);
             }
@@ -523,8 +591,12 @@ public class FileTransfer {
      * @param error The error that has occurred.
      */
     public void removePeer(String ID, String error) {
-        Toast.makeText(main, "Message: " + error + " " + "Peer: " + ID, Toast.LENGTH_LONG).show();
-        Log.d(TAG, "Message: " + error + " " + "Peer: " + ID);
+        String name = main.getConnectedLearnersAdapter().getMatchingPeer(ID).getDisplayName();
+
+        main.runOnUiThread(() -> Toast.makeText(main,
+                        "Message: " + error + " " + "Peer: " + name, Toast.LENGTH_LONG).show());
+
+        Log.d(TAG, "Message: " + error + " " + "Peer: " + name);
 
         int peerID = Integer.parseInt(ID);
 
@@ -533,14 +605,14 @@ public class FileTransfer {
         //remove from transfers
         transfers.remove(peerID);
 
-        if(transfers.size() == 0) {
-            dismissPopup();
-        }
-
         //check if actually removed as could be updated at the same time.
         Log.d(TAG, "Transfer size after removal: " + transfers.size());
         if(transfers.get(peerID) != null) {
             transfers.remove(peerID);
+        }
+
+        if(transfers.size() < 1) {
+            dismissPopup();
         }
     }
 
@@ -567,9 +639,7 @@ public class FileTransfer {
 
         transfer_progress = overallPercent/transfers.size();
 
-        Log.d(TAG, "Transfer size on update: " + transfers.size());
-
-        //Do not call to frequently otherwise notifications are dropped, included in the
+        //Do not call too frequently otherwise notifications are dropped, included in the
         //completion one.
         //TODO find a better way to do this!
         if((int) transfer_progress % 10 == 7) {
@@ -586,12 +656,16 @@ public class FileTransfer {
     protected void updateStudentProgress(long total, int current) {
         double percent = (((double) current / (double) total) * 100);
 
-        //Do not call to frequently otherwise notifications are dropped, included in the
+        //Do not call too frequently otherwise notifications are dropped, included in the
         //completion one.
+        //TODO find a better way to do this!
         if((int) percent % 10 == 7) {
-            Log.d(TAG, "Transfer percentage: " + percent);
             builder.setProgress(100, (int) percent, false);
             notifyManager.notify(NOTIFICATION_ID, builder.build());
+
+            if(testBar) {
+                main.runOnUiThread(() -> transferBar.setProgress((int) percent));
+            }
         }
     }
 
@@ -600,6 +674,8 @@ public class FileTransfer {
      * has gone wrong.
      */
     protected void dismissPopup() {
+        Log.e(TAG, "Dismiss popup");
+
         String success = "Transfer Complete";
         String failure = "Error: Transfer incomplete";
         String status;
@@ -776,6 +852,7 @@ public class FileTransfer {
 
         public Transfer(int ID) {
             this.ID = ID;
+            Log.d(TAG, "Transfer thread created: " + this.ID);
         }
 
         public void run() {
