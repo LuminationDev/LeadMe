@@ -65,7 +65,7 @@ public class ScreenCap {
                     }
                 }
                 try {
-                    clientToServerSocket = new Socket(main.getNearbyManager().networkAdapter.clientsServerSocket.getInetAddress(), 54322);
+                    clientToServerSocket = new Socket(NetworkManager.getClientSocket().getInetAddress(), 54322);
                 } catch (IOException e) {
                     e.printStackTrace();
                     Log.d(TAG, "connectToServer: unable to connect to socket");

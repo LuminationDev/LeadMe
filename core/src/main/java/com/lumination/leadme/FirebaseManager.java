@@ -40,7 +40,7 @@ public class FirebaseManager {
     private Timer timestampUpdater;
     private final int inactiveUser = 30; //cut off for hiding inactive leaders (mins)
     private final int waitForGuide = 10000; //how long to wait before peer re-query's firestore
-    private String serverIP; //needs to be "" so that the learner can see check against
+    private String serverIP = ""; //needs to be "" so that the learner can see check against
     private String publicIP;
     private final HashMap<String, Object> manualConnectionDetails = new HashMap<>();
     private final ScheduledExecutorService scheduledExecutorService = new ScheduledThreadPoolExecutor(1);
@@ -95,7 +95,7 @@ public class FirebaseManager {
         }
 
         //if a user has logged in as a guide then this function should not be triggered anymore
-        if(main.isGuide) {
+        if(LeadMeMain.isGuide) {
             return;
         }
 

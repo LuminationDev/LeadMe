@@ -21,7 +21,7 @@ public class VRAccessibilityManager {
     public static final int CUE_RWD = 4;
     public static final int CUE_SET_SOURCE = 5;
 
-    private LeadMeMain main;
+    private final LeadMeMain main;
     private Intent sendIntent;
     private String fileName;
     private Uri source;

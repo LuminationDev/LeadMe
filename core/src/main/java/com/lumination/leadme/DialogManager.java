@@ -804,7 +804,7 @@ public class DialogManager {
                         nameView.setText(ManName.getText().toString());
 
                         manualDialog.dismiss();
-                        main.isGuide = false;
+                        LeadMeMain.isGuide = false;
                         main.directIpConnection(ManName, IpEnter);
                     }
                 }
@@ -937,7 +937,7 @@ public class DialogManager {
 
                 //Only start discovery again if trying to login as a learner
                 if(main.loginActor.equals("learner")) {
-                    main.getNearbyManager().networkAdapter.startDiscovery();
+                    main.getNearbyManager().nsdManager.startDiscovery();
                 }
             }
         }

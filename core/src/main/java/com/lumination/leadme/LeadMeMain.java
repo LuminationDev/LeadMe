@@ -25,6 +25,7 @@ import android.hardware.SensorManager;
 import android.hardware.display.DisplayManager;
 import android.media.AudioManager;
 import android.net.Uri;
+import android.net.nsd.NsdServiceInfo;
 import android.net.wifi.WifiManager;
 import android.os.Build;
 import android.os.Bundle;
@@ -251,7 +252,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     public String vrVideoPath;
 
     //details about me to send to peers
-    public boolean isGuide = false;
+    public static boolean isGuide = false;
     public boolean isReadyToConnect = false;
     public boolean studentLockOn = true; //students start locked
     private boolean selectedOnly = false; //sending to all learners or just selected
@@ -298,6 +299,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     public Context context;
     public ActivityManager activityManager;
     private FirebaseManager firebaseManager;
+    private NetworkManager networkManager;
     private AppUpdateManager appUpdateManager;
     private FileTransfer fileTransfer;
     private PermissionManager permissionManager;
@@ -571,6 +573,8 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     }
 
     public FirebaseManager getFirebaseManager() { return firebaseManager; }
+
+    public NetworkManager getNetworkManager() { return networkManager; }
 
     public AuthenticationManager getAuthenticationManager() {
         return authenticationManager;
@@ -909,7 +913,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         manageFocus();
 
         if (leaderLearnerSwitcher.getDisplayedChild() == SWITCH_LEARNER_INDEX) {
-            if (permissionManager.isNearbyPermissionsGranted()) {
+            if (permissionManager.isNearbyPermissionsGranted() && !getNearbyManager().isConnectedAsFollower()) {
                 displayLearnerStartToggle();
             }
         }
@@ -1079,7 +1083,9 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         if (getAppManager().getWithinPlayer().controllerWebView != null)
             getAppManager().getWithinPlayer().controllerWebView.destroy();
         Log.w(TAG, "In onDestroy");
-        logoutResetController();
+        if(isGuide) {
+            logoutResetController();
+        }
         backgroundExecutor.shutdownNow();
         serverThreadPool.shutdownNow();
         //subscription.dispose();
@@ -1361,6 +1367,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         //Adapters
         screenCap = new ScreenCap(this);
         firebaseManager = new FirebaseManager(this);
+        networkManager = new NetworkManager(this);
         powerManager = (PowerManager) getSystemService(POWER_SERVICE);
         permissionManager = new PermissionManager(this);
         authenticationManager = new AuthenticationManager(this);
@@ -2112,7 +2119,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         leaderLearnerSwitcher.setDisplayedChild(SWITCH_LEADER_INDEX);
         leader_toggle.setBackground(ResourcesCompat.getDrawable(getResources(), R.drawable.bg_active_right_leader, null));
         learner_toggle.setBackground(ResourcesCompat.getDrawable(getResources(), R.drawable.bg_passive_left_white, null));
-        getNearbyManager().networkAdapter.stopDiscovery();
+        getNearbyManager().nsdManager.stopDiscovery();
     }
 
     private void displayLearnerStartToggle() {
@@ -2222,6 +2229,29 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         getNearbyManager().discoverLeaders();
     }
 
+    /**
+     * starts the networking service, on start up the leader server starts.
+     */
+    public void startServer() {
+        NetworkService.startLeaderServer();
+    }
+
+    /**
+     * Submit a runnable to connect to a specific service.
+     * @param manualInformation An NsdServiceInfo that holds the required information to connect
+     *                          to the selected leaders service.
+     */
+    public void manageServerConnection(NsdServiceInfo manualInformation) {
+        backgroundExecutor.submit(() -> networkManager.connectToServer(manualInformation));
+    }
+
+    /**
+     * Starts the client socket to listen for input from the connected server.
+     */
+    public void startClient() {
+        networkManager.startClientInputListener();
+    }
+
     //MANUAL CONNECTION FOR LEARNERS
     /**
      * Empty the current leader list and stop any Nsd discovery. Start the client socket listener
@@ -2232,9 +2262,9 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         getLeaderSelectAdapter().setLeaderList(new ArrayList<>());
         isReadyToConnect = true;
         if (nearbyManager.isDiscovering()) {
-            getNearbyManager().networkAdapter.stopDiscovery();
+            getNearbyManager().nsdManager.stopDiscovery();
         }
-        getNearbyManager().networkAdapter.startClientInputListener();
+        startClient();
         getFirebaseManager().retrieveLeaders();
     }
 
@@ -2308,9 +2338,10 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     private void logoutResetController() {
         Log.d(TAG, "Resetting controller");
         getFirebaseManager().stopService();
+        getNetworkManager().stopService();
         xrayManager.resetClientMaps(null);
         getDispatcher().alertLogout(); //need to send this before resetting 'isGuide'
-        getNearbyManager().networkAdapter.resetClientIDs();
+        NetworkService.resetClientIDs();
         getConnectedLearnersAdapter().resetOnLogout();
         getNearbyManager().onStop(); //disconnect everyone
         getLeaderSelectAdapter().setLeaderList(new ArrayList<>()); //empty the list
@@ -2362,6 +2393,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
         if (isGuide) {
             getFirebaseManager().startService();
+            getNetworkManager().startService();
 
             //display main guide view
             leadmeAnimator.setDisplayedChild(ANIM_LEADER_INDEX);
@@ -3231,7 +3263,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
         toggleConnectionOptions(View.GONE); //Remove connection options
         getFirebaseManager().removeUserListener(); //remove the Firebase listener if connection was manual
-        getNearbyManager().networkAdapter.stopDiscovery();
+        getNearbyManager().nsdManager.stopDiscovery();
 
         optionsScreen.findViewById(R.id.connected_only_view).setVisibility(View.VISIBLE);
 

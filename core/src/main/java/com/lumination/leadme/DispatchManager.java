@@ -173,7 +173,7 @@ public class DispatchManager {
             Log.d(TAG, "sendToSelected: " + peer);
             selected.add(Integer.parseInt(peer));
         }
-        main.getNearbyManager().networkAdapter.sendToSelectedClients("DISCONNECT", "DISCONNECT", selected);
+        NetworkManager.sendToSelectedClients("DISCONNECT", "DISCONNECT", selected);
     }
 
     public synchronized void sendActionToSelected(String actionTag, String action, Set<String> selectedPeerIDs) {
@@ -905,7 +905,7 @@ public class DispatchManager {
 
             //TODO disconnect this student
             Log.e(TAG, split[1] + " has just disconnected");
-            main.getNearbyManager().networkAdapter.updateParent("Blah", Integer.parseInt(split[1]), "LOST");
+            NetworkManager.updateParent("Blah", Integer.parseInt(split[1]), "LOST");
         }
 
         /**

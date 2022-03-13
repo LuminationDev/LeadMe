@@ -132,7 +132,7 @@ public class ConnectedLearnersAdapter extends BaseAdapter {
         Log.d(TAG, "Adding " + peer.getDisplayName() + " to my student list, ID: " + peer.getID() + ". Now: " + mData.size() + " || " + mData);
 
         //Blocks call if guide logs out on a device then logs back in as a student.
-        if(main.isGuide) {
+        if(LeadMeMain.isGuide) {
             updateOnConnect(peer.getID());
         }
     }
@@ -346,8 +346,8 @@ public class ConnectedLearnersAdapter extends BaseAdapter {
 
                 removeStudent(lastPromptedID);
                 refresh();
-                main.getNearbyManager().networkAdapter.stopMonitoring(Integer.parseInt(lastPromptedID));
-                main.getNearbyManager().networkAdapter.removeClient(Integer.valueOf(lastPromptedID));
+                main.getNetworkManager().stopMonitoring(Integer.parseInt(lastPromptedID));
+                main.getNetworkManager().removeClient(Integer.valueOf(lastPromptedID));
 
                 logoutPrompt.dismiss();
                 if (main.getConnectedLearnersAdapter().mData.size() > 0) {
@@ -483,7 +483,7 @@ public class ConnectedLearnersAdapter extends BaseAdapter {
                         main.getXrayManager().resetClientMaps(lastClickedID); //remove the peer from the HashMaps
                         ArrayList<Integer> selected = new ArrayList<>();
                         selected.add(Integer.valueOf(lastClickedID));
-                        main.getNearbyManager().networkAdapter.sendToSelectedClients("", "DISCONNECT", selected);
+                        NetworkManager.sendToSelectedClients("", "DISCONNECT", selected);
                         removeStudent(lastClickedID);
                         refresh();
                         finalConvertView.setVisibility(View.GONE);
@@ -514,7 +514,7 @@ public class ConnectedLearnersAdapter extends BaseAdapter {
                             Log.d(TAG, "[adapter] Removing student: " + lastClickedID);
                             ArrayList<Integer> selected = new ArrayList<>();
                             selected.add(Integer.valueOf(lastClickedID));
-                            main.getNearbyManager().networkAdapter.sendToSelectedClients("", "DISCONNECT", selected);
+                            NetworkManager.sendToSelectedClients("", "DISCONNECT", selected);
                             removeStudent(lastClickedID);
                             refresh();
                             disconnectPrompt.dismiss();
@@ -629,33 +629,21 @@ public class ConnectedLearnersAdapter extends BaseAdapter {
                 Log.d(TAG, "[adapter] Removing student: " + lastClickedID);
                 ArrayList<Integer> selected = new ArrayList<>();
                 selected.add(Integer.valueOf(lastClickedID));
-                main.getNearbyManager().networkAdapter.sendToSelectedClients("", "DISCONNECT", selected);
+                NetworkManager.sendToSelectedClients("", "DISCONNECT", selected);
                 removeStudent(lastClickedID);
                 refresh();
                 studentSettingsDialog.dismiss();
                 main.hideSystemUI();
             }
         });
-        Close.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                studentSettingsDialog.dismiss();
-                main.hideSystemUI();
-            }
-        });
-        EditName.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                BuildAndDisplayNameChange(studentSettingsDialog,peer);
-            }
-        });
-        studentSettingsDialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
-            @Override
-            public void onDismiss(DialogInterface dialog) {
-                main.hideSystemUI();
-            }
+        Close.setOnClickListener(v -> {
+            studentSettingsDialog.dismiss();
+            main.hideSystemUI();
         });
 
+        EditName.setOnClickListener(v -> BuildAndDisplayNameChange(studentSettingsDialog,peer));
+
+        studentSettingsDialog.setOnDismissListener(dialog -> main.hideSystemUI());
     }
 
     private void BuildAndDisplayNameChange(AlertDialog studentSettingsDialog, ConnectedPeer peer) {
@@ -670,52 +658,43 @@ public class ConnectedLearnersAdapter extends BaseAdapter {
                 .setView(NameChange)
                 .show();
         OldName.setText(peer.getDisplayName());
-        Confirm.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if(NewName.getText()==null){
-                    return;
-                }
-                String newName = NewName.getText().toString();
-                if(newName.length()>0){
-                    studentNameChange.dismiss();
-                    //todo send name change
-                    Set<String> student = new ArraySet<>();
-                    student.add(peer.getID());
-                    main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.NAME_CHANGE+newName, student);
-                    peer.setName(newName);
-                    BuildAndDisplayNameConfirm(OldName.getText().toString(),newName,false);
-                    OldName.setText(newName);
-                    ((TextView)studentSettingsDialog.findViewById(R.id.student_set_name)).setText(newName);
-                    refresh();
 
-                }
+        Confirm.setOnClickListener(v -> {
+            if(NewName.getText()==null){
+                return;
             }
-        });
-        Request.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
+            String newName = NewName.getText().toString();
+            if(newName.length()>0){
+                studentNameChange.dismiss();
+                //todo send name change
                 Set<String> student = new ArraySet<>();
                 student.add(peer.getID());
-                main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.NAME_REQUEST, student);
-                studentNameChange.dismiss();
-                BuildAndDisplayNameConfirm(OldName.getText().toString(),"",true);
+                main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.NAME_CHANGE+newName, student);
+                peer.setName(newName);
+                BuildAndDisplayNameConfirm(OldName.getText().toString(),newName,false);
+                OldName.setText(newName);
+                ((TextView)studentSettingsDialog.findViewById(R.id.student_set_name)).setText(newName);
+                refresh();
+
             }
         });
-        Back.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                studentNameChange.dismiss();
-                studentSettingsDialog.show();
-            }
+
+        Request.setOnClickListener(v -> {
+            Set<String> student = new ArraySet<>();
+            student.add(peer.getID());
+            main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.NAME_REQUEST, student);
+            studentNameChange.dismiss();
+            BuildAndDisplayNameConfirm(OldName.getText().toString(),"",true);
         });
-    studentNameChange.setOnDismissListener(new DialogInterface.OnDismissListener() {
-            @Override
-            public void onDismiss(DialogInterface dialog) {
-                main.hideSystemUI();
-            }
+
+        Back.setOnClickListener(v -> {
+            studentNameChange.dismiss();
+            studentSettingsDialog.show();
         });
+
+        studentNameChange.setOnDismissListener(dialog -> main.hideSystemUI());
     }
+
     protected void BuildAndDisplayNameConfirm(String oldName, String newName, boolean request){
         View NameChangedConfirm = View.inflate(main, R.layout.f__name_push_confirm, null);
         AlertDialog studentNameConfirm = new AlertDialog.Builder(main)

@@ -22,27 +22,26 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 
 public class NearbyPeersManager {
-    String TAG = "NearbyPeersManager";
+    private static final String TAG = "NearbyPeersManager";
     public LeadMeMain main;
-    public NetworkAdapter networkAdapter;
-    ConnectedPeer selectedLeader;
-    NsdServiceInfo manInfo=null;
-
-    String myID;
-    boolean discovering;
-
+    public NSDManager nsdManager;
+    public ConnectedPeer selectedLeader;
+    public String myID;
     public String myName;
+
+    private NsdServiceInfo manInfo = null;
+    private boolean discovering;
     private int tryConnect = 0;
 
     /**
-     * Constructor which initiates the networkAdapter class.
+     * Constructor which initiates the nsdManager class.
      * @param main A reference to the LeadMeMain class.
      */
     public NearbyPeersManager(LeadMeMain main) {
         this.main = main;
-        networkAdapter = new NetworkAdapter(main.context, main, this);
+        nsdManager = new NSDManager(main);
         //In case the server was not closed down
-        networkAdapter.stopServer();
+        NetworkManager.stopServer();
     }
 
     protected void startPingThread() {
@@ -56,15 +55,15 @@ public class NearbyPeersManager {
     protected void resetManualInfo() {
         Log.d(TAG, "Resetting manual connection details");
         manInfo = null;
-        if(!main.isGuide) { //do not want the guide to start searching for services
+        if(!LeadMeMain.isGuide) { //do not want the guide to start searching for services
             discoverLeaders();
         }
     }
 
     protected void discoverLeaders() {
         discovering = true;
-        networkAdapter.stopAdvertising();
-        networkAdapter.startDiscovery();
+        nsdManager.stopAdvertising();
+        nsdManager.startDiscovery();
     }
 
     protected void setSelectedLeader(ConnectedPeer peer) {
@@ -72,7 +71,7 @@ public class NearbyPeersManager {
     }
 
     protected void cancelConnection() {
-        networkAdapter.receivedDisconnect();
+        main.getNetworkManager().receivedDisconnect();
     }
 
     public void onStop() {
@@ -91,17 +90,17 @@ public class NearbyPeersManager {
         Log.e(TAG, "Teacher: " + Name);
 
         if(manInfo == null) {
-            ArrayList<NsdServiceInfo> discoveredLeaders = networkAdapter.discoveredLeaders;
+            ArrayList<NsdServiceInfo> discoveredLeaders = nsdManager.discoveredLeaders;
             Log.d(TAG, "Leaders array: " + discoveredLeaders.size());
             for (NsdServiceInfo info : discoveredLeaders) {
                 Log.d(TAG, "connectToSelectedLeader: " + info.getServiceName());
                 if (info.getServiceName().equals(Name + "#Teacher")) {
-                    main.backgroundExecutor.submit(() -> networkAdapter.connectToServer(info));
+                    main.manageServerConnection(info);
                     return;
                 }
             }
         } else {
-            main.backgroundExecutor.submit(() -> networkAdapter.connectToServer(manInfo));
+            main.manageServerConnection(manInfo);
             return;
         }
         Log.d(TAG, "connectToSelectedLeader: no leader found with the name " + Name + ". Trying" +
@@ -140,7 +139,7 @@ public class NearbyPeersManager {
             info.setServiceType("_http._tcp.");
             Log.d(TAG, "run: "+info);
             manInfo = info;
-            networkAdapter.discoveredLeaders.add(info);
+            nsdManager.discoveredLeaders.add(info);
             selectedLeader = new ConnectedPeer(leaderName, IpAddress);
             main.runOnUiThread(this::connectToSelectedLeader);
         });
@@ -152,15 +151,15 @@ public class NearbyPeersManager {
      */
     public void setAsGuide() {
         Log.e(TAG, "Server starting for leader");
-        main.isGuide = true;
-        networkAdapter.startServer();
+        LeadMeMain.isGuide = true;
+        main.startServer();
 
         //Wait a little bit for the server to start before making the guide discoverable.
         final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 
         final Runnable runnable = () -> {
-            networkAdapter.stopDiscovery();
-            networkAdapter.startAdvertising();
+            nsdManager.stopDiscovery();
+            nsdManager.startAdvertising();
 
             scheduler.shutdown();
         };
@@ -172,7 +171,7 @@ public class NearbyPeersManager {
      * @return A boolean representing if they are a student.
      */
     public boolean isConnectedAsFollower() {
-        return !main.isGuide && networkAdapter.isConnected();
+        return !LeadMeMain.isGuide && NetworkManager.isClientConnected();
     }
 
     /**
@@ -180,7 +179,7 @@ public class NearbyPeersManager {
      * @return A boolean representing if they are a guide.
      */
     public boolean isConnectedAsGuide() {
-        return main.isGuide && networkAdapter.isServerRunning();
+        return LeadMeMain.isGuide && NetworkService.isServerRunning();
     }
 
     /**
@@ -220,7 +219,7 @@ public class NearbyPeersManager {
      * @param endpointId A string representing a students device.
      */
     public void disconnectStudent(String endpointId) {
-        networkAdapter.removeClient(Integer.parseInt(endpointId));
+        main.getNetworkManager().removeClient(Integer.parseInt(endpointId));
     }
 
     /**
@@ -228,7 +227,7 @@ public class NearbyPeersManager {
      * @param endpointId A string representing a users device.
      */
     public void disconnectFromEndpoint(String endpointId) {
-        if (main.isGuide) {
+        if (LeadMeMain.isGuide) {
             main.getConnectedLearnersAdapter().alertStudentDisconnect(endpointId);
             main.getConnectedLearnersAdapter().refresh();
             disconnectStudent(endpointId);
@@ -239,7 +238,7 @@ public class NearbyPeersManager {
                 ArrayList<ConnectedPeer> temp = new ArrayList<>();
                 main.getLeaderSelectAdapter().setLeaderList(temp);
                 main.showLeaderWaitMsg(true);
-                networkAdapter.startDiscovery();
+                nsdManager.startDiscovery();
                 main.setUIDisconnected();
             });
         }
@@ -249,7 +248,7 @@ public class NearbyPeersManager {
      * Stops advertising.
      */
     protected void stopAdvertising() {
-        networkAdapter.stopAdvertising();
+        nsdManager.stopAdvertising();
     }
 
     protected boolean isDiscovering() {
@@ -257,14 +256,14 @@ public class NearbyPeersManager {
     }
 
     protected void disconnectFromAllEndpoints() {
-        if (main.isGuide) {
-            networkAdapter.stopServer();
+        if (LeadMeMain.isGuide) {
+            NetworkManager.stopServer();
         }
     }
 
     protected final boolean isConnecting() {
-        if (networkAdapter.clientsServerSocket != null) {
-            return networkAdapter.clientsServerSocket.isConnected();
+        if (NetworkManager.getClientSocket() != null) {
+            return NetworkManager.isClientConnected();
         } else {
             return false;
         }
@@ -322,10 +321,10 @@ public class NearbyPeersManager {
      */
     public Set<String> getAllPeerIDs() {
         Set<String> peerIDS = new HashSet<>();
-        for (client id : networkAdapter.currentClients) {
+        for (client id : NetworkManager.currentClients) {
             peerIDS.add(String.valueOf(id.ID));
         }
-        if (!main.isGuide) {
+        if (!LeadMeMain.isGuide) {
             peerIDS.add("-1");
         }
         return peerIDS;
@@ -338,17 +337,17 @@ public class NearbyPeersManager {
         byte[] b = p.marshall();
         p.recycle(); //recycle the parcel
         ArrayList<String> selectedString = new ArrayList<>(endpoints);
-        if (selectedString.size() == 0 && !main.isGuide) {
+        if (selectedString.size() == 0 && !LeadMeMain.isGuide) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 String encoded = Base64.getEncoder().encodeToString(b);
-                networkAdapter.sendToServer(encoded, "ACTION");
+                main.getNetworkManager().sendToServer(encoded, "ACTION");
             }
             return;
         }
-        if (!selectedString.isEmpty() && selectedString.get(0).equals("-1") && !main.isGuide) {
+        if (!selectedString.isEmpty() && selectedString.get(0).equals("-1") && !LeadMeMain.isGuide) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 String encoded = Base64.getEncoder().encodeToString(b);
-                networkAdapter.sendToServer(encoded, "ACTION");
+                main.getNetworkManager().sendToServer(encoded, "ACTION");
             }
         } else {
             ArrayList<Integer> selected = new ArrayList<>();
@@ -358,7 +357,7 @@ public class NearbyPeersManager {
             }
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 String encoded = Base64.getEncoder().encodeToString(b);
-                networkAdapter.sendToSelectedClients(encoded, "ACTION", selected);
+                NetworkManager.sendToSelectedClients(encoded, "ACTION", selected);
             }
         }
 

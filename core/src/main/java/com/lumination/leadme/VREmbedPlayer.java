@@ -19,6 +19,10 @@ import android.widget.VideoView;
 import androidx.core.content.ContextCompat;
 import androidx.core.widget.ImageViewCompat;
 
+import com.lumination.leadme.LeadMeMain;
+import com.lumination.leadme.R;
+import com.lumination.leadme.VRAccessibilityManager;
+
 import java.io.File;
 import java.util.Set;
 

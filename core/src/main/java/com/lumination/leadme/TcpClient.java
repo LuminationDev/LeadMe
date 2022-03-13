@@ -22,21 +22,20 @@ import java.util.concurrent.TimeUnit;
  * messages, check connection and handle input.
  */
 public class TcpClient extends Thread{
+    private String TAG = "TcpClient: ";
+
     public InetAddress IpAddress;
     public int port;
     public int ID;
-    String TAG = "TcpClient: ";
-    Socket client;
-    String Name;
-
-    NetworkAdapter parent;
+    private Socket client;
+    private String Name;
 
     TcpClient tcp;
     boolean runAgain=true;
     boolean checkIn = true;
     ScheduledExecutorService scheduledExecutor = new ScheduledThreadPoolExecutor(3);
 
-    public TcpClient(Socket clientSocket, NetworkAdapter netContext, int clientID) {
+    public TcpClient(Socket clientSocket, int clientID) {
         TAG += clientID; //ensures logs are identifiable
         IpAddress = clientSocket.getInetAddress();
         port = clientSocket.getPort();
@@ -47,7 +46,6 @@ public class TcpClient extends Thread{
             e.printStackTrace();
         }
         ID = clientID;
-        parent = netContext;
         client = clientSocket;
         tcp = this;
 
@@ -62,13 +60,13 @@ public class TcpClient extends Thread{
      */
     Runnable tcpRunner = () -> {
         if (client.isConnected() && !client.isClosed()) {
-            for (int i = 0; i < parent.currentClients.size(); i++) {
-                client Client = parent.currentClients.get(i);
+            for (int i = 0; i < NetworkManager.currentClients.size(); i++) {
+                client Client = NetworkManager.currentClients.get(i);
                 if (ID == Client.ID) {
                     while (Client.messageQueue.size() > 0) {
                         Log.d(TAG, "sending: " + Client.messageQueue.get(0).message + " " + Client.messageQueue.get(0).type);
                         sendToClient(Client.messageQueue.get(0).message, Client.messageQueue.get(0).type);
-                        parent.currentClients.get(i).messageQueue.remove(0);
+                        NetworkManager.currentClients.get(i).messageQueue.remove(0);
                         try {
                             Thread.currentThread().sleep(500);
                         } catch (InterruptedException e) {
@@ -93,10 +91,10 @@ public class TcpClient extends Thread{
             out.println("PING," + ID); //set to be ignored at the client end, tcp will tell us if they have disconnected
             if (out.checkError()) {
                 Log.e(TAG, "ERROR writing data to socket student has disconnected");
-                parent.executorService.submit(new Runnable() {
+                NSDManager.executorService.submit(new Runnable() {
                     @Override
                     public void run() {
-                      parent.updateParent(Name, ID, "LOST");
+                        NetworkManager.updateParent(Name, ID, "LOST");
                     }
                 });
 
@@ -156,7 +154,7 @@ public class TcpClient extends Thread{
                     Log.d(TAG, "inputReceived: ping messages are purposely ignored");
                     break;
                 case "IMAGE":
-                    parent.executorService.submit(() -> parent.updateParent(inputList.get(1),ID,"IMAGE"));
+                    NSDManager.executorService.submit(() -> NetworkManager.updateParent(inputList.get(1),ID,"IMAGE"));
                     break;
                 default:
                     break;
@@ -167,17 +165,17 @@ public class TcpClient extends Thread{
     private void inputActionHandler(String action) {
         //not sure why student would send action but implemented anyway
         Log.d(TAG, "inputActionHandler: Action received: "+action);
-        parent.executorService.submit(() -> parent.updateParent(action,ID,"ACTION"));
+        NSDManager.executorService.submit(() -> NetworkManager.updateParent(action,ID,"ACTION"));
 
     }
 
     /**
-     * Updates parent with name.
+     * Updates network adapter with name.
      * @param name A string representing the name of the student.
      */
     public void setLocalName(String name){
         Name=name;
-        parent.executorService.submit(() -> parent.updateParent(name+":"+IpAddress.toString(),ID,"NAME"));
+        NSDManager.executorService.submit(() -> NetworkManager.updateParent(name+":"+IpAddress.toString(),ID,"NAME"));
     }
 
     void sendToClient(String message, String type){
@@ -204,7 +202,7 @@ public class TcpClient extends Thread{
                     checkIn=false;
                     scheduledExecutor.shutdown();
                     Log.d(TAG, "sendToClient: client socket closed and student disconnected");
-                    parent.executorService.submit(() -> parent.updateParent("disconnect complete",ID,"DISCONNECT"));
+                    NSDManager.executorService.submit(() -> NetworkManager.updateParent("disconnect complete",ID,"DISCONNECT"));
 
                 } catch (IOException e) {
                     e.printStackTrace();

@@ -33,6 +33,8 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -60,7 +62,8 @@ public class FileTransfer {
 
     private NotificationManager notifyManager;
     private NotificationCompat.Builder builder;
-    private ProgressBar transferBar;
+    private final ProgressBar transferBar;
+    private Timer timestampUpdater;
     private final boolean testBar = true;
 
     private ServerSocket serverSocket = null;
@@ -534,6 +537,8 @@ public class FileTransfer {
                     fos = new FileOutputStream(newFile);
                 }
 
+                startVisualTimer();
+
                 byte[] buffer = new byte[4096];
 
                 long size = dis.readLong();
@@ -576,6 +581,7 @@ public class FileTransfer {
                 if(testBar) {
                     main.runOnUiThread(() -> transferBar.setVisibility(View.GONE));
                 }
+                stopVisualTimer();
                 dismissPopup();
                 main.setDeviceStatusMessage(R.string.connected_label);
             }
@@ -638,14 +644,6 @@ public class FileTransfer {
         }
 
         transfer_progress = overallPercent/transfers.size();
-
-        //Do not call too frequently otherwise notifications are dropped, included in the
-        //completion one.
-        //TODO find a better way to do this!
-        if((int) transfer_progress % 10 == 7) {
-            builder.setProgress(100, (int) transfer_progress, false);
-            notifyManager.notify(NOTIFICATION_ID, builder.build());
-        }
     }
 
     /**
@@ -654,19 +652,45 @@ public class FileTransfer {
      * @param current An integer representing the current amount that has been transferred.
      */
     protected void updateStudentProgress(long total, int current) {
-        double percent = (((double) current / (double) total) * 100);
+        transfer_progress = (((double) current / (double) total) * 100);
+    }
 
-        //Do not call too frequently otherwise notifications are dropped, included in the
-        //completion one.
-        //TODO find a better way to do this!
-        if((int) percent % 10 == 7) {
-            builder.setProgress(100, (int) percent, false);
-            notifyManager.notify(NOTIFICATION_ID, builder.build());
-
-            if(testBar) {
-                main.runOnUiThread(() -> transferBar.setProgress((int) percent));
+    /**
+     * At set time intervals update the progress of the transfer, this drastically limits the
+     * amount of calls to the notification channel and UI thread.
+     */
+    private void startVisualTimer() {
+        timestampUpdater = new Timer();
+        TimerTask updateTimestamp = new TimerTask() {
+            @Override
+            public void run() {
+                visualUpdate();
             }
+        };
+
+        //update the leaders timestamp on firebase (mins)
+        timestampUpdater.scheduleAtFixedRate(updateTimestamp, 0L, 5000);
+    }
+
+    /**
+     * Update the progress bar and notification with the current transfer progress.
+     */
+    private void visualUpdate() {
+        Log.e(TAG, "Updating progress bar: " + transfer_progress);
+
+        builder.setProgress(100, (int) transfer_progress, false);
+        notifyManager.notify(NOTIFICATION_ID, builder.build());
+
+        if(testBar && !LeadMeMain.isGuide) {
+            main.runOnUiThread(() -> transferBar.setProgress((int) transfer_progress));
         }
+    }
+
+    /**
+     * Stop the timer related to visual updates.
+     */
+    private void stopVisualTimer() {
+        timestampUpdater.cancel();
     }
 
     /**
@@ -756,6 +780,8 @@ public class FileTransfer {
             long fileLength = file.length();
 
             try {
+                startVisualTimer();
+
                 DataOutputStream dos = new DataOutputStream(clientSocket.getOutputStream());
                 FileInputStream fis = new FileInputStream(file);
 
@@ -768,6 +794,7 @@ public class FileTransfer {
 
                 int progress = 0;
                 int read;
+
                 while ((read = fis.read(buffer)) != -1) {
                     dos.write(buffer, 0, read);
                     dos.flush();
@@ -781,6 +808,7 @@ public class FileTransfer {
                 Log.d(TAG, "File sent");
                 removeRequest(this.ID);
             } catch (IOException e) {
+                stopVisualTimer();
                 e.printStackTrace();
                 Log.e(TAG, "SendingFile: File not sent");
                 transferComplete = false;
@@ -819,6 +847,7 @@ public class FileTransfer {
          * Reset the sockets and variables for next time.
          */
         private void reset() {
+            stopVisualTimer();
             dismissPopup();
 
             try {
@@ -856,7 +885,7 @@ public class FileTransfer {
         }
 
         public void run() {
-            main.getNearbyManager().networkAdapter.sendFile(ID, serverSocket.getLocalPort(), fileType);
+            main.getNetworkManager().sendFile(ID, serverSocket.getLocalPort(), fileType);
         }
     }
 }

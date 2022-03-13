@@ -81,7 +81,7 @@ public class LeaderSelectAdapter extends BaseAdapter {
 
         convertView.setOnClickListener(v -> {
             Log.d(TAG, "Clicked view: " + textView.getText());
-            main.getNearbyManager().networkAdapter.stopDiscovery();
+            main.getNearbyManager().nsdManager.stopDiscovery();
             main.getNearbyManager().setSelectedLeader(leader_list.get(position));
             main.showLoginDialog();
         });

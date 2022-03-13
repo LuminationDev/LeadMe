@@ -98,6 +98,12 @@
             android:stopWithTask="true">
         </service>
         <service
+            android:enabled="true"
+            android:name=".NetworkService"
+            android:foregroundServiceType="connectedDevice"
+            android:stopWithTask="true">
+        </service>
+        <service
             android:name="com.lumination.leadme.LumiAccessibilityService"
             android:label="@string/app_title_with_brand"
             android:configChanges="orientation"

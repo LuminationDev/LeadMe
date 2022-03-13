@@ -14,7 +14,7 @@ public class LumiAccessibilityService extends android.accessibilityservice.Acces
 
     private final static String TAG = "LumiAccessService";
 
-    protected final static String BROADCAST_ACTION = "com.lumination.leadme.BROADCAST_ACTION";
+    public final static String BROADCAST_ACTION = "com.lumination.leadme.BROADCAST_ACTION";
     protected final static String INFO_TAG = "LumiBroadcastInfo";
     protected final static String INFO_CONFIG = "CONFIG_CHANGE";
     protected final static String INFO_CONNECTED = "SERVICE_CONNECTED";
