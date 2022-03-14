@@ -1,5 +1,7 @@
 package com.lumination.leadme;
 
+import com.google.firebase.crashlytics.FirebaseCrashlytics;
+
 import java.io.IOException;
 import java.util.ArrayList;
 
@@ -21,18 +23,24 @@ public class CuratedContentManager {
                 .build();
 
         try (Response response = client.newCall(request).execute()) {
-            return response.body().string();
+            int responseCode = response.code();
+            if (responseCode > 200) {
+                FirebaseCrashlytics.getInstance().log("Response code for curated content was greater than 200. Code: " + String.valueOf(responseCode));
+                return null;
+            } else {
+                return response.body().string();
+            }
         } catch (Exception e) {
-            return "heck2";
+            FirebaseCrashlytics.getInstance().recordException(e);
         }
+        return null;
     }
 
     public static void getCuratedContent(LeadMeMain main) {
-//        todo - tidy up this method, move the url to be a bit cleaner and store the api key somewhere 11/03/22
-//        todo - we don't need to worry too much about the api key, as it'll be locked down to just sheets and this android app 11/03/22
-        String url = "https://sheets.googleapis.com/v4/spreadsheets/1rcQF2vmFQW5LmMPBXSu9qZ5N3fuqXFXjvHlDq-Qhm1Y/values/A1:G100?key=AIzaSyDQTgiS6UZ0BCZkpYnevn8QgBi7BVzUOvk";
+        String curatedContentAPIKey = "AIzaSyDQTgiS6UZ0BCZkpYnevn8QgBi7BVzUOvk"; // API key is public anyway and locked down to sheets API and this app only
+        String curatedContentSpreadsheetId = "1rcQF2vmFQW5LmMPBXSu9qZ5N3fuqXFXjvHlDq-Qhm1Y";
+        String url = String.format("https://sheets.googleapis.com/v4/spreadsheets/%s/values/A1:G100?key=%s", curatedContentSpreadsheetId, curatedContentAPIKey);
 
-        // todo handle 403s etc 11/03/22
         new Thread(new Runnable() {
             public void run() {
                 String response = null;
@@ -40,24 +48,54 @@ public class CuratedContentManager {
                     response = makeHttpRequest(url);
                 } catch (IOException e) {
                     e.printStackTrace();
+                    FirebaseCrashlytics.getInstance().recordException(e);
                 }
-                try {
-                    JSONObject jsonObject = new JSONObject(response);
-                    JSONArray curatedContent = jsonObject.getJSONArray("values");
-                    // todo validate the top row has the correct headings 11/03/22
-                    ArrayList<CuratedContentItem> processedCuratedContent = new ArrayList<CuratedContentItem>();
-                    for(int i = 1; i < curatedContent.length(); i++) {
-                        JSONArray curatedContentJson = curatedContent.getJSONArray(i);
-                        processedCuratedContent.add(new CuratedContentItem(
-                                curatedContentJson.getString(0),
-                                CuratedContentType.valueOf(curatedContentJson.getString(2)),
-                                curatedContentJson.getString(3),
-                                curatedContentJson.getString(1)
-                        ));
+                if (response != null) {
+                    try {
+                        JSONObject jsonObject = new JSONObject(response);
+                        JSONArray curatedContent = jsonObject.getJSONArray("values");
+                        JSONArray curatedContentHeadings = curatedContent.getJSONArray(0);
+                        String[] expectedHeadings = {
+                                "Title",
+                                "Description",
+                                "Type",
+                                "Link",
+                                "Years",
+                                "Subjects",
+                                "Live"
+                        };
+                        for (int i = 0; i < expectedHeadings.length; i++) {
+                            if (!curatedContentHeadings.getString(i).equals(expectedHeadings[i])) {
+                                return;
+                            }
+                        }
+                        ArrayList<CuratedContentItem> processedCuratedContent = new ArrayList<CuratedContentItem>();
+                        for(int i = 1; i < curatedContent.length(); i++) {
+                            JSONArray curatedContentJson = curatedContent.getJSONArray(i);
+
+                            // validate that it is a supported CuratedContentType
+                            try {
+                                CuratedContentType.valueOf(curatedContentJson.getString(2));
+                            } catch (IllegalArgumentException e) {
+                                FirebaseCrashlytics.getInstance().recordException(e);
+                                continue;
+                            }
+
+                            // only include if it is marked as 'live'
+                            if (curatedContentJson.getString(6).equals("YES")) {
+                                processedCuratedContent.add(new CuratedContentItem(
+                                        curatedContentJson.getString(0),
+                                        CuratedContentType.valueOf(curatedContentJson.getString(2)),
+                                        curatedContentJson.getString(3),
+                                        curatedContentJson.getString(1)
+                                ));
+                            }
+                        }
+                        main.initializeCuratedContent(processedCuratedContent);
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                        FirebaseCrashlytics.getInstance().recordException(e);
                     }
-                    main.initializeCuratedContent(processedCuratedContent);
-                } catch (JSONException e) {
-                    e.printStackTrace();
                 }
             }
         }).start();

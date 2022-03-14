@@ -50,6 +50,7 @@ import android.view.accessibility.AccessibilityEvent;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
@@ -1361,15 +1362,29 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         appLauncherScreen = View.inflate(context, R.layout.d__app_list, null);
         learnerWaitingText = startLearner.findViewById(R.id.waiting_text);
         multiAppManager = View.inflate(context, R.layout.d__app_manager_list, null);
-
-//        todo - can probably move the binding init stuff to a separate method to keep this cleanr 11/03/22
         curatedContentScreen = View.inflate(context, R.layout.d__curated_content_list, null);
+        setupCuratedContent();
+    }
+
+    private void setupCuratedContent () {
+        // set up data binding and the list view for curated content
         curatedContentBinding = DataBindingUtil.bind(curatedContentScreen);
         curatedContentBinding.setLifecycleOwner(this);
         curatedContentBinding.setVariable(BR.curatedContentList, curatedContentList);
-        ListView curatedContentList = curatedContentScreen.findViewById(R.id.curated_content_list);
+        ListView curatedContentListView = curatedContentScreen.findViewById(R.id.curated_content_list);
         curatedContentAdapter = new CuratedContentAdapter(this, curatedContentScreen.findViewById(R.id.curated_content_list));
-        curatedContentList.setAdapter(curatedContentAdapter);
+        curatedContentListView.setAdapter(curatedContentAdapter);
+
+        // handle clicking on a curated content item, if this starts to get more complicated we'll want to split it out
+        LeadMeMain main = this;
+        curatedContentListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+                CuratedContentItem current = curatedContentList.get(i);
+                WebManager webManager = new WebManager(main);
+                webManager.showPreview(current.link);
+            }
+        });
     }
 
     /**
