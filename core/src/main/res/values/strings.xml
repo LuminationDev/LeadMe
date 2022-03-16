@@ -167,5 +167,17 @@
     <string name="view_mode_on">View Mode ON</string>
     <string name="view_mode_off">View Mode OFF</string>
     <string name="zero_seconds">00:00</string>
+    <string name="url_hint">Input URL, or search the web</string>
+    <string name="search_icon">search icon</string>
+    <string name="search_web">Search Web</string>
+    <string name="enter_url">Please enter URL</string>
+    <string name="paste">Paste</string>
+    <string name="browse_favourites">Browse favourites</string>
+    <string name="connecting_icon">Connecting icon</string>
+    <string name="connecting_to_leader">Connecting to Leader</string>
+    <string name="please_wait_connecting">Please wait while we connect you.</string>
+    <string name="search_youtube">Search YouTube</string>
+    <string name="search_within">Search Within</string>
+    <string name="following">Following</string>
 
 </resources>
