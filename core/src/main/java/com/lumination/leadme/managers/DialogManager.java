@@ -779,7 +779,7 @@ public class DialogManager {
      */
     public void showManualDialog(boolean isGuide, String ipAddress) {
         if(isGuide) {
-            manView.findViewById(R.id.manual_teacher_view).setVisibility(View.VISIBLE);
+            manView.findViewById(R.id.manual_leader_view).setVisibility(View.VISIBLE);
             manView.findViewById(R.id.manual_learner_view).setVisibility(View.GONE);
             manView.findViewById(R.id.manual_ok).setVisibility(View.GONE);
             TextView IpAddress = manView.findViewById(R.id.manual_ip);
@@ -792,7 +792,7 @@ public class DialogManager {
             }
             manView.findViewById(R.id.manual_learner_view).setVisibility(View.VISIBLE);
             manView.findViewById(R.id.manual_ok).setVisibility(View.VISIBLE);
-            manView.findViewById(R.id.manual_teacher_view).setVisibility(View.GONE);
+            manView.findViewById(R.id.manual_leader_view).setVisibility(View.GONE);
             EditText IpEnter = manView.findViewById(R.id.manual_enterIP);
             EditText ManName = manView.findViewById(R.id.manual_name);
             Button connect = manView.findViewById(R.id.manual_ok);
@@ -1009,21 +1009,21 @@ public class DialogManager {
     }
 
     /**
-     * Change the visibility of the login view options for a teacher.
+     * Change the visibility of the login view options for a leader.
      * @param codeDisplay An int representing if the code input view should be visibility.
-     * @param studentTeacherDisplay An int representing if the teacher name list view should be visibility.
+     * @param learnerLeaderDisplay An int representing if the leader name list view should be visibility.
      */
-    public void changeTeacherLoginViewOptions(int codeDisplay, int studentTeacherDisplay) {
+    public void changeLeaderLoginViewOptions(int codeDisplay, int learnerLeaderDisplay) {
         loginDialogView.findViewById(R.id.code_entry_view).setVisibility(codeDisplay);
-        loginDialogView.findViewById(R.id.student_teacher_view).setVisibility(studentTeacherDisplay);
+        loginDialogView.findViewById(R.id.learner_leader_view).setVisibility(learnerLeaderDisplay);
     }
 
     /**
      * Set the name of the current guide to be displayed.
      * @param guideName A String representing the current guide.
      */
-    public void setTeacherName(String guideName) {
-        ((TextView) loginDialogView.findViewById(R.id.teacher_name)).setText(guideName);
+    public void setLeaderName(String guideName) {
+        ((TextView) loginDialogView.findViewById(R.id.current_leader_name)).setText(guideName);
     }
 
     /**

@@ -724,13 +724,13 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
         //set appropriate mode
         if (leaderLearnerSwitcher.getDisplayedChild() == SWITCH_LEADER_INDEX) {
-            Log.d(TAG, "showLoginDialog: teacher"); //leader
-            dialogManager.changeTeacherLoginViewOptions(View.VISIBLE, View.GONE);
+            Log.d(TAG, "showLoginDialog: leader"); //leader
+            dialogManager.changeLeaderLoginViewOptions(View.VISIBLE, View.GONE);
 
         } else {
             Log.d(TAG, "showLoginDialog: learner"); //learner
             dialogManager.changeLoginViewOptions(View.GONE, View.GONE, View.VISIBLE);
-            dialogManager.changeTeacherLoginViewOptions(View.GONE, View.VISIBLE);
+            dialogManager.changeLeaderLoginViewOptions(View.GONE, View.VISIBLE);
 
             if (getNearbyManager().selectedLeader == null) {
                 leaderLearnerSwitcher.setDisplayedChild(SWITCH_LEADER_INDEX);
@@ -738,7 +738,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                 return;
             }
 
-            dialogManager.setTeacherName(getNearbyManager().selectedLeader.getDisplayName());
+            dialogManager.setLeaderName(getNearbyManager().selectedLeader.getDisplayName());
         }
 
         //Check if the leader has internet access
@@ -1615,6 +1615,10 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             return false;
         }
 
+        //Version number comes through as integers or doubles depending on the version
+        //ranging from 8, 9.5, 11.5, 12 etc..
+        //All Xiaomi devices above SE8, i.e Note 8/9 can update to MIUI 12. So only MIUI versions
+        //at or below 10 need to use the alternate file picker.
         String[] num = new String[0];
         if (version != null) {
             num = version.split("V");
@@ -1685,7 +1689,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             } else {
 
                 if (getAuthenticationManager().getCurrentAuthUser() != null) {
-                    optionsScreen.findViewById(R.id.options_teacher).setVisibility(View.VISIBLE);
+                    optionsScreen.findViewById(R.id.options_leader).setVisibility(View.VISIBLE);
                     optionsScreen.findViewById(R.id.options_endSess).setVisibility(View.VISIBLE);
                     optionsScreen.findViewById(R.id.options_loginBtn).setVisibility(View.GONE);
                     optionsScreen.findViewById(R.id.options_notsigned).setVisibility(View.GONE);
@@ -1693,16 +1697,16 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                 } else {
                     optionsScreen.findViewById(R.id.options_loginBtn).setVisibility(View.VISIBLE);
                     optionsScreen.findViewById(R.id.options_notsigned).setVisibility(View.VISIBLE);
-                    optionsScreen.findViewById(R.id.options_teacher).setVisibility(View.GONE);
+                    optionsScreen.findViewById(R.id.options_leader).setVisibility(View.GONE);
                 }
             }
             if (getNearbyManager().isConnectedAsGuide()) {
-                optionsScreen.findViewById(R.id.options_teacher).setVisibility(View.VISIBLE);
+                optionsScreen.findViewById(R.id.options_leader).setVisibility(View.VISIBLE);
                 optionsScreen.findViewById(R.id.options_endSess).setVisibility(View.VISIBLE);
                 ((TextView) optionsScreen.findViewById(R.id.options_signed_name)).setText(getAuthenticationManager().getCurrentAuthUserName());
             } else if (getNearbyManager().isConnectedAsFollower()) {
                 optionsScreen.findViewById(R.id.options_endSess).setVisibility(View.GONE);
-                optionsScreen.findViewById(R.id.options_teacher).setVisibility(View.GONE);
+                optionsScreen.findViewById(R.id.options_leader).setVisibility(View.GONE);
             }
         };
 
@@ -1803,9 +1807,9 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         autoToggle.setVisibility(View.GONE); //disable until logged in
         autoToggle.setChecked(autoInstallApps);
         autoToggle.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            //Tell the teacher what is happening when it is turned on
+            //Tell the leader what is happening when it is turned on
             if(isChecked) {
-                //showWarningDialog("Auto Install", "Tell the teacher something helpful.");
+                //showWarningDialog("Auto Install", "Tell the leader something helpful.");
                 Toast.makeText(context, "Auto Installing now enabled.", Toast.LENGTH_SHORT).show();
             }
 
@@ -1824,9 +1828,9 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         transferToggle.setVisibility(View.GONE); //disable until logged in
         transferToggle.setChecked(fileTransferEnabled);
         transferToggle.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            //Tell the teacher what is happening when it is turned on
+            //Tell the leader what is happening when it is turned on
             if(isChecked) {
-                //showWarningDialog("Auto Install", "Tell the teacher something helpful.");
+                //showWarningDialog("Auto Install", "Tell the leader something helpful.");
                 Toast.makeText(context, "File transfer is now enabled.", Toast.LENGTH_SHORT).show();
             }
 
@@ -1862,7 +1866,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         optionsScreen.findViewById(R.id.logout_btn).setOnClickListener(view -> {
             if (isGuide || !getNearbyManager().isConnectedAsFollower()) {
                 getAuthenticationManager().logoutAction();
-                optionsScreen.findViewById(R.id.options_teacher).setVisibility(View.GONE);
+                optionsScreen.findViewById(R.id.options_leader).setVisibility(View.GONE);
                 logoutResetController();
             } else {
                 Toast.makeText(context, "Logout is unavailable.", Toast.LENGTH_SHORT).show();
@@ -2311,7 +2315,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
         //if appropriate, check if the correct code has been entered
         if (loggingInAsLeader) {
-            //check teacher code
+            //check leader code
             String code = dialogManager.getAndClearPinEntry();
 
             Log.d(TAG, "Code entered: " + code);

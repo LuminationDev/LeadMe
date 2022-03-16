@@ -327,7 +327,7 @@
 
 
             <LinearLayout
-                android:id="@+id/student_teacher_view"
+                android:id="@+id/learner_leader_view"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:orientation="vertical"
@@ -359,7 +359,7 @@
                         app:tint="@color/accent" />
 
                     <TextView
-                        android:id="@+id/teacher_name"
+                        android:id="@+id/current_leader_name"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginLeft="10dp"
