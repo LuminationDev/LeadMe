@@ -87,6 +87,29 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.himanshurawat.hasher.HashType;
 import com.himanshurawat.hasher.Hasher;
+import com.lumination.leadme.connections.ConnectedPeer;
+import com.lumination.leadme.managers.DispatchManager;
+import com.lumination.leadme.accessibility.LumiAccessibilityConnector;
+import com.lumination.leadme.accessibility.VRAccessibilityManager;
+import com.lumination.leadme.adapters.ConnectedLearnersAdapter;
+import com.lumination.leadme.adapters.LeaderSelectAdapter;
+import com.lumination.leadme.managers.AppManager;
+import com.lumination.leadme.managers.AuthenticationManager;
+import com.lumination.leadme.managers.DialogManager;
+import com.lumination.leadme.managers.FileTransferManager;
+import com.lumination.leadme.managers.FirebaseManager;
+import com.lumination.leadme.managers.NearbyPeersManager;
+import com.lumination.leadme.managers.NetworkManager;
+import com.lumination.leadme.managers.PermissionManager;
+import com.lumination.leadme.managers.ScreenSharingManager;
+import com.lumination.leadme.managers.WebManager;
+import com.lumination.leadme.managers.XrayManager;
+import com.lumination.leadme.players.VREmbedPlayer;
+import com.lumination.leadme.services.LumiAccessibilityService;
+import com.lumination.leadme.services.NetworkService;
+import com.lumination.leadme.utilities.AppInstaller;
+import com.lumination.leadme.utilities.FileUtilities;
+import com.lumination.leadme.utilities.OnboardingGestureDetector;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -123,69 +146,69 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     //Turn the updated content on or off - still need to manually switch the layout in c__leader_main.xml
     public static final boolean FLAG_UPDATES = true;
 
-    Drawable leadmeIcon;
+    public Drawable leadmeIcon;
     protected PowerManager powerManager;
 
-    protected String leadMeAppName = "";
-    protected String leadMePackageName = "";
+    public static String leadMeAppName = "";
+    public static String leadMePackageName = "";
 
     //tag to indicate what incoming message holds
-    static final String LOGOUT_TAG = "LumiLogout";
-    static final String ACTION_TAG = "LumiAction";
-    static final String APP_TAG = "LumiAppLaunch";
-    static final String EXIT_TAG = "LumiExit";
-    static final String RETURN_TAG = "LumiReturnToApp";
-    static final String YOUR_ID_IS = "LumiYourID:";
+    public static final String LOGOUT_TAG = "LumiLogout";
+    public static final String ACTION_TAG = "LumiAction";
+    public static final String APP_TAG = "LumiAppLaunch";
+    public static final String EXIT_TAG = "LumiExit";
+    public static final String RETURN_TAG = "LumiReturnToApp";
+    public static final String YOUR_ID_IS = "LumiYourID:";
 
-    static final String LOCK_TAG = "LumiLock";
-    static final String UNLOCK_TAG = "LumiUnlock";
-    static final String BLACKOUT_TAG = "LumiBlackout";
+    public static final String LOCK_TAG = "LumiLock";
+    public static final String UNLOCK_TAG = "LumiUnlock";
+    public static final String BLACKOUT_TAG = "LumiBlackout";
 
-    static final String DISCONNECTION = "LumiDisconnect";
-    static final String TRANSFER_ERROR = "LumiTransferError";
-    static final String VR_PLAYER_TAG = "LumiVRPlayer";
-    static final String FILE_REQUEST_TAG = "LumiFileRequest";
-    static final String STUDENT_FINISH_ADS = "LumiAdsFinished";
-    static final String VID_MUTE_TAG = "LumiVidMute";
-    static final String VID_UNMUTE_TAG = "LumiVidUnmute";
-    static final String VID_ACTION_TAG = "LumiVid:";
+    public static final String DISCONNECTION = "LumiDisconnect";
+    public static final String TRANSFER_ERROR = "LumiTransferError";
+    public static final String VR_PLAYER_TAG = "LumiVRPlayer";
+    public static final String FILE_REQUEST_TAG = "LumiFileRequest";
+    public static final String STUDENT_FINISH_ADS = "LumiAdsFinished";
+    public static final String VID_MUTE_TAG = "LumiVidMute";
+    public static final String VID_UNMUTE_TAG = "LumiVidUnmute";
+    public static final String VID_ACTION_TAG = "LumiVid:";
 
-    static final String LAUNCH_URL = "LumiLaunch:::";
-    static final String LAUNCH_YT = "LumiYT:::";
-    static final String LAUNCH_ACCESS = "LumiLaunchAccess";
+    public static final String LAUNCH_URL = "LumiLaunch:::";
+    public static final String LAUNCH_YT = "LumiYT:::";
+    public static final String LAUNCH_ACCESS = "LumiLaunchAccess";
 
-    static final String PERMISSION_DENIED = "LumiPermissionDenied";
-    static final String FILE_TRANSFER = "LumiFileTransfer";
-    static final String UPDATE_DEVICE_MESSAGE = "LumiUpdateDeviceMessage";
+    public static final String PERMISSION_DENIED = "LumiPermissionDenied";
+    public static final String FILE_TRANSFER = "LumiFileTransfer";
+    public static final String UPDATE_DEVICE_MESSAGE = "LumiUpdateDeviceMessage";
 
-    static final String MULTI_INSTALL = "LumiMultiInstall";
-    static final String AUTO_INSTALL = "LumiAutoInstalling";
-    static final String AUTO_INSTALL_FAILED = "LumiAutoInstallFail:";
-    static final String AUTO_INSTALL_ATTEMPT = "LumiAutoInstallAttempt:";
-    static final String APP_NOT_INSTALLED = "LumiAppNotInstalled";
-    static final String COLLECT_APPS = "LumiCollectApps";
-    static final String APP_COLLECTION = "LumiPeerAppCollection";
-    static final String AUTO_UNINSTALL = "LumiAutoUninstall";
+    public static final String MULTI_INSTALL = "LumiMultiInstall";
+    public static final String AUTO_INSTALL = "LumiAutoInstalling";
+    public static final String AUTO_INSTALL_FAILED = "LumiAutoInstallFail:";
+    public static final String AUTO_INSTALL_ATTEMPT = "LumiAutoInstallAttempt:";
+    public static final String APP_NOT_INSTALLED = "LumiAppNotInstalled";
+    public static final String COLLECT_APPS = "LumiCollectApps";
+    public static final String APP_COLLECTION = "LumiPeerAppCollection";
+    public static final String AUTO_UNINSTALL = "LumiAutoUninstall";
 
-    static final String STUDENT_OFF_TASK_ALERT = "LumiOffTask:";
-    static final String STUDENT_NO_OVERLAY = "LumiOverlay:";
-    static final String STUDENT_NO_ACCESSIBILITY = "LumiAccess:";
-    static final String STUDENT_NO_INTERNET = "LumiInternet:";
-    static final String STUDENT_NO_XRAY = "LumiXray:";
-    static final String PERMISSION_TRANSFER_DENIED = "LumiTransfer:";
-    static final String PERMISSION_AUTOINSTALL_DENIED = "LumiAutoInstaller:";
-    static final String LAUNCH_SUCCESS = "LumiSuccess:";
+    public static final String STUDENT_OFF_TASK_ALERT = "LumiOffTask:";
+    public static final String STUDENT_NO_OVERLAY = "LumiOverlay:";
+    public static final String STUDENT_NO_ACCESSIBILITY = "LumiAccess:";
+    public static final String STUDENT_NO_INTERNET = "LumiInternet:";
+    public static final String STUDENT_NO_XRAY = "LumiXray:";
+    public static final String PERMISSION_TRANSFER_DENIED = "LumiTransfer:";
+    public static final String PERMISSION_AUTOINSTALL_DENIED = "LumiAutoInstaller:";
+    public static final String LAUNCH_SUCCESS = "LumiSuccess:";
 
-    static final String SESSION_UUID_TAG = "SessionUUID";
-    static final String SESSION_MANUAL_TAG = "SessionManual";
-    static final String SESSION_VR_TAG = "SessionFirstVR";
+    public static final String SESSION_UUID_TAG = "SessionUUID";
+    public static final String SESSION_MANUAL_TAG = "SessionManual";
+    public static final String SESSION_VR_TAG = "SessionFirstVR";
 
-    static final String XRAY_REQUEST = "LumiXrayRequest";
-    static final String XRAY_ON = "LumiXrayOn";
-    static final String XRAY_OFF = "LumiXrayOff";
+    public static final String XRAY_REQUEST = "LumiXrayRequest";
+    public static final String XRAY_ON = "LumiXrayOn";
+    public static final String XRAY_OFF = "LumiXrayOff";
 
-    static final String NAME_CHANGE = "NameChange:";
-    static final String NAME_REQUEST = "NameRequest:";
+    public static final String NAME_CHANGE = "NameChange:";
+    public static final String NAME_REQUEST = "NameRequest:";
 
     public final int OVERLAY_ON = 0;
     public final int ACCESSIBILITY_ON = 1;
@@ -196,8 +219,8 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     public static final int TRANSFER_FILE_CHOICE = 6;
 
     //for testing if a connection is still live
-    static final String PING_TAG = "LumiPing";
-    static final String PING_ACTION = "StillAlive";
+    public static final String PING_TAG = "LumiPing";
+    public static final String PING_ACTION = "StillAlive";
 
     // The SensorManager gives us access to sensors on the device.
     public SensorManager mSensorManager;
@@ -231,9 +254,9 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
     protected ViewGroup.LayoutParams layoutParams;
 
-    protected WindowManager windowManager;
-    protected WindowManager.LayoutParams overlayParams, url_overlayParams;
-    protected View overlayView, url_overlay;
+    public static WindowManager windowManager;
+    public static WindowManager.LayoutParams overlayParams, url_overlayParams;
+    public View overlayView, url_overlay;
 
     //VR PLayer
     private VREmbedPlayer vrEmbedPlayer;
@@ -285,8 +308,8 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     protected final int ANIM_MULTI_INDEX = 7;
 
     public View waitingForLearners, appLauncherScreen;
-    protected View splashscreen, startLearner, mainLearner, startLeader, mainLeader, optionsScreen, switcherView, xrayScreen;
-    protected View multiAppManager;
+    public View splashscreen, startLearner, mainLearner, startLeader, mainLeader, optionsScreen, switcherView, xrayScreen;
+    public View multiAppManager;
     private TextView learnerWaitingText;
     public Button alertsBtn;
     private Button leader_toggle, learner_toggle;
@@ -301,7 +324,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     private FirebaseManager firebaseManager;
     private NetworkManager networkManager;
     private AppUpdateManager appUpdateManager;
-    private FileTransfer fileTransfer;
+    private FileTransferManager fileTransferManager;
     private PermissionManager permissionManager;
     private AuthenticationManager authenticationManager;
     private NearbyPeersManager nearbyManager;
@@ -311,7 +334,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     private ConnectedLearnersAdapter connectedLearnersAdapter;
     private LeaderSelectAdapter leaderSelectAdapter;
     private static DispatchManager dispatcher;
-    protected WifiManager wifiManager;
+    public static WifiManager wifiManager;
     private XrayManager xrayManager;
     private AppInstaller lumiAppInstaller;
 
@@ -320,7 +343,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     //File transfer
     public Boolean fileTransferEnabled = false; //hard coded so have to enable each session
     public Switch transferToggle = null;
-    public ArrayList<Integer> fileRequests = new ArrayList<>(); //array to hold learner ID's that are requesting a file
+    public static ArrayList<Integer> fileRequests = new ArrayList<>(); //array to hold learner ID's that are requesting a file
 
     //Auto app installer
     public Boolean autoInstallApps = false; //if true, missing apps on student devices get installed automatically
@@ -331,9 +354,9 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     ImageView currentTaskIcon;
     TextView currentTaskTitle, currentTaskDescription;
     Button currentTaskLaunchBtn;
-    String currentTaskPackageName, currentTaskURLTitle, currentTaskName, currentTaskURL, currentTaskType;
+    public static String currentTaskPackageName, currentTaskURLTitle, currentTaskName, currentTaskURL, currentTaskType;
 
-    Intent appIntentOnFocus = null;
+    public static Intent appIntentOnFocus = null;
     Toast appToast = null;
 
     private boolean init = false;
@@ -347,7 +370,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
      */
     public ThreadPoolExecutor serverThreadPool = (ThreadPoolExecutor) Executors.newFixedThreadPool(2);
 
-    public ScreenCap screenCap;
+    public ScreenSharingManager screenSharingManager;
 
     public Handler getHandler() {
         return handler;
@@ -362,7 +385,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         mSensorManager.registerListener(this, mAccelerometer, SensorManager.SENSOR_DELAY_UI);
     }
 
-    protected boolean canAskForAccessibility = true;
+    public static boolean canAskForAccessibility = true;
 
     public final int SCREEN_CAPTURE = 999;
     private static final int REQUEST_SCREENSHOT_PERMISSION = 1234;
@@ -455,7 +478,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
      * @param data An intent representing the screen capture details.
      */
     private void screenCapture(int resultCode, Intent data) {
-        screenCap.handleResultReturn(resultCode, data);
+        screenSharingManager.handleResultReturn(resultCode, data);
     }
 
     /**
@@ -502,14 +525,14 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     private void transferFileChoice(int resultCode, Intent data) {
         if (resultCode == Activity.RESULT_OK) {
             if(data != null)  {
-                FileTransfer.setFileType("File");
+                FileTransferManager.setFileType("File");
 
                 if(isMiUiV9()) {
                     String selectedFile = data.getStringExtra(DirectoryPicker.BUNDLE_SELECTED_FILE);
                     Log.e(TAG, "Selected file: " + selectedFile);
-                    fileTransfer.startFileServer(selectedFile, false);
+                    fileTransferManager.startFileServer(selectedFile, false);
                 } else {
-                    fileTransfer.startFileServer(data.getData(), false);
+                    fileTransferManager.startFileServer(data.getData(), false);
                 }
             }
         }
@@ -547,7 +570,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     }
 
 
-    protected DispatchManager getDispatcher() {
+    public DispatchManager getDispatcher() {
         return dispatcher;
     }
 
@@ -564,7 +587,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         return vrAccessibilityManager;
     }
 
-    public FileTransfer getFileTransfer() { return fileTransfer; }
+    public FileTransferManager getFileTransferManager() { return fileTransferManager; }
 
     public VREmbedPlayer getVrEmbedPlayer() { return vrEmbedPlayer; }
 
@@ -679,7 +702,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         }
     }
 
-    protected void showLoginDialog() {
+    public void showLoginDialog() {
         Log.d(TAG, "Showing login dialog");
         if (destroying) {
             return;
@@ -1076,7 +1099,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         }
     }
 
-    boolean destroying = false;
+    public static boolean destroying = false;
 
     @Override
     public void onDestroy() {
@@ -1365,7 +1388,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         windowManager = (WindowManager) getSystemService(WINDOW_SERVICE);
 
         //Adapters
-        screenCap = new ScreenCap(this);
+        screenSharingManager = new ScreenSharingManager(this);
         firebaseManager = new FirebaseManager(this);
         networkManager = new NetworkManager(this);
         powerManager = (PowerManager) getSystemService(POWER_SERVICE);
@@ -1381,7 +1404,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         vrEmbedPlayer = new VREmbedPlayer(this); //VR PLAYER
         appLaunchAdapter = new AppManager(this);
         xrayManager = new XrayManager(this, xrayScreen);
-        fileTransfer = new FileTransfer(this);
+        fileTransferManager = new FileTransferManager(this);
         lumiAppInstaller = new AppInstaller(this);
 
         connectedLearnersAdapter = new ConnectedLearnersAdapter(this, new ArrayList<>(), dialogManager.alertsAdapter);
@@ -2195,7 +2218,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         }
     }
 
-    protected void closeDialogController(boolean success) {
+    public void closeDialogController(boolean success) {
         dialogManager.closeWaitingDialog(success);
 
         try {
@@ -2518,7 +2541,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         }
     }
 
-    int CORE_FLAGS;
+    public static int CORE_FLAGS;
 
     private void calcParams() {
         int LAYOUT_FLAG;
@@ -3238,7 +3261,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
     /**
      * Called when overlay permission has been granted. Cancel any scheduled check and connect
-     * to a guide, starting the screenCap service in the background.
+     * to a guide, starting the screen sharing service in the background.
      * @param page An integer representing which on boarding page the learner is currently on.
      */
     public void connectOnReturn(int page) {
@@ -3267,7 +3290,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
         optionsScreen.findViewById(R.id.connected_only_view).setVisibility(View.VISIBLE);
 
-        screenCap.startService(false);
+        screenSharingManager.startService(false);
     }
 
     public void onTrimMemory(int level) {
