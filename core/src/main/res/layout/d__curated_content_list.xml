@@ -54,7 +54,8 @@
                 android:id="@+id/filter_button"
                 android:layout_height="wrap_content"
                 android:layout_width="wrap_content"
-                android:text="Filter  "
+                android:text="Filter"
+                android:drawablePadding="10dp"
                 android:fontFamily="@font/poppins_semibold"
                 android:padding="8dp"
                 android:textSize="12dp"
@@ -64,16 +65,17 @@
                 android:background="@color/transparent">
             </Button>
             <Button
-                android:id="@+id/searcg"
+                android:id="@+id/search_button"
                 android:layout_height="wrap_content"
                 android:layout_width="wrap_content"
-                android:text="Search  "
+                android:drawablePadding="10dp"
+                android:text="Search"
                 android:fontFamily="@font/poppins_semibold"
                 android:padding="8dp"
                 android:textSize="12dp"
                 android:layout_margin="8dp"
                 android:textAllCaps="false"
-                android:drawableRight="@drawable/icon_filter"
+                android:drawableRight="@drawable/search_icon_simple_small_blue"
                 android:background="@color/transparent">
             </Button>
         </LinearLayout>

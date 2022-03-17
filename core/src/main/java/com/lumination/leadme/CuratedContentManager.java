@@ -1,13 +1,18 @@
 package com.lumination.leadme;
 
+import android.util.Log;
+import android.view.KeyEvent;
 import android.view.View;
+import android.view.inputmethod.EditorInfo;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.Spinner;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.databinding.DataBindingUtil;
@@ -22,6 +27,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -45,6 +51,8 @@ public class CuratedContentManager {
     public static ArrayList<CuratedContentItem> filteredCuratedContentList;
     public static ViewDataBinding curatedContentBinding;
     public static CuratedContentAdapter curatedContentAdapter;
+
+    public static CuratedContentAdapter curatedContentAdapterSearch;
 
     public static View curatedContentScreen;
 
@@ -70,6 +78,9 @@ public class CuratedContentManager {
 
         curatedContentScreen.findViewById(R.id.filter_button).setOnClickListener(view -> {
             CuratedContentManager.showFilters(main);
+        });
+        curatedContentScreen.findViewById(R.id.search_button).setOnClickListener(view -> {
+            CuratedContentManager.showSearch(main);
         });
     }
 
@@ -160,9 +171,9 @@ public class CuratedContentManager {
                 }
             }
             CuratedContentManager.filterCuratedContentByYear(CuratedContentManager.filteredCuratedContentList, Math.round(yearsSelections.get(0)), Math.round(yearsSelections.get(1)));
-            curatedContentBinding.setVariable(BR.curatedContentList, CuratedContentManager.filteredCuratedContentList);
-            curatedContentAdapter.curatedContentList = CuratedContentManager.filteredCuratedContentList;
-            curatedContentAdapter.notifyDataSetChanged();
+            CuratedContentManager.curatedContentBinding.setVariable(BR.curatedContentList, CuratedContentManager.filteredCuratedContentList);
+            CuratedContentManager.curatedContentAdapter.curatedContentList = CuratedContentManager.filteredCuratedContentList;
+            CuratedContentManager.curatedContentAdapter.notifyDataSetChanged();
             filterSheetDialog.hide();
         });
 
@@ -183,6 +194,40 @@ public class CuratedContentManager {
         filterSheetDialog.show();
     }
 
+    private static void showSearch (LeadMeMain main) {
+        final BottomSheetDialog searchSheetDialog = new BottomSheetDialog(main, R.style.BottomSheetDialogTransparentBackground);
+        searchSheetDialog.setContentView(R.layout.search_sheet_layout);
+        EditText searchInput = searchSheetDialog.findViewById(R.id.search_input);
+
+        CuratedContentManager.curatedContentAdapterSearch = new CuratedContentAdapter(main, searchSheetDialog.findViewById(R.id.curated_content_list));
+
+        searchInput.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+            @Override
+            public boolean onEditorAction(TextView textView, int i, KeyEvent keyEvent) {
+                if (i == EditorInfo.IME_ACTION_DONE) {
+                    ArrayList<CuratedContentItem> curatedContent = (ArrayList<CuratedContentItem>) curatedContentList.clone();
+                    CuratedContentManager.filterCuratedContentBySearch(curatedContent, searchInput.getText().toString());
+                    ListView curatedContentListSearch = searchSheetDialog.findViewById(R.id.curated_content_list);
+                    curatedContentListSearch.setAdapter(curatedContentAdapterSearch);
+                    curatedContentAdapterSearch.curatedContentList = curatedContent;
+                    curatedContentAdapterSearch.notifyDataSetChanged();
+                    // handle clicking on a curated content item, if this starts to get more complicated we'll want to split it out
+                    curatedContentListSearch.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                        @Override
+                        public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+                            CuratedContentItem current = curatedContent.get(i);
+                            WebManager webManager = new WebManager(main);
+                            webManager.showPreview(current.link);
+                            searchSheetDialog.hide();
+                        }
+                    });
+                }
+                return true;
+            }
+        });
+        searchSheetDialog.show();
+    }
+
     private static String makeHttpRequest(String url) throws IOException {
         final OkHttpClient client = new OkHttpClient();
         Request request = new Request.Builder()
@@ -192,6 +237,7 @@ public class CuratedContentManager {
         try (Response response = client.newCall(request).execute()) {
             int responseCode = response.code();
             if (responseCode > 200) {
+                Log.e("AAA", "MASSIVE ERROR HERE< MORE THAN 200!!!");
                 FirebaseCrashlytics.getInstance().log("Response code for curated content was greater than 200. Code: " + String.valueOf(responseCode));
                 return null;
             } else {
@@ -201,6 +247,10 @@ public class CuratedContentManager {
             FirebaseCrashlytics.getInstance().recordException(e);
         }
         return null;
+    }
+
+    public static void filterCuratedContentBySearch (ArrayList<CuratedContentItem> curatedContent, String search) {
+        curatedContent.removeIf(curatedContentItem -> !(curatedContentItem.title.toLowerCase(Locale.ROOT).contains(search) || curatedContentItem.description.toLowerCase(Locale.ROOT).contains(search)));
     }
 
     public static void filterCuratedContentByYear (ArrayList<CuratedContentItem> curatedContent, int lower, int upper) {
