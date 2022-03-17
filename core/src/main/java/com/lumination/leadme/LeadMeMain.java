@@ -287,11 +287,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     private ImageView logo;
     private GridView connectedStudentsView;
 
-    public ArrayList<CuratedContentItem> curatedContentList;
-    public View curatedContentScreen;
-    public ViewDataBinding curatedContentBinding;
-    public CuratedContentAdapter curatedContentAdapter;
-
     //Checking for updates on the Play Store
     private final int UPDATE_REQUEST_CODE = 100;
 
@@ -1223,12 +1218,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         CuratedContentManager.getCuratedContent(this);
     }
 
-    public void initializeCuratedContent(ArrayList<CuratedContentItem> curatedContentList) {
-        this.curatedContentList = curatedContentList;
-        curatedContentBinding.setVariable(BR.curatedContentList, this.curatedContentList);
-        curatedContentAdapter.curatedContentList = this.curatedContentList;
-    }
-
     /**
      * Check the firebase for the most current version number.
      */
@@ -1362,29 +1351,8 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         appLauncherScreen = View.inflate(context, R.layout.d__app_list, null);
         learnerWaitingText = startLearner.findViewById(R.id.waiting_text);
         multiAppManager = View.inflate(context, R.layout.d__app_manager_list, null);
-        curatedContentScreen = View.inflate(context, R.layout.d__curated_content_list, null);
-        setupCuratedContent();
-    }
-
-    private void setupCuratedContent () {
-        // set up data binding and the list view for curated content
-        curatedContentBinding = DataBindingUtil.bind(curatedContentScreen);
-        curatedContentBinding.setLifecycleOwner(this);
-        curatedContentBinding.setVariable(BR.curatedContentList, curatedContentList);
-        ListView curatedContentListView = curatedContentScreen.findViewById(R.id.curated_content_list);
-        curatedContentAdapter = new CuratedContentAdapter(this, curatedContentScreen.findViewById(R.id.curated_content_list));
-        curatedContentListView.setAdapter(curatedContentAdapter);
-
-        // handle clicking on a curated content item, if this starts to get more complicated we'll want to split it out
-        LeadMeMain main = this;
-        curatedContentListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-                CuratedContentItem current = curatedContentList.get(i);
-                WebManager webManager = new WebManager(main);
-                webManager.showPreview(current.link);
-            }
-        });
+        CuratedContentManager.curatedContentScreen = View.inflate(context, R.layout.d__curated_content_list, null);
+        CuratedContentManager.setupCuratedContent(this);
     }
 
     /**
@@ -1692,7 +1660,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         leadmeAnimator.addView(optionsScreen);
         leadmeAnimator.addView(xrayScreen);
         leadmeAnimator.addView(multiAppManager);
-        leadmeAnimator.addView(curatedContentScreen);
+        leadmeAnimator.addView(CuratedContentManager.curatedContentScreen);
     }
 
     /**
@@ -1740,7 +1708,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
         //set up back buttons
         appLauncherScreen.findViewById(R.id.back_btn).setOnClickListener(view -> leadmeAnimator.setDisplayedChild(ANIM_LEADER_INDEX));
-        curatedContentScreen.findViewById(R.id.back_btn).setOnClickListener(view -> leadmeAnimator.setDisplayedChild(ANIM_LEADER_INDEX));
+        CuratedContentManager.curatedContentScreen.findViewById(R.id.back_btn).setOnClickListener(view -> leadmeAnimator.setDisplayedChild(ANIM_LEADER_INDEX));
 
         //multi installer screen back button
         multiAppManager.findViewById(R.id.back_btn).setOnClickListener(view -> {

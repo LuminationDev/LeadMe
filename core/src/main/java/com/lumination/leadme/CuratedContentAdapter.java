@@ -27,7 +27,7 @@ public class CuratedContentAdapter extends BaseAdapter {
 
     @Override
     public int getCount() {
-        return curatedContentList.size();
+        return curatedContentList != null ? curatedContentList.size() : 0;
     }
 
     @Override
@@ -37,7 +37,7 @@ public class CuratedContentAdapter extends BaseAdapter {
 
     @Override
     public long getItemId(int position) {
-        return position;
+        return curatedContentList.get(position).id;
     }
     @Override
     public View getView(int position, View view, ViewGroup parent) {

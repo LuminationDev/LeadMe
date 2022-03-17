@@ -46,5 +46,14 @@
         <item name="android:windowNoTitle">true</item>
         <item name="android:windowIsFloating">false</item>
     </style>
-
+    <style name="LeadMeSliderLabel" parent="@style/Widget.MaterialComponents.Tooltip">
+        <item name="backgroundTint">@color/leadme_light_grey</item>
+        <item name="android:background">@color/transparent</item>
+    </style>
+    <style name="BottomSheetDialogTransparentBackground" parent="Theme.Design.BottomSheetDialog">
+        <item name="bottomSheetStyle">@style/BottomSheetModalTransparentBackground</item>
+    </style>
+    <style name="BottomSheetModalTransparentBackground" parent="Widget.Design.BottomSheet.Modal">
+        <item name="android:background">@android:color/transparent</item>
+    </style>
 </resources>
