@@ -237,7 +237,6 @@ public class CuratedContentManager {
         try (Response response = client.newCall(request).execute()) {
             int responseCode = response.code();
             if (responseCode > 200) {
-                Log.e("AAA", "MASSIVE ERROR HERE< MORE THAN 200!!!");
                 FirebaseCrashlytics.getInstance().log("Response code for curated content was greater than 200. Code: " + String.valueOf(responseCode));
                 return null;
             } else {
