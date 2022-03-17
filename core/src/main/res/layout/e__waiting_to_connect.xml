@@ -11,13 +11,13 @@
     android:padding="20dp"
     android:showDividers="middle|beginning|end">
 
-
     <ImageView
         android:id="@+id/connecting_icon"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginBottom="30dp"
-        android:src="@drawable/connected_student" />
+        android:src="@drawable/connected_student"
+        android:contentDescription="@string/connecting_icon" />
 
     <TextView
         android:id="@+id/connecting_title"
@@ -26,7 +26,7 @@
         android:layout_marginBottom="20dp"
         android:ellipsize="end"
         android:fontFamily="@font/poppins_semibold"
-        android:text="Connecting to Leader"
+        android:text="@string/connecting_to_leader"
         android:textColor="@color/leadme_black"
         android:textSize="18sp" />
 
@@ -37,7 +37,7 @@
         android:layout_marginBottom="30dp"
         android:fontFamily="@font/poppins_regular"
         android:gravity="center_horizontal"
-        android:text="Please wait while we connect you."
+        android:text="@string/please_wait_connecting"
         android:textColor="@color/leadme_black"
         android:textSize="14sp" />
 
@@ -49,6 +49,7 @@
         android:layout_gravity="center_horizontal"
         android:background="@drawable/bg_passive"
         android:clickable="true"
+        android:focusable="true"
         android:fontFamily="@font/poppins_semibold"
         android:text="@android:string/cancel"
         android:textAllCaps="false"

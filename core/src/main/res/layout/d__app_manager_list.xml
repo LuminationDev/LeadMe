@@ -112,7 +112,7 @@
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
-            <com.lumination.leadme.AppListGridView
+            <com.lumination.leadme.utilities.AppListGridView
                 android:id="@+id/app_list_grid"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
