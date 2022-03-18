@@ -1,11 +1,15 @@
-package com.lumination.leadme;
+package com.lumination.leadme.adapters;
 
 import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
+import android.widget.CheckBox;
 
+import com.lumination.leadme.R;
+import com.lumination.leadme.models.CuratedContentItem;
+import com.lumination.leadme.LeadMeMain;
 import com.lumination.leadme.databinding.RowCuratedContentItemBinding;
 
 import java.util.ArrayList;
@@ -54,6 +58,12 @@ public class CuratedContentAdapter extends BaseAdapter {
             binding = (RowCuratedContentItemBinding) result.getTag();
         }
         binding.setCuratedContentItem(getItem(position));
+        CheckBox fav = result.findViewById(R.id.fav_checkbox_curated_content);
+        CuratedContentItem curatedContentItem = getItem(position);
+        boolean isInFavourites = CuratedContentManager.isInFavourites(curatedContentItem.link, curatedContentItem.type);
+        fav.setOnCheckedChangeListener(null);
+        fav.setChecked(isInFavourites);
+        fav.setOnCheckedChangeListener((button, checked) -> CuratedContentManager.addToFavourites(curatedContentItem.link, curatedContentItem.title, curatedContentItem.type, checked));
         return result;
     }
 }

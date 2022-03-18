@@ -315,6 +315,10 @@ public class FavouritesManager extends BaseAdapter {
         return contentList.contains(content);
     }
 
+    public void addToFavourites(String content, String title) {
+        Drawable icon = placeholder;
+        addToFavourites(content, title, icon);
+    }
 
     //content is URL or packageName
     public void addToFavourites(String content, String title, Drawable icon) {
@@ -369,7 +373,7 @@ public class FavouritesManager extends BaseAdapter {
         formatAndSavePrefs();
     }
 
-    private void deleteFromFavourites(String packageName) {
+    public void deleteFromFavourites(String packageName) {
         int thisIndex = contentList.indexOf(packageName);
 
         //Log.d(TAG, thisIndex + ", " + actualItems + ", " + contentList + ", " + titleList + ", " + iconList);
@@ -611,7 +615,7 @@ public class FavouritesManager extends BaseAdapter {
     private HashMap<String, TextCrawler> crawlers = new HashMap<>();
     private TextCrawler tmpCrawler;
 
-    private void refreshPreview(String url) {
+    public void refreshPreview(String url) {
         String tmpUrl = url.replace(webManager.getSuffix(), ""); //clean the URL
         Log.d(TAG, "Trying to retrieve preview for " + tmpUrl + ", " + gettingPreviews);
 

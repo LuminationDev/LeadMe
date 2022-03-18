@@ -1,6 +1,5 @@
-package com.lumination.leadme;
+package com.lumination.leadme.adapters;
 
-import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
@@ -22,6 +21,13 @@ import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.slider.LabelFormatter;
 import com.google.android.material.slider.RangeSlider;
 import com.google.firebase.crashlytics.FirebaseCrashlytics;
+import com.lumination.leadme.BR;
+import com.lumination.leadme.managers.FavouritesManager;
+import com.lumination.leadme.models.CuratedContentItem;
+import com.lumination.leadme.models.CuratedContentType;
+import com.lumination.leadme.LeadMeMain;
+import com.lumination.leadme.R;
+import com.lumination.leadme.managers.WebManager;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -54,6 +60,9 @@ public class CuratedContentManager {
 
     public static CuratedContentAdapter curatedContentAdapterSearch;
 
+    private static FavouritesManager urlFavouritesManager;
+    private static FavouritesManager videoFavouritesManager;
+
     public static View curatedContentScreen;
 
     public static void setupCuratedContent (LeadMeMain main) {
@@ -84,7 +93,33 @@ public class CuratedContentManager {
         });
     }
 
-    private static void initializeCuratedContent(ArrayList<CuratedContentItem> curatedContentList) {
+    public static void addToFavourites(String link, String title, CuratedContentType type, Boolean checked) {
+        if (checked) {
+            if (type == CuratedContentType.LINK) {
+                CuratedContentManager.urlFavouritesManager.addToFavourites(link, title);
+                CuratedContentManager.urlFavouritesManager.refreshPreview(link);
+            } else {
+                CuratedContentManager.videoFavouritesManager.addToFavourites(link, title);
+                CuratedContentManager.urlFavouritesManager.refreshPreview(link);
+            }
+        } else {
+            if (type == CuratedContentType.LINK) {
+                CuratedContentManager.urlFavouritesManager.deleteFromFavourites(link);
+            } else {
+                CuratedContentManager.videoFavouritesManager.deleteFromFavourites(link);
+            }
+        }
+    }
+
+    public static boolean isInFavourites(String link, CuratedContentType type) {
+        if (type == CuratedContentType.LINK) {
+            return CuratedContentManager.urlFavouritesManager.isInFavourites(link);
+        } else {
+            return CuratedContentManager.videoFavouritesManager.isInFavourites(link);
+        }
+    }
+
+    private static void initializeCuratedContent(ArrayList<CuratedContentItem> curatedContentList, LeadMeMain main) {
         CuratedContentManager.curatedContentList = (ArrayList<CuratedContentItem>) curatedContentList.clone();
         CuratedContentManager.filteredCuratedContentList = (ArrayList<CuratedContentItem>) curatedContentList.clone();
         CuratedContentManager.curatedContentBinding.setVariable(BR.curatedContentList, CuratedContentManager.filteredCuratedContentList);
@@ -103,6 +138,9 @@ public class CuratedContentManager {
         ArrayList<String> ccSubjects = new ArrayList<>(curatedContentSubjectsSet);
         ccSubjects.add(0, "Please select");
         CuratedContentManager.curatedContentSubjects = ccSubjects;
+
+        CuratedContentManager.urlFavouritesManager = main.getWebManager().getUrlFavouritesManager();
+        CuratedContentManager.videoFavouritesManager = main.getWebManager().getYouTubeFavouritesManager();
     }
 
     private static void showFilters (LeadMeMain main) {
@@ -331,7 +369,7 @@ public class CuratedContentManager {
                                 ));
                             }
                         }
-                        CuratedContentManager.initializeCuratedContent(processedCuratedContent);
+                        CuratedContentManager.initializeCuratedContent(processedCuratedContent, main);
                     } catch (JSONException e) {
                         e.printStackTrace();
                         FirebaseCrashlytics.getInstance().recordException(e);

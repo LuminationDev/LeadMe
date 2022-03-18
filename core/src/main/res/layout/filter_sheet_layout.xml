@@ -2,7 +2,7 @@
 <layout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <data>
-        <import type="com.lumination.leadme.CuratedContentType"></import>
+        <import type="com.lumination.leadme.models.CuratedContentType"></import>
     </data>
     <LinearLayout
         android:background="@drawable/bg_leadme_light_grey_roundeduppercorners"

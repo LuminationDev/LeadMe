@@ -1,11 +1,4 @@
-package com.lumination.leadme;
-
-// todo - still not sold on using an enum here, might be painful with mapping into the view and more data validation than it's worth - will see 11/03/22
-enum CuratedContentType {
-    YOUTUBE,
-    WITHIN,
-    LINK
-}
+package com.lumination.leadme.models;
 
 public class CuratedContentItem {
     public String title;

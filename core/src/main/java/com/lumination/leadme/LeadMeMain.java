@@ -87,6 +87,7 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.himanshurawat.hasher.HashType;
 import com.himanshurawat.hasher.Hasher;
+import com.lumination.leadme.adapters.CuratedContentManager;
 import com.lumination.leadme.connections.ConnectedPeer;
 import com.lumination.leadme.managers.DispatchManager;
 import com.lumination.leadme.accessibility.LumiAccessibilityConnector;
