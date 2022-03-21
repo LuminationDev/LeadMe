@@ -6,7 +6,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.CheckBox;
-
+import android.widget.ImageView;
+import com.koushikdutta.urlimageviewhelper.UrlImageViewHelper;
 import com.lumination.leadme.R;
 import com.lumination.leadme.models.CuratedContentItem;
 import com.lumination.leadme.LeadMeMain;
@@ -60,10 +61,17 @@ public class CuratedContentAdapter extends BaseAdapter {
         binding.setCuratedContentItem(getItem(position));
         CheckBox fav = result.findViewById(R.id.fav_checkbox_curated_content);
         CuratedContentItem curatedContentItem = getItem(position);
+
         boolean isInFavourites = CuratedContentManager.isInFavourites(curatedContentItem.link, curatedContentItem.type);
         fav.setOnCheckedChangeListener(null);
         fav.setChecked(isInFavourites);
         fav.setOnCheckedChangeListener((button, checked) -> CuratedContentManager.addToFavourites(curatedContentItem.link, curatedContentItem.title, curatedContentItem.type, checked));
+
+        ImageView imageView = result.findViewById(R.id.img_view);
+        if (curatedContentItem.img_url != null) {
+            UrlImageViewHelper.setUrlDrawable(imageView, curatedContentItem.img_url);
+        }
+
         return result;
     }
 }

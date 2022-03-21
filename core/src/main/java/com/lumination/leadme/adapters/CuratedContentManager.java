@@ -1,12 +1,16 @@
 package com.lumination.leadme.adapters;
 
+import android.graphics.drawable.Drawable;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
@@ -21,7 +25,11 @@ import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.slider.LabelFormatter;
 import com.google.android.material.slider.RangeSlider;
 import com.google.firebase.crashlytics.FirebaseCrashlytics;
+import com.koushikdutta.urlimageviewhelper.UrlImageViewHelper;
 import com.lumination.leadme.BR;
+import com.lumination.leadme.linkpreview.LinkPreviewCallback;
+import com.lumination.leadme.linkpreview.SourceContent;
+import com.lumination.leadme.linkpreview.TextCrawler;
 import com.lumination.leadme.managers.FavouritesManager;
 import com.lumination.leadme.models.CuratedContentItem;
 import com.lumination.leadme.models.CuratedContentType;
@@ -56,14 +64,58 @@ public class CuratedContentManager {
     public static ArrayList<CuratedContentItem> curatedContentList;
     public static ArrayList<CuratedContentItem> filteredCuratedContentList;
     public static ViewDataBinding curatedContentBinding;
+    public static ViewDataBinding curatedContentSingleBinding;
     public static CuratedContentAdapter curatedContentAdapter;
 
     public static CuratedContentAdapter curatedContentAdapterSearch;
 
     private static FavouritesManager urlFavouritesManager;
     private static FavouritesManager videoFavouritesManager;
+    private static LeadMeMain main;
 
     public static View curatedContentScreen;
+    public static View curatedContentScreenSingle;
+
+    public static void showCuratedContentSingle (LeadMeMain main, CuratedContentItem curatedContentItem, View listItem) {
+        CuratedContentManager.curatedContentSingleBinding = DataBindingUtil.bind(CuratedContentManager.curatedContentScreenSingle);
+        CuratedContentManager.curatedContentSingleBinding.setLifecycleOwner(main);
+        CuratedContentManager.curatedContentSingleBinding.setVariable(BR.curatedContentItem, curatedContentItem);
+        ImageView imageView = curatedContentScreenSingle.findViewById(R.id.img_view);
+        if (curatedContentItem.img_url != null) {
+            UrlImageViewHelper.setUrlDrawable(imageView, curatedContentItem.img_url);
+        }
+        Button selectItem = curatedContentScreenSingle.findViewById(R.id.select_item);
+        selectItem.setOnClickListener(new View.OnClickListener() {
+              @Override
+              public void onClick(View view) {
+                WebManager webManager = new WebManager(main);
+                webManager.showPreview(curatedContentItem.link);
+              }
+          }
+        );
+
+        View.OnClickListener back = new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                main.showCuratedContentScreen();
+            }
+        };
+
+        Button backButton = curatedContentScreenSingle.findViewById(R.id.close_curated_content_single);
+        backButton.setOnClickListener(back);
+
+        ImageView topBackButton = curatedContentScreenSingle.findViewById(R.id.curated_content_back_button);
+        topBackButton.setOnClickListener(back);
+
+        CheckBox checkBox = curatedContentScreenSingle.findViewById(R.id.fav_checkbox_curated_content);
+        checkBox.setChecked(isInFavourites(curatedContentItem.link, curatedContentItem.type));
+        checkBox.setOnCheckedChangeListener((buttonView, checked) -> {
+            CheckBox fav = listItem.findViewById(R.id.fav_checkbox_curated_content);
+            fav.setChecked(checked);
+        });
+
+        main.showCuratedContentSingleScreen();
+    }
 
     public static void setupCuratedContent (LeadMeMain main) {
         // set up data binding and the list view for curated content
@@ -76,12 +128,12 @@ public class CuratedContentManager {
         CuratedContentManager.curatedContentAdapter.curatedContentList = CuratedContentManager.filteredCuratedContentList;
 
         // handle clicking on a curated content item, if this starts to get more complicated we'll want to split it out
+        curatedContentListView.setItemsCanFocus(false);
         curatedContentListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
                 CuratedContentItem current = CuratedContentManager.filteredCuratedContentList.get(i);
-                WebManager webManager = new WebManager(main);
-                webManager.showPreview(current.link);
+                CuratedContentManager.showCuratedContentSingle(main, current, view);
             }
         });
 
@@ -141,6 +193,7 @@ public class CuratedContentManager {
 
         CuratedContentManager.urlFavouritesManager = main.getWebManager().getUrlFavouritesManager();
         CuratedContentManager.videoFavouritesManager = main.getWebManager().getYouTubeFavouritesManager();
+        CuratedContentManager.main = main;
     }
 
     private static void showFilters (LeadMeMain main) {
@@ -254,8 +307,7 @@ public class CuratedContentManager {
                         @Override
                         public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
                             CuratedContentItem current = curatedContent.get(i);
-                            WebManager webManager = new WebManager(main);
-                            webManager.showPreview(current.link);
+                            CuratedContentManager.showCuratedContentSingle(main, current, view);
                             searchSheetDialog.hide();
                         }
                     });
@@ -314,7 +366,7 @@ public class CuratedContentManager {
     public static void getCuratedContent(LeadMeMain main) {
         String curatedContentAPIKey = "AIzaSyDQTgiS6UZ0BCZkpYnevn8QgBi7BVzUOvk"; // API key is public anyway and locked down to sheets API and this app only
         String curatedContentSpreadsheetId = "1rcQF2vmFQW5LmMPBXSu9qZ5N3fuqXFXjvHlDq-Qhm1Y";
-        String url = String.format("https://sheets.googleapis.com/v4/spreadsheets/%s/values/A1:G100?key=%s", curatedContentSpreadsheetId, curatedContentAPIKey);
+        String url = String.format("https://sheets.googleapis.com/v4/spreadsheets/%s/values/A1:H100?key=%s", curatedContentSpreadsheetId, curatedContentAPIKey);
 
         new Thread(new Runnable() {
             public void run() {
@@ -337,6 +389,7 @@ public class CuratedContentManager {
                                 "Link",
                                 "Years",
                                 "Subjects",
+                                "Topics",
                                 "Live"
                         };
                         for (int i = 0; i < expectedHeadings.length; i++) {
@@ -357,7 +410,7 @@ public class CuratedContentManager {
                             }
 
                             // only include if it is marked as 'live'
-                            if (curatedContentJson.getString(6).equals("YES")) {
+                            if (curatedContentJson.getString(7).equals("YES")) {
                                 processedCuratedContent.add(new CuratedContentItem(
                                         i,
                                         curatedContentJson.getString(0),
@@ -365,9 +418,11 @@ public class CuratedContentManager {
                                         curatedContentJson.getString(3),
                                         curatedContentJson.getString(1),
                                         curatedContentJson.getString(4),
-                                        curatedContentJson.getString(5)
+                                        curatedContentJson.getString(5),
+                                        curatedContentJson.getString(6)
                                 ));
                             }
+                            getPreviewImages(main, curatedContentJson.getString(3));
                         }
                         CuratedContentManager.initializeCuratedContent(processedCuratedContent, main);
                     } catch (JSONException e) {
@@ -377,5 +432,39 @@ public class CuratedContentManager {
                 }
             }
         }).start();
+    }
+
+    private static LinkPreviewCallback previewImageCallback = new LinkPreviewCallback() {
+        @Override
+        public void onPre() {
+
+        }
+
+        @Override
+        public void onPos(SourceContent sourceContent, boolean isNull) {
+            String img = "";
+            if (!sourceContent.getImages().isEmpty()) {
+                img = sourceContent.getImages().get(0);
+            }
+            if (img != null) {
+                String finalImg = img;
+                CuratedContentManager.curatedContentList.forEach(curatedContentItem -> {
+                    if (curatedContentItem.link.equals(sourceContent.getUrl())) {
+                        curatedContentItem.img_url = finalImg;
+                    }
+                });
+                String finalImg1 = img;
+                CuratedContentManager.filteredCuratedContentList.forEach(curatedContentItem -> {
+                    if (curatedContentItem.link.equals(sourceContent.getUrl())) {
+                        curatedContentItem.img_url = finalImg1;
+                    }
+                });
+            }
+        }
+    };
+
+    public static void getPreviewImages (LeadMeMain main, String url) {
+        TextCrawler textCrawler = new TextCrawler(main.getWebManager());
+        textCrawler.makePreview(previewImageCallback, url);
     }
 }

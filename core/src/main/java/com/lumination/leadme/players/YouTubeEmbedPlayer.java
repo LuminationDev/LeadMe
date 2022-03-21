@@ -761,6 +761,7 @@ public class YouTubeEmbedPlayer {
                 webManager.getYouTubeFavouritesManager().addCurrentPreviewToFavourites();
             }
 
+            main.showLeaderScreen();
 //            showVideoController();
             showPushConfirmed();
         }));

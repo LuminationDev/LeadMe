@@ -7,9 +7,11 @@ public class CuratedContentItem {
     public String description;
     public String years;
     public String subject;
+    public String topics;
+    public String img_url;
     public int id;
 
-    public CuratedContentItem(int id, String title, CuratedContentType type, String link, String description, String years, String subject)
+    public CuratedContentItem(int id, String title, CuratedContentType type, String link, String description, String years, String subject, String topics)
     {
         this.id = id;
         this.title = title;
@@ -18,5 +20,6 @@ public class CuratedContentItem {
         this.description = description;
         this.years = years;
         this.subject = subject;
+        this.topics = topics;
     }
 }
