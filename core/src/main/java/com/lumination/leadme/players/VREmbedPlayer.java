@@ -38,8 +38,7 @@ import java.util.Set;
 public class VREmbedPlayer {
     private final static String TAG = "embedPlayerVR";
     //Package name of the external VR player
-    //TODO change this to Lumination at some point
-    public final static String packageName = "com.Edward.VRPlayer";
+    public final static String packageName = "com.lumination.VRPlayer";
 
     private String appName, fileName;
     private Boolean firstOpen = true;

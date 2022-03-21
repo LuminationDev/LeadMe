@@ -452,58 +452,10 @@ public class FileTransferManager {
                 builder.setStyle(new NotificationCompat.BigTextStyle().bigText("File Name: " + fileName));
                 notifyManager.notify(NOTIFICATION_ID, builder.build());
 
-                //TODO determine file type - extend this in the future
-                boolean isMovie = fileName.toLowerCase().contains(".mp4")
-                        || fileName.toLowerCase().contains(".mov");
+                fos = determineFileType(fileName);
 
-                boolean isPicture = fileName.toLowerCase().contains(".jpg")
-                        || fileName.toLowerCase().contains(".png");
-
-                boolean isDocument = fileName.toLowerCase().contains(".pdf");
-
-                //Only use MediaStore for API 29+
-                if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                    //Save to phone gallery
-                    Uri mediaCollection;
-                    ContentResolver resolver = main.getContentResolver();
-                    ContentValues newCaptureDetails = new ContentValues();
-
-                    if (isPicture) {
-                        mediaCollection = MediaStore.Images.Media.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY);
-                        newCaptureDetails.put(MediaStore.Images.Media.DISPLAY_NAME, fileName);
-                    } else if (isMovie) {
-                        mediaCollection = MediaStore.Video.Media.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY);
-                        newCaptureDetails.put(MediaStore.Video.Media.RELATIVE_PATH, "Movies/");
-                        newCaptureDetails.put(MediaStore.Video.Media.TITLE, fileName);
-                        newCaptureDetails.put(MediaStore.Video.Media.DISPLAY_NAME, fileName);
-                        //newCaptureDetails.put(MediaStore.Video.Media.MIME_TYPE, "video/mp4");
-                    } else if (isDocument) {
-                        mediaCollection = MediaStore.Files.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY);
-                        newCaptureDetails.put(MediaStore.Files.FileColumns.DISPLAY_NAME, fileName);
-                    } else {
-                        return;
-                    }
-
-                    Uri newCaptureUri = resolver.insert(mediaCollection, newCaptureDetails);
-                    fos = resolver.openOutputStream(newCaptureUri);
-
-                } else {
-                    Log.d(TAG, "Pre API 29 way to save the file");
-
-                    String directory;
-
-                    if (isPicture) {
-                        directory = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES).toString();
-                    } else if (isMovie) {
-                        directory = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MOVIES).toString();
-                    } else if (isDocument) {
-                        directory = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS).toString();
-                    } else {
-                        return;
-                    }
-
-                    File newFile = new File(directory, fileName);
-                    fos = new FileOutputStream(newFile);
+                if(fos == null) {
+                    throw new IOException("File type not supported.");
                 }
 
                 transfer_progress = 0;
@@ -541,26 +493,109 @@ public class FileTransferManager {
                 transferComplete = false;
                 main.transferError(transferNotSaved, main.getNearbyManager().myID);
             } finally {
-                //while transferring show a loading screen
-                try {
-                    fileSocket.close();
-                } catch (IOException ioException) {
-                    ioException.printStackTrace();
-                }
-
-                if(testBar) {
-                    main.runOnUiThread(() -> transferBar.setVisibility(View.GONE));
-                }
-
-                transfer_progress = -1;
-                stopVisualTimer();
-                dismissPopup();
-                main.setDeviceStatusMessage(R.string.connected_label);
+                finishTransfer();
             }
         });
         Log.d(TAG, "Starting to save file");
 
         saveFile.start();
+    }
+
+    /**
+     * Determine the type of file that is being saved to a device and what method is needed
+     * to save it.
+     * @param fileName A string representing the name of the file to be saved containing
+     *                 it's file extension.
+     * @return An OutputStream directed at the particular storage location required.
+     */
+    private OutputStream determineFileType(String fileName) {
+        OutputStream fos = null;
+
+        try {
+            //TODO determine file type - extend this in the future
+            boolean isMovie = fileName.toLowerCase().contains(".mp4")
+                    || fileName.toLowerCase().contains(".avi")
+                    || fileName.toLowerCase().contains(".mkv")
+                    || fileName.toLowerCase().contains(".webm")
+                    || fileName.toLowerCase().contains(".mov");
+
+            boolean isPicture = fileName.toLowerCase().contains(".jpg")
+                    || fileName.toLowerCase().contains(".jpeg")
+                    || fileName.toLowerCase().contains(".png");
+
+            boolean isDocument = fileName.toLowerCase().contains(".pdf");
+
+            //Only use MediaStore for API 29+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                //Save to phone gallery
+                Uri mediaCollection;
+                ContentResolver resolver = main.getContentResolver();
+                ContentValues newCaptureDetails = new ContentValues();
+
+                if (isPicture) {
+                    mediaCollection = MediaStore.Images.Media.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY);
+                    newCaptureDetails.put(MediaStore.Images.Media.DISPLAY_NAME, fileName);
+                } else if (isMovie) {
+                    mediaCollection = MediaStore.Video.Media.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY);
+                    newCaptureDetails.put(MediaStore.Video.Media.RELATIVE_PATH, "Movies/");
+                    newCaptureDetails.put(MediaStore.Video.Media.TITLE, fileName);
+                    newCaptureDetails.put(MediaStore.Video.Media.DISPLAY_NAME, fileName);
+                    //newCaptureDetails.put(MediaStore.Video.Media.MIME_TYPE, "video/mp4");
+                } else if (isDocument) {
+                    mediaCollection = MediaStore.Files.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY);
+                    newCaptureDetails.put(MediaStore.Files.FileColumns.DISPLAY_NAME, fileName);
+                } else {
+                    return fos;
+                }
+
+                Uri newCaptureUri = resolver.insert(mediaCollection, newCaptureDetails);
+                fos = resolver.openOutputStream(newCaptureUri);
+
+            } else {
+                Log.d(TAG, "Pre API 29 way to save the file");
+
+                String directory;
+
+                if (isPicture) {
+                    directory = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES).toString();
+                } else if (isMovie) {
+                    directory = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MOVIES).toString();
+                } else if (isDocument) {
+                    directory = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS).toString();
+                } else {
+                    return fos;
+                }
+
+                File newFile = new File(directory, fileName);
+                fos = new FileOutputStream(newFile);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return fos;
+    }
+
+    /**
+     * Tidy up any lose ends for the file transfer. Close the file socket, stop the visual timer
+     * and remove the notification/progress bar from view.
+     */
+    private void finishTransfer() {
+        //while transferring show a loading screen
+        try {
+            fileSocket.close();
+        } catch (IOException ioException) {
+            ioException.printStackTrace();
+        }
+
+        if(testBar) {
+            main.runOnUiThread(() -> transferBar.setVisibility(View.GONE));
+        }
+
+        transfer_progress = -1;
+        stopVisualTimer();
+        dismissPopup();
+        main.setDeviceStatusMessage(R.string.connected_label);
     }
 
     /**
