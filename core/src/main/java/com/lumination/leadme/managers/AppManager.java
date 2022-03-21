@@ -41,7 +41,7 @@ public class AppManager extends BaseAdapter {
     private String defaultBrowserUrl = "";
     protected Drawable app_placeholder;
 
-    public final String vrplayerPackage = "com.Edward.VRPlayer";
+    public final String vrplayerPackage = "com.lumination.VRPlayer";
     public final String withinPackage = "com.shakingearthdigital.vrsecardboard";
     public final String youtubePackage = "com.google.android.youtube";
 

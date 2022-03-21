@@ -15,8 +15,8 @@ import java.io.File;
 
 public class VRAccessibilityManager {
     private final static String TAG = "VRAccessibilityManager";
-    private final static String packageName = "com.Edward.VRPlayer";
-    private final static String className = "com.cwgtech.unity.MyPlugin";
+    private final static String packageName = "com.lumination.VRPlayer";
+    private final static String className = "com.lumination.receiver.ReceiverPlugin";
 
     public static final int CUE_PLAY = 0;
     public static final int CUE_PAUSE = 1;
@@ -26,10 +26,6 @@ public class VRAccessibilityManager {
     public static final int CUE_SET_SOURCE = 5;
 
     private final LeadMeMain main;
-    private Intent sendIntent;
-    private String fileName;
-    private Uri source;
-    private String absFilepath;
 
     /**
      * Basic constructor for the VRAccessibility Manager, no additional setup required within.
@@ -96,11 +92,12 @@ public class VRAccessibilityManager {
 
         //Split the filename and the start time apart.
         String[] split = info.split(":");
-        this.fileName = split[0];
+        String fileName = split[0];
 
+        String absFilepath;
         if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             //Look up the file name in storage, returning the URI
-            source = FileUtilities.getFileByName(main, this.fileName);
+            Uri source = FileUtilities.getFileByName(main, fileName);
 
             if(source == null) {
                 requestFile();
@@ -110,7 +107,7 @@ public class VRAccessibilityManager {
                 absFilepath = FileUtilities.getPath(main, source);
             }
         } else {
-            File temp = FileUtilities.findFile(Environment.getExternalStorageDirectory(), this.fileName);
+            File temp = FileUtilities.findFile(Environment.getExternalStorageDirectory(), fileName);
 
             if(temp == null) {
                 requestFile();
@@ -144,7 +141,7 @@ public class VRAccessibilityManager {
     //Create an intent based on the action supplied and send it to the external application
     private void newIntent(String action) {
         // sendIntent is the object that will be broadcast outside our app
-        sendIntent = new Intent();
+        Intent sendIntent = new Intent();
 
         // We add flags for example to work from background
         sendIntent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION|Intent.FLAG_FROM_BACKGROUND|Intent.FLAG_INCLUDE_STOPPED_PACKAGES);
