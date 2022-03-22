@@ -60,7 +60,7 @@
 
             <TextView
                 android:id="@+id/push_again_btn"
-                android:layout_width="45dp"
+                android:layout_width="60dp"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_vertical"
                 android:layout_marginEnd="15dp"
@@ -69,10 +69,11 @@
                 android:fontFamily="@font/poppins_semibold"
                 android:gravity="center_horizontal"
                 android:includeFontPadding="false"
-                android:text="Re-push"
+                android:text="@string/re_push"
                 android:textAllCaps="false"
                 android:textColor="@color/leadme_darkest_grey"
-                android:textSize="10sp" />
+                android:textSize="12sp"
+                android:focusable="true" />
 
         </LinearLayout>
 
@@ -95,6 +96,7 @@
             android:id="@+id/video_controls"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
+            android:gravity="center"
             android:background="@color/leadme_darkest_grey"
             android:orientation="vertical"
             android:visibility="visible">
@@ -103,6 +105,7 @@
                 android:id="@+id/video_stream_videoview"
                 android:layout_width="match_parent"
                 android:layout_height="240dp"
+                android:gravity="center"
                 android:background="@color/leadme_black"/>
 
             <LinearLayout

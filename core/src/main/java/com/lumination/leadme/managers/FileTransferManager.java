@@ -489,7 +489,7 @@ public class FileTransferManager {
                 } catch (IOException ioException) {
                     ioException.printStackTrace();
                 }
-                Log.e(TAG, String.valueOf(e));
+                e.printStackTrace();
                 transferComplete = false;
                 main.transferError(transferNotSaved, main.getNearbyManager().myID);
             } finally {
@@ -683,10 +683,7 @@ public class FileTransferManager {
      * Update the progress bar and notification with the current transfer progress.
      */
     private void visualUpdate() {
-        Log.e(TAG, "Updating to soon?: " + transfer_progress);
         if(transfer_progress != -1) {
-            Log.e(TAG, "Updating progress bar: " + transfer_progress);
-
             builder.setProgress(100, (int) transfer_progress, false);
             notifyManager.notify(NOTIFICATION_ID, builder.build());
 
@@ -712,8 +709,6 @@ public class FileTransferManager {
                 Integer key = entry.getKey();
                 Double value = entry.getValue();
 
-                Log.e(TAG, "Client: " + key + " Percent: " + value);
-
                 if (value == 100.0) {
                     main.runOnUiThread(() -> main.updatePeerStatus(String.valueOf(key), ConnectedPeer.STATUS_INSTALLED, null));
                 }
@@ -735,8 +730,6 @@ public class FileTransferManager {
      * has gone wrong.
      */
     public void dismissPopup() {
-        Log.e(TAG, "Dismiss popup");
-
         String success = "Transfer Complete";
         String failure = "Error: Transfer incomplete";
         String status;
