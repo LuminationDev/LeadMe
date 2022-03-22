@@ -1248,7 +1248,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
         firstTimeUser();
 
-        CuratedContentManager.getCuratedContent(this);
+//        CuratedContentManager.getCuratedContent(this);
     }
 
     /**
