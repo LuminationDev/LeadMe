@@ -290,6 +290,7 @@ public class WebManager {
     final private static int CLEAR_VID = 1;
     final private static int CLEAR_URL = 2;
     private int whatToClear = -1;
+
     private TextView warningTextView;
     private AlertDialog warningDialog;
 
@@ -807,7 +808,7 @@ public class WebManager {
 
     }
 
-    protected void showPreview(String url) {
+    public void showPreview(String url) {
         Log.d(TAG, "showPreview: ");
         Log.d(TAG, "showPreview: ");
         main.closeKeyboard();

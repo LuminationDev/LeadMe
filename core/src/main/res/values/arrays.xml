@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <array name="year_level_range_slider">
+        <item>0.0</item>
+        <item>12.0</item>
+    </array>
+</resources>

@@ -493,6 +493,7 @@ public class WithinEmbedPlayer {
         main.updateFollowerCurrentTask(main.getAppManager().withinPackage, "Within VR", "VR Video", attemptedURL, foundTitle);
 
         //update UI
+        main.showLeaderScreen();
         showPushConfirmed();
 
         //add to favourites

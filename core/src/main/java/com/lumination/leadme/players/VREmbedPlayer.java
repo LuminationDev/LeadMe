@@ -300,6 +300,7 @@ public class VREmbedPlayer {
                 true,
                 main.getNearbyManager().getSelectedPeerIDsOrAll());
 
+        main.showLeaderScreen();
         showPushConfirmed();
 
         //Set the source for the peers device

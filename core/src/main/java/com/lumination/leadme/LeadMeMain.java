@@ -87,6 +87,7 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.himanshurawat.hasher.HashType;
 import com.himanshurawat.hasher.Hasher;
+import com.lumination.leadme.adapters.CuratedContentManager;
 import com.lumination.leadme.connections.ConnectedPeer;
 import com.lumination.leadme.managers.DispatchManager;
 import com.lumination.leadme.accessibility.LumiAccessibilityConnector;
@@ -306,6 +307,8 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     private final int ANIM_OPTIONS_INDEX = 5;
     private final int ANIM_XRAY_INDEX = 6;
     protected final int ANIM_MULTI_INDEX = 7;
+    public final int ANIM_CURATED_CONTENT_LAUNCH_INDEX = 8;
+    private final int ANIM_CURATED_CONTENT_SINGLE_LAUNCH_INDEX = 9;
 
     public View waitingForLearners, appLauncherScreen;
     public View splashscreen, startLearner, mainLearner, startLeader, mainLeader, optionsScreen, switcherView, xrayScreen;
@@ -673,8 +676,12 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
     @Override
     public void onBackPressed() {
-        super.onBackPressed();
-        getNearbyManager().onBackPressed();
+        if (leadmeAnimator.getDisplayedChild() == ANIM_CURATED_CONTENT_SINGLE_LAUNCH_INDEX) {
+            leadmeAnimator.setDisplayedChild(ANIM_CURATED_CONTENT_LAUNCH_INDEX);
+        } else {
+            super.onBackPressed();
+            getNearbyManager().onBackPressed();
+        }
         Log.i(TAG, "On BACK!");
     }
 
@@ -1240,6 +1247,8 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                 .build();
 
         firstTimeUser();
+
+//        CuratedContentManager.getCuratedContent(this);
     }
 
     /**
@@ -1375,6 +1384,9 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         appLauncherScreen = View.inflate(context, R.layout.d__app_list, null);
         learnerWaitingText = startLearner.findViewById(R.id.waiting_text);
         multiAppManager = View.inflate(context, R.layout.d__app_manager_list, null);
+        CuratedContentManager.curatedContentScreen = View.inflate(context, R.layout.d__curated_content_list, null);
+        CuratedContentManager.curatedContentScreenSingle = View.inflate(context, R.layout.curated_content_single, null);
+        CuratedContentManager.setupCuratedContent(this);
     }
 
     /**
@@ -1534,6 +1546,11 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             appLauncherScreen.findViewById(R.id.app_scroll_view).scrollTo(0, 0);
         });
 
+        mainLeader.findViewById(R.id.curated_content_btn).setOnClickListener(view -> {
+            showCuratedContentScreen();
+            appLauncherScreen.findViewById(R.id.app_scroll_view).scrollTo(0, 0);
+        });
+
         mainLeader.findViewById(R.id.xray_core_btn).setOnClickListener(v -> {
             if (getConnectedLearnersAdapter().getCount() > 0) {
                 xrayManager.showXrayView("");
@@ -1673,6 +1690,8 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         leadmeAnimator.addView(optionsScreen);
         leadmeAnimator.addView(xrayScreen);
         leadmeAnimator.addView(multiAppManager);
+        leadmeAnimator.addView(CuratedContentManager.curatedContentScreen);
+        leadmeAnimator.addView(CuratedContentManager.curatedContentScreenSingle);
     }
 
     /**
@@ -1720,6 +1739,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
         //set up back buttons
         appLauncherScreen.findViewById(R.id.back_btn).setOnClickListener(view -> leadmeAnimator.setDisplayedChild(ANIM_LEADER_INDEX));
+        CuratedContentManager.curatedContentScreen.findViewById(R.id.back_btn).setOnClickListener(view -> leadmeAnimator.setDisplayedChild(ANIM_LEADER_INDEX));
 
         //multi installer screen back button
         multiAppManager.findViewById(R.id.back_btn).setOnClickListener(view -> {
@@ -2049,8 +2069,20 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         }
     }
 
+    public void showLeaderScreen() {
+        leadmeAnimator.setDisplayedChild(ANIM_LEADER_INDEX);
+    }
+
     private void showAppLaunchScreen() {
         leadmeAnimator.setDisplayedChild(ANIM_APP_LAUNCH_INDEX);
+    }
+
+    public void showCuratedContentScreen() {
+        leadmeAnimator.setDisplayedChild(ANIM_CURATED_CONTENT_LAUNCH_INDEX);
+    }
+
+    public void showCuratedContentSingleScreen() {
+        leadmeAnimator.setDisplayedChild(ANIM_CURATED_CONTENT_SINGLE_LAUNCH_INDEX);
     }
 
     public void showMultiAppInstallerScreen() {
