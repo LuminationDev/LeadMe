@@ -46,7 +46,7 @@ public class DialogManager {
 
     private View confirmPushDialogView, loginDialogView, toggleBtnView, manView, permissionDialogView, requestDialogView;
     private AlertDialog warningDialog, waitingDialog, appPushDialog, confirmPushDialog, studentAlertsDialog, loginDialog, recallPrompt, manualDialog, permissionDialog, requestDialog, fileTypeDialog, firstTimeVRDialog;
-    private TextView appPushMessageView, warningDialogTitle, warningDialogMessage, recallMessage, permissionDialogMessage, requestDialogMessage;
+    private TextView appPushMessageView, warningDialogTitle, warningDialogMessage, recallMessage, permissionDialogMessage, requestDialogMessage, additionalInfo;
     private String appPushPackageName, appPushTitle;
     private ArrayList<String> permissions = null;
 
@@ -221,7 +221,7 @@ public class DialogManager {
         });
     }
 
-    //Dialog to describe what sort of files can be choosen
+    //Dialog to describe what sort of files can be chosen
     private void setupFileTypes() {
         View fileTypeDialogView = View.inflate(main, R.layout.e__leader_filetype_popup, null);
         fileTypeDialog = new AlertDialog.Builder(main)
@@ -250,12 +250,14 @@ public class DialogManager {
     private void setupRequestDialog() {
         requestDialogView = View.inflate(main, R.layout.e__learner_request_popup, null);
         requestDialogMessage = requestDialogView.findViewById(R.id.request_comment);
+        additionalInfo = requestDialogView.findViewById(R.id.request_additional_info);
         requestDialog = new AlertDialog.Builder(main)
                 .setView(requestDialogView)
                 .create();
 
         requestDialog.setOnDismissListener(dialog -> {
             dialogShowing = false;
+            additionalInfo.setVisibility(View.GONE);
             hideSystemUI();
         });
 
@@ -270,7 +272,7 @@ public class DialogManager {
             }
 
             Set<String> peerSet = new HashSet<>();
-            for(int ID : main.fileRequests) {
+            for(int ID : LeadMeMain.fileRequests) {
                 peerSet.add(String.valueOf(ID));
             }
 
@@ -279,7 +281,7 @@ public class DialogManager {
         });
 
         blockBtn.setOnClickListener(v -> {
-            main.fileRequests = new ArrayList<>();
+            LeadMeMain.fileRequests = new ArrayList<>();
             requestDialog.dismiss();
         });
     }
@@ -310,12 +312,15 @@ public class DialogManager {
      */
     @SuppressLint("SetTextI18n")
     public void showRequestDialog(int delay) {
+        additionalInfo.setText("Waiting for any other file requests.");
+        additionalInfo.setVisibility(View.VISIBLE);
+
         if(requestDialog.isShowing()) {
             //in case a guide switched on auto installer and transfer quickly
-            requestDialogMessage.setText(main.fileRequests.size() + " learners do not have the video. " +
+            requestDialogMessage.setText(LeadMeMain.fileRequests.size() + " learners do not have the video. " +
                     "\nDo you want to transfer it?"); //update the text if there are more requests
         } else {
-            requestDialogMessage.setText(main.fileRequests.size() + " learner does not have the video. " +
+            requestDialogMessage.setText(LeadMeMain.fileRequests.size() + " learner does not have the video. " +
                     "\nDo you want to transfer it?");
 
             waitForOthers(requestDialogView.findViewById(R.id.allow_btn), delay);
@@ -342,6 +347,7 @@ public class DialogManager {
                 countdownStarter--;
 
                 if (countdownStarter < 0) {
+                    additionalInfo.setVisibility(View.GONE);
                     button.setText(originalText);
                     button.setEnabled(true);
                     scheduler.shutdown();
@@ -450,13 +456,10 @@ public class DialogManager {
                 .setView(firstDialog)
                 .show();
 
-        firstDialog.findViewById(R.id.open_guide).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://drive.google.com/file/d/1LrbQ5I1jlf-OQyIgr2q3Tg3sCo00x5lu/view"));
-                main.startActivity(browserIntent);
-                //todo link to guide
-            }
+        firstDialog.findViewById(R.id.open_guide).setOnClickListener(v -> {
+            Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://drive.google.com/file/d/1LrbQ5I1jlf-OQyIgr2q3Tg3sCo00x5lu/view"));
+            main.startActivity(browserIntent);
+            //todo link to guide
         });
         firstDialog.findViewById(R.id.skip_guide).setOnClickListener(v -> alert.dismiss());
     }
@@ -869,9 +872,7 @@ public class DialogManager {
         });
 
         if (readyBtn != null) {
-            readyBtn.setOnClickListener(v -> {
-                main.tryLogin();
-            });
+            readyBtn.setOnClickListener(v -> main.tryLogin());
         }
 
         TextView forgotPin = loginDialogView.findViewById(R.id.login_forgot_pin);

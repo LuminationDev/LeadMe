@@ -117,7 +117,7 @@ public class VRAccessibilityManager {
             }
         }
 
-        Log.d(TAG, "File path: " + absFilepath);
+        Log.d(TAG, "Sending source: " + absFilepath + ":" + split[1]);
 
         //Send a source intent with the file path and the start time
         newIntent("File path:" + absFilepath + ":" + split[1]);

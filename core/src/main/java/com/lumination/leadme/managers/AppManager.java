@@ -32,7 +32,7 @@ public class AppManager extends BaseAdapter {
 
     private final LeadMeMain main;
     private final PackageManager pm;
-    private FavouritesManager favouritesManager; //TODO shift to app manager
+    private final FavouritesManager favouritesManager;
     private final WithinEmbedPlayer withinPlayer;
 
     private List<ApplicationInfo> appList;
@@ -239,7 +239,7 @@ public class AppManager extends BaseAdapter {
 
         if (updateCurrentTask) {
             if (relaunch) {
-                main.updateFollowerCurrentTask(actualAppPackage, appName, main.currentTaskType, main.currentTaskURL, main.currentTaskURLTitle);
+                main.updateFollowerCurrentTask(actualAppPackage, appName, LeadMeMain.currentTaskType, LeadMeMain.currentTaskURL, LeadMeMain.currentTaskURLTitle);
             } else {
                 main.updateFollowerCurrentTask(actualAppPackage, appName, "Application", "", "");
             }
@@ -250,7 +250,7 @@ public class AppManager extends BaseAdapter {
         main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.LAUNCH_SUCCESS + appName + ":" + main.getNearbyManager().getID() + ":" + actualAppPackage, main.getNearbyManager().getAllPeerIDs());
     }
 
-    private Spinner lockSpinner, withinLockSpinner;
+    private final Spinner lockSpinner, withinLockSpinner;
 
     /**
      * Used by LEADER to launch an app on LEARNER devices.

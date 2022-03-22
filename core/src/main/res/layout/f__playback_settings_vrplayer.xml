@@ -54,6 +54,7 @@
             android:id="@+id/video_controls"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
+            android:gravity="center"
             android:background="@color/leadme_darkest_grey"
             android:orientation="vertical"
             android:visibility="gone">
@@ -62,6 +63,7 @@
                 android:id="@+id/video_stream_videoview"
                 android:layout_width="fill_parent"
                 android:layout_height="240dp"
+                android:gravity="center"
                 android:background="@color/leadme_black" />
 
             <LinearLayout

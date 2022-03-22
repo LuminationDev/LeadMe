@@ -39,8 +39,9 @@ public class VREmbedPlayer {
     private final static String TAG = "embedPlayerVR";
     //Package name of the external VR player
     public final static String packageName = "com.lumination.VRPlayer";
+    private String appName = "VRPlayer"; //Past to the app manager
 
-    private String appName, fileName;
+    private String fileName;
     private Boolean firstOpen = true;
 
     private AlertDialog videoControlDialog, playbackSettingsDialog;
@@ -146,6 +147,7 @@ public class VREmbedPlayer {
 
         noVideoChosen(false);
 
+        vrplayerPreviewVideoView.setVisibility(View.VISIBLE);
         //setting the preview video
         setupVideoPreview(vrplayerPreviewVideoView);
     }
@@ -171,8 +173,10 @@ public class VREmbedPlayer {
         return displayName;
     }
 
-    //Sets the video source and moves it to the top of the UI as some phones will display it behind
-    //the pop up dialog.
+    /**
+     * Sets the video source and moves it to the top of the UI as some phones will display it behind
+     * the pop up dialog.
+    */
     private void setupVideoPreview(VideoView video) {
         video.setZOrderOnTop(true);
 
@@ -330,6 +334,11 @@ public class VREmbedPlayer {
         });
     }
 
+    /**
+     * Determine if the integer supplied is a valid time and set the startFromTime
+     * variable accordingly.
+     * @param newTime An integer representing where the user has moved the preview slider to.
+     */
     private void setNewTime(int newTime) {
         if (totalTime == -1) {
             return;
@@ -349,10 +358,8 @@ public class VREmbedPlayer {
             //set the video at new time (needs to be in ms)
             if(startFromTime == 0) {
                 //show the first frame
-                controllerVideoView.seekTo(1);
                 vrplayerPreviewVideoView.seekTo(1);
             } else {
-                controllerVideoView.seekTo(startFromTime * 1000);
                 vrplayerPreviewVideoView.seekTo(startFromTime * 1000);
             }
         });
@@ -361,8 +368,6 @@ public class VREmbedPlayer {
     }
 
     //CONTROL FUNCTIONS
-    //content://com.android.providers.media.documents/document/video%3A25275 - example URI
-    //TODO change appName to video name - set within AppManager
     //Used when repushing the application as the appName will already be set
     public void showPlaybackPreview() {
         openPreview(appName);
@@ -465,6 +470,7 @@ public class VREmbedPlayer {
             videoControlDialog.dismiss();
             this.fileName = null;
             firstOpen = true;
+            vrplayerPreviewVideoView.setVisibility(View.INVISIBLE);
             showPlaybackPreview(appName);
             selectSource(); //go straight to file picker
         });
@@ -520,8 +526,10 @@ public class VREmbedPlayer {
             });
         }
         //viewModeToggle.setChecked(true);
+        VideoView video = videoControllerDialogView.findViewById(R.id.video_stream_videoview);
+        video.seekTo(startFromTime * 1000);
 
-        Log.d(TAG, "Attempting to show video controller for VR player");
+        Log.d(TAG, "Attempting to show video controller for VR player at time: " + video.getCurrentPosition());
         videoControlDialog.show();
     }
 
