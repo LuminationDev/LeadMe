@@ -400,28 +400,19 @@ public class CuratedContentManager {
                         ArrayList<CuratedContentItem> processedCuratedContent = new ArrayList<CuratedContentItem>();
                         for(int i = 1; i < curatedContent.length(); i++) {
                             JSONArray curatedContentJson = curatedContent.getJSONArray(i);
-
-                            // validate that it is a supported CuratedContentType
-                            try {
-                                CuratedContentType.valueOf(curatedContentJson.getString(2));
-                            } catch (IllegalArgumentException e) {
-                                FirebaseCrashlytics.getInstance().recordException(e);
+                            if (!validateCuratedContentRow(curatedContentJson)) {
                                 continue;
                             }
-
-                            // only include if it is marked as 'live'
-                            if (curatedContentJson.getString(7).equals("YES")) {
-                                processedCuratedContent.add(new CuratedContentItem(
-                                        i,
-                                        curatedContentJson.getString(0),
-                                        CuratedContentType.valueOf(curatedContentJson.getString(2)),
-                                        curatedContentJson.getString(3),
-                                        curatedContentJson.getString(1),
-                                        curatedContentJson.getString(4),
-                                        curatedContentJson.getString(5),
-                                        curatedContentJson.getString(6)
-                                ));
-                            }
+                            processedCuratedContent.add(new CuratedContentItem(
+                                    i,
+                                    curatedContentJson.getString(0),
+                                    CuratedContentType.valueOf(curatedContentJson.getString(2)),
+                                    curatedContentJson.getString(3),
+                                    curatedContentJson.getString(1),
+                                    curatedContentJson.getString(4),
+                                    curatedContentJson.getString(5),
+                                    curatedContentJson.getString(6)
+                            ));
                             getPreviewImages(main, curatedContentJson.getString(3));
                         }
                         CuratedContentManager.initializeCuratedContent(processedCuratedContent, main);
@@ -432,6 +423,37 @@ public class CuratedContentManager {
                 }
             }
         }).start();
+    }
+
+    private static boolean validateCuratedContentRow (JSONArray curatedContentJson) throws JSONException {
+        try {
+            if (curatedContentJson.length() < 8) {
+                return false;
+            }
+            for (int i = 0; i <= 7; i++) {
+                if (curatedContentJson.getString(i).equals("") || curatedContentJson.getString(i) == null) {
+                    return false;
+                }
+            }
+            // check if live
+            if (!curatedContentJson.getString(7).equals("YES")) {
+                return false;
+            }
+
+            // validate that it is a supported CuratedContentType
+            try {
+                CuratedContentType.valueOf(curatedContentJson.getString(2));
+            } catch (IllegalArgumentException e) {
+                FirebaseCrashlytics.getInstance().recordException(e);
+                return false;
+            }
+
+            return true;
+        } catch (JSONException e) {
+            e.printStackTrace();
+            FirebaseCrashlytics.getInstance().recordException(e);
+            return false;
+        }
     }
 
     private static LinkPreviewCallback previewImageCallback = new LinkPreviewCallback() {
