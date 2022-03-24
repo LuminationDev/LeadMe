@@ -22,7 +22,6 @@ import com.lumination.leadme.adapters.LumiSpinnerAdapter;
 import com.lumination.leadme.players.WithinEmbedPlayer;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
@@ -38,7 +37,7 @@ public class AppManager extends BaseAdapter {
     private List<ApplicationInfo> appList;
     private ArrayList<String> appNameList;
     private final LayoutInflater inflater;
-    private String defaultBrowserUrl = "";
+    private final String defaultBrowserUrl;
     protected Drawable app_placeholder;
 
     public final String vrplayerPackage = "com.lumination.VRPlayer";
@@ -104,7 +103,7 @@ public class AppManager extends BaseAdapter {
 
     private List<ApplicationInfo> listApps() {
         appList = new ArrayList<>();
-        appNameList = new ArrayList<String>();
+        appNameList = new ArrayList<>();
         ArrayList<String> nameList = new ArrayList<>();
         try {
             Intent mainIntent = new Intent(Intent.ACTION_MAIN, null);
@@ -125,7 +124,7 @@ public class AppManager extends BaseAdapter {
                 }
             }
             //sort alphabetically by name
-            Collections.sort(appList, new ApplicationInfoComparator());
+            appList.sort(new ApplicationInfoComparator());
             return appList;
         } catch (Exception e) {
             Log.e(TAG, e.getLocalizedMessage());
@@ -144,7 +143,7 @@ public class AppManager extends BaseAdapter {
     public String lastApp = "";
 
     public void relaunchLast() {
-        relaunchLast(main.currentTaskPackageName, main.currentTaskName, main.currentTaskType, main.currentTaskURL, main.currentTaskURLTitle);
+        relaunchLast(LeadMeMain.currentTaskPackageName, LeadMeMain.currentTaskName, LeadMeMain.currentTaskType, LeadMeMain.currentTaskURL, LeadMeMain.currentTaskURLTitle);
     }
 
 
@@ -161,7 +160,7 @@ public class AppManager extends BaseAdapter {
 
             case "VR Video":
                 if (packageName.equals(main.getAppManager().withinPackage)) {
-                    launchWithin(withinPlayer.foundURL, isStreaming, isVR,true);
+                    launchWithin(withinPlayer.foundURL, isStreaming, isVR, main.getSelectedOnly());
                     break;
                 }
 
@@ -392,7 +391,7 @@ public class AppManager extends BaseAdapter {
     }
 
     // stores and recycles views as they are scrolled off screen
-    public class ViewHolder {
+    public static class ViewHolder {
         final TextView myTextView;
         final ImageView myIcon;
 

@@ -832,13 +832,12 @@ public class DispatchManager {
 
             main.getConnectedLearnersAdapter().appLaunchFail(split[3], appNameRepush);
 
-            //TODO AUTO INSTALLER
-//            if(LeadMeMain.FLAG_UPDATES) {
-//                main.getLumiAppInstaller().peersToInstall.add(split[3]);
-//
-//                //open a dialog to confirm if wanting to install apps
-//                main.getLumiAppInstaller().applicationsToInstallWarning(split[1], split[2], false); //should auto update number of devices need as the action come in
-//            }
+            if(LeadMeMain.FLAG_INSTALLER) {
+                main.getLumiAppInstaller().peersToInstall.add(split[3]);
+
+                //open a dialog to confirm if wanting to install apps
+                main.getLumiAppInstaller().applicationsToInstallWarning(split[1], split[2], false); //should auto update number of devices need as the action come in
+            }
         }
 
         /**

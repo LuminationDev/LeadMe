@@ -48,8 +48,6 @@ public class NetworkManager {
 
     private static LeadMeMain main;
     private static WifiManager.MulticastLock multicastLock; // Acquire multicast lock
-
-    private static Future<?> receiveInput = null;
     private static Socket clientsServerSocket = null;//server socket for client
     private int tries = 0; //counter for connection attempts to server
     private final int timeOut = 2;
@@ -60,8 +58,9 @@ public class NetworkManager {
 
     public static ArrayList<Client> currentClients = new ArrayList<>();
 
-    private ScheduledExecutorService scheduledExecutor = new ScheduledThreadPoolExecutor(1);
-    private static final ThreadPoolExecutor socketThreadPool = (ThreadPoolExecutor) Executors.newFixedThreadPool(2);
+    private static ScheduledExecutorService scheduledExecutor = new ScheduledThreadPoolExecutor(1);
+    private static ThreadPoolExecutor socketThreadPool;
+    private static final ThreadPoolExecutor connectionThreadPool = (ThreadPoolExecutor) Executors.newFixedThreadPool(1);
 
     public NetworkManager(LeadMeMain main) {
         NetworkManager.main = main;
@@ -122,25 +121,28 @@ public class NetworkManager {
      * @param serviceInfo An NsdServiceInfo object containing the details about the selected leader.
      */
     public void connectToServer(NsdServiceInfo serviceInfo) {
-        startClientInputListener();
-        Log.d(TAG, "connectToServer: attempting to connect to " + serviceInfo.getHost() + ":" + serviceInfo.getPort());
+        connectionThreadPool.submit(() -> {
+            Log.d(TAG, "connectToServer: attempting to connect to " + serviceInfo.getHost() + ":" + serviceInfo.getPort());
 
-        NSDManager.mService = serviceInfo;
+            NSDManager.mService = serviceInfo;
 
-        try {
-            if (clientsServerSocket != null) {
-                clientsServerSocket.close();
+            try {
+                if (clientsServerSocket != null) {
+                    clientsServerSocket.close();
+                    clientsServerSocket = null;
+                }
+
+                clientsServerSocket = new Socket(serviceInfo.getHost(), serviceInfo.getPort());
+            } catch (IOException e) {
+                e.printStackTrace();
+            } finally {
+                if (clientsServerSocket == null) {
+                    tryReconnect();
+                } else {
+                    clientSetup();
+                }
             }
-            clientsServerSocket = new Socket(serviceInfo.getHost(), serviceInfo.getPort());
-        } catch (IOException e) {
-            e.printStackTrace();
-        } finally {
-            if (clientsServerSocket == null) {
-                tryReconnect();
-            } else {
-                clientSetup();
-            }
-        }
+        });
     }
 
     /**
@@ -148,16 +150,13 @@ public class NetworkManager {
      * splash screen.
      */
     private void tryReconnect() {
-        if (!clientsServerSocket.isConnected()) {
-            Log.d(TAG, "connectToServer: Socket disconnected attempting to reconnect");
-            clientsServerSocket = null;
-            if (tries <= 10) {
-                tries++;
-                connectToServer(NSDManager.getChosenServiceInfo());
-            } else {
-                Log.d(TAG, "connectToServer: reconnection unsuccessful");
-                main.runOnUiThread(() -> main.setUIDisconnected());
-            }
+        Log.d(TAG, "connectToServer: Socket disconnected attempting to reconnect");
+        if (tries <= 10) {
+            tries++;
+            connectToServer(NSDManager.getChosenServiceInfo());
+        } else {
+            Log.d(TAG, "connectToServer: reconnection unsuccessful");
+            main.runOnUiThread(() -> main.setUIDisconnected());
         }
     }
 
@@ -171,7 +170,9 @@ public class NetworkManager {
             pingName = true; //Allows learner to send name again on reconnection
             connectionIsActive = 20;
             allowInput = true;
+            startClientInputListener();
             main.getNearbyManager().nsdManager.stopDiscovery();
+
             main.runOnUiThread(() -> {
                 main.findViewById(R.id.client_main).setVisibility(View.VISIBLE);
                 List<String> inputList = Arrays.asList(NSDManager.getChosenServiceInfo().getServiceName().split("#"));
@@ -179,6 +180,8 @@ public class NetworkManager {
             });
 
             startConnectionCheck();
+        } else {
+            connectToServer(NSDManager.getChosenServiceInfo());
         }
     }
 
@@ -187,24 +190,22 @@ public class NetworkManager {
      * not then move the learner from a logged in state to the splash screen.
      */
     public void startConnectionCheck() {
-        if (clientsServerSocket != null) {
-            scheduledExecutor.shutdown();
-            scheduledExecutor = new ScheduledThreadPoolExecutor(1);
-            scheduledExecutor.scheduleAtFixedRate(() -> {
-                if (clientsServerSocket != null) {
-                    if (clientsServerSocket.isConnected()) {
-                        checkConnection();
-                    }
+        scheduledExecutor.shutdown();
+        scheduledExecutor = new ScheduledThreadPoolExecutor(1);
+        scheduledExecutor.scheduleAtFixedRate(() -> {
+            if (clientsServerSocket != null) {
+                if (clientsServerSocket.isConnected()) {
+                    checkConnection();
                 }
+            }
 
-                if (clientsServerSocket != null && pingName) {
-                    if (clientsServerSocket.isConnected()) {
-                        sendToServer(getName(), "NAME");
-                        pingName = false;
-                    }
+            if (clientsServerSocket != null && pingName) {
+                if (clientsServerSocket.isConnected()) {
+                    sendToServer(getName(), "NAME");
+                    pingName = false;
                 }
-            }, 1, 8000, TimeUnit.MILLISECONDS);
-        }
+            }
+        }, 1, 8000, TimeUnit.MILLISECONDS);
     }
 
     private void checkConnection() {
@@ -221,8 +222,7 @@ public class NetworkManager {
                 }
                 clientsServerSocket = null;
                 Log.d(TAG, "checkConnection: connection timed out");
-                main.setUIDisconnected();
-                connectionIsActive--;
+                tryReconnect();
             });
         }
     }
@@ -236,21 +236,23 @@ public class NetworkManager {
      * reconnection if a socket is closed prematurely.
      */
     public void startClientInputListener() {
-        if (receiveInput == null) {
-            //new Thread so server messages can be read from a while loop without impacting the UI
-            receiveInput = socketThreadPool.submit(() -> {
-                while (allowInput) {
-                    if (clientsServerSocket != null) {
-                        if (!clientsServerSocket.isClosed() && !clientsServerSocket.isInputShutdown()) {
+        if(socketThreadPool != null) {
+            socketThreadPool.shutdown();
+        }
 
-                            BufferedReader in;
-                            String input = "";
+        socketThreadPool = (ThreadPoolExecutor) Executors.newFixedThreadPool(1);
+        socketThreadPool.submit(() -> {
+            while (true) {
+                if (clientsServerSocket != null) {
+                    if (!clientsServerSocket.isClosed() && !clientsServerSocket.isInputShutdown()) {
+                        BufferedReader in;
+                        String input = "";
+                        try {
+                            InputStreamReader inStream = new InputStreamReader(clientsServerSocket.getInputStream());
+                            in = new BufferedReader(inStream);
+
                             try {
-                                InputStreamReader inStream = new InputStreamReader(clientsServerSocket.getInputStream());
-                                in = new BufferedReader(inStream);
-
-                                try {
-                                    //Kept for future testing purposes
+                                //Kept for future testing purposes
 //                                    Only need the input = in.readLine() for production
 //                                    Log.e(TAG, "TESTING COUNTDOWN: " + testing);
 //                                    if (testing == 0) {
@@ -260,53 +262,82 @@ public class NetworkManager {
 //                                        throw new SocketException();
 //                                    } else {
 //                                        testing--;
-                                    input = in.readLine();
 //                                    }
-                                } catch (SocketException e) {
-                                    if (clientsServerSocket != null) {
-                                        clientsServerSocket.close();
-                                        clientsServerSocket = null;
-                                    }
 
-                                    e.printStackTrace();
-                                    Log.e(TAG, "FAILED! {1}");
-
-                                    connectToServer(NSDManager.getChosenServiceInfo());
+                                input = in.readLine();
+                            } catch (SocketException e) {
+                                if (clientsServerSocket != null) {
+                                    clientsServerSocket.close();
+                                    clientsServerSocket = null;
                                 }
 
-                                if (input != null) {
-                                    if (input.length() > 0) {
-                                        Log.d(TAG, "allowInput is active");
+                                e.printStackTrace();
+                                Log.e(TAG, "FAILED! {1}");
+                                break;
+                            }
 
-                                        if (LeadMeMain.destroying) {
-                                            if (clientsServerSocket != null) {
-                                                clientsServerSocket.close();
-                                                clientsServerSocket = null;
-                                            }
+                            if (input != null) {
+                                if (input.length() > 0) {
+                                    Log.d(TAG, "allowInput is active");
 
-                                            scheduledExecutor.shutdown();
-                                            allowInput = false;
-                                            return;
+                                    if (LeadMeMain.destroying) {
+                                        if (clientsServerSocket != null) {
+                                            clientsServerSocket.close();
+                                            clientsServerSocket = null;
                                         }
 
+                                        scheduledExecutor.shutdown();
+                                        allowInput = false;
+                                        return;
+                                    } else {
                                         messageReceivedFromServer(input);
                                     }
                                 }
-                            } catch (IOException e) {
-                                e.printStackTrace();
-                                Log.e(TAG, "FAILED! {2}");
                             }
-                        } else {
-                            clientsServerSocket = null;
-                            Log.e(TAG, "FAILED! {3}");
-
-                            connectToServer(NSDManager.getChosenServiceInfo());
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                            Log.e(TAG, "FAILED! {2}");
                         }
+                    } else {
+                        clientsServerSocket = null;
+                        Log.e(TAG, "FAILED! {3}");
+                        break;
                     }
                 }
-                Log.e(TAG, "FAILED! {4}");
-            });
+            }
+
+            cleanUpInput();
+
+            if(!LeadMeMain.destroying) {
+                connectToServer(NSDManager.getChosenServiceInfo());
+            }
+            Log.e(TAG, "FAILED! {4}");
+        });
+    }
+
+    /**
+     * Shutdown and destroy the thread pool and receive input future to ensure a fresh start
+     * on reconnection.
+     */
+    public static void cleanUpInput() {
+        try {
+            if (clientsServerSocket != null) {
+                clientsServerSocket.close();
+                clientsServerSocket = null;
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
         }
+
+        scheduledExecutor.shutdown();
+        allowInput = false;
+
+        socketThreadPool.shutdown();
+        socketThreadPool = null;
+//        receiveInput.cancel(true);
+//        receiveInput = null;
+
+        socketThreadPool = (ThreadPoolExecutor) Executors.newFixedThreadPool(1);
     }
 
     /**
@@ -495,7 +526,6 @@ public class NetworkManager {
      */
     private void receivedFile(String input) {
         List<String> inputList2 = Arrays.asList(input.split(":"));
-        Log.e(TAG, NetworkManager.getClientSocket().getInetAddress() + " : " + inputList2);
         if (main.fileTransferEnabled) {
             FileTransferManager.setFileType(inputList2.get(2));
             main.getFileTransferManager().receivingFile(NetworkManager.getClientSocket().getInetAddress(), Integer.parseInt(inputList2.get(1)));

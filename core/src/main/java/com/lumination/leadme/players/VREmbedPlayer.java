@@ -87,6 +87,10 @@ public class VREmbedPlayer {
             Log.d(TAG, String.format("onPrepared: (ms)duration=%d, (s)videoDuration=%d", duration,
                     videoDuration));
             setTotalTime(videoDuration);
+
+            if(startFromTime != 0) {
+                controllerVideoView.seekTo(startFromTime * 1000);
+            }
         });
     }
 

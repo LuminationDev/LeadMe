@@ -4,7 +4,7 @@
     <style name="EmptyStyle"></style>
 
     <style name="LeaderButton">
-        <item name="android:layout_width">80dp</item>
+        <item name="android:layout_width">82dp</item>
         <item name="android:layout_marginLeft">15dp</item>
         <item name="android:layout_height">115dp</item>
         <item name="android:layout_marginTop">15dp</item>

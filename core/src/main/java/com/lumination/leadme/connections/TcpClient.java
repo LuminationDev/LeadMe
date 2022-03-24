@@ -35,7 +35,7 @@ public class TcpClient extends Thread {
     private String Name;
 
     TcpClient tcp;
-    boolean runAgain=true;
+    boolean runAgain = true;
     boolean checkIn = true;
     ScheduledExecutorService scheduledExecutor = new ScheduledThreadPoolExecutor(3);
 
@@ -76,7 +76,6 @@ public class TcpClient extends Thread {
                         } catch (InterruptedException e) {
                             e.printStackTrace();
                         }
-
                     }
                 }
             }
@@ -220,6 +219,5 @@ public class TcpClient extends Thread {
         },0L,TimeUnit.MILLISECONDS);
 
         //executed after sending message so the student is notified that it is being forcefully disconnected.
-
     }
 }

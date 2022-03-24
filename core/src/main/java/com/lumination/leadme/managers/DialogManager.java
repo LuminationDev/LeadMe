@@ -22,8 +22,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.core.content.res.ResourcesCompat;
-import androidx.databinding.DataBindingUtil;
-import androidx.databinding.ViewDataBinding;
 
 import com.alimuzaffar.lib.pin.PinEntryEditText;
 import com.lumination.leadme.LeadMeMain;
@@ -120,6 +118,9 @@ public class DialogManager {
         waitingDialog = new AlertDialog.Builder(main)
                 .setView(waitingDialogView)
                 .create();
+
+        waitingDialog.setCancelable(false);
+
         waitingDialog.setOnDismissListener(dialog -> hideSystemUI());
     }
 
@@ -127,7 +128,13 @@ public class DialogManager {
         appPushDialogView = View.inflate(main, R.layout.e__preview_app_push, null);
 
         appPushDialogView.findViewById(R.id.push_btn).setOnClickListener(v -> {
-            main.getAppManager().launchApp(appPushPackageName, appPushTitle, false, "false", false, main.getNearbyManager().getSelectedPeerIDsOrAll());
+            Set<String> peerSet;
+            if(main.getSelectedOnly()) {
+                peerSet = main.getNearbyManager().getSelectedPeerIDsOrAll();
+            } else {
+                peerSet = main.getNearbyManager().getAllPeerIDs();
+            }
+            main.getAppManager().launchApp(appPushPackageName, appPushTitle, false, "false", false, peerSet);
             Log.d(TAG, "LAUNCHING! " + appPushPackageName);
             hideAppPushDialogView();
             showConfirmPushDialog(true, false);
@@ -349,9 +356,9 @@ public class DialogManager {
                 countdownStarter--;
 
                 if (countdownStarter < 0) {
-                    additionalInfo.setVisibility(View.GONE);
                     button.setText(originalText);
                     button.setEnabled(true);
+                    additionalInfo.setVisibility(View.GONE);
                     scheduler.shutdown();
                 }
             }
@@ -488,7 +495,6 @@ public class DialogManager {
 
         if (appPushMessageView == null) {
             appPushMessageView = appPushDialogView.findViewById(R.id.push_confirm_txt);
-            Button appPushBtn = appPushDialogView.findViewById(R.id.push_btn);
         }
 
         toggleSelectedView(appPushDialogView);
@@ -805,17 +811,14 @@ public class DialogManager {
             IpEnter.setSelection(IpEnter.getText().length());
             //add to the leaders list
 
-            connect.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    if(IpEnter!=null && ManName!=null &&ManName.getText().toString().length()>0 && IpEnter.getText().toString().length()>0) {
-                        Log.d(TAG, "onClick: "+IpEnter.getText().toString());
-                        nameView.setText(ManName.getText().toString());
+            connect.setOnClickListener(v -> {
+                if(IpEnter!=null && ManName!=null &&ManName.getText().toString().length()>0 && IpEnter.getText().toString().length()>0) {
+                    Log.d(TAG, "onClick: "+IpEnter.getText().toString());
+                    nameView.setText(ManName.getText().toString());
 
-                        manualDialog.dismiss();
-                        LeadMeMain.isGuide = false;
-                        main.directIpConnection(ManName, IpEnter);
-                    }
+                    manualDialog.dismiss();
+                    LeadMeMain.isGuide = false;
+                    main.directIpConnection(ManName, IpEnter);
                 }
             });
         }
@@ -905,7 +908,7 @@ public class DialogManager {
                 main.firebaseEmailSignIn(email.getText().toString(), password.getText().toString(), errorText);
             } else {
                 errorText.setVisibility(View.VISIBLE);
-                errorText.setText("Please check you have entered your details correctly.");
+                errorText.setText(R.string.check_details);
             }
         });
 

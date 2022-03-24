@@ -271,11 +271,9 @@ public class WithinAccessibilityManager {
                         } else {
                             Log.w(TAG, "Scheduling! Will run in " + delay + " milliseconds. Concurrent: " + concurrentDelays);
                             scheduledExecutor.setCorePoolSize(1);
-                            schedTask = scheduledExecutor.schedule(() -> {
-                                // do a thing
-                                exitVRVideo();
-                            }, delay, SECONDS);
-                            Log.w(TAG, "Is it scheduled? ");//+schedTask.isCancelled()+", "+schedTask.isDone()+", "+schedTask.getDelay(SECONDS));
+                            // do a thing
+                            schedTask = scheduledExecutor.schedule(this::exitVRVideo, delay, SECONDS);
+                            Log.w(TAG, "Is it scheduled? ");
                         }
                     }
 
