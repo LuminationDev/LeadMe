@@ -16,7 +16,7 @@ import androidx.core.app.NotificationCompat;
 import com.lumination.leadme.R;
 import com.lumination.leadme.connections.TcpClient;
 import com.lumination.leadme.connections.StudentThread;
-import com.lumination.leadme.managers.FileTransferManager;
+import com.lumination.leadme.managers.NetworkManager;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -26,7 +26,6 @@ import java.util.AbstractMap;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -169,6 +168,8 @@ public class NetworkService extends Service {
      * @param clientSocket A socket object of the newly connected user.
      */
     public static void studentThreadManager(Socket clientSocket) {
+        Log.e(TAG, "New client: " + clientSocket.getInetAddress().getHostAddress());
+
         ClientResult result = manageClientID(clientSocket);
         int ID = result.getID();
         boolean reconnect = result.getReconnect();
@@ -227,6 +228,10 @@ public class NetworkService extends Service {
         clientID = 0;
     }
 
+    public static void destroyLearnerConnection() {
+        NetworkManager.cleanUpInput();
+    }
+
     @Override
     public IBinder onBind(Intent intent) {
         return binder;
@@ -245,6 +250,7 @@ public class NetworkService extends Service {
 
     @Override
     public void onDestroy() {
+        destroyLearnerConnection();
         endForeground();
         super.onDestroy();
     }

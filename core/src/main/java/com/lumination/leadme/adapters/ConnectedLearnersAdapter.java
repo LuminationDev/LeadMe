@@ -751,7 +751,7 @@ public class ConnectedLearnersAdapter extends BaseAdapter {
                 break;
 
             case ConnectedPeer.STATUS_FILE_TRANSFER:
-                statusIcon.setImageDrawable(main.getResources().getDrawable(R.drawable.alert_transfering, null));
+                statusIcon.setImageDrawable(main.getResources().getDrawable(R.drawable.icon_transfer, null));
                 break;
 
             default:

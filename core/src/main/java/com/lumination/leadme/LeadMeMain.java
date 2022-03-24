@@ -146,6 +146,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
     //Turn the updated content on or off - still need to manually switch the layout in c__leader_main.xml
     public static final boolean FLAG_UPDATES = true;
+    public static final boolean FLAG_INSTALLER = false;
 
     public Drawable leadmeIcon;
     protected PowerManager powerManager;
@@ -779,6 +780,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
     @OnLifecycleEvent(Lifecycle.Event.ON_PAUSE)
     public void onLifecyclePause() {
+        super.onPause();
         Log.w(TAG, "LC Pause");
         appHasFocus = false;
         Log.d(TAG, "onLifecyclePause: " + overlayInitialised + " " + permissionManager.isOverlayPermissionGranted());
@@ -924,6 +926,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
     @OnLifecycleEvent(Lifecycle.Event.ON_RESUME)
     public void onLifecycleResume() {
+        super.onResume();
         if (OnBoardStudentInProgress) {
             if (getPermissionsManager().isAccessibilityGranted() && !getPermissionsManager().isOverlayPermissionGranted()) {
                 setandDisplayStudentOnBoard(1);
@@ -1150,6 +1153,8 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
         //clean up link preview assets
         getWebManager().cleanUp();
+
+        destroying = false;
     }
 
     /**
@@ -1564,15 +1569,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         //TODO VR PLAYER, AUTO INSTALLER AND FILE TRANSFER
         //Code in LeadMe Main & AppManager
         if(LeadMeMain.FLAG_UPDATES) {
-            //multi install button
-            mainLeader.findViewById(R.id.installer_core_btn).setOnClickListener(view -> {
-                if (autoInstallApps) {
-                    getLumiAppInstaller().showMultiInstaller(layoutParams);
-                } else {
-                    dialogManager.showWarningDialog("Auto Installer", "Auto installing has not been enabled.");
-                }
-            });
-
             //file transfer button
             mainLeader.findViewById(R.id.file_core_btn).setOnClickListener(view -> {
                 if (!getConnectedLearnersAdapter().someoneIsSelected()) {
@@ -1605,6 +1601,19 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
                     //Function to let leaders know what files can be picked
                     getDialogManager().showVRFirstTimeDialog();
+                }
+            });
+        }
+
+        //multi install button
+        if(LeadMeMain.FLAG_INSTALLER) {
+            LinearLayout installer = mainLeader.findViewById(R.id.installer_core_btn);
+            installer.setVisibility(View.VISIBLE);
+            installer.setOnClickListener(view -> {
+                if (autoInstallApps) {
+                    getLumiAppInstaller().showMultiInstaller(layoutParams);
+                } else {
+                    dialogManager.showWarningDialog("Auto Installer", "Auto installing has not been enabled.");
                 }
             });
         }
@@ -2450,9 +2459,10 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
         leaderAdditionalOptions(isGuide ? View.VISIBLE : View.GONE);
 
+        getNetworkManager().startService();
+
         if (isGuide) {
             getFirebaseManager().startService();
-            getNetworkManager().startService();
 
             //display main guide view
             leadmeAnimator.setDisplayedChild(ANIM_LEADER_INDEX);
@@ -3263,6 +3273,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                                 setandDisplayStudentOnBoard(2);
                             }
                         });
+                        scheduledCheck.cancel(true);
                     }
                 },100,200,TimeUnit.MILLISECONDS);
                 if (getPermissionsManager().isOverlayPermissionGranted()) {
@@ -3911,6 +3922,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
      * Get the value of the selected only boolean.
      */
     public boolean getSelectedOnly() {
+        Log.e(TAG, "Selected: " + selectedOnly);
         return selectedOnly;
     }
 }
