@@ -245,9 +245,6 @@ public class NetworkManager {
             while (true) {
                 if (clientsServerSocket != null) {
                     if (!clientsServerSocket.isClosed() && !clientsServerSocket.isInputShutdown()) {
-
-                        Log.e(TAG, "READY TO RECEIVE");
-
                         BufferedReader in;
                         String input = "";
                         try {
@@ -529,7 +526,6 @@ public class NetworkManager {
      */
     private void receivedFile(String input) {
         List<String> inputList2 = Arrays.asList(input.split(":"));
-        Log.e(TAG, NetworkManager.getClientSocket().getInetAddress() + " : " + inputList2);
         if (main.fileTransferEnabled) {
             FileTransferManager.setFileType(inputList2.get(2));
             main.getFileTransferManager().receivingFile(NetworkManager.getClientSocket().getInetAddress(), Integer.parseInt(inputList2.get(1)));

@@ -168,8 +168,6 @@ public class NetworkService extends Service {
      * @param clientSocket A socket object of the newly connected user.
      */
     public static void studentThreadManager(Socket clientSocket) {
-        Log.e(TAG, "New client: " + clientSocket.getInetAddress().getHostAddress());
-
         ClientResult result = manageClientID(clientSocket);
         int ID = result.getID();
         boolean reconnect = result.getReconnect();

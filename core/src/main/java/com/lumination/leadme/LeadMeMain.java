@@ -2544,8 +2544,11 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
         //TODO AUTO next update variables. do not include in the production just yet
         if(LeadMeMain.FLAG_UPDATES) {
-            autoToggle.setVisibility(enabled);
             transferToggle.setVisibility(enabled);
+        }
+
+        if(LeadMeMain.FLAG_INSTALLER) {
+            autoToggle.setVisibility(enabled);
         }
     }
 
