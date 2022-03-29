@@ -156,7 +156,7 @@ public class NetworkManager {
             connectToServer(NSDManager.getChosenServiceInfo());
         } else {
             Log.d(TAG, "connectToServer: reconnection unsuccessful");
-            main.runOnUiThread(() -> main.setUIDisconnected());
+            main.runOnUiThread(() -> main.getNearbyManager().disconnectFromEndpoint(""));
         }
     }
 

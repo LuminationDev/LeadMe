@@ -40,6 +40,12 @@ public class ScreensharingService extends Service {
     }
 
     @Override
+    public void onDestroy() {
+        super.onDestroy();
+        endForeground();
+    }
+
+    @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         return START_NOT_STICKY;
     }
@@ -63,10 +69,10 @@ public class ScreensharingService extends Service {
         startForeground(notificationId, notification);
     }
 
-//    public void endForeground() {
-//        stopSelf();
-//        stopForeground(true);
-//    }
+    public void endForeground() {
+        stopSelf();
+        stopForeground(true);
+    }
 
     @Override
     public IBinder onBind(Intent intent) {

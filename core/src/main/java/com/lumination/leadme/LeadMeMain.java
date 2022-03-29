@@ -2332,7 +2332,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         if (nearbyManager.isDiscovering()) {
             getNearbyManager().nsdManager.stopDiscovery();
         }
-        startClient();
+//        startClient();
         getFirebaseManager().retrieveLeaders();
     }
 
@@ -2405,8 +2405,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
      */
     private void logoutResetController() {
         Log.d(TAG, "Resetting controller");
-        getFirebaseManager().stopService();
-        getNetworkManager().stopService();
         xrayManager.resetClientMaps(null);
         getDispatcher().alertLogout(); //need to send this before resetting 'isGuide'
         NetworkService.resetClientIDs();
@@ -2414,6 +2412,8 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         getNearbyManager().onStop(); //disconnect everyone
         getLeaderSelectAdapter().setLeaderList(new ArrayList<>()); //empty the list
         setUIDisconnected();
+        getFirebaseManager().stopService();
+        getNetworkManager().stopService();
         showSplashScreen();
         moveAwayFromSplashScreen();
         isGuide = false;
@@ -3319,6 +3319,8 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             scheduledCheck.cancel(true);
         }
 
+        screenSharingManager.startService(false);
+
         if(page==2 && !sessionManual && !directConnection) {
             getNearbyManager().connectToSelectedLeader();
             dialogManager.showWaitingForConnectDialog();
@@ -3339,8 +3341,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         getNearbyManager().nsdManager.stopDiscovery();
 
         optionsScreen.findViewById(R.id.connected_only_view).setVisibility(View.VISIBLE);
-
-        screenSharingManager.startService(false);
     }
 
     public void onTrimMemory(int level) {
