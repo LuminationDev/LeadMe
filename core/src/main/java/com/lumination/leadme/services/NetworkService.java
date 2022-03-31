@@ -13,6 +13,7 @@ import android.util.Log;
 
 import androidx.core.app.NotificationCompat;
 
+import com.lumination.leadme.LeadMeMain;
 import com.lumination.leadme.R;
 import com.lumination.leadme.connections.TcpClient;
 import com.lumination.leadme.connections.StudentThread;
@@ -278,7 +279,7 @@ public class NetworkService extends Service {
     }
 
     public void endForeground() {
-        stopAllFunction();
+        if(LeadMeMain.isGuide) {stopAllFunction();}
         stopSelf();
         stopForeground(true);
     }

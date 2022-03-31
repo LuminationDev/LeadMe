@@ -54,6 +54,7 @@ public class NetworkManager {
     private boolean init = false; //check if connection has been initialised
     public static boolean pingName = true;
     public static boolean allowInput = true;
+    public static boolean leaderDisconnect = false;
     public static int connectionIsActive = 0;
 
     public static ArrayList<Client> currentClients = new ArrayList<>();
@@ -71,6 +72,7 @@ public class NetworkManager {
      */
     public void startService() {
         Log.d(TAG, "startService: ");
+        leaderDisconnect = false;
         Intent network_intent = new Intent(main.getApplicationContext(), NetworkService.class);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             main.startForegroundService(network_intent);
@@ -150,12 +152,17 @@ public class NetworkManager {
      * splash screen.
      */
     private void tryReconnect() {
+        if(leaderDisconnect) {
+            Log.d(TAG, "Leader has finished the session");
+            return;
+        }
         Log.d(TAG, "connectToServer: Socket disconnected attempting to reconnect");
         if (tries <= 10) {
             tries++;
             connectToServer(NSDManager.getChosenServiceInfo());
         } else {
             Log.d(TAG, "connectToServer: reconnection unsuccessful");
+            stopService();
             main.runOnUiThread(() -> main.getNearbyManager().disconnectFromEndpoint(""));
         }
     }
@@ -236,6 +243,10 @@ public class NetworkManager {
      * reconnection if a socket is closed prematurely.
      */
     public void startClientInputListener() {
+        if(leaderDisconnect) {
+            return;
+        }
+
         if(socketThreadPool != null) {
             socketThreadPool.shutdown();
         }
@@ -308,7 +319,7 @@ public class NetworkManager {
 
             cleanUpInput();
 
-            if(!LeadMeMain.destroying) {
+            if(!LeadMeMain.destroying && !leaderDisconnect) {
                 connectToServer(NSDManager.getChosenServiceInfo());
             }
             Log.e(TAG, "FAILED! {4}");
@@ -537,6 +548,7 @@ public class NetworkManager {
      */
     public void receivedDisconnect() {
         Log.w(TAG, "Disconnect. Guide? " + LeadMeMain.isGuide);
+        NetworkManager.leaderDisconnect = true;
         if (NetworkManager.getClientSocket() != null) {
             try {
                 NetworkManager.getClientSocket().close();
@@ -547,6 +559,7 @@ public class NetworkManager {
         }
 
         main.getNearbyManager().disconnectFromEndpoint("");
+        stopService();
     }
 
     /**

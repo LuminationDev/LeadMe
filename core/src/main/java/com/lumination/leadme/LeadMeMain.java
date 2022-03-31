@@ -2406,7 +2406,17 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     private void logoutResetController() {
         Log.d(TAG, "Resetting controller");
         xrayManager.resetClientMaps(null);
+        //I dont like this but sometimes sending it once doesn't work....
         getDispatcher().alertLogout(); //need to send this before resetting 'isGuide'
+        getDispatcher().alertLogout(); //need to send this before resetting 'isGuide'
+
+        //Purposely block to make sure all students receive the disconnect command
+        try {
+            Thread.sleep(2000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
         NetworkService.resetClientIDs();
         getConnectedLearnersAdapter().resetOnLogout();
         getNearbyManager().onStop(); //disconnect everyone

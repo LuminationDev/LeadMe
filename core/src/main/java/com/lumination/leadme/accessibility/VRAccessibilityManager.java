@@ -23,7 +23,8 @@ public class VRAccessibilityManager {
     public static final int CUE_STOP = 2;
     public static final int CUE_FWD = 3;
     public static final int CUE_RWD = 4;
-    public static final int CUE_SET_SOURCE = 5;
+    public static final int CUE_PROJECTION = 5;
+    public static final int CUE_SET_SOURCE = 6;
 
     private final LeadMeMain main;
 
@@ -69,6 +70,10 @@ public class VRAccessibilityManager {
                 newIntent("rwd");
                 break;
 
+            case CUE_PROJECTION:
+                changeProjection(info);
+                break;
+
             case CUE_SET_SOURCE:
                 setSource(info);
                 break;
@@ -77,6 +82,16 @@ public class VRAccessibilityManager {
                 Log.e(TAG, "Action unknown");
                 break;
         }
+    }
+
+    private void changeProjection(String info) {
+        Log.e(TAG, info);
+
+        //Example
+        String proj = "projection:" + info;
+
+        //Send a source intent with the projection action and the type
+        newIntent(proj);
     }
 
     /*TODO application needs to be opened once so that the user can allow file permissions otherwise

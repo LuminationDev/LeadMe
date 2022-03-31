@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="fill_parent"
     android:layout_height="wrap_content"
@@ -37,7 +37,6 @@
                 android:drawableTop="@drawable/icon_restart_dark"
                 android:fontFamily="@font/poppins_regular"
                 android:gravity="center_horizontal"
-                android:text="Push\nagain"
                 android:textAllCaps="false"
                 android:textColor="@color/leadme_dark_grey"
                 android:textSize="11sp"
@@ -115,7 +114,8 @@
                 android:background="@color/leadme_darkest_grey"
                 android:gravity="center"
                 android:orientation="horizontal"
-                android:padding="10dp">
+                android:padding="10dp"
+                android:baselineAligned="false">
 
                 <LinearLayout
                     android:layout_width="wrap_content"
@@ -143,7 +143,8 @@
                             android:includeFontPadding="false"
                             android:src="@drawable/vid_play"
                             android:textColor="@color/leadme_white"
-                            android:textSize="12sp" />
+                            android:textSize="12sp"
+                            android:contentDescription="@string/play_button" />
 
                         <ImageView
                             android:id="@+id/pause_btn"
@@ -156,7 +157,8 @@
                             android:includeFontPadding="false"
                             android:src="@drawable/vid_pause_highlight"
                             android:textColor="@color/leadme_white"
-                            android:textSize="12sp" />
+                            android:textSize="12sp"
+                            android:contentDescription="@string/pause_button" />
 
                         <ImageView
                             android:id="@+id/mute_btn"
@@ -169,7 +171,8 @@
                             android:includeFontPadding="false"
                             android:src="@drawable/vid_mute"
                             android:textColor="@color/leadme_white"
-                            android:textSize="12sp" />
+                            android:textSize="12sp"
+                            android:contentDescription="@string/mute_button" />
 
                         <ImageView
                             android:id="@+id/unmute_btn"
@@ -182,7 +185,22 @@
                             android:includeFontPadding="false"
                             android:src="@drawable/vid_unmute"
                             android:textColor="@color/leadme_white"
-                            android:textSize="12sp" />
+                            android:textSize="12sp"
+                            android:contentDescription="@string/unmute_button" />
+
+                        <ImageView
+                            android:id="@+id/change_projection_btn"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center"
+                            android:layout_marginStart="35dp"
+                            android:fontFamily="@font/poppins_semibold"
+                            android:gravity="center_horizontal"
+                            android:includeFontPadding="false"
+                            android:src="@drawable/dropdown_indicator"
+                            android:textColor="@color/leadme_white"
+                            android:textSize="12sp"
+                            android:contentDescription="@string/change_projection_button" />
                     </LinearLayout>
 
 <!--                    KEEP FOR LATER - might add flat screen mode for viewing-->
@@ -207,14 +225,14 @@
 <!--                            android:layout_marginStart="5dp"-->
 <!--                            android:layout_marginEnd="10dp"-->
 <!--                            android:layout_weight="0"-->
-<!--                            android:checked="false"-->
+<!--                            android:checked="true"-->
 <!--                            android:fontFamily="@font/poppins_semibold"-->
 <!--                            android:gravity="left|center_vertical"-->
 <!--                            android:includeFontPadding="false"-->
 <!--                            android:showText="false"-->
 <!--                            android:switchMinWidth="50dp"-->
 <!--                            android:switchPadding="10dp"-->
-<!--                            android:text="VR Mode OFF"-->
+<!--                            android:text="VR Mode ON"-->
 <!--                            android:textColor="@color/leadme_white"-->
 <!--                            android:textSize="14sp"-->
 <!--                            android:thumb="@drawable/toggle_thumb"-->
@@ -234,7 +252,8 @@
                             android:gravity="end"
                             android:paddingBottom="10dp"
                             android:src="@drawable/controls_view"
-                            android:tint="@color/leadme_blue" />
+                            android:tint="@color/leadme_blue"
+                            android:contentDescription="@string/lock_icon" />
 
                         <LinearLayout
                             android:layout_width="wrap_content"
@@ -277,54 +296,52 @@
 
         </LinearLayout>
 
-    </LinearLayout>
-
-    <LinearLayout
-        android:id="@+id/playback_btns"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"
-        android:orientation="vertical"
-        android:paddingBottom="10dp">
-
-        <Button
-            android:id="@+id/new_video_btn"
-            style="?android:attr/borderlessButtonStyle"
-            android:layout_width="@dimen/standard_btn_width"
-            android:layout_height="@dimen/standard_btn_height"
-            android:layout_gravity="center_horizontal"
-            android:background="@drawable/bg_active"
-            android:clickable="true"
-            android:focusable="true"
-            android:fontFamily="@font/poppins_semibold"
-            android:text="@string/new_video"
-            android:textAllCaps="false"
-            android:textColor="@color/leadme_white"
-            android:textSize="16sp"
-            app:layout_gravity="center_horizontal" />
-
-        <Space
-            android:layout_width="52dp"
-            android:layout_height="match_parent"
-            android:visibility="gone" />
-
-        <Button
-            android:id="@+id/video_back_btn"
-            style="?android:attr/borderlessButtonStyle"
-            android:layout_width="@dimen/standard_btn_width"
-            android:layout_height="@dimen/standard_btn_height"
-            android:layout_gravity="center_horizontal"
+        <LinearLayout
+            android:id="@+id/playback_btns"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
-            android:background="@drawable/bg_passive"
-            android:clickable="true"
-            android:focusable="true"
-            android:fontFamily="@font/poppins_semibold"
-            android:text="@string/back"
-            android:textAllCaps="false"
-            android:textColor="@color/leadme_darkest_grey"
-            android:textSize="16sp"
-            app:layout_gravity="center_horizontal" />
+            android:orientation="vertical"
+            android:paddingBottom="10dp">
 
+            <Button
+                android:id="@+id/new_video_btn"
+                style="?android:attr/borderlessButtonStyle"
+                android:layout_width="@dimen/standard_btn_width"
+                android:layout_height="@dimen/standard_btn_height"
+                android:layout_gravity="center_horizontal"
+                android:background="@drawable/bg_active"
+                android:clickable="true"
+                android:focusable="true"
+                android:fontFamily="@font/poppins_semibold"
+                android:text="@string/new_video"
+                android:textAllCaps="false"
+                android:textColor="@color/leadme_white"
+                android:textSize="16sp"
+                app:layout_gravity="center_horizontal" />
+
+            <Space
+                android:layout_width="52dp"
+                android:layout_height="match_parent"
+                android:visibility="gone" />
+
+            <Button
+                android:id="@+id/video_back_btn"
+                style="?android:attr/borderlessButtonStyle"
+                android:layout_width="@dimen/standard_btn_width"
+                android:layout_height="@dimen/standard_btn_height"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginTop="10dp"
+                android:background="@drawable/bg_passive"
+                android:clickable="true"
+                android:focusable="true"
+                android:fontFamily="@font/poppins_semibold"
+                android:text="@string/back"
+                android:textAllCaps="false"
+                android:textColor="@color/leadme_darkest_grey"
+                android:textSize="16sp"
+                app:layout_gravity="center_horizontal" />
+
+        </LinearLayout>
     </LinearLayout>
-
-</LinearLayout>
+</RelativeLayout>
