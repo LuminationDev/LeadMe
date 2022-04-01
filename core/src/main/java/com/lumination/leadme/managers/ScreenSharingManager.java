@@ -97,6 +97,7 @@ public class ScreenSharingManager {
         if(StartOnReturn){
             startImed=true;
         }
+
         main.startActivityForResult(projectionManager.createScreenCaptureIntent(), main.SCREEN_CAPTURE);
     }
 

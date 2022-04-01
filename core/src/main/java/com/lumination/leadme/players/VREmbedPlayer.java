@@ -1,5 +1,7 @@
 package com.lumination.leadme.players;
 
+import static android.view.View.GONE;
+
 import android.app.AlertDialog;
 import android.content.res.ColorStateList;
 import android.database.Cursor;
@@ -8,8 +10,11 @@ import android.provider.OpenableColumns;
 import android.text.format.DateUtils;
 import android.util.Log;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.PopupWindow;
 import android.widget.SeekBar;
 import android.widget.Switch;
 import android.widget.TextView;
@@ -39,7 +44,7 @@ public class VREmbedPlayer {
     private final static String TAG = "embedPlayerVR";
     //Package name of the external VR player
     public final static String packageName = "com.lumination.VRPlayer";
-    private String appName = "VRPlayer"; //Past to the app manager
+    private final String appName = "VRPlayer"; //Past to the app manager
 
     private String fileName;
     private Boolean firstOpen = true;
@@ -48,6 +53,12 @@ public class VREmbedPlayer {
 
     private final View videoControllerDialogView; //, videoControls
     private final VideoView controllerVideoView;
+
+    private View projectionDropdown;
+    private PopupWindow popupWindow;
+    private ImageView changeProjectionBtn;
+    private LinearLayout monoBtn, eacBtn, eac3dBtn, ouBtn, sbsBtn;
+    private TextView monoText, eacText, eac3dText, ouText, sbsText;
 
     private Button vrplayerPreviewPushBtn, vrplayerSetSourceBtn;
     private VideoView vrplayerPreviewVideoView;
@@ -77,6 +88,8 @@ public class VREmbedPlayer {
         playBtn = videoControllerDialogView.findViewById(R.id.play_btn);
         pauseBtn = videoControllerDialogView.findViewById(R.id.pause_btn);
 
+        setupProjectionDropdown();
+
         createPlaybackSettingsPopup();
         setupGuideVideoControllerButtons();
 
@@ -91,6 +104,58 @@ public class VREmbedPlayer {
             if(startFromTime != 0) {
                 controllerVideoView.seekTo(startFromTime * 1000);
             }
+        });
+    }
+
+    /**
+     * Setup the projection dropdown by adding onclick listeners for each of the
+     * projection types available.
+     */
+    private void setupProjectionDropdown() {
+        changeProjectionBtn = videoControllerDialogView.findViewById(R.id.change_projection_btn);
+        projectionDropdown = View.inflate(main, R.layout.e__projection_menu, null);
+        popupWindow = new PopupWindow(
+                projectionDropdown,
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT);
+
+        popupWindow.setOutsideTouchable(true);
+        popupWindow.setElevation(10);
+        popupWindow.setOnDismissListener(() -> {});
+
+        monoText = projectionDropdown.findViewById(R.id.mono_text);
+        monoBtn = projectionDropdown.findViewById(R.id.mono_toggle);
+        monoBtn.setOnClickListener(v -> {
+            changeProjection("mono");
+            changeSelectedProjection(monoText);
+        });
+
+        eacText = projectionDropdown.findViewById(R.id.eac_text);
+        eacBtn = projectionDropdown.findViewById(R.id.eac_toggle);
+        eacBtn.setOnClickListener(v -> {
+            changeProjection("eac");
+            changeSelectedProjection(eacText);
+        });
+
+        eac3dText = projectionDropdown.findViewById(R.id.eac3d_text);
+        eac3dBtn = projectionDropdown.findViewById(R.id.eac3d_toggle);
+        eac3dBtn.setOnClickListener(v -> {
+            changeProjection("eac3d");
+            changeSelectedProjection(eac3dText);
+        });
+
+        ouText = projectionDropdown.findViewById(R.id.over_under_text);
+        ouBtn = projectionDropdown.findViewById(R.id.over_under_toggle);
+        ouBtn.setOnClickListener(v -> {
+            changeProjection("ou");
+            changeSelectedProjection(ouText);
+        });
+
+        sbsText = projectionDropdown.findViewById(R.id.side_by_side_text);
+        sbsBtn = projectionDropdown.findViewById(R.id.side_by_side_toggle);
+        sbsBtn.setOnClickListener(v -> {
+            changeProjection("sbs");
+            changeSelectedProjection(sbsText);
         });
     }
 
@@ -486,12 +551,17 @@ public class VREmbedPlayer {
             firstOpen = false;
         });
 
-        videoControllerDialogView.findViewById(R.id.play_btn).setOnClickListener(v ->
+        playBtn.setOnClickListener(v ->
             playVideo()
         );
 
-        videoControllerDialogView.findViewById(R.id.pause_btn).setOnClickListener(v ->
+        pauseBtn.setOnClickListener(v ->
             pauseVideo()
+        );
+
+        //TODO not anchored correctly
+        changeProjectionBtn.setOnClickListener(v ->
+                popupWindow.showAsDropDown(v,-200,-100)
         );
 
         videoControllerDialogView.findViewById(R.id.mute_btn).setOnClickListener(v ->
@@ -569,6 +639,41 @@ public class VREmbedPlayer {
         main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG,
                 LeadMeMain.VR_PLAYER_TAG + ":" + VRAccessibilityManager.CUE_SET_SOURCE + ":" + fileName + ":" + startTime,
                 main.getNearbyManager().getSelectedPeerIDsOrAll());
+    }
+
+    /**
+     * Send an action to the connected peers.
+     * @param type A string representing what type the projection should change to.
+     */
+    private void changeProjection(String type) {
+        main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG,
+                LeadMeMain.VR_PLAYER_TAG + ":" + VRAccessibilityManager.CUE_PROJECTION + ":" + type,
+                main.getNearbyManager().getSelectedPeerIDsOrAll());
+    }
+
+    /**
+     * Change the drawable to display which of the projection types is currently active
+     * @param view A view representing which of the projection types has just been selected.
+     */
+    private void changeSelectedProjection(TextView view) {
+        view.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_arrow ,0,0,0);
+
+        changeToDefault(view, monoText);
+        changeToDefault(view, eacText);
+        changeToDefault(view, eac3dText);
+        changeToDefault(view, ouText);
+        changeToDefault(view, sbsText);
+    }
+
+    /**
+     * Change a textview back to the default if it has not been selected.
+     * @param selected A textview that has just been selected.
+     * @param old A textview to compare against.
+     */
+    private void changeToDefault(TextView selected, TextView old) {
+        if(selected != old) {
+            old.setCompoundDrawablesWithIntrinsicBounds(R.drawable.icon_disconnect_peer ,0,0,0);
+        }
     }
 
     private void playVideo() {

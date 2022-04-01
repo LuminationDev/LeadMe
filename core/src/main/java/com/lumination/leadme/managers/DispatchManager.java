@@ -697,6 +697,7 @@ public class DispatchManager {
         private void vrPlayerAction(String action) {
             Log.d(TAG, "VR PLAYER - " + packageNameRepush);
             String[] split = action.split(":");
+
             //Used to set the source but can be used in the future for projection changes etc.
             String additionalInfo = "";
             if(Integer.parseInt(split[1]) == VRAccessibilityManager.CUE_SET_SOURCE) {
@@ -704,6 +705,9 @@ public class DispatchManager {
                 additionalInfo += ":" + split[3]; //start time
             }
 
+            if(Integer.parseInt(split[1]) == VRAccessibilityManager.CUE_PROJECTION) {
+                additionalInfo = split[2]; //projection type
+            }
             main.getVRAccessibilityManager().videoPlayerAction(Integer.parseInt(split[1]), additionalInfo);
         }
 

@@ -182,5 +182,17 @@
     <string name="search_within">Search Within</string>
     <string name="following">Following</string>
     <string name="check_details">Please check you have entered your details correctly.</string>
+    <string name="play_button">Play Button</string>
+    <string name="pause_button">Pause Button</string>
+    <string name="mute_button">Mute Button</string>
+    <string name="unmute_button">Unmute Button</string>
+    <string name="change_projection_button">Change Projection Button</string>
+    <string name="lock_icon">Lock Icon</string>
+    <string name="projection_types">Projection Types</string>
+    <string name="eac">EAC</string>
+    <string name="eac_3d">EAC 3D</string>
+    <string name="over_under">Over Under</string>
+    <string name="side_by_side">Side By Side</string>
+    <string name="mono">Mono</string>
 
 </resources>
