@@ -4,7 +4,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <data>
-        <import type="java.util.ArrayList"></import>
+        <import type="java.util.ArrayList" />
         <variable
             name="curatedContentList"
             type="ArrayList" />
@@ -31,7 +31,8 @@
                 android:layout_height="30dp"
                 android:layout_gravity="center_vertical"
                 android:layout_marginStart="15dp"
-                android:src="@drawable/arrow_icon" />
+                android:src="@drawable/arrow_icon"
+                android:contentDescription="Preview image" />
 
             <TextView
                 android:id="@+id/App_title_top"
@@ -58,10 +59,10 @@
                 android:drawablePadding="5dp"
                 android:fontFamily="@font/poppins_semibold"
                 android:padding="8dp"
-                android:textSize="12dp"
+                android:textSize="12sp"
                 android:layout_margin="8dp"
                 android:textAllCaps="false"
-                android:drawableRight="@drawable/icon_filter"
+                android:drawableEnd="@drawable/icon_filter"
                 android:background="@color/transparent">
             </Button>
             <Button
@@ -72,10 +73,10 @@
                 android:text="Search"
                 android:fontFamily="@font/poppins_semibold"
                 android:padding="8dp"
-                android:textSize="12dp"
+                android:textSize="12sp"
                 android:layout_margin="8dp"
                 android:textAllCaps="false"
-                android:drawableRight="@drawable/search_icon_simple_small_blue"
+                android:drawableEnd="@drawable/search_icon_simple_small_blue"
                 android:background="@color/transparent">
             </Button>
         </LinearLayout>
@@ -83,9 +84,6 @@
         <LinearLayout
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
-            android:layout_centerInParent="true"
-            android:layout_centerHorizontal="true"
-            android:layout_centerVertical="true"
             android:background="@drawable/rounded_popup_white"
             android:gravity="center"
             android:orientation="vertical"
@@ -93,6 +91,7 @@
 
             <ListView
                 android:id="@+id/curated_content_list"
+                android:divider="@null"
                 android:layout_width="fill_parent"
                 android:layout_height="fill_parent"
                 android:fontFamily="@font/poppins_regular"
@@ -103,7 +102,7 @@
                 android:scrollbars="vertical"
                 android:textColor="@color/leadme_light_grey"
                 android:visibility="visible"
-                tools:listitem="@layout/row_curated_content_item"></ListView>
+                tools:listitem="@layout/row_curated_content_item" />
 
             <TextView
                 android:id="@+id/no_curated_content_message"
