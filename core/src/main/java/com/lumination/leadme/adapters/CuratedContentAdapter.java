@@ -83,6 +83,19 @@ public class CuratedContentAdapter extends BaseAdapter {
             UrlImageViewHelper.setUrlDrawable(imageView, curatedContentItem.img_url);
         }
 
+        ImageView curatedContentTypeIcon = result.findViewById(R.id.curated_content_type_icon);
+        switch (curatedContentItem.type) {
+            case WITHIN:
+                curatedContentTypeIcon.setBackground(main.getResources().getDrawable(R.drawable.search_within, null));
+                break;
+            case YOUTUBE:
+                curatedContentTypeIcon.setBackground(main.getResources().getDrawable(R.drawable.core_yt_icon, null));
+                break;
+            case LINK:
+                curatedContentTypeIcon.setBackground(main.getResources().getDrawable(R.drawable.task_website_icon, null));
+                break;
+        }
+
         return result;
     }
 }

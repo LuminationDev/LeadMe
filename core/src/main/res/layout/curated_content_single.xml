@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<layout xmlns:android="http://schemas.android.com/apk/res/android"
+<layout xmlns:tools="http://schemas.android.com/tools"
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <data>
@@ -17,93 +18,229 @@
         android:layout_centerHorizontal="true"
         android:orientation="vertical"
         app:layout_anchorGravity="center_horizontal">
-        <androidx.cardview.widget.CardView
-            android:layout_width="match_parent"
-            android:layout_height="50dp"
-            android:background="@color/leadme_white"
-            app:cardBackgroundColor="#FFFFFF"
-            app:cardElevation="10dp">
-
-            <ImageView
-                android:id="@+id/curated_content_back_button"
-                android:layout_width="30dp"
-                android:layout_height="30dp"
-                android:layout_gravity="center_vertical"
-                android:layout_marginStart="15dp"
-                android:src="@drawable/arrow_icon" />
-
-            <TextView
-                android:id="@+id/App_title_top"
+        <LinearLayout
+            android:layout_width="fill_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:layout_marginHorizontal="15dp"
+            android:layout_marginTop="15dp"
+            >
+            <RelativeLayout
                 android:layout_width="wrap_content"
-                android:layout_height="fill_parent"
-                android:layout_gravity="bottom|center_horizontal"
-                android:fontFamily="@font/poppins_semibold"
-                android:gravity="center_vertical"
-                android:text="@{curatedContentItem != null ? curatedContentItem.title : ``, default=`Giant Manta Rays`}"
-                android:textColor="@color/leadme_black"
-                android:textSize="18sp" />
+                android:layout_height="match_parent">
 
-        </androidx.cardview.widget.CardView>
-        <ImageView
-            android:id="@+id/img_view"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content">
-        </ImageView>
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@{curatedContentItem != null ? curatedContentItem.title : ``, default=`Giant Manta Rays`}"></TextView>
-        <CheckBox
-            android:id="@+id/fav_checkbox_curated_content"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="5dp"
-            android:button="@drawable/star_checkbox"
-            android:checked="false"
-            android:fontFamily="@font/poppins_semibold"
-            android:includeFontPadding="false"
-            android:paddingStart="5dp"
-            android:paddingEnd="5dp"
-            android:textColor="@color/leadme_black"
-            android:textSize="14sp"
-            android:text="@string/add_to_favourites"
-            android:onCheckedChanged="@{(button, checked) -> CuratedContentManager.addToFavourites(curatedContentItem.link, curatedContentItem.title, curatedContentItem.type, checked)}"/>
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Quick Ideas"></TextView>
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@{curatedContentItem.description, default=`This is some default description text`}"></TextView>
+                <ImageView
+                    android:id="@+id/img_view"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:background="@drawable/rounded_btn_highlight"
+                    android:scaleType="centerCrop" />
+
+                <ImageView
+                    android:id="@+id/curated_content_type_icon"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentBottom="true"
+                    android:layout_marginLeft="15dp"
+                    android:layout_marginBottom="15dp"
+                    android:background="@drawable/core_yt_icon" />
+            </RelativeLayout>
+        </LinearLayout>
+
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="0dp"
+            android:gravity="center"
+            android:layout_weight="3"
+            android:layout_marginTop="10dp"
             android:orientation="vertical">
-            <Button
-                style="?android:attr/borderlessButtonStyle"
-                android:layout_gravity="center_horizontal"
-                android:background="@drawable/bg_active"
-                android:fontFamily="@font/poppins_semibold"
-                android:textAllCaps="false"
-                android:textColor="@color/leadme_white"
-                android:id="@+id/select_item"
-                android:layout_height="wrap_content"
+            <ScrollView
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1">
+                <LinearLayout
+                    android:paddingVertical="20dp"
+                    android:paddingHorizontal="15dp"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:orientation="vertical">
+
+                    <LinearLayout
+                        android:layout_width="fill_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:breakStrategy="simple"
+                            android:ellipsize="end"
+                            android:fontFamily="@font/poppins_semibold"
+                            android:singleLine="true"
+                            android:text="@{curatedContentItem != null ? curatedContentItem.title : `nothing`, default=`Giant Manta Rays` }"
+                            android:textColor="@color/leadme_black"
+                            android:textSize="18sp" />
+
+                        <ImageView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:src="@drawable/task_vr_icon" />
+                    </LinearLayout>
+
+                    <CheckBox
+                        android:id="@+id/fav_checkbox_curated_content"
+                        android:layout_width="fill_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="10dp"
+                        android:button="@drawable/star_checkbox"
+                        android:checked="false"
+                        android:fontFamily="@font/poppins_semibold"
+                        android:includeFontPadding="false"
+                        android:onCheckedChanged="@{(button, checked) -> CuratedContentManager.addToFavourites(curatedContentItem.link, curatedContentItem.title, curatedContentItem.type, checked)}"
+                        android:paddingStart="10dp"
+                        android:paddingEnd="10dp"
+                        android:text="@string/add_to_favourites"
+                        android:textColor="@color/leadme_black"
+                        android:textSize="14sp" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="20dp"
+                        android:fontFamily="@font/poppins_semibold"
+                        android:text="Quick Ideas"
+                        android:textColor="@color/leadme_black"
+                        android:textSize="16sp" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@{curatedContentItem.description, default=`Use this for empathising with climate change related topics. Ask students to research microplastics then create a VR experience in CoSpaces demonstrating their learnings.`}"
+                        android:textColor="@color/leadme_black"
+                        android:textSize="15sp" />
+
+                    <LinearLayout
+                        android:layout_width="fill_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="20dp"
+                        android:orientation="horizontal">
+
+                        <LinearLayout
+                            android:layout_width="fill_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:fontFamily="@font/poppins_semibold"
+                                android:text="Years"
+                                android:textColor="@color/leadme_black"
+                                android:textSize="12sp" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:breakStrategy="simple"
+                                android:ellipsize="end"
+                                android:gravity="start|center_vertical"
+                                android:text="@{curatedContentItem != null ? curatedContentItem.years : ``, default=`1, 2, 3, 4` }"
+                                android:textAlignment="textStart"
+                                android:textColor="@color/leadme_black"
+                                android:textSize="12sp" />
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:layout_width="fill_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:fontFamily="@font/poppins_semibold"
+                                android:text="Subjects"
+                                android:textColor="@color/leadme_black"
+                                android:textSize="12sp" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:breakStrategy="simple"
+                                android:ellipsize="end"
+                                android:hyphenationFrequency="none"
+                                android:text="@{curatedContentItem != null ? curatedContentItem.subject : ``, default=`Geography, Science, Maths` }"
+                                android:textAlignment="textStart"
+                                android:textColor="@color/leadme_black"
+                                android:textSize="12sp" />
+                        </LinearLayout>
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="fill_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="10dp"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:fontFamily="@font/poppins_semibold"
+                            android:text="Topics"
+                            android:textAlignment="textStart"
+                            android:textColor="@color/leadme_black"
+                            android:textSize="12sp" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:breakStrategy="simple"
+                            android:ellipsize="end"
+                            android:gravity="start|center_vertical"
+                            android:hyphenationFrequency="none"
+                            android:text="@{curatedContentItem != null ? curatedContentItem.topics : ``, default=`climate change, plastics, oceans, pollution, waste management, microplastics, weather, manta rays` }"
+                            android:textAlignment="textStart"
+                            android:textColor="@color/leadme_black"
+                            android:textSize="12sp" />
+                    </LinearLayout>
+                </LinearLayout>
+            </ScrollView>
+
+            <LinearLayout
                 android:layout_width="wrap_content"
-                android:layout_marginLeft="10dp"
-                android:text="Select"/>
-            <Button
-                style="?android:attr/borderlessButtonStyle"
-                android:layout_gravity="center_horizontal"
-                android:background="@drawable/bg_white"
-                android:fontFamily="@font/poppins_semibold"
-                android:textAllCaps="false"
-                android:textColor="@color/leadme_blue"
-                android:id="@+id/close_curated_content_single"
                 android:layout_height="wrap_content"
-                android:layout_width="wrap_content"
-                android:layout_marginRight="10dp"
-                android:text="Back"/>
+                android:gravity="end"
+                android:orientation="vertical"
+                android:layout_marginVertical="10dp">
+
+                <Button
+                    android:id="@+id/select_item"
+                    style="?android:attr/borderlessButtonStyle"
+                    android:layout_width="160dp"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_horizontal"
+                    android:background="@drawable/bg_active"
+                    android:fontFamily="@font/poppins_semibold"
+                    android:text="Push"
+                    android:textAllCaps="false"
+                    android:textColor="@color/leadme_white" />
+
+                <Button
+                    android:id="@+id/close_curated_content_single"
+                    style="?android:attr/borderlessButtonStyle"
+                    android:layout_width="160dp"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_marginTop="10dp"
+                    android:background="@drawable/bg_passive"
+                    android:fontFamily="@font/poppins_semibold"
+                    android:text="Back"
+                    android:textAllCaps="false"
+                    android:textColor="@color/black" />
+            </LinearLayout>
         </LinearLayout>
     </LinearLayout>
 </layout>
