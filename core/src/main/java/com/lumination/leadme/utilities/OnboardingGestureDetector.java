@@ -54,7 +54,7 @@ public class OnboardingGestureDetector extends android.view.GestureDetector.Simp
     }
     public void toLeft(){
         Log.d(TAG, "toLeft: ");
-        if(main.onBoardPage<4) {
+        if(main.onBoardPage<5) {
             main.setOnboardCurrent(main.onBoardPage+1);
         }
     }

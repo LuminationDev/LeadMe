@@ -634,7 +634,7 @@ public class WebManager {
     }
 
     @SuppressWarnings("SpellCheckingInspection")
-    public String getYouTubeID(String youTubeUrl) {
+    public static String getYouTubeID(String youTubeUrl) {
         Log.d(TAG, "getYouTubeID: ");
         if (!youTubeUrl.toLowerCase().contains("youtu.be") && !youTubeUrl.toLowerCase().contains("youtube.com") && !youTubeUrl.toLowerCase().contains("youtube-nocookie.com")) {
             Log.w(TAG, "Not a YouTube URL! " + youTubeUrl);
@@ -949,7 +949,7 @@ public class WebManager {
         }
     }
 
-    public String cleanYouTubeURL(String url) {
+    public static String cleanYouTubeURL(String url) {
         Log.d(TAG, "cleanYouTubeURL: ");
         String id = getYouTubeID(url);
         //Log.i(TAG, "YouTube ID = " + id + " from " + url);
@@ -981,7 +981,7 @@ public class WebManager {
         return youTubeEmbedPlayer;
     }
 
-    private final String suffix = "?rel=0&autoplay=0"; //&autoplay=1&start=1&end=10&controls=0&rel=0";
+    private static final String suffix = "?rel=0&autoplay=0"; //&autoplay=1&start=1&end=10&controls=0&rel=0";
 
     public String getSuffix() {
         return suffix;

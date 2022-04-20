@@ -98,6 +98,22 @@
 
         </TextSwitcher>
 
+        <Button
+            android:id="@+id/watch_video"
+            android:visibility="gone"
+            style="?android:attr/borderlessButtonStyle"
+            android:layout_width="130dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:background="@drawable/bg_active"
+            android:clickable="true"
+            android:focusable="true"
+            android:fontFamily="@font/poppins_semibold"
+            android:text="Watch Video"
+            android:textAllCaps="false"
+            android:textColor="@color/leadme_white"
+            android:textSize="14sp" />
+
         <!--        <TextView-->
         <!--            android:id="@+id/onBoard_content"-->
         <!--            android:layout_width="match_parent"-->
@@ -144,7 +160,7 @@
             android:padding="5dp">
 
             <ImageView
-                android:id="@+id/oboard_btn_1"
+                android:id="@+id/onboard_btn_1"
                 android:layout_width="18dp"
                 android:layout_height="18dp"
                 android:layout_marginLeft="8dp"
@@ -158,7 +174,33 @@
                 tools:ignore="UseAppTint" />
 
             <ImageView
-                android:id="@+id/oboard_btn_2"
+                android:id="@+id/onboard_btn_2"
+                android:layout_width="18dp"
+                android:layout_height="18dp"
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="8dp"
+                android:background="@color/leadme_white"
+                android:padding="4dp"
+                android:scaleType="fitXY"
+                android:src="@drawable/circle_btn"
+                android:tint="@color/leadme_medium_grey"
+                tools:ignore="UseAppTint" />
+
+            <ImageView
+                android:id="@+id/onboard_btn_3"
+                android:layout_width="18dp"
+                android:layout_height="18dp"
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="8dp"
+                android:background="@color/leadme_white"
+                android:padding="4dp"
+                android:scaleType="fitXY"
+                android:src="@drawable/circle_btn"
+                android:tint="@color/leadme_medium_grey"
+                tools:ignore="UseAppTint" />
+
+            <ImageView
+                android:id="@+id/onboard_btn_4"
                 android:layout_width="18dp"
                 android:layout_height="18dp"
                 android:layout_marginTop="8dp"
@@ -172,7 +214,7 @@
                 tools:ignore="UseAppTint" />
 
             <ImageView
-                android:id="@+id/oboard_btn_3"
+                android:id="@+id/onboard_btn_5"
                 android:layout_width="18dp"
                 android:layout_height="18dp"
                 android:layout_marginTop="8dp"
@@ -185,21 +227,7 @@
                 tools:ignore="UseAppTint" />
 
             <ImageView
-                android:id="@+id/oboard_btn_4"
-                android:layout_width="18dp"
-                android:layout_height="18dp"
-                android:layout_marginTop="8dp"
-
-                android:layout_marginBottom="8dp"
-                android:background="@color/leadme_white"
-                android:padding="4dp"
-                android:scaleType="fitXY"
-                android:src="@drawable/circle_btn"
-                android:tint="@color/leadme_medium_grey"
-                tools:ignore="UseAppTint" />
-
-            <ImageView
-                android:id="@+id/oboard_btn_5"
+                android:id="@+id/onboard_btn_6"
                 android:layout_width="18dp"
                 android:layout_height="18dp"
                 android:layout_marginTop="8dp"
