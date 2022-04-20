@@ -381,8 +381,8 @@ public class CuratedContentManager {
     }
 
     public static void getCuratedContent(LeadMeMain main) {
-        String curatedContentAPIKey = "AIzaSyDQTgiS6UZ0BCZkpYnevn8QgBi7BVzUOvk"; // API key is public anyway and locked down to sheets API and this app only
-        String curatedContentSpreadsheetId = "1rcQF2vmFQW5LmMPBXSu9qZ5N3fuqXFXjvHlDq-Qhm1Y";
+        String curatedContentAPIKey = "AIzaSyD1ey4a7bo1xqEwhSDy0UQ4bnCEd12srP4"; // API key is public anyway and locked down to sheets API and this app only
+        String curatedContentSpreadsheetId = "1qAmBZyXIHGaRIR1ZdV4r0JC7lRhYOXuAxS23mVvzqgg";
         String url = String.format("https://sheets.googleapis.com/v4/spreadsheets/%s/values/A1:H100?key=%s", curatedContentSpreadsheetId, curatedContentAPIKey);
 
         new Thread(new Runnable() {
