@@ -129,7 +129,6 @@
 
             <LinearLayout
                 android:id="@+id/curated_content_btn"
-                android:visibility="gone"
                 style="@style/LeaderButton"
                 android:orientation="vertical">
                 <LinearLayout

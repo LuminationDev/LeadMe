@@ -11,6 +11,7 @@ import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
@@ -104,8 +105,18 @@ public class CuratedContentManager {
         Button backButton = curatedContentScreenSingle.findViewById(R.id.close_curated_content_single);
         backButton.setOnClickListener(back);
 
-        ImageView topBackButton = curatedContentScreenSingle.findViewById(R.id.curated_content_back_button);
-        topBackButton.setOnClickListener(back);
+        ImageView curatedContentTypeIcon = curatedContentScreenSingle.findViewById(R.id.curated_content_type_icon);
+        switch (curatedContentItem.type) {
+            case WITHIN:
+                curatedContentTypeIcon.setBackground(main.getResources().getDrawable(R.drawable.search_within, null));
+                break;
+            case YOUTUBE:
+                curatedContentTypeIcon.setBackground(main.getResources().getDrawable(R.drawable.core_yt_icon, null));
+                break;
+            case LINK:
+                curatedContentTypeIcon.setBackground(main.getResources().getDrawable(R.drawable.task_website_icon, null));
+                break;
+        }
 
         CheckBox checkBox = curatedContentScreenSingle.findViewById(R.id.fav_checkbox_curated_content);
         checkBox.setChecked(isInFavourites(curatedContentItem.link, curatedContentItem.type));
@@ -215,7 +226,7 @@ public class CuratedContentManager {
 
         // build subject selection spinner
         Spinner subjects = filterSheetDialog.findViewById(R.id.subjects);
-        ArrayAdapter<String> adapter = new ArrayAdapter<String>(main, android.R.layout.simple_spinner_item, (String[]) CuratedContentManager.curatedContentSubjects.toArray(new String[0]));
+        ArrayAdapter<String> adapter = new ArrayAdapter<String>(main, R.layout.spinner_item, (String[]) CuratedContentManager.curatedContentSubjects.toArray(new String[0]));
         subjects.setAdapter(adapter);
 
         RadioGroup videoType = filterSheetDialog.findViewById(R.id.video_type_radio);
@@ -302,6 +313,12 @@ public class CuratedContentManager {
                     curatedContentListSearch.setAdapter(curatedContentAdapterSearch);
                     curatedContentAdapterSearch.curatedContentList = curatedContent;
                     curatedContentAdapterSearch.notifyDataSetChanged();
+                    LinearLayout searchInfo = searchSheetDialog.findViewById(R.id.search_info);
+                    if (curatedContent.size() > 0) {
+                        searchInfo.setVisibility(View.GONE);
+                    } else {
+                        searchInfo.setVisibility(View.VISIBLE);
+                    }
                     // handle clicking on a curated content item, if this starts to get more complicated we'll want to split it out
                     curatedContentListSearch.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                         @Override
@@ -312,7 +329,7 @@ public class CuratedContentManager {
                         }
                     });
                 }
-                return true;
+                return false;
             }
         });
         searchSheetDialog.show();
@@ -339,14 +356,14 @@ public class CuratedContentManager {
     }
 
     public static void filterCuratedContentBySearch (ArrayList<CuratedContentItem> curatedContent, String search) {
-        curatedContent.removeIf(curatedContentItem -> !(curatedContentItem.title.toLowerCase(Locale.ROOT).contains(search) || curatedContentItem.description.toLowerCase(Locale.ROOT).contains(search)));
+        curatedContent.removeIf(curatedContentItem -> !(curatedContentItem.title.toLowerCase(Locale.ROOT).contains(search.trim()) || curatedContentItem.topics.toLowerCase(Locale.ROOT).contains(search.trim())));
     }
 
     public static void filterCuratedContentByYear (ArrayList<CuratedContentItem> curatedContent, int lower, int upper) {
         curatedContent.removeIf(curatedContentItem -> {
             String[] ccYears = curatedContentItem.years.split(",");
             for (int i = 0; i < ccYears.length; i++) {
-                int currentValue = ccYears[i].equals("R") ? 0 : Integer.parseInt(ccYears[i]);
+                int currentValue = ccYears[i].equals("R") ? 0 : Integer.parseInt(ccYears[i].trim());
                 if (currentValue >= lower && currentValue <= upper) {
                     return false;
                 }
