@@ -105,8 +105,18 @@ public class CuratedContentManager {
         Button backButton = curatedContentScreenSingle.findViewById(R.id.close_curated_content_single);
         backButton.setOnClickListener(back);
 
-        ImageView topBackButton = curatedContentScreenSingle.findViewById(R.id.curated_content_back_button);
-        topBackButton.setOnClickListener(back);
+        ImageView curatedContentTypeIcon = curatedContentScreenSingle.findViewById(R.id.curated_content_type_icon);
+        switch (curatedContentItem.type) {
+            case WITHIN:
+                curatedContentTypeIcon.setBackground(main.getResources().getDrawable(R.drawable.search_within, null));
+                break;
+            case YOUTUBE:
+                curatedContentTypeIcon.setBackground(main.getResources().getDrawable(R.drawable.core_yt_icon, null));
+                break;
+            case LINK:
+                curatedContentTypeIcon.setBackground(main.getResources().getDrawable(R.drawable.task_website_icon, null));
+                break;
+        }
 
         CheckBox checkBox = curatedContentScreenSingle.findViewById(R.id.fav_checkbox_curated_content);
         checkBox.setChecked(isInFavourites(curatedContentItem.link, curatedContentItem.type));
