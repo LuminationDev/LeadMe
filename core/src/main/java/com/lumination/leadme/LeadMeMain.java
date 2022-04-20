@@ -3050,7 +3050,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                 break;
             }
         }
-        return appHasFocus && screenOn && (!init || leadmeAnimator.isShown());
+        return appHasFocus && screenOn && (!init || leadmeAnimator.isShown() || (OnBoard != null && OnBoard.isShown()));
     }
 
     public void updateLastTask(Drawable icon, String Name, String appID, String lock) {
@@ -3112,7 +3112,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         GestureDetector gestureDetector = new GestureDetector(this, new OnboardingGestureDetector(this));
         OnBoard.setOnTouchListener((v, event) -> gestureDetector.onTouchEvent(event));
 
-        ImageView[] buttons = {OnBoard.findViewById(R.id.oboard_btn_1), OnBoard.findViewById(R.id.oboard_btn_2), OnBoard.findViewById(R.id.oboard_btn_3), OnBoard.findViewById(R.id.oboard_btn_4), OnBoard.findViewById(R.id.oboard_btn_5)};
+        ImageView[] buttons = {OnBoard.findViewById(R.id.onboard_btn_1), OnBoard.findViewById(R.id.onboard_btn_2), OnBoard.findViewById(R.id.onboard_btn_3), OnBoard.findViewById(R.id.onboard_btn_4), OnBoard.findViewById(R.id.onboard_btn_5)};
         for (int i = 0; i < buttons.length; i++) {
             int ind = i;
             buttons[i].setOnClickListener(new View.OnClickListener() {
@@ -3144,29 +3144,32 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         Log.d(TAG, "setOnboardCurrent: ");
 
         ImageView[] buttons = {
-                OnBoard.findViewById(R.id.oboard_btn_1),
-                OnBoard.findViewById(R.id.oboard_btn_2),
-                OnBoard.findViewById(R.id.oboard_btn_3),
-                OnBoard.findViewById(R.id.oboard_btn_4),
-                OnBoard.findViewById(R.id.oboard_btn_5)};
+                OnBoard.findViewById(R.id.onboard_btn_1),
+                OnBoard.findViewById(R.id.onboard_btn_2),
+                OnBoard.findViewById(R.id.onboard_btn_3),
+                OnBoard.findViewById(R.id.onboard_btn_4),
+                OnBoard.findViewById(R.id.onboard_btn_5),
+                OnBoard.findViewById(R.id.onboard_btn_6)};
 
         String[] titleToShow = {
                 getResources().getString(R.string.onboard_title_1),
                 getResources().getString(R.string.onboard_title_2),
                 getResources().getString(R.string.onboard_title_3),
                 getResources().getString(R.string.onboard_title_4),
-                getResources().getString(R.string.onboard_title_5)};
+                getResources().getString(R.string.onboard_title_5),
+                getResources().getString(R.string.onboard_title_6)};
 
         String[] textToShow = {
                 getResources().getString(R.string.onboard_1),
                 getResources().getString(R.string.onboard_2),
                 getResources().getString(R.string.onboard_3),
                 getResources().getString(R.string.onboard_4),
-                getResources().getString(R.string.onboard_5)};
+                getResources().getString(R.string.onboard_5),
+                getResources().getString(R.string.onboard_6)};
 
         Uri[] videos = {Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.welcome), Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.push_app),
                 Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.block), Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.manage),
-                Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.recall)};
+                Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.watchvideo), Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.recall)};
 
         Animation in = AnimationUtils.makeInAnimation(this, false);
         Animation out = AnimationUtils.makeOutAnimation(this, false);
@@ -3179,6 +3182,14 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
         VideoView video = OnBoard.findViewById(R.id.animation_view);
         TextView skipIntro = OnBoard.findViewById(R.id.skip_intro);
+        Button watchVideo = OnBoard.findViewById(R.id.watch_video);
+        watchVideo.setOnClickListener(view -> {
+            String cleanURL = WebManager.cleanYouTubeURL("https://www.youtube.com/watch?v=4_rUORg5IU0");
+            final String youTubePackageName = getAppManager().youtubePackage;
+            Intent appIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(cleanURL));
+            appIntent.setPackage(youTubePackageName);
+            startActivity(appIntent);
+        });
         ImageView nextButton = OnBoard.findViewById(R.id.next_button);
         LinearLayout buttonsLayout = OnBoard.findViewById(R.id.onboard_buttons);
         LinearLayout onboardPages = OnBoard.findViewById(R.id.onboard_pages);
@@ -3205,35 +3216,38 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                 buttons[j].setImageTintList(getResources().getColorStateList(R.color.leadme_blue, null));
             }
         }
-        if (onBoardPage <= 4) {
-            onBoardTitle.setText(titleToShow[onBoardPage]);
-            onBoardContent.setText(textToShow[onBoardPage]);
-            video.setVideoURI(videos[onBoardPage]);
-            video.requestFocus();
-            video.start();
 
+        onBoardTitle.setText(titleToShow[onBoardPage]);
+        onBoardContent.setText(textToShow[onBoardPage]);
+        video.setVideoURI(videos[onBoardPage]);
+        video.requestFocus();
+        video.start();
+        if (onBoardPage < 5) {
+            skipIntro.setVisibility(View.VISIBLE);
+            nextButton.setVisibility(View.VISIBLE);
+            onboardPages.setVisibility(View.VISIBLE);
+            buttonsLayout.setVisibility(View.GONE);
             if (onBoardPage == 4) {
-                skipIntro.setVisibility(View.GONE);
-                nextButton.setVisibility(View.GONE);
-                buttonsLayout.setVisibility(View.VISIBLE);
-                OnBoard.findViewById(R.id.onboard_ok_btn).setOnClickListener(v1 -> {
-                    video.setBackgroundColor(Color.WHITE);
-                    handler.postDelayed(() -> setContentView(leadmeAnimator), 50);
-                    video.suspend();
-                    OnBoard = null;
-
-
-                });
-                OnBoard.findViewById(R.id.onboard_moreinfo_btn).setOnClickListener(view -> {
-                    Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://drive.google.com/file/d/1GGU7GeR4Ibq60-6bcc2F_bd698CKRFvZ/view"));
-                    startActivity(browserIntent);
-                });
+                watchVideo.setVisibility(View.VISIBLE);
             } else {
-                skipIntro.setVisibility(View.VISIBLE);
-                nextButton.setVisibility(View.VISIBLE);
-                onboardPages.setVisibility(View.VISIBLE);
-                buttonsLayout.setVisibility(View.GONE);
+                watchVideo.setVisibility(View.GONE);
             }
+        }
+        if (onBoardPage == 5) {
+            watchVideo.setVisibility(View.GONE);
+            skipIntro.setVisibility(View.GONE);
+            nextButton.setVisibility(View.GONE);
+            buttonsLayout.setVisibility(View.VISIBLE);
+            OnBoard.findViewById(R.id.onboard_ok_btn).setOnClickListener(v1 -> {
+                video.setBackgroundColor(Color.WHITE);
+                handler.postDelayed(() -> setContentView(leadmeAnimator), 50);
+                video.suspend();
+                OnBoard = null;
+            });
+            OnBoard.findViewById(R.id.onboard_moreinfo_btn).setOnClickListener(view -> {
+                Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://drive.google.com/file/d/1GGU7GeR4Ibq60-6bcc2F_bd698CKRFvZ/view"));
+                startActivity(browserIntent);
+            });
         }
     }
 

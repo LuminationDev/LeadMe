@@ -140,13 +140,15 @@
     <string name="onboard_2">Select apps, URLs, and videos to push out to connected learner devices.</string>
     <string name="onboard_3">Block learners to black out their screens and disable touch. Unblock to return learners to normal.</string>
     <string name="onboard_4">Alert notifications will trigger when Learners are off task. Select a Learner and tap Re-push for quick management.</string>
-    <string name="onboard_5">To finish a task, tap the LeadMe icon to return your learners to LeadMe. Select learn more to discover the full range of features LeadMe has to offer!</string>
+    <string name="onboard_5">Watch our 360 Labs onboarding video to learn how our Lumination Learning Labs facilitate educational outcomes.</string>
+    <string name="onboard_6">To finish a task, tap the LeadMe icon to return your learners to LeadMe. Select learn more to discover the full range of features LeadMe has to offer!</string>
 
     <string name="onboard_title_1">Welcome to LeadMe</string>
     <string name="onboard_title_2">Push Content</string>
     <string name="onboard_title_3">Block Devices</string>
     <string name="onboard_title_4">Manage Alerts</string>
-    <string name="onboard_title_5">Lead the Way</string>
+    <string name="onboard_title_5">Get to Know Our Labs</string>
+    <string name="onboard_title_6">Lead the Way</string>
     <string name="manual_connect">Manual connect</string>
     <string name="help">Help</string>
     <string name="display_onboarding">Display Onboarding</string>
