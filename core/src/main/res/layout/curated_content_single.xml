@@ -80,9 +80,10 @@
                             android:singleLine="true"
                             android:text="@{curatedContentItem != null ? curatedContentItem.title : `nothing`, default=`Giant Manta Rays` }"
                             android:textColor="@color/leadme_black"
-                            android:textSize="18sp" />
+                            android:textSize="24sp" />
 
                         <ImageView
+                            android:layout_gravity="center"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:src="@drawable/task_vr_icon" />
@@ -102,7 +103,7 @@
                         android:paddingEnd="10dp"
                         android:text="@string/add_to_favourites"
                         android:textColor="@color/leadme_black"
-                        android:textSize="14sp" />
+                        android:textSize="16sp" />
 
                     <TextView
                         android:layout_width="wrap_content"
@@ -111,14 +112,14 @@
                         android:fontFamily="@font/poppins_semibold"
                         android:text="Quick Ideas"
                         android:textColor="@color/leadme_black"
-                        android:textSize="16sp" />
+                        android:textSize="18sp" />
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@{curatedContentItem.description, default=`Use this for empathising with climate change related topics. Ask students to research microplastics then create a VR experience in CoSpaces demonstrating their learnings.`}"
                         android:textColor="@color/leadme_black"
-                        android:textSize="15sp" />
+                        android:textSize="16sp" />
 
                     <LinearLayout
                         android:layout_width="fill_parent"
@@ -138,7 +139,7 @@
                                 android:fontFamily="@font/poppins_semibold"
                                 android:text="Years"
                                 android:textColor="@color/leadme_black"
-                                android:textSize="12sp" />
+                                android:textSize="18sp" />
 
                             <TextView
                                 android:layout_width="wrap_content"
@@ -149,7 +150,7 @@
                                 android:text="@{curatedContentItem != null ? curatedContentItem.years : ``, default=`1, 2, 3, 4` }"
                                 android:textAlignment="textStart"
                                 android:textColor="@color/leadme_black"
-                                android:textSize="12sp" />
+                                android:textSize="16sp" />
                         </LinearLayout>
 
                         <LinearLayout
@@ -164,7 +165,7 @@
                                 android:fontFamily="@font/poppins_semibold"
                                 android:text="Subjects"
                                 android:textColor="@color/leadme_black"
-                                android:textSize="12sp" />
+                                android:textSize="18sp" />
 
                             <TextView
                                 android:layout_width="wrap_content"
@@ -175,7 +176,7 @@
                                 android:text="@{curatedContentItem != null ? curatedContentItem.subject : ``, default=`Geography, Science, Maths` }"
                                 android:textAlignment="textStart"
                                 android:textColor="@color/leadme_black"
-                                android:textSize="12sp" />
+                                android:textSize="16sp" />
                         </LinearLayout>
                     </LinearLayout>
 
@@ -192,7 +193,7 @@
                             android:text="Topics"
                             android:textAlignment="textStart"
                             android:textColor="@color/leadme_black"
-                            android:textSize="12sp" />
+                            android:textSize="18sp" />
 
                         <TextView
                             android:layout_width="wrap_content"
@@ -204,7 +205,7 @@
                             android:text="@{curatedContentItem != null ? curatedContentItem.topics : ``, default=`climate change, plastics, oceans, pollution, waste management, microplastics, weather, manta rays` }"
                             android:textAlignment="textStart"
                             android:textColor="@color/leadme_black"
-                            android:textSize="12sp" />
+                            android:textSize="16sp" />
                     </LinearLayout>
                 </LinearLayout>
             </ScrollView>

@@ -3184,7 +3184,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         TextView skipIntro = OnBoard.findViewById(R.id.skip_intro);
         Button watchVideo = OnBoard.findViewById(R.id.watch_video);
         watchVideo.setOnClickListener(view -> {
-            String cleanURL = WebManager.cleanYouTubeURL("https://www.youtube.com/watch?v=4_rUORg5IU0");
+            String cleanURL = WebManager.cleanYouTubeURL("https://www.youtube.com/watch?v=m96imGHXGGM");
             final String youTubePackageName = getAppManager().youtubePackage;
             Intent appIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(cleanURL));
             appIntent.setPackage(youTubePackageName);
