@@ -939,6 +939,11 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             }
         }
 
+        if (OnBoard != null) {
+            VideoView video = OnBoard.findViewById(R.id.animation_view);
+            video.start();
+        }
+
         Log.w(TAG, "LC Resume // " + getDispatcher().hasDelayedLaunchContent());
         appHasFocus = true;
         getLumiAccessibilityConnector().resetState(); //reset
