@@ -1,4 +1,4 @@
-package com.lumination.leadme.connections;
+package com.lumination.leadme.models;
 
 /**
  * Represents a device we can talk to.

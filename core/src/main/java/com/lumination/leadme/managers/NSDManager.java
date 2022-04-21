@@ -34,8 +34,6 @@ public class NSDManager {
     public static final String SERVICE_TYPE = "_http._tcp.";
     public String mServiceName = "LeadMe";
 
-    private final int PORT = 54321; //port used for connection
-
     public ArrayList<NsdServiceInfo> discoveredLeaders = new ArrayList<>();
     public static ExecutorService executorService = Executors.newCachedThreadPool();
 
@@ -90,11 +88,6 @@ public class NSDManager {
                 public void onServiceLost(NsdServiceInfo service) {
                     Log.e(TAG, "service lost" + service);
 
-                    //TODO Causes hanging connections if user is halfway through sign in and NSD is glitching
-                    //TODO Commenting this out does pose a new issue where if the guide does actually disconnect
-//                    if (getChosenServiceInfo() == service) {
-//                        mService = null;
-//                    }
                     //clear the list and then scan again
                     main.runOnUiThread(() -> {
                         ArrayList<ConnectedPeer> temp = new ArrayList<>();
@@ -238,10 +231,6 @@ public class NSDManager {
         initializeDiscoveryListener();
 
         mNsdManager.discoverServices(SERVICE_TYPE, NsdManager.PROTOCOL_DNS_SD, mDiscoveryListener);
-
-        //Updates parent with the name, this acts as a ping mechanism.
-        //on the fly name changes are supported, client is identified by assigned ID
-        main.startClient();
     }
 
     /**
@@ -279,7 +268,7 @@ public class NSDManager {
             e.printStackTrace();
         }
 
-        serviceInfo.setPort(PORT); //Use the hard coded port
+        serviceInfo.setPort(NetworkService.leaderPORT); //Use the hard coded port
         serviceInfo.setServiceName(NetworkManager.getName() + "#Teacher#" + hardIpAddress);
         serviceInfo.setServiceType(SERVICE_TYPE);
         serviceInfo.setAttribute("IP", hardIpAddress);

@@ -7,7 +7,6 @@ import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.PixelFormat;
 import android.hardware.display.DisplayManager;
-import android.hardware.display.VirtualDisplay;
 import android.media.Image;
 import android.media.ImageReader;
 import android.media.projection.MediaProjection;
@@ -17,7 +16,7 @@ import android.util.DisplayMetrics;
 import android.util.Log;
 
 import com.lumination.leadme.LeadMeMain;
-import com.lumination.leadme.managers.NetworkManager;
+import com.lumination.leadme.services.NetworkService;
 import com.lumination.leadme.services.ScreensharingService;
 
 import java.io.ByteArrayOutputStream;
@@ -36,17 +35,14 @@ public class ScreenSharingManager {
     private MediaProjectionManager projectionManager;
     private MediaProjection mProjection;
     private ImageReader mImageReader;
-    private VirtualDisplay mVirtualDisplay;
-    private int height;
-    private int width;
-    private int densityDPI;
-    public boolean permissionGranted =false;
+
+    private final ExecutorService screenshotSender = Executors.newFixedThreadPool(1);
+    public boolean permissionGranted = false;
     public boolean sendImages = false;
     public Socket clientToServerSocket = null;
-    private ExecutorService screenshotSender = Executors.newFixedThreadPool(1);
 
     public ScreenSharingManager(LeadMeMain main){
-        this.main=main;
+        this.main = main;
     }
 
     /**
@@ -54,29 +50,42 @@ public class ScreenSharingManager {
      * there is already a connection it will close it and establish a new one.
      */
     public void connectToServer(){
-        if(clientToServerSocket==null) {
-            screenshotSender.submit(() -> {
-                if (clientToServerSocket != null) {
-                    try {
-                        clientToServerSocket.close();
-                        clientToServerSocket = null;
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                        Log.d(TAG, "connectToServer: unable to close previous socket");
-                        return;
-                    }
-                }
+        setupScreenCap();
+        getBitmapsFromScreen();
+        screenshotSender.submit(() -> {
+            if (clientToServerSocket != null) {
                 try {
-                    clientToServerSocket = new Socket(NetworkManager.getClientSocket().getInetAddress(), 54322);
+                    clientToServerSocket.close();
+                    clientToServerSocket = null;
                 } catch (IOException e) {
                     e.printStackTrace();
-                    Log.d(TAG, "connectToServer: unable to connect to socket");
+                    Log.d(TAG, "connectToServer: unable to close previous socket");
+                    return;
                 }
-            });
-        }
-
+            }
+            try {
+                clientToServerSocket = new Socket(NetworkService.getLeaderIPAddress(), 54322);
+                sendImages = true;
+            } catch (IOException e) {
+                e.printStackTrace();
+                Log.d(TAG, "connectToServer: unable to connect to socket");
+            }
+        });
     }
+
     boolean startImed = false;
+
+    public void stopMonitoring() {
+        try {
+            if(clientToServerSocket != null) {
+                clientToServerSocket.close();
+                mImageReader.close();
+            }
+            sendImages = false;
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 
     /**
      * Starts the screen shot service for a learner device. Issues a foreground service for API levels
@@ -119,8 +128,6 @@ public class ScreenSharingManager {
         mProjection = projectionManager.getMediaProjection(resultCode, data);
         Log.d(TAG, "handleResultReturn: service started");
 
-        setupScreenCap();
-        getBitmapsFromScreen();
         if(startImed) {
             if (clientToServerSocket == null) {
                 connectToServer();
@@ -136,8 +143,8 @@ public class ScreenSharingManager {
      */
     @SuppressLint("WrongConstant")
     public void setupScreenCap(){
-        height = getScreenHeight();
-        width = getScreenWidth();
+        int height = getScreenHeight();
+        int width = getScreenWidth();
         mImageReader = ImageReader.newInstance(width, height, PixelFormat.RGBA_8888, 1);
         DisplayMetrics metrics = new DisplayMetrics();
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
@@ -145,8 +152,8 @@ public class ScreenSharingManager {
         } else {
             main.getWindowManager().getDefaultDisplay().getMetrics(metrics);
         }
-        densityDPI = metrics.densityDpi;
-        mVirtualDisplay = mProjection.createVirtualDisplay("screen-mirror", width, height, densityDPI, DisplayManager.VIRTUAL_DISPLAY_FLAG_PUBLIC, mImageReader.getSurface(), null, null);
+        int densityDPI = metrics.densityDpi;
+        mProjection.createVirtualDisplay("screen-mirror", width, height, densityDPI, DisplayManager.VIRTUAL_DISPLAY_FLAG_PUBLIC, mImageReader.getSurface(), null, null);
     }
 
     /**
@@ -156,7 +163,6 @@ public class ScreenSharingManager {
      */
     public void getBitmapsFromScreen() {
         mImageReader.setOnImageAvailableListener(reader -> {
-
             Image image = mImageReader.acquireNextImage();
 
             if (image == null) {
@@ -181,7 +187,6 @@ public class ScreenSharingManager {
 
                 bmp.copyPixelsFromBuffer(buffer);
                 image.close(); //close image as soon as possible
-                //latestImage=bmp;
                 sendScreenShot(bmp);
             } else {
                 image.close();
@@ -237,7 +242,6 @@ public class ScreenSharingManager {
             });
         } else{
             Log.d(TAG, "sendScreenShot: server not connected");
-            //connectToServer();
         }
     }
 }

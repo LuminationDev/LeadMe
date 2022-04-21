@@ -16,17 +16,23 @@ import androidx.core.app.NotificationCompat;
 import com.lumination.leadme.LeadMeMain;
 import com.lumination.leadme.R;
 import com.lumination.leadme.connections.TcpClient;
-import com.lumination.leadme.connections.StudentThread;
+import com.lumination.leadme.models.Learner;
 import com.lumination.leadme.managers.NetworkManager;
 
+import java.io.ByteArrayOutputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.PrintWriter;
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.AbstractMap;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -42,26 +48,36 @@ public class NetworkService extends Service {
 
     private static Future<?> server = null;
     private static ServerSocket mServerSocket = null; //server socket for server
-    private static final int PORT = 54321;
+    private static InetAddress leaderIPAddress;
+    public static final int leaderPORT = 54321;
+    private static final int learnerPORT = 54320;
     private static int clientID = 0;
     public static boolean isRunning = false;
+    public static boolean isGuide = false;
 
     /**
      * Keep track of the student threads that are currently being managed by the leader device.
      */
-    public static HashMap<Integer, StudentThread> studentThreadArray;
+    public static HashMap<Integer, Learner> studentThreadArray;
 
     /**
      * Keep Track of the Client ID as the key and student socket as the value. It can then be used
      * to determine if a student is reconnecting or is a new user.
      */
-    public static HashMap<Integer, Map.Entry<Socket, Boolean>> clientSocketArray;
+    public static HashMap<Integer, Map.Entry<InetAddress, Boolean>> clientSocketArray;
+
+    /**
+     * Only purpose is to provide a reverse look up in comparison to the clientSocketArray for
+     * when receiving a message from learners. Quickly able to get their ID by their address.
+     */
+    public static HashMap<InetAddress, Integer> addressSocketArray;
 
     /**
      * Specific executor just for the server, has not automatic cut off period like the
      * CachedThreadPool.
      */
     private static ThreadPoolExecutor serverThreadPool;
+    private static ExecutorService backgroundExecutor;
 
     // Binder given to clients
     private final IBinder binder = new LocalBinder();
@@ -84,12 +100,19 @@ public class NetworkService extends Service {
     private static void setupService() {
         isRunning = true;
         serverThreadPool = (ThreadPoolExecutor) Executors.newFixedThreadPool(2);
-        setArrays();
+        backgroundExecutor = Executors.newCachedThreadPool();
+
+        if(LeadMeMain.isGuide) {
+            isGuide = true;
+            setArrays();
+        }
     }
 
-    //Server thread here
-    //Runs an eternal server allowing any connections that come in
-    public static void startLeaderServer() {
+    /**
+     * Runs an eternal server allowing any connections that come in. Uses a different port number
+     * depending on if the user is a leader or learner.
+     */
+    public static void startServer() {
         setupService();
         Log.e(TAG, "Starting server");
         if(server == null) {
@@ -97,7 +120,12 @@ public class NetworkService extends Service {
                 try {
                     mServerSocket = new ServerSocket();
                     mServerSocket.setReuseAddress(true);
-                    mServerSocket.bind(new InetSocketAddress(PORT));
+
+                    if(isGuide) {
+                        mServerSocket.bind(new InetSocketAddress(leaderPORT));
+                    } else {
+                        mServerSocket.bind(new InetSocketAddress(learnerPORT));
+                    }
 
                     while (true) {
                         Log.d(TAG, "ServerSocket Created, awaiting connection");
@@ -112,7 +140,7 @@ public class NetworkService extends Service {
                         }
 
                         //Supporting functions in network manager or network adapter? don't want to be too cluttered
-                        studentThreadManager(clientSocket);
+                        backgroundExecutor.submit(() -> receiveMessage(clientSocket));
                         Log.d(TAG, "run: client connected");
                     }
                 } catch (Exception e) {
@@ -121,6 +149,134 @@ public class NetworkService extends Service {
                 }
             });
         }
+    }
+
+    /**
+     * An interface for sending a message to a destination.
+     * @param message A string representing the communication that is being sent.
+     * @param ipAddress An InetAddress of the destination.
+     * @param destPORT A int representing the destinations port.
+     * @throws IOException Throws an error if the socket was unable to be connected.
+     */
+    private static void sendMessage(String message, InetAddress ipAddress, int destPORT) throws IOException {
+        Socket soc = new Socket(ipAddress, destPORT);
+
+        OutputStream toServer = soc.getOutputStream();
+        PrintWriter output = new PrintWriter(toServer);
+        output.println(message);
+        DataOutputStream out = new DataOutputStream(toServer);
+        out.writeBytes(message);
+
+        toServer.close();
+        output.close();
+        out.close();
+        soc.close();
+    }
+
+    //LEARNER NETWORK FUNCTIONS
+    /**
+     * Set the IP address of the leader a learner is trying to connect to.
+     * @param ipAddress An InetAddress representing the device a learner is connecting to.
+     */
+    public static void setLeaderIPAddress(InetAddress ipAddress) {
+        Log.d(TAG, "Setting IP address.");
+        leaderIPAddress = ipAddress;
+    }
+
+    public static InetAddress getLeaderIPAddress() {
+        return leaderIPAddress;
+    }
+
+    public static void sendToServer(String message, String type) {
+        if (getLeaderIPAddress() != null) {
+            backgroundExecutor.submit(() -> sendLeaderMessage(type + "," +
+                    message.replace("\n", "_").replace("\r", "|")));
+        }
+    }
+
+    /**
+     * Send a message to the leader. If the leader cannot be reach the learner disconnects themselves
+     * to avoid a hanging connection.
+     * @param message A string containing the message for the leader and the type.
+     */
+    public static void sendLeaderMessage(String message) {
+        Log.d(TAG, "Attempting to send: " + message);
+
+        try {
+            sendMessage(message, leaderIPAddress, leaderPORT);
+            Log.d(TAG, "Message sent closing socket");
+        } catch (IOException e) {
+            //Disconnect if no connection is achieved
+            NetworkManager.messageReceivedFromServer("DISCONNECT,");
+            e.printStackTrace();
+        }
+    }
+
+    //LEADER NETWORK FUNCTIONS
+    public static void sendToClient(int learnerID, String message, String type) {
+        Log.d(TAG, "sendToClient: "+message+" Type: "+type);
+
+        InetAddress ipAddress = clientSocketArray.get(learnerID).getKey();
+        backgroundExecutor.submit(() -> sendLearnerMessage(learnerID, ipAddress, type + "," + message));
+    }
+
+    public static void sendLearnerMessage(int learnerID, InetAddress ipAddress, String message) {
+        Log.d(TAG, "Attempting to send: " + message);
+
+        try {
+            sendMessage(message, ipAddress, learnerPORT);
+            Log.d(TAG, "Message sent closing socket");
+        } catch (IOException e) {
+            studentThreadArray.get(learnerID).tcp.shutdownTCP();
+            backgroundExecutor.submit(() -> determineAction(ipAddress, "DISCONNECT,No connection"));
+            e.printStackTrace();
+        }
+    }
+
+    public static void receiveMessage(Socket clientSocket) {
+        try {
+            // get the input stream from the connected socket
+            InputStream inputStream = clientSocket.getInputStream();
+            // read from the stream
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+
+            byte[] content = new byte[ 2048 ];
+            int bytesRead;
+
+            while( ( bytesRead = inputStream.read( content ) ) != -1 ) {
+                baos.write( content, 0, bytesRead );
+            }
+
+            String message = baos.toString();
+
+            //Get the IP address used to determine who has just connected.
+            InetAddress ipAddress = clientSocket.getInetAddress();
+
+            //Message has been received close the socket
+            clientSocket.close();
+
+            if(isGuide) {
+                if(message.equals("Connecting")) {
+                    learnerManager(ipAddress);
+                } else {
+                    determineAction(ipAddress, message);
+                }
+            } else {
+                NetworkManager.messageReceivedFromServer(message);
+            }
+
+            Log.d(TAG, "Message: " + message + " IpAddress:" + ipAddress.getHostAddress());
+
+        } catch (IOException e) {
+            Log.e(TAG, "Unable to process client request");
+            e.printStackTrace();
+        }
+    }
+
+    private static void determineAction(InetAddress clientAddress, String message) {
+        int tempID = addressSocketArray.get(clientAddress);
+
+        studentThreadArray.get(tempID).tcp.inputReceived(message);
     }
 
     /**
@@ -166,36 +322,35 @@ public class NetworkService extends Service {
     /**
      * Manages what Client IDs are currently in use. Gets the first index equaling null and
      * assigned the a student thread to it.
-     * @param clientSocket A socket object of the newly connected user.
+     * @param clientAddress An InetAddress object of the newly connected user.
      */
-    public static void studentThreadManager(Socket clientSocket) {
-        ClientResult result = manageClientID(clientSocket);
+    public static void learnerManager(InetAddress clientAddress) {
+        ClientResult result = manageClientID(clientAddress);
         int ID = result.getID();
         boolean reconnect = result.getReconnect();
 
-        TcpClient tcp = new TcpClient(clientSocket, ID);
-        Thread client = new Thread(tcp); //new thread for every client
-        StudentThread st = new StudentThread();
-        st.t = client;
-        st.ID = ID;
+        TcpClient tcpClient = new TcpClient(clientAddress, ID);
+        Learner learner = new Learner();
+        learner.tcp = tcpClient;
+        learner.ID = ID;
 
-        AbstractMap.SimpleEntry<Socket, Boolean> entry = new AbstractMap.SimpleEntry<>(clientSocket, reconnect);
+        AbstractMap.SimpleEntry<InetAddress, Boolean> entry = new AbstractMap.SimpleEntry<>(clientAddress, reconnect);
 
         clientSocketArray.put(ID, entry);
-        studentThreadArray.put(ID, st);
-        Objects.requireNonNull(studentThreadArray.get(ID)).t.start();
+        studentThreadArray.put(ID, learner);
+        addressSocketArray.put(clientAddress, ID);
     }
 
     /**
      * Find the correct Client ID to pass to the new user depending on if they are reconnecting or
      * are a new user.
-     * @param clientSocket A socket object of the newly connected user.
+     * @param clientAddress A socket object of the newly connected user.
      */
-    public static ClientResult manageClientID(Socket clientSocket) {
+    public static ClientResult manageClientID(InetAddress clientAddress) {
         final int[] tempID = {-1};
         //Scan through the set to find any matching IP addresses and get the client ID ('key')
         clientSocketArray.entrySet().stream().forEach(e -> {
-            if(e.getValue().getKey().getInetAddress().getHostAddress().equals(clientSocket.getInetAddress().getHostAddress())) {
+            if(e.getValue().getKey().getHostAddress().equals(clientAddress.getHostAddress())) {
                 Log.d(TAG, "Is user reconnecting: " + true);
                 Log.d(TAG, "User connecting as ID: " + e.getKey());
                 tempID[0] = e.getKey();
@@ -204,7 +359,6 @@ public class NetworkService extends Service {
 
         if(tempID[0] != -1) {
             Log.d(TAG, "Reconnecting Student: " + tempID[0]);
-            Objects.requireNonNull(studentThreadArray.get(tempID[0])).t.interrupt();
             studentThreadArray.remove(tempID[0]);
             return new ClientResult(tempID[0], true);
         } else {
@@ -224,11 +378,20 @@ public class NetworkService extends Service {
         isRunning = false;
         studentThreadArray.clear();
         clientSocketArray.clear();
+        addressSocketArray.clear();
         clientID = 0;
     }
 
-    public static void destroyLearnerConnection() {
-        NetworkManager.cleanUpInput();
+    private static void setArrays() {
+        clientSocketArray = new HashMap<>();
+        studentThreadArray = new HashMap<>();
+        addressSocketArray = new HashMap<>();
+    }
+
+    private static void disconnection() {
+        clientSocketArray.entrySet().stream().forEach(e ->
+                backgroundExecutor.submit(() -> sendLearnerMessage(e.getKey(), e.getValue().getKey(), "DISCONNECT" + ","))
+        );
     }
 
     @Override
@@ -242,14 +405,12 @@ public class NetworkService extends Service {
         startForeground();
     }
 
-    private static void setArrays() {
-        clientSocketArray = new HashMap<>();
-        studentThreadArray = new HashMap<>();
-    }
-
     @Override
     public void onDestroy() {
-        destroyLearnerConnection();
+        if(isGuide) {
+            disconnection();
+            isGuide = false;
+        }
         endForeground();
         super.onDestroy();
     }
@@ -279,7 +440,7 @@ public class NetworkService extends Service {
     }
 
     public void endForeground() {
-        if(LeadMeMain.isGuide) {stopAllFunction();}
+        stopAllFunction();
         stopSelf();
         stopForeground(true);
     }
@@ -289,8 +450,7 @@ public class NetworkService extends Service {
      * server is not running in the background if the application is closed.
      */
     private void stopAllFunction() {
-        //TODO Send disconnection message here??
-        resetClientIDs();
+        if(isGuide) {resetClientIDs();}
         stopServer();
         serverThreadPool.shutdown();
     }

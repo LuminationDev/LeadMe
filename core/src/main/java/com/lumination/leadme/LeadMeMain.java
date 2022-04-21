@@ -559,11 +559,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             return; //it was an action, we're done!
         }
 
-        if (getDispatcher().readBool(payloadBytes)) {
-            Log.d(TAG, "Incoming message was a boolean request!");
-            return; //it was a boolean, we're done!
-        }
-
         //if it's an app launch request, deploy it
         if (getDispatcher().openApp(payloadBytes)) {
             Log.d(TAG, "Incoming message was an app launch request!");
@@ -692,7 +687,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     @Override
     public void onSensorChanged(SensorEvent sensorEvent) {
         //already connected, or not ready to connect
-        if (getNearbyManager().isConnecting() || getNearbyManager().isConnectedAsGuide() || getNearbyManager().isConnectedAsFollower()) {
+        if (getNearbyManager().isConnectedAsGuide() || getNearbyManager().isConnectedAsFollower()) {
             return;
         }
         float x = sensorEvent.values[0];
@@ -2301,23 +2296,17 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
      * starts the networking service, on start up the leader server starts.
      */
     public void startServer() {
-        NetworkService.startLeaderServer();
+        NetworkService.startServer();
     }
 
     /**
      * Submit a runnable to connect to a specific service.
-     * @param manualInformation An NsdServiceInfo that holds the required information to connect
+     * @param NSDInformation An NsdServiceInfo that holds the required information to connect
      *                          to the selected leaders service.
      */
-    public void manageServerConnection(NsdServiceInfo manualInformation) {
-        backgroundExecutor.submit(() -> networkManager.connectToServer(manualInformation));
-    }
-
-    /**
-     * Starts the client socket to listen for input from the connected server.
-     */
-    public void startClient() {
-        networkManager.startClientInputListener();
+    public void manageServerConnection(NsdServiceInfo NSDInformation) {
+        NetworkService.setLeaderIPAddress(NSDInformation.getHost());
+        backgroundExecutor.submit(() -> networkManager.connectToServer(NSDInformation));
     }
 
     //MANUAL CONNECTION FOR LEARNERS
@@ -2332,7 +2321,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         if (nearbyManager.isDiscovering()) {
             getNearbyManager().nsdManager.stopDiscovery();
         }
-//        startClient();
         getFirebaseManager().retrieveLeaders();
     }
 

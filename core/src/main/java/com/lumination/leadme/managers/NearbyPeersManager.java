@@ -13,7 +13,7 @@ import com.google.android.gms.nearby.connection.Payload;
 import com.lumination.leadme.connections.ConnectedPeer;
 import com.lumination.leadme.LeadMeMain;
 import com.lumination.leadme.services.NetworkService;
-import com.lumination.leadme.connections.Client;
+import com.lumination.leadme.models.Client;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -75,7 +75,7 @@ public class NearbyPeersManager {
     }
 
     public void cancelConnection() {
-        main.getNetworkManager().receivedDisconnect();
+        NetworkManager.receivedDisconnect();
     }
 
     public void onStop() {
@@ -125,7 +125,6 @@ public class NearbyPeersManager {
         }
     }
 
-    //TODO IpAddress sometimes had a '/' preceding it
     public void connectToManualLeader(String leaderName, String IpAddress) {
         Log.d(TAG, "connectToManualLeader: " + IpAddress);
         main.backgroundExecutor.submit(() -> {
@@ -175,7 +174,7 @@ public class NearbyPeersManager {
      * @return A boolean representing if they are a student.
      */
     public boolean isConnectedAsFollower() {
-        return !LeadMeMain.isGuide && NetworkManager.isClientConnected();
+        return !LeadMeMain.isGuide && NetworkService.isServerRunning();
     }
 
     /**
@@ -265,14 +264,6 @@ public class NearbyPeersManager {
         }
     }
 
-    public final boolean isConnecting() {
-        if (NetworkManager.getClientSocket() != null) {
-            return NetworkManager.isClientConnected();
-        } else {
-            return false;
-        }
-    }
-
     /**
      * Get any selected peers, if no one is selected then get all peers.
      * @return An ArraySet containing all the selected peer IDs or all peers.
@@ -344,14 +335,14 @@ public class NearbyPeersManager {
         if (selectedString.size() == 0 && !LeadMeMain.isGuide) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 String encoded = Base64.getEncoder().encodeToString(b);
-                main.getNetworkManager().sendToServer(encoded, "ACTION");
+                NetworkService.sendToServer(encoded, "ACTION");
             }
             return;
         }
         if (!selectedString.isEmpty() && selectedString.get(0).equals("-1") && !LeadMeMain.isGuide) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 String encoded = Base64.getEncoder().encodeToString(b);
-                main.getNetworkManager().sendToServer(encoded, "ACTION");
+                NetworkService.sendToServer(encoded, "ACTION");
             }
         } else {
             ArrayList<Integer> selected = new ArrayList<>();
@@ -366,21 +357,4 @@ public class NearbyPeersManager {
         }
 
     }
-
-
-//    /**
-//     * Represents a device we can talk to.
-//     */
-//    public static class Endpoint {
-//        String name;
-//        String Id;
-//
-//        public String getName() {
-//            return name;
-//        }
-//
-//        public String getId() {
-//            return Id;
-//        }
-//    }
 }
