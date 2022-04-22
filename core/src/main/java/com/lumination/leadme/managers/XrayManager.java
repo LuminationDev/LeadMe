@@ -39,7 +39,7 @@ public class XrayManager {
     public Boolean monitorInProgress = false;
     private ServerSocket serverSocket = null;
 
-    private final View loadingPanel, xrayScreen;
+    private final View xrayScreen, loadingPanel;
     private View nextXrayStudent, prevXrayStudent;
     private TextView xrayStudentSelectedView, xrayStudentDisplayNameView;
     private final ImageView xrayScreenshotView;

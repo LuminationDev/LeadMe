@@ -16,6 +16,7 @@ import android.util.DisplayMetrics;
 import android.util.Log;
 
 import com.lumination.leadme.LeadMeMain;
+import com.lumination.leadme.generated.callback.OnCheckedChangeListener;
 import com.lumination.leadme.services.NetworkService;
 import com.lumination.leadme.services.ScreensharingService;
 
@@ -80,6 +81,7 @@ public class ScreenSharingManager {
             if(clientToServerSocket != null) {
                 clientToServerSocket.close();
                 mImageReader.close();
+                mImageReader = null;
             }
             sendImages = false;
         } catch (IOException e) {
@@ -162,36 +164,36 @@ public class ScreenSharingManager {
      * this stopped it in the past if memory was running low.
      */
     public void getBitmapsFromScreen() {
-        mImageReader.setOnImageAvailableListener(reader -> {
-            Image image = mImageReader.acquireNextImage();
+       mImageReader.setOnImageAvailableListener(reader -> {
+           Image image = mImageReader.acquireNextImage();
 
-            if (image == null) {
-                return;
-            }
+           if (image == null) {
+               return;
+           }
 
-            if (sendImages) {
-                //Can use the image dimension as the virtual display has been set up.
-                int width = image.getWidth();
-                int height = image.getHeight();
+           if (sendImages) {
+               //Can use the image dimension as the virtual display has been set up.
+               int width = image.getWidth();
+               int height = image.getHeight();
 
-                final Image.Plane[] planes = image.getPlanes();
-                final ByteBuffer buffer = planes[0].getBuffer();
-                //int offset = 0;
-                int pixelStride = planes[0].getPixelStride();
-                int rowStride = planes[0].getRowStride();
-                int rowPaddingStride = rowStride - (pixelStride * width);
-                int rowPadding = rowPaddingStride / pixelStride;
+               final Image.Plane[] planes = image.getPlanes();
+               final ByteBuffer buffer = planes[0].getBuffer();
+               //int offset = 0;
+               int pixelStride = planes[0].getPixelStride();
+               int rowStride = planes[0].getRowStride();
+               int rowPaddingStride = rowStride - (pixelStride * width);
+               int rowPadding = rowPaddingStride / pixelStride;
 
-                // create bitmap
-                Bitmap bmp = Bitmap.createBitmap(width + rowPadding, height, Bitmap.Config.ARGB_8888);
+               // create bitmap
+               Bitmap bmp = Bitmap.createBitmap(width + rowPadding, height, Bitmap.Config.ARGB_8888);
 
-                bmp.copyPixelsFromBuffer(buffer);
-                image.close(); //close image as soon as possible
-                sendScreenShot(bmp);
-            } else {
-                image.close();
-            }
-        }, main.getHandler());
+               bmp.copyPixelsFromBuffer(buffer);
+               image.close(); //close image as soon as possible
+               sendScreenShot(bmp);
+           } else {
+               image.close();
+           }
+       }, main.getHandler());
     }
 
     private static int getScreenWidth() {
