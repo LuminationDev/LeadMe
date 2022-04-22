@@ -3,6 +3,7 @@ package com.lumination.leadme.connections;
 import android.graphics.drawable.Drawable;
 
 import com.lumination.leadme.LeadMeMain;
+import com.lumination.leadme.models.Endpoint;
 
 import java.util.ArrayList;
 

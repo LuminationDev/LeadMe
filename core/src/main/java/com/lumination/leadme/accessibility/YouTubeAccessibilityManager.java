@@ -7,7 +7,6 @@ import android.view.accessibility.AccessibilityEvent;
 import android.view.accessibility.AccessibilityNodeInfo;
 
 import com.lumination.leadme.LeadMeMain;
-import com.lumination.leadme.accessibility.LumiAccessibilityConnector;
 
 import java.util.ArrayList;
 
@@ -600,6 +599,17 @@ public class YouTubeAccessibilityManager {
             if(timeC.contains("Quality")) {
                 timeC = "0:00";
             }
+        }
+
+        //Check if ad node is null
+        if(timeA.equals("")) {
+            timeA = "0:00";
+        }
+        if(timeB.equals("")) {
+            timeB = "0:00";
+        }
+        if(timeC.equals("")) {
+            timeC = "0:00";
         }
 
         String[] timesA = trimToTime(timeA);

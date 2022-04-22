@@ -45,8 +45,8 @@
 
     <string name="push_success_title">Push Successful!</string>
     <string name="save_success_title">Save Successful!</string>
-    <string name="link_push_success">Your link was successfully broadcast.</string>
-    <string name="app_push_success">Your app request was successfully broadcast.</string>
+    <string name="link_push_success">Your link has been sent.</string>
+    <string name="app_push_success">Your app request has been sent.</string>
     <string name="fav_save_success">Successfully saved to favourites!</string>
 
     <string name="please_enter_your_name">Please enter your name</string>

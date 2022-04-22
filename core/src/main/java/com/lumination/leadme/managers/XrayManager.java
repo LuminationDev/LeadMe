@@ -30,21 +30,25 @@ import com.lumination.leadme.LeadMeMain;
 import com.lumination.leadme.R;
 
 public class XrayManager {
+    private final String TAG = "XrayManager";
 
+    private final LeadMeMain main;
     public ScreenshotManager screenshotManager;
 
     public Bitmap response;
-    Boolean monitorInProgress = false;
-    ServerSocket serverSocket = null;
+    public Boolean monitorInProgress = false;
+    private ServerSocket serverSocket = null;
 
+    private final View loadingPanel, xrayScreen;
+    private View nextXrayStudent, prevXrayStudent;
     private TextView xrayStudentSelectedView, xrayStudentDisplayNameView;
-    private ImageView xrayStudentIcon, xrayScreenshotView;
-    private View nextXrayStudent, prevXrayStudent, loadingPanel;
+    private final ImageView xrayScreenshotView;
+    private ImageView xrayStudentIcon;
     private Button xrayButton;
-    private View xrayScreen;
-    private LeadMeMain main;
 
-    private final String TAG = "XrayManager";
+    private HashMap<String, Bitmap> clientRecentScreenshots = new HashMap<>();
+    private Thread imageSocketThread;
+    private String monitoredPeer;
 
     public XrayManager(LeadMeMain main, View xrayScreen) {
         this.main = main;
@@ -159,17 +163,11 @@ public class XrayManager {
         });
 
         //set up main buttons
-        xrayScreen.findViewById(R.id.unlock_selected_btn).setOnClickListener(v -> {
-            main.unlockFromMainAction();
-        });
+        xrayScreen.findViewById(R.id.unlock_selected_btn).setOnClickListener(v -> main.unlockFromMainAction());
 
-        xrayScreen.findViewById(R.id.lock_selected_btn).setOnClickListener(v -> {
-            main.lockFromMainAction();
-        });
+        xrayScreen.findViewById(R.id.lock_selected_btn).setOnClickListener(v -> main.lockFromMainAction());
 
-        xrayScreen.findViewById(R.id.block_selected_btn).setOnClickListener(v -> {
-            main.blackoutFromMainAction();
-        });
+        xrayScreen.findViewById(R.id.block_selected_btn).setOnClickListener(v -> main.blackoutFromMainAction());
 
         ImageView closeButton = xrayScreen.findViewById(R.id.back_btn);
         closeButton.setOnClickListener(v -> {
@@ -313,15 +311,12 @@ public class XrayManager {
         Log.e(TAG, "Peers: SEL:" + selected + ", NOT:" + notSelected);
 
         if (xrayStudent.isSelected()) {
-            //selectedAdapter.setItemList(itemsForSelected, imgsForSelected);
             xrayStudentSelectedView.setText("Selected");
             xrayStudentSelectedView.setTextColor(main.getResources().getColor(R.color.light, null));
         } else {
-            //selectedAdapter.setItemList(itemsForUnselected, imgsForUnselected);
             xrayStudentSelectedView.setText("Unselected");
             xrayStudentSelectedView.setTextColor(main.getResources().getColor(R.color.leadme_dark_grey, null));
         }
-        //xrayStudentSelectedView.invalidate();
     }
 
     private void imageRunnableFunction(String imgPeer) {
@@ -359,14 +354,12 @@ public class XrayManager {
                     if (length > 5000 && length < 300000) {
                         buffer = new byte[length];
                         in.readFully(buffer, 0, length);
-                        //Log.d(TAG, "Packet Received!! ");
                     }
                 }
             } catch (IOException e) {
-                //monitorInProgress = false;
                 e.printStackTrace();
             }
-            //Log.w(TAG, buffer + ", " + response);
+
             if (buffer != null) {
                 Bitmap tmpBmp = BitmapFactory.decodeByteArray(buffer, 0, buffer.length);
                 response = tmpBmp;
@@ -396,13 +389,6 @@ public class XrayManager {
         Log.e(TAG, "imageRunnable ended! " + monitorInProgress + " && " + !Thread.currentThread().isInterrupted());
     }
 
-    //Thread imageSocket;
-    private String monitoredPeer;
-
-    //Need to reset maps after logout or peer removal
-    HashMap<String, Thread> clientSocketThreads = new HashMap();
-    HashMap<String, Bitmap> clientRecentScreenshots = new HashMap();
-
     //client socket for monitoring
     public void startImageClient(String peer) {
         Log.d(TAG, "Starting image client for " + peer);
@@ -415,21 +401,17 @@ public class XrayManager {
             Log.d(TAG, "ServerSocket: attempting to create socket");
         }
 
-        //get the image socket for this peer
-        Thread imageSocketThread = clientSocketThreads.get(peer);
-
-        if (imageSocketThread == null) {
-            monitorInProgress = true;
-            imageSocketThread = new Thread(() -> imageRunnableFunction(peer));
-            imageSocketThread.start();
-            clientSocketThreads.put(peer, imageSocketThread); //store this
-            Log.w(TAG, "Now have client sockets: " + clientSocketThreads.size() + " : " + peer);
+        if (imageSocketThread != null) {
+            imageSocketThread.interrupt();
         }
+
+        monitorInProgress = true;
+        imageSocketThread = new Thread(() -> imageRunnableFunction(peer));
+        imageSocketThread.start();
     }
 
     public void removePeerFromMap(String peer) {
         Log.d(TAG, "Peer removed: " + peer);
-        clientSocketThreads.remove(peer);
         clientRecentScreenshots.remove(peer);
     }
 
@@ -439,9 +421,7 @@ public class XrayManager {
             removePeerFromMap(peer);
         } else {
             Log.d(TAG, "Resetting hash maps");
-
-            clientSocketThreads = new HashMap();
-            clientRecentScreenshots = new HashMap();
+            clientRecentScreenshots = new HashMap<>();
 
             //Close the serverSocket
             if(serverSocket != null) {

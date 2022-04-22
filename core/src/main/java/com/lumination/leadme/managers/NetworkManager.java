@@ -17,23 +17,14 @@ import com.lumination.leadme.connections.ConnectedPeer;
 import com.lumination.leadme.LeadMeMain;
 import com.lumination.leadme.R;
 import com.lumination.leadme.services.NetworkService;
-import com.lumination.leadme.connections.Client;
-import com.lumination.leadme.connections.Endpoint;
-import com.lumination.leadme.connections.Msg;
+import com.lumination.leadme.models.Client;
+import com.lumination.leadme.models.Endpoint;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
-import java.net.Socket;
-import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.List;
-import java.util.Objects;
 import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -48,19 +39,12 @@ public class NetworkManager {
 
     private static LeadMeMain main;
     private static WifiManager.MulticastLock multicastLock; // Acquire multicast lock
-    private static Socket clientsServerSocket = null;//server socket for client
-    private int tries = 0; //counter for connection attempts to server
-    private final int timeOut = 2;
-    private boolean init = false; //check if connection has been initialised
+    private static boolean init = false; //check if connection has been initialised
     public static boolean pingName = true;
-    public static boolean allowInput = true;
-    public static boolean leaderDisconnect = false;
-    public static int connectionIsActive = 0;
 
     public static ArrayList<Client> currentClients = new ArrayList<>();
 
-    private static ScheduledExecutorService scheduledExecutor = new ScheduledThreadPoolExecutor(1);
-    private static ThreadPoolExecutor socketThreadPool;
+    private static final ScheduledExecutorService scheduledExecutor = new ScheduledThreadPoolExecutor(1);
     private static final ThreadPoolExecutor connectionThreadPool = (ThreadPoolExecutor) Executors.newFixedThreadPool(1);
 
     public NetworkManager(LeadMeMain main) {
@@ -68,11 +52,10 @@ public class NetworkManager {
     }
 
     /**
-     * Start the server socket on a guides device.
+     * Start the server socket on a device.
      */
     public void startService() {
         Log.d(TAG, "startService: ");
-        leaderDisconnect = false;
         Intent network_intent = new Intent(main.getApplicationContext(), NetworkService.class);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             main.startForegroundService(network_intent);
@@ -81,7 +64,7 @@ public class NetworkManager {
         }
     }
 
-    public void stopService() {
+    public static void stopService() {
         Intent stop_network_intent = new Intent(main.getApplicationContext(), NetworkService.class);
         main.stopService(stop_network_intent);
     }
@@ -115,8 +98,6 @@ public class NetworkManager {
         return main.getNearbyManager().getName();
     }
 
-    //CONNECTING TO A SERVER BELOW
-
     /**
      * Using a supplied NsdService connect to a server using the details provided.
      *
@@ -126,45 +107,14 @@ public class NetworkManager {
         connectionThreadPool.submit(() -> {
             Log.d(TAG, "connectToServer: attempting to connect to " + serviceInfo.getHost() + ":" + serviceInfo.getPort());
 
+            NetworkService.startServer();
+
             NSDManager.mService = serviceInfo;
 
-            try {
-                if (clientsServerSocket != null) {
-                    clientsServerSocket.close();
-                    clientsServerSocket = null;
-                }
+            NetworkService.sendLeaderMessage("Connecting");
 
-                clientsServerSocket = new Socket(serviceInfo.getHost(), serviceInfo.getPort());
-            } catch (IOException e) {
-                e.printStackTrace();
-            } finally {
-                if (clientsServerSocket == null) {
-                    tryReconnect();
-                } else {
-                    clientSetup();
-                }
-            }
+            clientSetup();
         });
-    }
-
-    /**
-     * If the initial connection attempt fails try again before sending the learner back to the
-     * splash screen.
-     */
-    private void tryReconnect() {
-        if(leaderDisconnect) {
-            Log.d(TAG, "Leader has finished the session");
-            return;
-        }
-        Log.d(TAG, "connectToServer: Socket disconnected attempting to reconnect");
-        if (tries <= 10) {
-            tries++;
-            connectToServer(NSDManager.getChosenServiceInfo());
-        } else {
-            Log.d(TAG, "connectToServer: reconnection unsuccessful");
-            stopService();
-            main.runOnUiThread(() -> main.getNearbyManager().disconnectFromEndpoint(""));
-        }
     }
 
     /**
@@ -172,24 +122,18 @@ public class NetworkManager {
      * and then begin monitoring the connection.
      */
     private void clientSetup() {
-        if (clientsServerSocket.isConnected()) {
-            Log.d(TAG, "connectToServer: connection successful");
-            pingName = true; //Allows learner to send name again on reconnection
-            connectionIsActive = 20;
-            allowInput = true;
-            startClientInputListener();
-            main.getNearbyManager().nsdManager.stopDiscovery();
+        Log.d(TAG, "connectToServer: connection successful");
+        pingName = true; //Allows learner to send name again on reconnection
 
-            main.runOnUiThread(() -> {
-                main.findViewById(R.id.client_main).setVisibility(View.VISIBLE);
-                List<String> inputList = Arrays.asList(NSDManager.getChosenServiceInfo().getServiceName().split("#"));
-                main.setLeaderName(inputList.get(0));
-            });
+        main.getNearbyManager().nsdManager.stopDiscovery();
 
-            startConnectionCheck();
-        } else {
-            connectToServer(NSDManager.getChosenServiceInfo());
-        }
+        main.runOnUiThread(() -> {
+            main.findViewById(R.id.client_main).setVisibility(View.VISIBLE);
+            List<String> inputList = Arrays.asList(NSDManager.getChosenServiceInfo().getServiceName().split("#"));
+            main.setLeaderName(inputList.get(0));
+        });
+
+        startConnectionCheck();
     }
 
     /**
@@ -197,215 +141,8 @@ public class NetworkManager {
      * not then move the learner from a logged in state to the splash screen.
      */
     public void startConnectionCheck() {
-        scheduledExecutor.shutdown();
-        scheduledExecutor = new ScheduledThreadPoolExecutor(1);
-        scheduledExecutor.scheduleAtFixedRate(() -> {
-            if (clientsServerSocket != null) {
-                if (clientsServerSocket.isConnected()) {
-                    checkConnection();
-                }
-            }
-
-            if (clientsServerSocket != null && pingName) {
-                if (clientsServerSocket.isConnected()) {
-                    sendToServer(getName(), "NAME");
-                    pingName = false;
-                }
-            }
-        }, 1, 8000, TimeUnit.MILLISECONDS);
-    }
-
-    private void checkConnection() {
-        if (connectionIsActive > 0) {
-            connectionIsActive--;
-            Log.d(TAG, "checkConnection: connection " + connectionIsActive);
-        } else if (connectionIsActive == 0) {
-            Log.d(TAG, "checkConnection: connection " + connectionIsActive);
-            main.runOnUiThread(() -> {
-                try {
-                    clientsServerSocket.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-                clientsServerSocket = null;
-                Log.d(TAG, "checkConnection: connection timed out");
-                tryReconnect();
-            });
-        }
-    }
-
-    //CLIENT SOCKET CONNECTIONS
-    //Kept for future testing purposes
-    int testing = 10;
-
-    /**
-     * Starts a client socket listener that receives messages from the leader server. Handles
-     * reconnection if a socket is closed prematurely.
-     */
-    public void startClientInputListener() {
-        if(leaderDisconnect) {
-            return;
-        }
-
-        if(socketThreadPool != null) {
-            socketThreadPool.shutdown();
-        }
-
-        socketThreadPool = (ThreadPoolExecutor) Executors.newFixedThreadPool(1);
-        socketThreadPool.submit(() -> {
-            while (true) {
-                if (clientsServerSocket != null) {
-                    if (!clientsServerSocket.isClosed() && !clientsServerSocket.isInputShutdown()) {
-                        BufferedReader in;
-                        String input = "";
-                        try {
-                            InputStreamReader inStream = new InputStreamReader(clientsServerSocket.getInputStream());
-                            in = new BufferedReader(inStream);
-
-                            try {
-                                //Kept for future testing purposes
-//                                    Only need the input = in.readLine() for production
-//                                    Log.e(TAG, "TESTING COUNTDOWN: " + testing);
-//                                    if (testing == 0) {
-//                                        Log.e(TAG, "Throwing exception");
-//                                        testing = 10;
-//
-//                                        throw new SocketException();
-//                                    } else {
-//                                        testing--;
-//                                    }
-
-                                input = in.readLine();
-                            } catch (SocketException e) {
-                                if (clientsServerSocket != null) {
-                                    clientsServerSocket.close();
-                                    clientsServerSocket = null;
-                                }
-
-                                e.printStackTrace();
-                                Log.e(TAG, "FAILED! {1}");
-                                break;
-                            }
-
-                            if (input != null) {
-                                if (input.length() > 0) {
-                                    Log.d(TAG, "allowInput is active");
-
-                                    if (LeadMeMain.destroying) {
-                                        if (clientsServerSocket != null) {
-                                            clientsServerSocket.close();
-                                            clientsServerSocket = null;
-                                        }
-
-                                        scheduledExecutor.shutdown();
-                                        allowInput = false;
-                                        return;
-                                    } else {
-                                        messageReceivedFromServer(input);
-                                    }
-                                }
-                            }
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                            Log.e(TAG, "FAILED! {2}");
-                        }
-                    } else {
-                        clientsServerSocket = null;
-                        Log.e(TAG, "FAILED! {3}");
-                        break;
-                    }
-                }
-            }
-
-            cleanUpInput();
-
-            if(!LeadMeMain.destroying && !leaderDisconnect) {
-                connectToServer(NSDManager.getChosenServiceInfo());
-            }
-            Log.e(TAG, "FAILED! {4}");
-        });
-    }
-
-    /**
-     * Shutdown and destroy the thread pool and receive input future to ensure a fresh start
-     * on reconnection.
-     */
-    public static void cleanUpInput() {
-        try {
-            if (clientsServerSocket != null) {
-                clientsServerSocket.close();
-                clientsServerSocket = null;
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        scheduledExecutor.shutdown();
-        allowInput = false;
-
-        socketThreadPool.shutdown();
-        socketThreadPool = null;
-//        receiveInput.cancel(true);
-//        receiveInput = null;
-
-        socketThreadPool = (ThreadPoolExecutor) Executors.newFixedThreadPool(1);
-    }
-
-    /**
-     * When teacher is found the info can be handed over to this to initialise the socket
-     * - socket will return true to isConnected if it has ever had a successful connection
-     */
-    public static boolean isClientConnected() {
-        if (clientsServerSocket != null) {
-            return clientsServerSocket.isConnected();
-        }
-        return false;
-    }
-
-    /**
-     * Get the instance of the client socket.
-     *
-     * @return A socket representing the client socket
-     */
-    public static Socket getClientSocket() {
-        return clientsServerSocket;
-    }
-
-    /**
-     * Set the client socket for connecting to the leader's server.
-     *
-     * @param socket A socket representing the chosen IP address and Port.
-     */
-    public static void setClientSocket(Socket socket) {
-        clientsServerSocket = socket;
-    }
-
-    /**
-     * Sends message from student to Teacher.
-     */
-    public void sendToServer(String message, String type) {
-        if (NetworkManager.getClientSocket() != null) {
-            if (NetworkManager.isClientConnected()) {
-                NSDManager.executorService.submit(() -> {
-                    PrintWriter out;
-                    try {
-                        out = new PrintWriter(NetworkManager.getClientSocket().getOutputStream(), true);
-                        out.println(type + "," + message.replace("\n", "_").replace("\r", "|"));
-                        Log.d(TAG, "sendToServer: message sent, type: " + type + " message: " + message);
-                        return;
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                    try {
-                        Thread.currentThread().sleep(100);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                });
-                return;
-            }
-        }
-        Log.e(TAG, "FAILED! Tried to send from " + main.getNearbyManager().getName() + " to server >> " + message + ", " + type);
+        scheduledExecutor.schedule(() -> NetworkService.sendToServer(getName(), "NAME"), 1000, TimeUnit.MILLISECONDS);
+        scheduledExecutor.scheduleAtFixedRate(() -> NetworkService.sendToServer(getName(), "PING"), 2000, 10000, TimeUnit.MILLISECONDS);
     }
 
     /**
@@ -429,7 +166,7 @@ public class NetworkManager {
     ACTION: used for controlling the client with different actions, app launches, etc
     PING: used to let the client know it is still receiving data from the server and helps keep the connection alive
      */
-    public void messageReceivedFromServer(String input) {
+    public static void messageReceivedFromServer(String input) {
         Log.d(TAG, "messageReceivedFromServer: " + input);
         List<String> inputList = Arrays.asList(input.split(","));
         switch (inputList.get(0)) {
@@ -464,12 +201,12 @@ public class NetworkManager {
      *
      * @param input A string representing from the communication from the server.
      */
-    private void receivedCommunication(String input) {
+    private static void receivedCommunication(String input) {
         Log.d(TAG, "messageReceivedFromServer: [COMM] " + input);
         if (input.contains("Thanks")) {
             main.closeDialogController(true);
             init = true;
-            NetworkManager.pingName = false;
+            pingName = false;
         }
     }
 
@@ -478,7 +215,7 @@ public class NetworkManager {
      *
      * @param input A string containing the action to be handled by the learner device.
      */
-    private void receivedAction(String input) {
+    private static void receivedAction(String input) {
         byte[] bytes;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             bytes = Base64.getDecoder().decode(input.getBytes());
@@ -518,11 +255,10 @@ public class NetworkManager {
      * connection.
      * @param input A string containing the ID of the device being pinged.
      */
-    private void receivedPing(String input) {
+    private static void receivedPing(String input) {
         main.getNearbyManager().myID = input;
-        NetworkManager.connectionIsActive = timeOut;
         Log.d(TAG, "messageReceivedFromServer: PING!!");
-        NetworkManager.pingName = false;
+        pingName = false;
         Log.d(TAG, "messageReceivedFromServer: received ping and subsequently ignoring it");
 
         if (!init) {
@@ -535,29 +271,19 @@ public class NetworkManager {
      * Connect to the file server to receive the file from the leader.
      * @param input A String containing the PORT of the file server.
      */
-    private void receivedFile(String input) {
+    private static void receivedFile(String input) {
         List<String> inputList2 = Arrays.asList(input.split(":"));
         if (main.fileTransferEnabled) {
             FileTransferManager.setFileType(inputList2.get(2));
-            main.getFileTransferManager().receivingFile(NetworkManager.getClientSocket().getInetAddress(), Integer.parseInt(inputList2.get(1)));
+            main.getFileTransferManager().receivingFile(NetworkService.getLeaderIPAddress(), Integer.parseInt(inputList2.get(1)));
         }
     }
 
     /**
      * If the device is not connected as a guide, disconnect from all endpoints.
      */
-    public void receivedDisconnect() {
+    public static void receivedDisconnect() {
         Log.w(TAG, "Disconnect. Guide? " + LeadMeMain.isGuide);
-        NetworkManager.leaderDisconnect = true;
-        if (NetworkManager.getClientSocket() != null) {
-            try {
-                NetworkManager.getClientSocket().close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            NetworkManager.setClientSocket(null);
-        }
-
         main.getNearbyManager().disconnectFromEndpoint("");
         stopService();
     }
@@ -566,7 +292,7 @@ public class NetworkManager {
      * called by the TCP clients to update the parent thread with information
      * types defined as such:
      * NAME: client server pings name through on first use it will update the parent with the clients name,
-     * if its changed then subsequent run throughs will rectify that. Also acts as a pinging, once name
+     * if its changed then subsequent runs will rectify that. Also acts as a pinging, once name
      * is received a response will be sent letting the student know they are still connected.
      *
      * @param message  A string containing information relevant to the switch case functions.
@@ -680,7 +406,6 @@ public class NetworkManager {
             NetworkService.clientSocketArray.get(clientID).setValue(false);
         } else {
             Log.d(TAG, "updateParent: client: " + clientID + " has lost connection");
-            Objects.requireNonNull(NetworkService.studentThreadArray.get(clientID)).t.interrupt();
             currentClients.remove(clientID);
             main.getXrayManager().removePeerFromMap(String.valueOf(clientID));
 
@@ -721,18 +446,18 @@ public class NetworkManager {
      */
     public static void sendToSelectedClients(String message, String type, ArrayList<Integer> selectedClientIDs) {
         Log.d(TAG, "sendToSelectedClients: " + selectedClientIDs + " " + currentClients.size());
-        Msg msg = new Msg();
-        msg.message = message;
-        msg.type = type;
 
         for (int i = 0; i < currentClients.size(); i++) {
             for (int selected : selectedClientIDs) {
                 if (selected == currentClients.get(i).ID) {
-                    currentClients.get(i).messageQueue.add(msg);
+                    NetworkService.sendToClient(selected, message, type);
+
+                    if(type.equals("DISCONNECT")) {
+                        currentClients.remove(i);
+                    }
                 }
             }
         }
-
     }
 
     public void stopMonitoring(int ID) {
@@ -743,7 +468,6 @@ public class NetworkManager {
 
     /**
      * File transfer case.
-     *
      * @param ID        An int representing the client that the file is being sent to.
      * @param localPort An int representing the port to use for the transfer server.
      * @param fileType  A string representing the type of file that is being transferred.

@@ -38,7 +38,7 @@ public class DispatchManager {
     public String mActionTag=null, mAction=null;
     public int lastEvent =0;
 
-    private Actions dispatchAction = new Actions();
+    private final Actions dispatchAction = new Actions();
 
     public DispatchManager(LeadMeMain main) {
         this.main = main;
@@ -169,11 +169,8 @@ public class DispatchManager {
     }
 
     public synchronized void alertLogout() {
-        //sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.LOGOUT_TAG + ":" + main.getNearbyManager().getID(), main.getNearbyManager().getAllPeerIDs());
-
         ArrayList<Integer> selected = new ArrayList<>();
         for (String peer : main.getNearbyManager().getAllPeerIDs()) {
-            Log.d(TAG, "sendToSelected: " + peer);
             selected.add(Integer.parseInt(peer));
         }
         NetworkManager.sendToSelectedClients("DISCONNECT", "DISCONNECT", selected);
@@ -182,7 +179,6 @@ public class DispatchManager {
     public synchronized void sendActionToSelected(String actionTag, String action, Set<String> selectedPeerIDs) {
         main.setProgressTimer(2000);
         if(action.contains(LeadMeMain.LAUNCH_URL) || action.contains(LeadMeMain.LAUNCH_YT)) {
-            Log.d(TAG, "sendActionToSelected: ");
             lastEvent = 3;
             mActionTag = actionTag;
             mAction = action;
@@ -218,53 +214,6 @@ public class DispatchManager {
         } else {
             Log.i(TAG, "Sorry, you can't send actions!");
         }
-    }
-
-    public synchronized void sendBoolToSelected(String actionTag, String action, boolean value, Set<String> selectedPeerIDs) {
-        main.setProgressTimer(2000);
-        Parcel p = Parcel.obtain();
-        byte[] bytes;
-        p.writeString(actionTag);
-        p.writeString(action);
-        p.writeString(value + "");
-        bytes = p.marshall();
-        p.recycle();
-
-        if (main.getNearbyManager().isConnectedAsGuide()) {
-            main.getNearbyManager().sendToSelected(Payload.fromBytes(bytes), selectedPeerIDs);
-        } else {
-            Log.i(TAG, "Sorry, you can't send booleans!");
-        }
-    }
-
-    public synchronized boolean readBool(byte[] bytes) {
-        Parcel p = Parcel.obtain();
-
-        p.unmarshall(bytes, 0, bytes.length);
-        p.setDataPosition(0);
-        String actionTag = p.readString();
-        String action = p.readString();
-        String value = p.readString();
-        boolean boolVal = Boolean.parseBoolean(value);
-        p.recycle();
-
-        Log.d(TAG, "Received boolean: " + actionTag + ", " + action + "=" + value);
-
-        if (action == null) {
-            return false;
-        }
-
-        switch (action) {
-            case LeadMeMain.AUTO_INSTALL:
-                main.autoInstallApps = boolVal;
-                break;
-
-            default:
-                //no match
-                return false;
-        }
-        return true;
-
     }
 
     public synchronized boolean readAction(byte[] bytes) {
@@ -531,18 +480,15 @@ public class DispatchManager {
                 main.screenSharingManager.startService(true);
                 return;
             }
-            if(main.screenSharingManager.clientToServerSocket==null){
-                main.screenSharingManager.connectToServer();
-            }
 
-            main.screenSharingManager.sendImages=true;
+            main.screenSharingManager.connectToServer();
         }
 
         /**
          * Stop sending images to the screenCap server.
          */
         private void turnOffXray() {
-            main.screenSharingManager.sendImages=false;
+            main.screenSharingManager.stopMonitoring();
         }
 
         /**
@@ -727,7 +673,7 @@ public class DispatchManager {
 
             //If false, then the learner needs the file, otherwise the transfer is complete - relaunch the app
             if(split[2].equals("false")) {
-                main.fileRequests.add(Integer.parseInt(ID));
+                LeadMeMain.fileRequests.add(Integer.parseInt(ID));
                 main.getDialogManager().showRequestDialog(5);
             } else {
                 Set<String> peer = new HashSet<>();
@@ -777,7 +723,7 @@ public class DispatchManager {
             main.blackout(false);
             disableInteraction(ConnectedPeer.STATUS_UNLOCK);
             main.getLumiAccessibilityConnector().manageAccessibilityEvent(null,null);
-            sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.LAUNCH_SUCCESS + "LOCKOFF" + ":" + main.getNearbyManager().getID() + ":" + main.leadMePackageName,
+            sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.LAUNCH_SUCCESS + "LOCKOFF" + ":" + main.getNearbyManager().getID() + ":" + LeadMeMain.leadMePackageName,
                     main.getNearbyManager().getAllPeerIDs());
         }
 
