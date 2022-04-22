@@ -226,7 +226,8 @@ public class CuratedContentManager {
 
         // build subject selection spinner
         Spinner subjects = filterSheetDialog.findViewById(R.id.subjects);
-        ArrayAdapter<String> adapter = new ArrayAdapter<String>(main, R.layout.spinner_item, (String[]) CuratedContentManager.curatedContentSubjects.toArray(new String[0]));
+        String[] ccSubjects = CuratedContentManager.curatedContentSubjects != null ? (String[]) CuratedContentManager.curatedContentSubjects.toArray(new String[0]) : new String[0];
+        ArrayAdapter<String> adapter = new ArrayAdapter<String>(main, R.layout.spinner_item, ccSubjects);
         subjects.setAdapter(adapter);
 
         RadioGroup videoType = filterSheetDialog.findViewById(R.id.video_type_radio);
