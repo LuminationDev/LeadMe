@@ -58,26 +58,26 @@ public class NetworkService extends Service {
     /**
      * Keep track of the student threads that are currently being managed by the leader device.
      */
-    public static HashMap<Integer, Learner> studentThreadArray;
+    public static HashMap<Integer, Learner> studentThreadArray = new HashMap<>();
 
     /**
      * Keep Track of the Client ID as the key and student socket as the value. It can then be used
      * to determine if a student is reconnecting or is a new user.
      */
-    public static HashMap<Integer, Map.Entry<InetAddress, Boolean>> clientSocketArray;
+    public static HashMap<Integer, Map.Entry<InetAddress, Boolean>> clientSocketArray = new HashMap<>();
 
     /**
      * Only purpose is to provide a reverse look up in comparison to the clientSocketArray for
      * when receiving a message from learners. Quickly able to get their ID by their address.
      */
-    public static HashMap<InetAddress, Integer> addressSocketArray;
+    public static HashMap<InetAddress, Integer> addressSocketArray = new HashMap<>();
 
     /**
      * Specific executor just for the server, has not automatic cut off period like the
      * CachedThreadPool.
      */
-    private static ThreadPoolExecutor serverThreadPool;
-    private static ExecutorService backgroundExecutor;
+    private static ThreadPoolExecutor serverThreadPool = (ThreadPoolExecutor) Executors.newFixedThreadPool(2);
+    private static ExecutorService backgroundExecutor = Executors.newCachedThreadPool();
 
     // Binder given to clients
     private final IBinder binder = new LocalBinder();

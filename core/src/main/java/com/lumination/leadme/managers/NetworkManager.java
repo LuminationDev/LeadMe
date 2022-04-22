@@ -44,7 +44,7 @@ public class NetworkManager {
 
     public static ArrayList<Client> currentClients = new ArrayList<>();
 
-    private static final ScheduledExecutorService scheduledExecutor = new ScheduledThreadPoolExecutor(1);
+    private static ScheduledExecutorService scheduledExecutor = new ScheduledThreadPoolExecutor(1);
     private static final ThreadPoolExecutor connectionThreadPool = (ThreadPoolExecutor) Executors.newFixedThreadPool(1);
 
     public NetworkManager(LeadMeMain main) {
@@ -56,6 +56,7 @@ public class NetworkManager {
      */
     public void startService() {
         Log.d(TAG, "startService: ");
+        scheduledExecutor = new ScheduledThreadPoolExecutor(1);
         Intent network_intent = new Intent(main.getApplicationContext(), NetworkService.class);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             main.startForegroundService(network_intent);
@@ -285,6 +286,7 @@ public class NetworkManager {
     public static void receivedDisconnect() {
         Log.w(TAG, "Disconnect. Guide? " + LeadMeMain.isGuide);
         main.getNearbyManager().disconnectFromEndpoint("");
+        scheduledExecutor.shutdown();
         stopService();
     }
 
