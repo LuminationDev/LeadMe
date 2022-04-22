@@ -384,6 +384,7 @@ public class NetworkManager {
         for (int i = 0; i < currentClients.size(); i++) {
             if (currentClients.get(i).ID == clientID) {
                 Log.d(TAG, "updateParent: student has been disconnected: " + clientID);
+                NetworkService.removeStudent(clientID);
                 currentClients.remove(i);
                 if (currentClients.size() == 0) {
                     main.runOnUiThread(() -> main.waitingForLearners.setVisibility(View.VISIBLE));

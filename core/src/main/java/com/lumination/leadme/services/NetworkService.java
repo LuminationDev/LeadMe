@@ -32,6 +32,7 @@ import java.net.Socket;
 import java.util.AbstractMap;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -227,8 +228,8 @@ public class NetworkService extends Service {
             sendMessage(message, ipAddress, learnerPORT);
             Log.d(TAG, "Message sent closing socket");
         } catch (IOException e) {
-            studentThreadArray.get(learnerID).tcp.shutdownTCP();
             backgroundExecutor.submit(() -> determineAction(ipAddress, "DISCONNECT,No connection"));
+            removeStudent(learnerID);
             e.printStackTrace();
         }
     }
@@ -392,6 +393,33 @@ public class NetworkService extends Service {
         clientSocketArray.entrySet().stream().forEach(e ->
                 backgroundExecutor.submit(() -> sendLearnerMessage(e.getKey(), e.getValue().getKey(), "DISCONNECT" + ","))
         );
+    }
+
+    /**
+     * Remove a single student from all hashmaps. Use this when manually disconnecting a single
+     * student or if there is a crash on a device.
+     * @param clientID An integer representing the ID of the learner to remove.
+     */
+    public static void removeStudent(int clientID) {
+        if(studentThreadArray.get(clientID) != null) {
+            Objects.requireNonNull(studentThreadArray.get(clientID)).tcp.shutdownTCP();
+            studentThreadArray.remove(clientID);
+        }
+
+        clientSocketArray.remove(clientID);
+
+        final InetAddress[] tempID = {null};
+        addressSocketArray.entrySet().stream().forEach(e -> {
+            if(e.getValue().equals(clientID)) {
+                Log.d(TAG, "Is user reconnecting: " + true);
+                Log.d(TAG, "User connecting as ID: " + e.getKey());
+                tempID[0] = e.getKey();
+            }
+        });
+
+        if(tempID[0] != null) {
+            addressSocketArray.remove(tempID[0]);
+        }
     }
 
     @Override

@@ -30,6 +30,7 @@ import com.lumination.leadme.connections.ConnectedPeer;
 import com.lumination.leadme.LeadMeMain;
 import com.lumination.leadme.managers.NetworkManager;
 import com.lumination.leadme.R;
+import com.lumination.leadme.services.NetworkService;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -489,6 +490,7 @@ public class ConnectedLearnersAdapter extends BaseAdapter {
                         ArrayList<Integer> selected = new ArrayList<>();
                         selected.add(Integer.valueOf(lastClickedID));
                         NetworkManager.sendToSelectedClients("", "DISCONNECT", selected);
+                        NetworkService.removeStudent(Integer.parseInt(lastClickedID));
                         removeStudent(lastClickedID);
                         refresh();
                         finalConvertView.setVisibility(View.GONE);
