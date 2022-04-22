@@ -216,8 +216,11 @@ public class NetworkService extends Service {
     public static void sendToClient(int learnerID, String message, String type) {
         Log.d(TAG, "sendToClient: "+message+" Type: "+type);
 
-        InetAddress ipAddress = clientSocketArray.get(learnerID).getKey();
-        backgroundExecutor.submit(() -> sendLearnerMessage(learnerID, ipAddress, type + "," + message));
+        Map.Entry<InetAddress, Boolean> entry = clientSocketArray.get(learnerID);
+        if (entry != null) {
+            InetAddress ipAddress = entry.getKey();
+            backgroundExecutor.submit(() -> sendLearnerMessage(learnerID, ipAddress, type + "," + message));
+        }
     }
 
     public static void sendLearnerMessage(int learnerID, InetAddress ipAddress, String message) {
