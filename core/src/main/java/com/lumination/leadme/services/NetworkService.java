@@ -30,8 +30,10 @@ import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.AbstractMap;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -151,6 +153,42 @@ public class NetworkService extends Service {
         }
     }
 
+    private static void receiveMessage(Socket clientSocket) {
+        try {
+            // get the input stream from the connected socket
+            InputStream inputStream = clientSocket.getInputStream();
+            // read from the stream
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+
+            byte[] content = new byte[ 2048 ];
+            int bytesRead;
+
+            while( ( bytesRead = inputStream.read( content ) ) != -1 ) {
+                baos.write( content, 0, bytesRead );
+            }
+
+            String message = baos.toString();
+
+            //Get the IP address used to determine who has just connected.
+            InetAddress ipAddress = clientSocket.getInetAddress();
+
+            //Message has been received close the socket
+            clientSocket.close();
+
+            if(isGuide) {
+                determineAction(ipAddress, message);
+            } else {
+                NetworkManager.messageReceivedFromServer(message);
+            }
+
+            Log.d(TAG, "Message: " + message + " IpAddress:" + ipAddress.getHostAddress());
+
+        } catch (IOException e) {
+            Log.e(TAG, "Unable to process client request");
+            e.printStackTrace();
+        }
+    }
+
     /**
      * An interface for sending a message to a destination.
      * @param message A string representing the communication that is being sent.
@@ -230,56 +268,36 @@ public class NetworkService extends Service {
             sendMessage(message, ipAddress, learnerPORT);
             Log.d(TAG, "Message sent closing socket");
         } catch (IOException e) {
-            studentThreadArray.get(learnerID).tcp.shutdownTCP();
             backgroundExecutor.submit(() -> determineAction(ipAddress, "DISCONNECT,No connection"));
+            removeStudent(learnerID);
             e.printStackTrace();
         }
     }
 
-    public static void receiveMessage(Socket clientSocket) {
-        try {
-            // get the input stream from the connected socket
-            InputStream inputStream = clientSocket.getInputStream();
-            // read from the stream
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-
-            byte[] content = new byte[ 2048 ];
-            int bytesRead;
-
-            while( ( bytesRead = inputStream.read( content ) ) != -1 ) {
-                baos.write( content, 0, bytesRead );
-            }
-
-            String message = baos.toString();
-
-            //Get the IP address used to determine who has just connected.
-            InetAddress ipAddress = clientSocket.getInetAddress();
-
-            //Message has been received close the socket
-            clientSocket.close();
-
-            if(isGuide) {
-                if(message.equals("Connecting")) {
-                    learnerManager(ipAddress);
-                } else {
-                    determineAction(ipAddress, message);
-                }
-            } else {
-                NetworkManager.messageReceivedFromServer(message);
-            }
-
-            Log.d(TAG, "Message: " + message + " IpAddress:" + ipAddress.getHostAddress());
-
-        } catch (IOException e) {
-            Log.e(TAG, "Unable to process client request");
-            e.printStackTrace();
-        }
-    }
-
+    /**
+     * Find the learner that a message is directed towards and pass the message onto the appropriate
+     * TCP handler. If a learner is not found, create a new entry.
+     * @param clientAddress An InetAddress representing the recent connection and a learner in the
+     *                      studentThreadArray.
+     * @param message A string containing the action that has/or needs to be performed.
+     */
     private static void determineAction(InetAddress clientAddress, String message) {
-        int tempID = addressSocketArray.get(clientAddress);
+        Integer tempID = addressSocketArray.get(clientAddress);
+        Learner learner = studentThreadArray.get(tempID);
 
-        studentThreadArray.get(tempID).tcp.inputReceived(message);
+        if(learner != null) {
+            learner.tcp.inputReceived(message);
+        } else {
+            Log.d(TAG, "Learner not found: " + clientAddress.getHostAddress() +
+                    " Message:" + message);
+            Log.d(TAG, "Adding new learner");
+
+            //Only create a new connecting if a Name is being sent through
+            if(message.contains("NAME")) {
+                learnerManager(clientAddress);
+                determineAction(clientAddress, message);
+            }
+        }
     }
 
     /**
@@ -350,20 +368,19 @@ public class NetworkService extends Service {
      * @param clientAddress A socket object of the newly connected user.
      */
     public static ClientResult manageClientID(InetAddress clientAddress) {
-        final int[] tempID = {-1};
-        //Scan through the set to find any matching IP addresses and get the client ID ('key')
-        clientSocketArray.entrySet().stream().forEach(e -> {
-            if(e.getValue().getKey().getHostAddress().equals(clientAddress.getHostAddress())) {
-                Log.d(TAG, "Is user reconnecting: " + true);
-                Log.d(TAG, "User connecting as ID: " + e.getKey());
-                tempID[0] = e.getKey();
-            }
-        });
+        int tempID = -1;
 
-        if(tempID[0] != -1) {
-            Log.d(TAG, "Reconnecting Student: " + tempID[0]);
-            studentThreadArray.remove(tempID[0]);
-            return new ClientResult(tempID[0], true);
+        //find any matching IP addresses if they have previously connected
+        Integer ID = addressSocketArray.get(clientAddress);
+        if(ID != null) {
+            tempID = ID;
+        }
+
+        if(tempID != -1) {
+            Log.d(TAG, "Reconnecting Student: " + tempID);
+            Log.d(TAG, "Is user reconnecting: " + true);
+            studentThreadArray.remove(tempID);
+            return new ClientResult(tempID, true);
         } else {
             Log.d(TAG, "New Student: " + clientID);
             return new ClientResult(clientID++, false);
@@ -392,9 +409,23 @@ public class NetworkService extends Service {
     }
 
     private static void disconnection() {
-        clientSocketArray.entrySet().stream().forEach(e ->
-                backgroundExecutor.submit(() -> sendLearnerMessage(e.getKey(), e.getValue().getKey(), "DISCONNECT" + ","))
+        clientSocketArray.forEach((key, value) -> backgroundExecutor.submit(() ->
+                sendLearnerMessage(key, value.getKey(), "DISCONNECT" + ","))
         );
+    }
+
+    /**
+     * Remove a single student from all hashmaps. Use this when manually disconnecting a single
+     * student or if there is a crash on a device.
+     * @param clientID An integer representing the ID of the learner to remove.
+     */
+    public static void removeStudent(int clientID) {
+        if(studentThreadArray.get(clientID) != null) {
+            Objects.requireNonNull(studentThreadArray.get(clientID)).tcp.shutdownTCP();
+            studentThreadArray.remove(clientID);
+        }
+
+        clientSocketArray.remove(clientID);
     }
 
     @Override

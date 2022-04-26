@@ -40,7 +40,6 @@ public class NetworkManager {
     private static LeadMeMain main;
     private static WifiManager.MulticastLock multicastLock; // Acquire multicast lock
     private static boolean init = false; //check if connection has been initialised
-    public static boolean pingName = true;
 
     public static ArrayList<Client> currentClients = new ArrayList<>();
 
@@ -112,7 +111,7 @@ public class NetworkManager {
 
             NSDManager.mService = serviceInfo;
 
-            NetworkService.sendLeaderMessage("Connecting");
+            NetworkService.sendToServer(getName(), "NAME");
 
             clientSetup();
         });
@@ -124,7 +123,6 @@ public class NetworkManager {
      */
     private void clientSetup() {
         Log.d(TAG, "connectToServer: connection successful");
-        pingName = true; //Allows learner to send name again on reconnection
 
         main.getNearbyManager().nsdManager.stopDiscovery();
 
@@ -138,12 +136,13 @@ public class NetworkManager {
     }
 
     /**
+     * Send the learner's name to the leaders server, this acts as the initial connection method.
      * Start an executor to continually check if the leader has disconnected or is still active. If
      * not then move the learner from a logged in state to the splash screen.
      */
     public void startConnectionCheck() {
-        scheduledExecutor.schedule(() -> NetworkService.sendToServer(getName(), "NAME"), 1000, TimeUnit.MILLISECONDS);
-        scheduledExecutor.scheduleAtFixedRate(() -> NetworkService.sendToServer(getName(), "PING"), 2000, 10000, TimeUnit.MILLISECONDS);
+        scheduledExecutor.scheduleAtFixedRate(() -> NetworkService.sendToServer(getName(), "PING"),
+                3000, 10000, TimeUnit.MILLISECONDS);
     }
 
     /**
@@ -207,7 +206,6 @@ public class NetworkManager {
         if (input.contains("Thanks")) {
             main.closeDialogController(true);
             init = true;
-            pingName = false;
         }
     }
 
@@ -259,7 +257,6 @@ public class NetworkManager {
     private static void receivedPing(String input) {
         main.getNearbyManager().myID = input;
         Log.d(TAG, "messageReceivedFromServer: PING!!");
-        pingName = false;
         Log.d(TAG, "messageReceivedFromServer: received ping and subsequently ignoring it");
 
         if (!init) {
@@ -384,6 +381,7 @@ public class NetworkManager {
         for (int i = 0; i < currentClients.size(); i++) {
             if (currentClients.get(i).ID == clientID) {
                 Log.d(TAG, "updateParent: student has been disconnected: " + clientID);
+                NetworkService.removeStudent(clientID);
                 currentClients.remove(i);
                 if (currentClients.size() == 0) {
                     main.runOnUiThread(() -> main.waitingForLearners.setVisibility(View.VISIBLE));
@@ -403,7 +401,7 @@ public class NetworkManager {
      *                 leaders device.
      */
     private static void parentUpdateLost(int clientID) {
-        if (NetworkService.clientSocketArray.get(clientID).getValue()) {
+        if (NetworkService.clientSocketArray.get(clientID) != null) {
             Log.d(TAG, "updateParent: client: " + clientID + " is reconnecting");
             NetworkService.clientSocketArray.get(clientID).setValue(false);
         } else {

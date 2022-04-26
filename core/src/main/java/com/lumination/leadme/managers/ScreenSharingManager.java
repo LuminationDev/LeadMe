@@ -51,8 +51,6 @@ public class ScreenSharingManager {
      * there is already a connection it will close it and establish a new one.
      */
     public void connectToServer(){
-        setupScreenCap();
-        getBitmapsFromScreen();
         screenshotSender.submit(() -> {
             if (clientToServerSocket != null) {
                 try {
@@ -80,8 +78,7 @@ public class ScreenSharingManager {
         try {
             if(clientToServerSocket != null) {
                 clientToServerSocket.close();
-                mImageReader.close();
-                mImageReader = null;
+                //mImageReader.close();
             }
             sendImages = false;
         } catch (IOException e) {
@@ -130,6 +127,9 @@ public class ScreenSharingManager {
         mProjection = projectionManager.getMediaProjection(resultCode, data);
         Log.d(TAG, "handleResultReturn: service started");
 
+        setupScreenCap();
+        getBitmapsFromScreen();
+
         if(startImed) {
             if (clientToServerSocket == null) {
                 connectToServer();
@@ -164,37 +164,42 @@ public class ScreenSharingManager {
      * this stopped it in the past if memory was running low.
      */
     public void getBitmapsFromScreen() {
-       mImageReader.setOnImageAvailableListener(reader -> {
-           Image image = mImageReader.acquireNextImage();
-
-           if (image == null) {
-               return;
-           }
-
-           if (sendImages) {
-               //Can use the image dimension as the virtual display has been set up.
-               int width = image.getWidth();
-               int height = image.getHeight();
-
-               final Image.Plane[] planes = image.getPlanes();
-               final ByteBuffer buffer = planes[0].getBuffer();
-               //int offset = 0;
-               int pixelStride = planes[0].getPixelStride();
-               int rowStride = planes[0].getRowStride();
-               int rowPaddingStride = rowStride - (pixelStride * width);
-               int rowPadding = rowPaddingStride / pixelStride;
-
-               // create bitmap
-               Bitmap bmp = Bitmap.createBitmap(width + rowPadding, height, Bitmap.Config.ARGB_8888);
-
-               bmp.copyPixelsFromBuffer(buffer);
-               image.close(); //close image as soon as possible
-               sendScreenShot(bmp);
-           } else {
-               image.close();
-           }
-       }, main.getHandler());
+       mImageReader.setOnImageAvailableListener(reader, main.getHandler());
     }
+
+    ImageReader.OnImageAvailableListener reader = new ImageReader.OnImageAvailableListener() {
+        @Override
+        public void onImageAvailable(ImageReader reader) {
+            Image image = mImageReader.acquireNextImage();
+
+            if (image == null) {
+                return;
+            }
+
+            if (sendImages) {
+                //Can use the image dimension as the virtual display has been set up.
+                int width = image.getWidth();
+                int height = image.getHeight();
+
+                final Image.Plane[] planes = image.getPlanes();
+                final ByteBuffer buffer = planes[0].getBuffer();
+                //int offset = 0;
+                int pixelStride = planes[0].getPixelStride();
+                int rowStride = planes[0].getRowStride();
+                int rowPaddingStride = rowStride - (pixelStride * width);
+                int rowPadding = rowPaddingStride / pixelStride;
+
+                // create bitmap
+                Bitmap bmp = Bitmap.createBitmap(width + rowPadding, height, Bitmap.Config.ARGB_8888);
+
+                bmp.copyPixelsFromBuffer(buffer);
+                image.close(); //close image as soon as possible
+                sendScreenShot(bmp);
+            } else {
+                image.close();
+            }
+        }
+    };
 
     private static int getScreenWidth() {
         return Resources.getSystem().getDisplayMetrics().widthPixels;

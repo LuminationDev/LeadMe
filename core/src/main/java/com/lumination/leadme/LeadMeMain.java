@@ -1566,7 +1566,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
         checkAddtionalPreferences();
 
-        //TODO VR PLAYER, AUTO INSTALLER AND FILE TRANSFER
         //Code in LeadMe Main & AppManager
         if(LeadMeMain.FLAG_UPDATES) {
             //file transfer button
@@ -2405,7 +2404,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
         //Purposely block to make sure all students receive the disconnect command
         try {
-            Thread.sleep(2000);
+            Thread.sleep(1000);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -2416,7 +2415,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         getLeaderSelectAdapter().setLeaderList(new ArrayList<>()); //empty the list
         setUIDisconnected();
         getFirebaseManager().stopService();
-        getNetworkManager().stopService();
+        NetworkManager.stopService();
         showSplashScreen();
         moveAwayFromSplashScreen();
         isGuide = false;
@@ -2545,7 +2544,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         optionsScreen.findViewById(R.id.how_to_use_btn).setVisibility(enabled);
         optionsScreen.findViewById(R.id.help_support_btn).setVisibility(enabled);
 
-        //TODO AUTO next update variables. do not include in the production just yet
         if(LeadMeMain.FLAG_UPDATES) {
             transferToggle.setVisibility(enabled);
         }
@@ -3109,7 +3107,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         for (int i = 0; i < buttons.length; i++) {
             int ind = i;
             buttons[i].setOnClickListener(new View.OnClickListener() {
-                int index = ind;
+                final int index = ind;
 
                 @Override
                 public void onClick(View v) {
