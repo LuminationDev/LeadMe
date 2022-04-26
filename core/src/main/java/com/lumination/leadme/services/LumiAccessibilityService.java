@@ -1,6 +1,10 @@
 package com.lumination.leadme.services;
 
+import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
 import android.content.res.Configuration;
 import android.os.Bundle;
@@ -9,13 +13,17 @@ import android.view.accessibility.AccessibilityEvent;
 import android.view.accessibility.AccessibilityNodeInfo;
 
 import androidx.annotation.NonNull;
+import androidx.core.app.NotificationCompat;
 
 import com.lumination.leadme.LeadMeMain;
+import com.lumination.leadme.R;
 import com.lumination.leadme.accessibility.LumiAccessibilityReceiver;
 
 public class LumiAccessibilityService extends android.accessibilityservice.AccessibilityService {
 
     private final static String TAG = "LumiAccessService";
+    private static final String CHANNEL_ID = "access_service";
+    private static final String CHANNEL_NAME = "Access_service";
 
     public final static String BROADCAST_ACTION = "com.lumination.leadme.BROADCAST_ACTION";
     public final static String INFO_TAG = "LumiBroadcastInfo";
@@ -85,7 +93,6 @@ public class LumiAccessibilityService extends android.accessibilityservice.Acces
         LeadMeMain.setAccessibilityService(this);
     }
 
-
     @Override
     public void onConfigurationChanged(@NonNull Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
@@ -94,14 +101,12 @@ public class LumiAccessibilityService extends android.accessibilityservice.Acces
 
 
     public void sendInfoBroadcast(String tagInfo) {
-        //Log.w(TAG, "Sending INFO broadcast");
         Intent intent = new Intent();
         intent.setAction(BROADCAST_ACTION);
         intent.addFlags(Intent.FLAG_INCLUDE_STOPPED_PACKAGES);
-        //intent.setComponent(new ComponentName(getPackageName(), LumiAccessibilityReceiver.class.getName()));
         intent.setComponent(new ComponentName(getPackageName(), LumiAccessibilityReceiver.class.getName()));
+
         Bundle data = new Bundle();
-        //data.putString(LumiAccessibilityService.INFO_TAG, tagInfo);
         data.putString(INFO_TAG, tagInfo);
         intent.putExtras(data);
         sendBroadcast(intent);
@@ -148,9 +153,8 @@ public class LumiAccessibilityService extends android.accessibilityservice.Acces
 
         Intent intent = new Intent();
         intent.setAction(BROADCAST_ACTION);
-        //intent.addFlags(Intent.FLAG_INCLUDE_STOPPED_PACKAGES);
-        //intent.setComponent(new ComponentName("com.lumination.leadme", "com.lumination.leadme.accessibility.LumiAccessibilityReceiver"));
         intent.setComponent(new ComponentName(getPackageName(), LumiAccessibilityReceiver.class.getName()));
+
         Bundle data = new Bundle();
         data.putString(INFO_TAG, LumiAccessibilityService.EVENT_RECEIVED);
         data.putParcelable(EVENT_OBJ, event);
@@ -158,15 +162,14 @@ public class LumiAccessibilityService extends android.accessibilityservice.Acces
         intent.putExtras(data);
 
         try {
-            //Log.w(TAG, "BROADCASTING: " + event+" // "+rootInActiveWindow);
             sendBroadcast(intent);
         } catch (Exception e) {
             Log.e(TAG, "Failed to broadcast from accessibility: " + event + ", " + getRootInActiveWindow());
             e.printStackTrace();
         }
     }
+
     public void updateOnBoard(LeadMeMain main){
         main.setandDisplayStudentOnBoard(1);
     }
-
 }

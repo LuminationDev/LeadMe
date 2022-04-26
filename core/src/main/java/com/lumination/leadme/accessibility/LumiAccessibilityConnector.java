@@ -9,6 +9,8 @@ import android.view.accessibility.AccessibilityEvent;
 import android.view.accessibility.AccessibilityNodeInfo;
 import android.widget.Button;
 
+import androidx.annotation.RequiresApi;
+
 import com.lumination.leadme.LeadMeMain;
 import com.lumination.leadme.managers.DispatchManager;
 import com.lumination.leadme.services.LumiAccessibilityService;
@@ -355,6 +357,7 @@ public class LumiAccessibilityConnector {
 
         return false;
     }
+
 
     public void triageReceivedIntent(Intent intent) {
         //TODO or this?

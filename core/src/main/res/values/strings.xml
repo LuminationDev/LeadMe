@@ -196,5 +196,7 @@
     <string name="over_under">Over Under</string>
     <string name="side_by_side">Side By Side</string>
     <string name="mono">Mono</string>
+    <string name="update">Update</string>
+    <string name="new_version_available">There is a new version of LeadMe \n available on the play store.</string>
 
 </resources>

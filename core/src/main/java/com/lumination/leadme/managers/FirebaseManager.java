@@ -364,9 +364,7 @@ public class FirebaseManager {
             Log.d(TAG, "Running version: " + runningVersion);
 
             if(!runningVersion.equals(productionVersion)) {
-                main.getDialogManager().showWarningDialog("Update",
-                        "There is a new version of LeadMe \n" +
-                                "available on the play store.");
+                main.getDialogManager().showUpdateDialog();
             }
         }
     }

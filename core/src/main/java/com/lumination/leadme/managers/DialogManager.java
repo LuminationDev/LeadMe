@@ -45,7 +45,7 @@ public class DialogManager {
     private final Resources resources;
 
     private View confirmPushDialogView, loginDialogView, toggleBtnView, manView, permissionDialogView, requestDialogView;
-    private AlertDialog warningDialog, waitingDialog, appPushDialog, confirmPushDialog, studentAlertsDialog, loginDialog, recallPrompt, manualDialog, permissionDialog, requestDialog, fileTypeDialog, firstTimeVRDialog;
+    private AlertDialog warningDialog, waitingDialog, appPushDialog, confirmPushDialog, studentAlertsDialog, loginDialog, recallPrompt, manualDialog, permissionDialog, requestDialog, fileTypeDialog, firstTimeVRDialog, updateDialog;
     private TextView appPushMessageView, warningDialogTitle, warningDialogMessage, recallMessage, permissionDialogMessage, requestDialogMessage, additionalInfo;
     private String appPushPackageName, appPushTitle;
     private ArrayList<String> permissions = null;
@@ -95,6 +95,7 @@ public class DialogManager {
         setupAppPushDialog();
         setupConfirmPushDialog();
         setupWarningDialog();
+        setupUpdateDialog();
         setupAlertsViewDialog();
         setupLoginDialogView();
         setupLoginDialog();
@@ -165,6 +166,30 @@ public class DialogManager {
                 .setView(warningDialogView)
                 .create();
         warningDialog.setOnDismissListener(dialog -> hideSystemUI());
+    }
+
+    private void setupUpdateDialog() {
+        View updateDialogView = View.inflate(main, R.layout.e__update_popup, null);
+        Button okBtn = updateDialogView.findViewById(R.id.ok_btn);
+        okBtn.setOnClickListener(v -> {
+            updateDialog.dismiss();
+            dialogShowing = false;
+        });
+
+        Button updateBtn = updateDialogView.findViewById(R.id.update_btn);
+        updateBtn.setOnClickListener(v -> {
+            updateDialog.dismiss();
+            dialogShowing = false;
+
+            Uri uri = Uri.parse("http://play.google.com/store/apps/details?id=com.lumination.leadme");
+            Intent intent = new Intent(Intent.ACTION_VIEW, uri);
+            main.startActivity(intent);
+        });
+
+        updateDialog = new AlertDialog.Builder(main)
+                .setView(updateDialogView)
+                .create();
+        updateDialog.setOnDismissListener(dialog -> hideSystemUI());
     }
 
     private void setupAlertsViewDialog() {
@@ -573,6 +598,21 @@ public class DialogManager {
 
         //return to main screen
         main.returnToMain();
+    }
+
+    /**
+     * Display a custom pop up message about an available play store update.
+     */
+    public void showUpdateDialog() {
+        if (destroying) {
+            return;
+        }
+        if (updateDialog == null) {
+            setupUpdateDialog();
+        }
+        updateDialog.show();
+        hideSystemUI();
+        dialogShowing = true;
     }
 
     /**
