@@ -51,8 +51,6 @@ public class ScreenSharingManager {
      * there is already a connection it will close it and establish a new one.
      */
     public void connectToServer(){
-        setupScreenCap();
-        getBitmapsFromScreen();
         screenshotSender.submit(() -> {
             if (clientToServerSocket != null) {
                 try {
@@ -80,7 +78,7 @@ public class ScreenSharingManager {
         try {
             if(clientToServerSocket != null) {
                 clientToServerSocket.close();
-                mImageReader.close();
+                //mImageReader.close();
             }
             sendImages = false;
         } catch (IOException e) {
@@ -128,6 +126,9 @@ public class ScreenSharingManager {
 
         mProjection = projectionManager.getMediaProjection(resultCode, data);
         Log.d(TAG, "handleResultReturn: service started");
+
+        setupScreenCap();
+        getBitmapsFromScreen();
 
         if(startImed) {
             if (clientToServerSocket == null) {
