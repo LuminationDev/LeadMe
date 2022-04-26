@@ -2405,7 +2405,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
         //Purposely block to make sure all students receive the disconnect command
         try {
-            Thread.sleep(2000);
+            Thread.sleep(1000);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -2416,7 +2416,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         getLeaderSelectAdapter().setLeaderList(new ArrayList<>()); //empty the list
         setUIDisconnected();
         getFirebaseManager().stopService();
-        getNetworkManager().stopService();
+        NetworkManager.stopService();
         showSplashScreen();
         moveAwayFromSplashScreen();
         isGuide = false;
