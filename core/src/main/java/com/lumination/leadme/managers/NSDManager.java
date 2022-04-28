@@ -16,8 +16,6 @@ import java.nio.ByteOrder;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 /**
  * Responsible for managing NSD connections and adding leaders to the display list.
@@ -35,7 +33,6 @@ public class NSDManager {
     public String mServiceName = "LeadMe";
 
     public ArrayList<NsdServiceInfo> discoveredLeaders = new ArrayList<>();
-    public static ExecutorService executorService = Executors.newCachedThreadPool();
 
     public NSDManager(LeadMeMain main) {
         this.main = main;
@@ -75,7 +72,7 @@ public class NSDManager {
 
                         //fixes the resolve 3 error
                         try {
-                            executorService.submit(() -> mNsdManager.resolveService(service, new resListener()));
+                            NetworkManager.executorService.submit(() -> mNsdManager.resolveService(service, new resListener()));
                             Thread.currentThread();
                             Thread.sleep(200); //purposely block
                         } catch (InterruptedException e) {
@@ -137,7 +134,7 @@ public class NSDManager {
 
             Log.d(TAG, "onServiceResolved: " + serviceInfo);
 
-            executorService.submit(() -> resolveSingleService(serviceInfo));
+            NetworkManager.executorService.submit(() -> resolveSingleService(serviceInfo));
         }
     }
 

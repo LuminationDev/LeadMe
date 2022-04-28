@@ -30,7 +30,6 @@ import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.AbstractMap;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -446,6 +445,7 @@ public class NetworkService extends Service {
             isGuide = false;
         }
         endForeground();
+        leaderIPAddress = null;
         super.onDestroy();
     }
 

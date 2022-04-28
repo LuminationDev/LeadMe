@@ -72,16 +72,16 @@ public class TcpClient extends Thread {
                     Log.d(TAG, "inputHandler: " + inputList.get(1));
                     break;
                 case "ACTION":
-                    NSDManager.executorService.submit(() -> NetworkManager.updateParent(inputList.get(1),ID,"ACTION"));
+                    NetworkManager.executorService.submit(() -> NetworkManager.updateParent(inputList.get(1),ID,"ACTION"));
                     break;
                 case "PING":
                     Log.d(TAG, "inputReceived: ping messages are purposely ignored");
                     break;
                 case "IMAGE":
-                    NSDManager.executorService.submit(() -> NetworkManager.updateParent(inputList.get(1),ID,"IMAGE"));
+                    NetworkManager.executorService.submit(() -> NetworkManager.updateParent(inputList.get(1),ID,"IMAGE"));
                     break;
                 case "DISCONNECT":
-                    NSDManager.executorService.submit(() -> NetworkManager.updateParent(Name, ID, "LOST"));
+                    NetworkManager.executorService.submit(() -> NetworkManager.updateParent(Name, ID, "LOST"));
                     break;
                 default:
                     break;
@@ -95,7 +95,7 @@ public class TcpClient extends Thread {
      */
     public void setLocalName(String name){
         Name=name;
-        NSDManager.executorService.submit(() -> NetworkManager.updateParent(name+":"+IpAddress.toString(),ID,"NAME"));
+        NetworkManager.executorService.submit(() -> NetworkManager.updateParent(name+":"+IpAddress.toString(),ID,"NAME"));
     }
 
     public void shutdownTCP() {

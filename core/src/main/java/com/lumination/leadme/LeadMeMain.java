@@ -665,7 +665,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
         if (canAskForAccessibility && permissionManager.isAccessibilityGranted() && !permissionManager.isMyServiceRunning(AccessibilityService.class)) {
             Log.d(TAG, "Permission return - accessibility permission granted, but service not running");
-            Intent accessibilityIntent = new Intent(this, LumiAccessibilityService.class);
+            Intent accessibilityIntent = new Intent(getApplicationContext(), LumiAccessibilityService.class);
             startService(accessibilityIntent);
         }
     }
