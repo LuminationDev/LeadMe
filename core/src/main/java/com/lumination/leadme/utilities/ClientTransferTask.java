@@ -3,7 +3,6 @@ package com.lumination.leadme.utilities;
 import android.util.Log;
 
 import com.lumination.leadme.LeadMeMain;
-import com.lumination.leadme.connections.ConnectedPeer;
 import com.lumination.leadme.managers.FileTransferManager;
 import com.lumination.leadme.services.FileTransferService;
 
@@ -101,21 +100,24 @@ public class ClientTransferTask implements Runnable {
             dos.close();
 
             Log.d(TAG, "File sent");
-            removeRequest(this.ID);
+            FileTransferService.removeRequest(this.ID);
         } catch (IOException e) {
             e.printStackTrace();
             Log.e(TAG, "SendingFile: File not sent");
             FileTransferManager.transferComplete = false;
             FileTransferManager.transfers.remove(this.ID);
-            removeRequest(this.ID);
+            FileTransferService.removeRequest(this.ID);
         } finally {
             FileTransferManager.transferCount++;
 
             Log.d(TAG, " Transfer end. Count: " + FileTransferManager.transferCount + " Selected size: " + FileTransferManager.selected.size());
 
             //check that all the files have been transferred - reset connections and progress
-            if(FileTransferManager.transferCount == FileTransferManager.selected.size()) {
+            //else start the next transfer
+            if(FileTransferManager.transferCount >= FileTransferManager.selected.size()) {
                 reset();
+            } else if(FileTransferManager.selectedCounter < FileTransferManager.selected.size()) {
+                FileTransferManager.nextTransfer();
             }
         }
 
@@ -123,16 +125,6 @@ public class ClientTransferTask implements Runnable {
             clientSocket.close();
         } catch (IOException e) {
             e.printStackTrace();
-        }
-    }
-
-    /**
-     * Remove the peer from the fileRequests. Internally uses Integer.valueOf() so
-     * that it is does not remove the index value instead.
-     */
-    private void removeRequest(int ID) {
-        if(LeadMeMain.fileRequests.size() > 0) {
-            LeadMeMain.fileRequests.remove(Integer.valueOf(ID));
         }
     }
 
@@ -150,7 +142,6 @@ public class ClientTransferTask implements Runnable {
             Log.d(TAG, "SocketClosure: socket closing issue");
         } finally {
             LeadMeMain.fileRequests = new ArrayList<>();
-            FileTransferManager.executor.shutdown();
 
             //reset for next time
             FileTransferManager.transfer_progress = -1;

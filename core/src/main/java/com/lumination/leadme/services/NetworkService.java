@@ -29,9 +29,7 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.AbstractMap;
 import java.util.HashMap;
-import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -65,7 +63,7 @@ public class NetworkService extends Service {
      * Keep Track of the Client ID as the key and student socket as the value. It can then be used
      * to determine if a student is reconnecting or is a new user.
      */
-    public static HashMap<Integer, Map.Entry<InetAddress, Boolean>> clientSocketArray = new HashMap<>();
+    public static HashMap<Integer, InetAddress> clientSocketArray = new HashMap<>();
 
     /**
      * Only purpose is to provide a reverse look up in comparison to the clientSocketArray for
@@ -253,9 +251,9 @@ public class NetworkService extends Service {
     public static void sendToClient(int learnerID, String message, String type) {
         Log.d(TAG, "sendToClient: "+message+" Type: "+type);
 
-        Map.Entry<InetAddress, Boolean> entry = clientSocketArray.get(learnerID);
-        if (entry != null) {
-            InetAddress ipAddress = entry.getKey();
+        InetAddress ipAddress = clientSocketArray.get(learnerID);
+        if (ipAddress != null) {
+            //InetAddress ipAddress = entry.getKey();
             backgroundExecutor.submit(() -> sendLearnerMessage(learnerID, ipAddress, type + "," + message));
         }
     }
@@ -289,10 +287,10 @@ public class NetworkService extends Service {
         } else {
             Log.d(TAG, "Learner not found: " + clientAddress.getHostAddress() +
                     " Message:" + message);
-            Log.d(TAG, "Adding new learner");
 
             //Only create a new connecting if a Name is being sent through
             if(message.contains("NAME")) {
+                Log.d(TAG, "Adding new learner");
                 learnerManager(clientAddress);
                 determineAction(clientAddress, message);
             }
@@ -345,18 +343,14 @@ public class NetworkService extends Service {
      * @param clientAddress An InetAddress object of the newly connected user.
      */
     public static void learnerManager(InetAddress clientAddress) {
-        ClientResult result = manageClientID(clientAddress);
-        int ID = result.getID();
-        boolean reconnect = result.getReconnect();
+        int ID = manageClientID(clientAddress);
 
         TcpClient tcpClient = new TcpClient(clientAddress, ID);
         Learner learner = new Learner();
         learner.tcp = tcpClient;
         learner.ID = ID;
 
-        AbstractMap.SimpleEntry<InetAddress, Boolean> entry = new AbstractMap.SimpleEntry<>(clientAddress, reconnect);
-
-        clientSocketArray.put(ID, entry);
+        clientSocketArray.put(ID, clientAddress);
         studentThreadArray.put(ID, learner);
         addressSocketArray.put(clientAddress, ID);
     }
@@ -366,7 +360,7 @@ public class NetworkService extends Service {
      * are a new user.
      * @param clientAddress A socket object of the newly connected user.
      */
-    public static ClientResult manageClientID(InetAddress clientAddress) {
+    public static int manageClientID(InetAddress clientAddress) {
         int tempID = -1;
 
         //find any matching IP addresses if they have previously connected
@@ -379,10 +373,10 @@ public class NetworkService extends Service {
             Log.d(TAG, "Reconnecting Student: " + tempID);
             Log.d(TAG, "Is user reconnecting: " + true);
             studentThreadArray.remove(tempID);
-            return new ClientResult(tempID, true);
+            return tempID;
         } else {
             Log.d(TAG, "New Student: " + clientID);
-            return new ClientResult(clientID++, false);
+            return clientID++;
         }
     }
 
@@ -409,7 +403,7 @@ public class NetworkService extends Service {
 
     private static void disconnection() {
         clientSocketArray.forEach((key, value) -> backgroundExecutor.submit(() ->
-                sendLearnerMessage(key, value.getKey(), "DISCONNECT" + ","))
+                sendLearnerMessage(key, value, "DISCONNECT" + ","))
         );
     }
 
@@ -444,6 +438,8 @@ public class NetworkService extends Service {
             disconnection();
             isGuide = false;
         }
+        //shutdown any scheduled ping messages
+        NetworkManager.scheduledExecutor.shutdown();
         endForeground();
         leaderIPAddress = null;
         super.onDestroy();
@@ -487,23 +483,5 @@ public class NetworkService extends Service {
         if(isGuide) {resetClientIDs();}
         stopServer();
         serverThreadPool.shutdown();
-    }
-}
-
-final class ClientResult {
-    private final int ID;
-    private final boolean reconnect;
-
-    public ClientResult(int ID, boolean reconnect) {
-        this.ID = ID;
-        this.reconnect = reconnect;
-    }
-
-    public int getID() {
-        return ID;
-    }
-
-    public boolean getReconnect() {
-        return reconnect;
     }
 }

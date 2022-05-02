@@ -16,6 +16,7 @@ import com.google.android.gms.nearby.connection.Payload;
 import com.lumination.leadme.connections.ConnectedPeer;
 import com.lumination.leadme.LeadMeMain;
 import com.lumination.leadme.R;
+import com.lumination.leadme.services.FileTransferService;
 import com.lumination.leadme.services.NetworkService;
 import com.lumination.leadme.models.Client;
 import com.lumination.leadme.models.Endpoint;
@@ -45,7 +46,7 @@ public class NetworkManager {
     public static ArrayList<Client> currentClients = new ArrayList<>();
 
     public static ExecutorService executorService = Executors.newCachedThreadPool();
-    private static ScheduledExecutorService scheduledExecutor = new ScheduledThreadPoolExecutor(1);
+    public static ScheduledExecutorService scheduledExecutor = new ScheduledThreadPoolExecutor(1);
     private static final ThreadPoolExecutor connectionThreadPool = (ThreadPoolExecutor) Executors.newFixedThreadPool(1);
 
     public NetworkManager(LeadMeMain main) {
@@ -290,7 +291,7 @@ public class NetworkManager {
     }
 
     /**
-     * called by the TCP clients to update the parent thread with information
+     * Called by the TCP clients to update the parent thread with information
      * types defined as such:
      * NAME: client server pings name through on first use it will update the parent with the clients name,
      * if its changed then subsequent runs will rectify that. Also acts as a pinging, once name
@@ -383,6 +384,7 @@ public class NetworkManager {
         for (int i = 0; i < currentClients.size(); i++) {
             if (currentClients.get(i).ID == clientID) {
                 Log.d(TAG, "updateParent: student has been disconnected: " + clientID);
+                cleanUpTransfer(clientID);
                 NetworkService.removeStudent(clientID);
                 currentClients.remove(i);
                 if (currentClients.size() == 0) {
@@ -403,22 +405,17 @@ public class NetworkManager {
      *                 leaders device.
      */
     private static void parentUpdateLost(int clientID) {
-        if (NetworkService.clientSocketArray.get(clientID) != null) {
-            Log.d(TAG, "updateParent: client: " + clientID + " is reconnecting");
-            NetworkService.clientSocketArray.get(clientID).setValue(false);
-        } else {
-            Log.d(TAG, "updateParent: client: " + clientID + " has lost connection");
-            currentClients.remove(clientID);
-            main.getXrayManager().removePeerFromMap(String.valueOf(clientID));
-
-            main.runOnUiThread(() -> {
-                if (main.getConnectedLearnersAdapter().getMatchingPeer(String.valueOf(clientID)) != null) {
-                    if (main.getConnectedLearnersAdapter().getMatchingPeer(String.valueOf(clientID)).getStatus() != ConnectedPeer.STATUS_ERROR) {
-                        main.getConnectedLearnersAdapter().updateStatus(String.valueOf(clientID), ConnectedPeer.STATUS_ERROR);
-                    }
+        Log.d(TAG, "updateParent: client: " + clientID + " has lost connection");
+        cleanUpTransfer(clientID);
+        currentClients.remove(clientID);
+        main.getXrayManager().removePeerFromMap(String.valueOf(clientID));
+        main.runOnUiThread(() -> {
+            if (main.getConnectedLearnersAdapter().getMatchingPeer(String.valueOf(clientID)) != null) {
+                if (main.getConnectedLearnersAdapter().getMatchingPeer(String.valueOf(clientID)).getStatus() != ConnectedPeer.STATUS_ERROR) {
+                    main.updatePeerStatus(String.valueOf(clientID), ConnectedPeer.STATUS_ERROR, null);
                 }
-            });
-        }
+            }
+        });
     }
 
     /**
@@ -462,6 +459,22 @@ public class NetworkManager {
         }
     }
 
+    /**
+     * Remove any devices that may have disconnected while file transfer was active.
+     * @param ID An ID representing a learner.
+     */
+    private static void cleanUpTransfer(int ID) {
+        if(FileTransferManager.selected != null && FileTransferManager.transfers != null) {
+            FileTransferManager.selected.remove(ID);
+            FileTransferManager.transfers.remove(ID);
+            FileTransferService.removeRequest(ID);
+        }
+    }
+
+    /**
+     * Stop the screenSharingService from sending images to the guide.
+     * @param ID An int representing the learner that needs to stop sending images.
+     */
     public void stopMonitoring(int ID) {
         ArrayList<Integer> selected = new ArrayList<>();
         selected.add(ID);
@@ -475,6 +488,7 @@ public class NetworkManager {
      * @param fileType  A string representing the type of file that is being transferred.
      */
     public static void sendFile(int ID, int localPort, String fileType) {
+        Log.e(TAG, "Sending file to: " + ID);
         ArrayList<Integer> selected = new ArrayList<>();
         selected.add(ID);
         sendToSelectedClients("SEND:" + localPort + ":" + fileType, "FILE", selected);

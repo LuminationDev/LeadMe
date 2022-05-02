@@ -198,5 +198,7 @@
     <string name="mono">Mono</string>
     <string name="update">Update</string>
     <string name="new_version_available">There is a new version of LeadMe \n available on the play store.</string>
+    <string name="leadme_vr_player">LeadMe VR Player</string>
+    <string name="leadme_vr_install">The LeadMe VR Player is not currently \ninstalled on this device, would \nyou like to install it?</string>
 
 </resources>

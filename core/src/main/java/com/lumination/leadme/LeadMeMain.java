@@ -2415,6 +2415,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         getLeaderSelectAdapter().setLeaderList(new ArrayList<>()); //empty the list
         setUIDisconnected();
         getFirebaseManager().stopService();
+        getFileTransferManager().stopService();
         NetworkManager.stopService();
         showSplashScreen();
         moveAwayFromSplashScreen();
