@@ -15,7 +15,7 @@
         android:id="@+id/warning_icon"
         android:layout_width="match_parent"
         android:layout_height="90dp"
-        android:src="@drawable/alert_offtask_learner"
+        android:src="@drawable/leadme_icon"
         android:contentDescription="@string/warning_icon" />
 
     <TextView
@@ -27,7 +27,7 @@
         android:ellipsize="end"
         android:fontFamily="@font/poppins_semibold"
         android:gravity="center_horizontal"
-        android:text="@string/update"
+        android:text="@string/leadme_vr_player"
         android:textColor="@color/leadme_black"
         android:textSize="18sp" />
 
@@ -37,7 +37,7 @@
         android:layout_height="wrap_content"
         android:fontFamily="@font/poppins_regular"
         android:gravity="center_horizontal"
-        android:text="@string/new_version_available"
+        android:text="@string/leadme_vr_install"
         android:textColor="@color/leadme_black"
         android:textSize="14sp" />
 
@@ -49,33 +49,32 @@
         android:orientation="vertical">
 
         <Button
-            android:id="@+id/ok_btn"
+            android:id="@+id/update_btn"
             style="?android:attr/borderlessButtonStyle"
             android:layout_width="@dimen/standard_btn_width"
             android:layout_height="@dimen/standard_btn_height"
             android:layout_gravity="center_horizontal"
             android:background="@drawable/bg_active"
+            android:textColor="@color/leadme_white"
             android:clickable="true"
             android:fontFamily="@font/poppins_semibold"
-            android:text="@string/ok"
-            android:textColor="@color/leadme_white"
+            android:text="@string/install"
             android:textSize="16sp"
             android:focusable="true" />
 
         <Button
-            android:id="@+id/update_btn"
+            android:id="@+id/cancel_btn"
             style="?android:attr/borderlessButtonStyle"
             android:layout_marginTop="10dp"
             android:layout_width="@dimen/standard_btn_width"
             android:layout_height="@dimen/standard_btn_height"
             android:layout_gravity="center_horizontal"
             android:background="@drawable/bg_passive"
+            android:textColor="@color/leadme_black"
             android:clickable="true"
             android:fontFamily="@font/poppins_semibold"
-            android:text="@string/update"
-            android:textColor="@color/leadme_black"
+            android:text="@string/cancel"
             android:textSize="16sp"
             android:focusable="true" />
-
     </LinearLayout>
 </LinearLayout>

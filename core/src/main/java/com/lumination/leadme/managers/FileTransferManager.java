@@ -21,9 +21,7 @@ import com.lumination.leadme.connections.ConnectedPeer;
 import com.lumination.leadme.LeadMeMain;
 import com.lumination.leadme.R;
 import com.lumination.leadme.services.FileTransferService;
-import com.lumination.leadme.services.FirebaseService;
 import com.lumination.leadme.utilities.FileUtilities;
-import com.lumination.leadme.utilities.TransferThread;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -41,20 +39,14 @@ import java.util.Map;
 import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadPoolExecutor;
 
 public class FileTransferManager {
     private static final String TAG = "FileTransferManager";
 
     private final LeadMeMain main;
-    private FileTransferService fileTransferService;
 
     private static final int NOTIFICATION_ID = 1;
     private static final String CHANNEL_ID = "FileTransfer";
-
-    private final int numberOfThreads = 2; //how many transfers can operate simultaneously
-    public static ThreadPoolExecutor executor;
 
     //Notification Alerts
     public static boolean transferComplete = true;
@@ -73,6 +65,7 @@ public class FileTransferManager {
     private final boolean testBar = true;
     private boolean request = false; //if a learner is requesting a file
 
+    public static int selectedCounter = 0;
     public static ArrayList<Integer> selected;
     public static HashMap<Integer, Double> transfers;
     public static double transfer_progress = -1;
@@ -113,7 +106,6 @@ public class FileTransferManager {
      */
     public FileTransferManager(LeadMeMain main) {
         this.main = main;
-        fileTransferService = new FileTransferService();
         transferBar = main.mainLearner.findViewById(R.id.transfer_progress_bar);
         setupNotificationChannel();
     }
@@ -163,7 +155,7 @@ public class FileTransferManager {
     /**
      * Stop the service, this stops the file transfer server if it is still running in the background.
      */
-    private void stopService() {
+    public void stopService() {
         Intent stop_transfer_intent = new Intent(main.getApplicationContext(), FileTransferService.class);
         main.stopService(stop_transfer_intent);
     }
@@ -286,7 +278,7 @@ public class FileTransferManager {
                 .setStyle(new NotificationCompat.BigTextStyle().bigText("File Name: " + file.getName()));
         notifyManager.notify(NOTIFICATION_ID, builder.build());
 
-        scheduleForExecutor();
+        scheduleForTransfer();
     }
 
     /**
@@ -341,9 +333,7 @@ public class FileTransferManager {
      * Schedule file transfers for all the selected peers using the ThreadPoolExecutor for simultaneous
      * transfer management and update the status icons on the guide's device.
      */
-    private void scheduleForExecutor() {
-        executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(numberOfThreads);
-
+    private void scheduleForTransfer() {
         //get the total file size for work out the percentage of total transfer
         transfers = new HashMap<>();
 
@@ -354,12 +344,25 @@ public class FileTransferManager {
                     ConnectedPeer.STATUS_FILE_TRANSFER, null));
 
             transfers.put(selected.get(x), 0.0); //initial peers and default starting value
-            TransferThread transferThread = new TransferThread(selected.get(x));
-            executor.execute(transferThread);
+
+            //Only start the appropriate number of threads
+            if(x < FileTransferService.numberOfTransferThreads) {
+                selectedCounter = FileTransferService.numberOfTransferThreads;
+                NetworkManager.sendFile(selected.get(x), FileTransferService.PORT, fileType);
+            }
         }
 
         startVisualTimer();
         Log.d(TAG, "Amount of transfers: " + transfers.size());
+    }
+
+    /**
+     * Send the file transfer initiator to the next learner in the selected learners list. This
+     * start the next transfer.
+     */
+    public static void nextTransfer() {
+        NetworkManager.sendFile(selected.get(selectedCounter), FileTransferService.PORT, fileType);
+        selectedCounter++;
     }
 
     /**
@@ -372,9 +375,7 @@ public class FileTransferManager {
 
         try {
             fileSocket = new Socket();
-            //Regular getLocalPort method from network adapter
-//            fileSocket.connect(new InetSocketAddress(ip, port), 10000);
-            //Hard coded port in case getLocalPort is blocked (same as the connection issue)
+
             fileSocket.connect(new InetSocketAddress(ip, FileTransferService.PORT), 10000);
 
             Log.d(TAG, "saveFile: socket connected");
@@ -545,7 +546,7 @@ public class FileTransferManager {
                     mediaCollection = MediaStore.Files.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY);
                     newCaptureDetails.put(MediaStore.Files.FileColumns.DISPLAY_NAME, fileName);
                 } else {
-                    return fos;
+                    return null;
                 }
 
                 Uri newCaptureUri = resolver.insert(mediaCollection, newCaptureDetails);
@@ -563,7 +564,7 @@ public class FileTransferManager {
                 } else if (isDocument) {
                     directory = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS).toString();
                 } else {
-                    return fos;
+                    return null;
                 }
 
                 File newFile = new File(directory, fileName);
@@ -630,7 +631,7 @@ public class FileTransferManager {
     }
 
     /**
-     * Update the guies loading bar within the notification icon.
+     * Update the guides loading bar within the notification icon.
      * @param total A long defining the total data length that is being transferred.
      * @param current An integer representing the current amount that has been transferred.
      * @param index An integer representing a Peer ID within the transfers hashmap for which the
@@ -675,7 +676,7 @@ public class FileTransferManager {
             }
         };
 
-        //update the leaders timestamp on firebase (mins)
+        //update the progress bar and notification bar every (3s)
         timestampUpdater.scheduleAtFixedRate(updateTimestamp, 0L, 3000);
     }
 
@@ -694,8 +695,8 @@ public class FileTransferManager {
             }
         } else {
             checkProgress();
-            stopVisualTimer();
             dismissPopup();
+            stopVisualTimer();
         }
     }
 
@@ -711,6 +712,8 @@ public class FileTransferManager {
 
                 if (value == 100.0) {
                     main.runOnUiThread(() -> main.updatePeerStatus(String.valueOf(key), ConnectedPeer.STATUS_INSTALLED, null));
+                    //Reset the position as to not constantly call update
+                    transfers.put(key, -1.0);
                 }
             }
         }
@@ -745,8 +748,6 @@ public class FileTransferManager {
         } else {
             notifyManager.cancel(NOTIFICATION_ID);
         }
-
-        //notifyManager.notify(NOTIFICATION_ID, builder.build());
 
         //Reset for next time
         transferComplete = true;

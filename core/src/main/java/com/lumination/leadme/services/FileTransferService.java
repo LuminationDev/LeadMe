@@ -1,36 +1,23 @@
 package com.lumination.leadme.services;
 
 import android.annotation.TargetApi;
-import android.app.Activity;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.Service;
-import android.content.ContentResolver;
-import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
-import android.net.Uri;
 import android.os.Binder;
-import android.os.Build;
-import android.os.Environment;
 import android.os.IBinder;
-import android.provider.MediaStore;
 import android.util.Log;
-import android.view.View;
 
 import androidx.core.app.NotificationCompat;
 
 import com.lumination.leadme.LeadMeMain;
 import com.lumination.leadme.R;
 import com.lumination.leadme.utilities.ClientTransferTask;
-import com.lumination.leadme.utilities.FileUtilities;
 
-import java.io.DataInputStream;
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -46,6 +33,7 @@ public class FileTransferService extends Service {
 
     private static Thread serverThread;
     private static ServerSocket serverSocket = null;
+    public static final int numberOfTransferThreads = 1; //how many transfers can operate simultaneously
 
     public static boolean isRunning = true;
     public static final int PORT = 54323;
@@ -59,7 +47,7 @@ public class FileTransferService extends Service {
      */
     public class LocalBinder extends Binder {
         public FileTransferService getService() {
-            // Return this instance of ScreensharingService so clients can call public methods
+            // Return this instance of FileTransferService so clients can call public methods
             return FileTransferService.this;
         }
     }
@@ -71,8 +59,7 @@ public class FileTransferService extends Service {
     public static void startFileServer() {
         stopFileServer();
 
-        //TODO test with 10+ phones in case the server shuts down before finishing
-        final ExecutorService clientProcessingPool = Executors.newFixedThreadPool(10);
+        final ExecutorService clientProcessingPool = Executors.newFixedThreadPool(numberOfTransferThreads);
 
         Runnable serverTask = () -> {
             try {
@@ -118,6 +105,16 @@ public class FileTransferService extends Service {
                 Log.e(TAG, "Unable to stop old server socket");
                 e.printStackTrace();
             }
+        }
+    }
+
+    /**
+     * Remove the peer from the fileRequests. Internally uses Integer.valueOf() so
+     * that it is does not remove the index value instead.
+     */
+    public static void removeRequest(int ID) {
+        if(LeadMeMain.fileRequests.size() > 0) {
+            LeadMeMain.fileRequests.remove(Integer.valueOf(ID));
         }
     }
 

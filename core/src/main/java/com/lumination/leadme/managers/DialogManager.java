@@ -45,7 +45,7 @@ public class DialogManager {
     private final Resources resources;
 
     private View confirmPushDialogView, loginDialogView, toggleBtnView, manView, permissionDialogView, requestDialogView;
-    private AlertDialog warningDialog, waitingDialog, appPushDialog, confirmPushDialog, studentAlertsDialog, loginDialog, recallPrompt, manualDialog, permissionDialog, requestDialog, fileTypeDialog, firstTimeVRDialog, updateDialog;
+    private AlertDialog warningDialog, waitingDialog, appPushDialog, confirmPushDialog, studentAlertsDialog, loginDialog, recallPrompt, manualDialog, permissionDialog, requestDialog, fileTypeDialog, firstTimeVRDialog, updateDialog, vrInstallDialog;
     private TextView appPushMessageView, warningDialogTitle, warningDialogMessage, recallMessage, permissionDialogMessage, requestDialogMessage, additionalInfo;
     private String appPushPackageName, appPushTitle;
     private ArrayList<String> permissions = null;
@@ -96,6 +96,7 @@ public class DialogManager {
         setupConfirmPushDialog();
         setupWarningDialog();
         setupUpdateDialog();
+        setupVRInstallDialog();
         setupAlertsViewDialog();
         setupLoginDialogView();
         setupLoginDialog();
@@ -190,6 +191,33 @@ public class DialogManager {
                 .setView(updateDialogView)
                 .create();
         updateDialog.setOnDismissListener(dialog -> hideSystemUI());
+    }
+
+    private void setupVRInstallDialog() {
+        View updateDialogView = View.inflate(main, R.layout.e__install_vr_popup, null);
+        Button updateBtn = updateDialogView.findViewById(R.id.update_btn);
+        updateBtn.setOnClickListener(v -> {
+            vrInstallDialog.dismiss();
+            dialogShowing = false;
+
+            Uri uri = Uri.parse("https://play.google.com/store/apps/details?id=com.lumination.VRPlayer");
+            Intent intent = new Intent(Intent.ACTION_VIEW, uri);
+            main.startActivity(intent);
+
+            //Can auto install if needed?
+            //main.getLumiAppInstaller().autoInstall("com.lumination.VRPlayer", "VR Player", "true", null);
+        });
+
+        Button cancelBtn = updateDialogView.findViewById(R.id.cancel_btn);
+        cancelBtn.setOnClickListener(v -> {
+            vrInstallDialog.dismiss();
+            dialogShowing = false;
+        });
+
+        vrInstallDialog = new AlertDialog.Builder(main)
+                .setView(updateDialogView)
+                .create();
+        vrInstallDialog.setOnDismissListener(dialog -> hideSystemUI());
     }
 
     private void setupAlertsViewDialog() {
@@ -611,6 +639,21 @@ public class DialogManager {
             setupUpdateDialog();
         }
         updateDialog.show();
+        hideSystemUI();
+        dialogShowing = true;
+    }
+
+    /**
+     * Display a custom pop up message about the VR player available play store.
+     */
+    public void showVRInstallDialog() {
+        if (destroying) {
+            return;
+        }
+        if (vrInstallDialog == null) {
+            setupVRInstallDialog();
+        }
+        vrInstallDialog.show();
         hideSystemUI();
         dialogShowing = true;
     }

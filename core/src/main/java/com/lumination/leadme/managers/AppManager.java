@@ -208,6 +208,10 @@ public class AppManager extends BaseAdapter {
             }
             else {
                 main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.APP_NOT_INSTALLED + ":" + appName + ":" + packageName + ":" + main.getNearbyManager().getID(), main.getNearbyManager().getSelectedPeerIDsOrAll());
+
+                if(packageName.equals(vrplayerPackage)) {
+                    main.getDialogManager().showVRInstallDialog();
+                }
                 return;
             }
         }
