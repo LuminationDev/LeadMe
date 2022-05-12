@@ -58,31 +58,95 @@ public class FileUtilities {
     }
 
     /**
+     * Search the local storage, can only search one 'block' at a time.
+     * @param main A reference to the main activity.
+     * @param fileName A string representing the file to search for.
+     * @return A Uri of the file, if null the file doesn't exist.
+     */
+    public static Uri searchStorage(LeadMeMain main, String fileName) {
+        Uri foundUri;
+
+        boolean isMovie = fileName.toLowerCase().contains(".mp4")
+                || fileName.toLowerCase().contains(".avi")
+                || fileName.toLowerCase().contains(".mkv")
+                || fileName.toLowerCase().contains(".webm")
+                || fileName.toLowerCase().contains(".mov");
+
+        boolean isPicture = fileName.toLowerCase().contains(".jpg")
+                || fileName.toLowerCase().contains(".jpeg")
+                || fileName.toLowerCase().contains(".png");
+
+        boolean isDocument = fileName.toLowerCase().contains(".pdf");
+
+        if (isPicture) {
+            foundUri = FileUtilities.getPhotoFileByName(main, fileName);
+        } else if (isMovie) {
+            foundUri = FileUtilities.getVideoFileByName(main, fileName);
+        } else if (isDocument) {
+            foundUri = FileUtilities.getDocumentFileByName(main, fileName);
+        } else {
+            return null;
+        }
+
+        return foundUri;
+    }
+
+    private static Uri getPhotoFileByName(LeadMeMain main, String fileName) {
+        Uri uri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
+
+        String selection = MediaStore.Images.Media.DISPLAY_NAME + "= ?";
+        String column = MediaStore.Images.ImageColumns._ID;
+
+        Log.d(TAG, "Searching for a photo");
+
+        return getFileByName(uri, selection, column, main, fileName);
+    }
+
+    private static Uri getVideoFileByName(LeadMeMain main, String fileName) {
+        Uri uri = MediaStore.Video.Media.EXTERNAL_CONTENT_URI;
+
+        String selection = MediaStore.Video.Media.DISPLAY_NAME + "= ?";
+        String column = MediaStore.Video.VideoColumns._ID;
+
+        Log.d(TAG, "Searching for a video");
+
+        return getFileByName(uri, selection, column, main, fileName);
+    }
+
+    private static Uri getDocumentFileByName(LeadMeMain main, String fileName) {
+        Uri uri = MediaStore.Files.getContentUri("external");
+
+        String selection = MediaStore.Files.FileColumns.DISPLAY_NAME + "= ?";
+        String column = MediaStore.Files.FileColumns._ID;
+
+        Log.d(TAG, "Searching for a document");
+
+        return getFileByName(uri, selection, column, main, fileName);
+    }
+
+    /**
      * Search for a file within the MediaStore by file name. Using the supplied file name.
      * @param main A reference to the LeadMe main activity.
      * @param fileName A string representing the name of the file to be searched for.
      * @return A Uri of the file that has been found.
      */
-    public static Uri getFileByName(LeadMeMain main, String fileName) {
-        Uri videoUri = null;
+    private static Uri getFileByName(Uri uri, String selection, String column, LeadMeMain main, String fileName) {
+        Uri foundUri = null;
 
         ContentResolver cr = main.getContentResolver();
-        Uri uri = MediaStore.Video.Media.EXTERNAL_CONTENT_URI;
 
-        String selection = MediaStore.Video.Media.DISPLAY_NAME + "= ?";
         String[] selectionArguments = {fileName};
 
         Cursor cursor = cr.query(uri, null, selection, selectionArguments, null);
 
         if (cursor != null && cursor.getCount() > 0) {
             cursor.moveToFirst();
-            videoUri = ContentUris.withAppendedId(MediaStore.Video.Media.EXTERNAL_CONTENT_URI,
-                    cursor.getInt(cursor.getColumnIndex(MediaStore.Video.VideoColumns._ID)));
+            foundUri = ContentUris.withAppendedId(uri, cursor.getInt(cursor.getColumnIndex(column)));
 
             cursor.close();
         }
 
-        return videoUri;
+        return foundUri;
     }
 
     /**

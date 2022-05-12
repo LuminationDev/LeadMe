@@ -428,7 +428,7 @@ public class FileTransferManager {
 
                 //Works for API 27+ at least - needs more testing
                 if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                    fileURI = FileUtilities.getFileByName(main, fileName);
+                    fileURI = FileUtilities.searchStorage(main, fileName);
                 } else {
                     fileExists = FileUtilities.findFile(Environment.getExternalStorageDirectory(), fileName);
                 }

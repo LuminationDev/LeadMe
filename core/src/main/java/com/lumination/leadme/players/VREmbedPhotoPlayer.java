@@ -1,13 +1,10 @@
 package com.lumination.leadme.players;
 
-import static android.view.View.GONE;
-
 import android.app.AlertDialog;
 import android.content.res.ColorStateList;
 import android.database.Cursor;
 import android.net.Uri;
 import android.provider.OpenableColumns;
-import android.text.format.DateUtils;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
@@ -15,11 +12,9 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.PopupWindow;
-import android.widget.SeekBar;
 import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.widget.VideoView;
 
 import androidx.core.content.ContextCompat;
 import androidx.core.widget.ImageViewCompat;
@@ -40,7 +35,7 @@ import java.util.Set;
 * Opens the video controller, buttons dispatch actions
 * (Peer device) sends intent to the VR app depending on the action received
 */
-public class VREmbedPlayer {
+public class VREmbedPhotoPlayer {
     private final static String TAG = "embedPlayerVR";
     //Package name of the external VR player
     public final static String packageName = "com.lumination.VRPlayer";
@@ -51,8 +46,8 @@ public class VREmbedPlayer {
 
     private AlertDialog videoControlDialog, playbackSettingsDialog;
 
-    private final View videoControllerDialogView; //, videoControls
-    private final VideoView controllerVideoView;
+    private final View photoControllerDialogView; //, videoControls
+    private final ImageView controllerImageView;
 
     private View projectionDropdown;
     private PopupWindow popupWindow;
@@ -61,50 +56,26 @@ public class VREmbedPlayer {
     private TextView monoText, eacText, eac3dText, ouText, sbsText;
 
     private Button vrplayerPreviewPushBtn, vrplayerSetSourceBtn;
-    private VideoView vrplayerPreviewVideoView;
+    private ImageView vrplayerPreviewPhotoView;
     private View vrplayerSettingsDialogView;
-    private View vrplayerVideoControls, vrplayerNoVideo;
-
-    private TextView playFromTime, totalTimeText, elapsedTimeText;
-    private int totalTime = -1;
-    private float currentTime = 0;
-    private int startFromTime = 0;
-    private SeekBar progressBar;
-
-    private final ImageView playBtn, pauseBtn;
+    private View vrplayerPhotoControls, vrplayerNoVideo;
 
     Switch viewModeToggle;
 
     private final LeadMeMain main;
 
-    public VREmbedPlayer(LeadMeMain main) {
+    public VREmbedPhotoPlayer(LeadMeMain main) {
         this.main = main;
 
-        videoControllerDialogView = View.inflate(main, R.layout.f__playback_control_vrplayer, null);
+        photoControllerDialogView = View.inflate(main, R.layout.f__playback_control_vr_photoplayer, null);
 
-        controllerVideoView = videoControllerDialogView.findViewById(R.id.video_stream_videoview);
-        controllerVideoView.setTag("CONTROLLER");
-
-        playBtn = videoControllerDialogView.findViewById(R.id.play_btn);
-        pauseBtn = videoControllerDialogView.findViewById(R.id.pause_btn);
+        controllerImageView = photoControllerDialogView.findViewById(R.id.photo_stream_imageview);
+        controllerImageView.setTag("CONTROLLER");
 
         setupProjectionDropdown();
 
         createPlaybackSettingsPopup();
         setupGuideVideoControllerButtons();
-
-        //listener to manage when a video has loaded properly
-        vrplayerPreviewVideoView.setOnPreparedListener(mp -> {
-            int duration = mp.getDuration();
-            int videoDuration = vrplayerPreviewVideoView.getDuration()/1000;
-            Log.d(TAG, String.format("onPrepared: (ms)duration=%d, (s)videoDuration=%d", duration,
-                    videoDuration));
-            setTotalTime(videoDuration);
-
-            if(startFromTime != 0) {
-                controllerVideoView.seekTo(startFromTime * 1000);
-            }
-        });
     }
 
     /**
@@ -112,7 +83,7 @@ public class VREmbedPlayer {
      * projection types available.
      */
     private void setupProjectionDropdown() {
-        changeProjectionBtn = videoControllerDialogView.findViewById(R.id.change_projection_btn);
+        changeProjectionBtn = photoControllerDialogView.findViewById(R.id.change_projection_btn);
         projectionDropdown = View.inflate(main, R.layout.e__projection_menu, null);
         popupWindow = new PopupWindow(
                 projectionDropdown,
@@ -130,18 +101,23 @@ public class VREmbedPlayer {
             changeSelectedProjection(monoText);
         });
 
+        //TODO EAC mode is not enabled yet for VR player
         eacText = projectionDropdown.findViewById(R.id.eac_text);
         eacBtn = projectionDropdown.findViewById(R.id.eac_toggle);
+        eacText.setVisibility(View.GONE);
+        eacBtn.setVisibility(View.GONE);
         eacBtn.setOnClickListener(v -> {
-            changeProjection("eac");
-            changeSelectedProjection(eacText);
+//            changeProjection("eac");
+//            changeSelectedProjection(eacText);
         });
 
         eac3dText = projectionDropdown.findViewById(R.id.eac3d_text);
         eac3dBtn = projectionDropdown.findViewById(R.id.eac3d_toggle);
+        eac3dText.setVisibility(View.GONE);
+        eac3dBtn.setVisibility(View.GONE);
         eac3dBtn.setOnClickListener(v -> {
-            changeProjection("eac3d");
-            changeSelectedProjection(eac3dText);
+//            changeProjection("eac3d");
+//            changeSelectedProjection(eac3dText);
         });
 
         ouText = projectionDropdown.findViewById(R.id.over_under_text);
@@ -183,12 +159,13 @@ public class VREmbedPlayer {
             return;
         }
 
-        vrplayerPreviewVideoView.setVideoPath(path);
+        vrplayerPreviewPhotoView.setImageURI(Uri.parse(path));
+        //vrplayerPreviewPhotoView.setVideoPath(path);
 
-        noVideoChosen(false);
+        noPhotoChosen(false);
 
         //setting the preview video
-        setupVideoPreview(vrplayerPreviewVideoView);
+        setupPhotoPreview(vrplayerPreviewPhotoView);
     }
 
     /**
@@ -212,13 +189,14 @@ public class VREmbedPlayer {
             return;
         }
 
-        vrplayerPreviewVideoView.setVideoURI(path);
+        vrplayerPreviewPhotoView.setImageURI(path);
+        //vrplayerPreviewPhotoView.setVideoURI(path);
 
-        noVideoChosen(false);
+        noPhotoChosen(false);
 
-        vrplayerPreviewVideoView.setVisibility(View.VISIBLE);
+        vrplayerPreviewPhotoView.setVisibility(View.VISIBLE);
         //setting the preview video
-        setupVideoPreview(vrplayerPreviewVideoView);
+        setupPhotoPreview(vrplayerPreviewPhotoView);
     }
 
     /**
@@ -246,27 +224,20 @@ public class VREmbedPlayer {
      * Sets the video source and moves it to the top of the UI as some phones will display it behind
      * the pop up dialog.
     */
-    private void setupVideoPreview(VideoView video) {
-        video.setZOrderOnTop(true);
+    private void setupPhotoPreview(ImageView photo) {
+        //photo.setZOrderOnTop(true);
 
-        if(startFromTime != 0) {
-            video.seekTo(startFromTime * 1000);
-        } else {
-            //display the first frame instead of black space
-            video.seekTo(1);
-        }
-
-        TextView touchDesc = videoControllerDialogView.findViewById(R.id.touch_screen_desc);
-        viewModeToggle = videoControllerDialogView.findViewById(R.id.view_mode_toggle);
+        TextView touchDesc = photoControllerDialogView.findViewById(R.id.touch_screen_desc);
+        viewModeToggle = photoControllerDialogView.findViewById(R.id.view_mode_toggle);
         viewModeToggle.setChecked(true);
         viewModeToggle.setOnCheckedChangeListener((buttonView, isChecked) -> {
             if(isChecked){
                 viewModeToggle.setText(R.string.view_mode_on);
                 touchDesc.setText(R.string.touch_screens_disabled);
-                ImageViewCompat.setImageTintList(videoControllerDialogView.findViewById(R.id.view_mode_icon), ColorStateList.valueOf(ContextCompat.getColor(main, R.color.leadme_blue)));
+                ImageViewCompat.setImageTintList(photoControllerDialogView.findViewById(R.id.view_mode_icon), ColorStateList.valueOf(ContextCompat.getColor(main, R.color.leadme_blue)));
                 main.lockFromMainAction();
             }else{
-                ImageViewCompat.setImageTintList(videoControllerDialogView.findViewById(R.id.view_mode_icon), ColorStateList.valueOf(ContextCompat.getColor(main, R.color.leadme_medium_grey)));
+                ImageViewCompat.setImageTintList(photoControllerDialogView.findViewById(R.id.view_mode_icon), ColorStateList.valueOf(ContextCompat.getColor(main, R.color.leadme_medium_grey)));
                 touchDesc.setText(R.string.touch_screens_enabled);
                 viewModeToggle.setText(R.string.view_mode_off);
                 main.unlockFromMainAction();
@@ -276,50 +247,32 @@ public class VREmbedPlayer {
 
     //Sets up the UI for selecting where to start the video from.
     private void createPlaybackSettingsPopup() {
-        vrplayerSettingsDialogView = View.inflate(main, R.layout.f__playback_settings_vrplayer, null);
+        vrplayerSettingsDialogView = View.inflate(main, R.layout.f__playback_settings_vr_photoplayer, null);
         vrplayerSetSourceBtn = vrplayerSettingsDialogView.findViewById(R.id.set_source_btn);
         vrplayerPreviewPushBtn = vrplayerSettingsDialogView.findViewById(R.id.vr_push_btn);
-        vrplayerVideoControls = vrplayerSettingsDialogView.findViewById(R.id.video_controls);
+        vrplayerPhotoControls = vrplayerSettingsDialogView.findViewById(R.id.photo_controls);
         vrplayerNoVideo = vrplayerSettingsDialogView.findViewById(R.id.no_source_yet);
-        progressBar = vrplayerSettingsDialogView.findViewById(R.id.progressBar);
-        playFromTime = vrplayerSettingsDialogView.findViewById(R.id.video_play_from_input);
-        elapsedTimeText = vrplayerSettingsDialogView.findViewById(R.id.elapsedTimeText);
-        totalTimeText = vrplayerSettingsDialogView.findViewById(R.id.totalTimeText);
-        vrplayerPreviewVideoView = vrplayerSettingsDialogView.findViewById(R.id.video_stream_videoview);
-        vrplayerPreviewVideoView.setTag("PREVIEW/PLAYBACK SETTINGS");
+        vrplayerPreviewPhotoView = vrplayerSettingsDialogView.findViewById(R.id.photo_stream_imageview);
         main.getDialogManager().setupPushToggle(vrplayerSettingsDialogView, false);
 
-        vrplayerSettingsDialogView.findViewById(R.id.video_back_btn).setOnClickListener(v -> {
+        vrplayerSettingsDialogView.findViewById(R.id.photo_back_btn).setOnClickListener(v -> {
             this.fileName = null;
-            main.vrVideoPath = null;
-            main.vrVideoURI = null;
+            main.vrPath = null;
+            main.vrURI = null;
             playbackSettingsDialog.dismiss();
-        });
-
-        progressBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-            @Override
-            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-            }
-
-            @Override
-            public void onStartTrackingTouch(SeekBar seekBar) {
-            }
-
-            @Override
-            public void onStopTrackingTouch(SeekBar seekBar) {
-                //convert from percentage to seconds
-                int durationCalc = (int) ((seekBar.getProgress() / 100.0) * totalTime);
-                if (durationCalc < 0) {
-                    durationCalc = 0; //make sure it's sensible
-                }
-                setNewTime(durationCalc);
-                playFromTime.setText(intToTime(durationCalc));
-            }
+            main.getDialogManager().showVRContentDialog();
         });
 
         vrplayerSetSourceBtn.setOnClickListener(view -> selectSource());
 
-        vrplayerPreviewPushBtn.setOnClickListener(view -> main.getHandler().post(this::pushToLearners));
+        vrplayerPreviewPushBtn.setOnClickListener(view -> {
+            main.getHandler().post(this::pushToLearners);
+
+            //TODO test this v
+            //VR default is always set to mono
+            //changeProjection("mono");
+            //changeSelectedProjection(monoText);
+        });
     }
 
     /**
@@ -341,23 +294,23 @@ public class VREmbedPlayer {
      * device needs a Uri or an absolute path for the playback controller.
      */
     private void pushToLearners() {
-        if (main.vrVideoURI == null && main.vrVideoPath == null) {
+        if (main.vrURI == null && main.vrPath == null) {
             Toast.makeText(main, "A video has not been selected", Toast.LENGTH_SHORT).show();
             return;
         }
 
         playbackSettingsDialog.dismiss();
 
-        Log.d(TAG, "Launching VR Player for students at: " + startFromTime);
-
         if(LeadMeMain.isMiUiV9()) {
             //setting the playback video controller
-            setupVideoPreview(controllerVideoView);
-            controllerVideoView.setVideoPath(main.vrVideoPath);
+            setupPhotoPreview(controllerImageView);
+
+            controllerImageView.setImageURI(Uri.parse(main.vrPath));
         } else {
             //setting the playback video controller
-            setupVideoPreview(controllerVideoView);
-            controllerVideoView.setVideoURI(main.vrVideoURI);
+            setupPhotoPreview(controllerImageView);
+
+            controllerImageView.setImageURI(main.vrURI);
         }
 
         //LAUNCH THE APPLICATION FROM HERE
@@ -373,68 +326,7 @@ public class VREmbedPlayer {
         showPushConfirmed();
 
         //Set the source for the peers device
-        setVideoSource(startFromTime);
-    }
-
-    //TIME SETTINGS
-    private void setTotalTime(int value) {
-        Log.d("SetTotalTime", "Value: " + value);
-        if (value > 0) {
-            totalTime = value;
-            main.runOnUiThread(() -> totalTimeText.setText(intToTime(totalTime)));
-        }
-    }
-
-    private String intToTime(int duration) {
-        return DateUtils.formatElapsedTime(duration);
-    }
-
-    private void setCurrentTime(String value) {
-        Log.d(TAG, "[GUIDE] Video time is now: " + value + " // " + totalTime);
-
-        //TODO if needed
-        int tmpCurr = Integer.parseInt(value);
-        if (tmpCurr > -1) {
-            currentTime = tmpCurr;
-        }
-        main.runOnUiThread(() -> {
-            elapsedTimeText.setText(intToTime((int) currentTime));
-            int progress = Math.round((currentTime / totalTime) * 100);
-            progressBar.setProgress(progress);
-        });
-    }
-
-    /**
-     * Determine if the integer supplied is a valid time and set the startFromTime
-     * variable accordingly.
-     * @param newTime An integer representing where the user has moved the preview slider to.
-     */
-    private void setNewTime(int newTime) {
-        if (totalTime == -1) {
-            return;
-        }
-
-        //ensure new time is sensible
-        if (newTime < 0) {
-            newTime = 0;
-        } else if (newTime > totalTime && totalTime > 0) {
-            newTime = totalTime;
-        }
-
-        startFromTime = newTime;
-
-        //update player and local view
-        main.runOnUiThread(() -> {
-            //set the video at new time (needs to be in ms)
-            if(startFromTime == 0) {
-                //show the first frame
-                vrplayerPreviewVideoView.seekTo(1);
-            } else {
-                vrplayerPreviewVideoView.seekTo(startFromTime * 1000);
-            }
-        });
-
-        setCurrentTime("" + newTime);
+        setPhotoSource();
     }
 
     //CONTROL FUNCTIONS
@@ -448,15 +340,17 @@ public class VREmbedPlayer {
     }
 
     private void openPreview(String title) {
-        if(main.vrVideoURI != null || main.vrVideoPath != null) {
+        if(main.vrURI != null || main.vrPath != null) {
             if(LeadMeMain.isMiUiV9()) {
                 //setting the playback video controller
-                setupVideoPreview(vrplayerPreviewVideoView);
-                controllerVideoView.setVideoPath(main.vrVideoPath);
+                setupPhotoPreview(vrplayerPreviewPhotoView);
+
+                controllerImageView.setImageURI(Uri.parse(main.vrPath));
             } else {
                 //setting the playback video controller
-                setupVideoPreview(vrplayerPreviewVideoView);
-                controllerVideoView.setVideoURI(main.vrVideoURI);
+                setupPhotoPreview(vrplayerPreviewPhotoView);
+
+                controllerImageView.setImageURI(main.vrURI);
             }
         }
 
@@ -475,7 +369,7 @@ public class VREmbedPlayer {
             playbackSettingsDialog.setOnDismissListener(dialog -> main.hideSystemUI());
         }
 
-        noVideoChosen(fileName == null);
+        noPhotoChosen(fileName == null);
 
         if(firstOpen) {
             disableSetSourceBtn(fileName != null);
@@ -507,10 +401,10 @@ public class VREmbedPlayer {
      * Hides or shows the no chosen video element. Tells the user that nothing has been selected.
      * @param show A boolean representing if the no video selected layout should be shown.
      */
-    private void noVideoChosen(boolean show) {
+    private void noPhotoChosen(boolean show) {
         vrplayerPreviewPushBtn.setVisibility(show ? View.GONE : View.VISIBLE);
         vrplayerNoVideo.setVisibility(show ? View.VISIBLE : View.GONE);
-        vrplayerVideoControls.setVisibility(show ? View.GONE : View.VISIBLE);
+        vrplayerPhotoControls.setVisibility(show ? View.GONE : View.VISIBLE);
     }
 
     /**
@@ -527,49 +421,31 @@ public class VREmbedPlayer {
      */
     public void relaunchVR(Set<String> peerSet) {
         main.getAppManager().launchApp(packageName, appName, false, "false", true, peerSet);
-        setVideoSource(startFromTime);
+        setPhotoSource();
     }
 
     private void setupGuideVideoControllerButtons() {
-        videoControllerDialogView.findViewById(R.id.push_again_btn).setOnClickListener(v ->
+        photoControllerDialogView.findViewById(R.id.push_again_btn).setOnClickListener(v ->
             relaunchVR(main.getNearbyManager().getSelectedPeerIDsOrAll())
         );
 
-        videoControllerDialogView.findViewById(R.id.new_video_btn).setOnClickListener(v -> {
-            resetControllerState();
+        photoControllerDialogView.findViewById(R.id.new_photo_btn).setOnClickListener(v -> {
             videoControlDialog.dismiss();
             this.fileName = null;
             firstOpen = true;
-            vrplayerPreviewVideoView.setVisibility(View.INVISIBLE);
+            vrplayerPreviewPhotoView.setVisibility(View.INVISIBLE);
             showPlaybackPreview(appName);
             selectSource(); //go straight to file picker
         });
 
-        videoControllerDialogView.findViewById(R.id.video_back_btn).setOnClickListener(v -> {
-            resetControllerState();
-            hideVideoController();
+        photoControllerDialogView.findViewById(R.id.photo_back_btn).setOnClickListener(v -> {
+            hidePhotoController();
             firstOpen = false;
         });
 
-        playBtn.setOnClickListener(v ->
-            playVideo()
-        );
-
-        pauseBtn.setOnClickListener(v ->
-            pauseVideo()
-        );
-
         //TODO not anchored correctly
         changeProjectionBtn.setOnClickListener(v ->
-                popupWindow.showAsDropDown(v,-200,-100)
-        );
-
-        videoControllerDialogView.findViewById(R.id.mute_btn).setOnClickListener(v ->
-            main.muteLeaners()
-        );
-
-        videoControllerDialogView.findViewById(R.id.unmute_btn).setOnClickListener(v ->
-            main.unmuteLearners()
+            popupWindow.showAsDropDown(v,-200,-100)
         );
     }
 
@@ -578,7 +454,6 @@ public class VREmbedPlayer {
      * already been set/saved in the LeadMe main.
      */
     public void openVideoController() {
-        controllerVideoView.seekTo(1); //to not show a black screen
         showVideoController();
     }
 
@@ -590,54 +465,34 @@ public class VREmbedPlayer {
 
         if (videoControlDialog == null) {
             videoControlDialog = new AlertDialog.Builder(main)
-                    .setView(videoControllerDialogView)
+                    .setView(photoControllerDialogView)
                     .create();
 
             videoControlDialog.setCancelable(false);
 
             videoControlDialog.setOnDismissListener(dialog -> {
                 main.hideSystemUI();
-                //resetControllerState(); //reset here?
             });
         }
-        //viewModeToggle.setChecked(true);
-        VideoView video = videoControllerDialogView.findViewById(R.id.video_stream_videoview);
-        video.seekTo(startFromTime * 1000);
 
-        Log.d(TAG, "Attempting to show video controller for VR player at time: " + video.getCurrentPosition());
         videoControlDialog.show();
     }
 
-    private void hideVideoController() {
+    private void hidePhotoController() {
         main.runOnUiThread(() -> {
             main.closeKeyboard();
             main.hideSystemUI();
         });
-//        pauseVideo();
+
         videoControlDialog.dismiss();
     }
 
-    private void resetControllerState() {
-        stopVideo();
-
-        currentTime = 0;
-        totalTime = -1;
-        startFromTime = 0;
-        progressBar.setProgress(0);
-        playFromTime.setText(R.string.zero_seconds);
-        elapsedTimeText.setText(R.string.zero_seconds);
-
-        buttonHighlights(VRAccessibilityManager.CUE_PAUSE);
-    }
-
     //VR Player Controls
-    //changes the highlights of the buttons, controls both the local video and
     //sends an action to the connected peers.
-    //Enhancement - sync time will peers each button press??
-    private void setVideoSource(int startTime) {
+    private void setPhotoSource() {
         //Send action to peers to play
         main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG,
-                LeadMeMain.VR_PLAYER_TAG + ":" + VRAccessibilityManager.CUE_SET_SOURCE + ":" + fileName + ":" + startTime,
+                LeadMeMain.VR_PLAYER_TAG + ":" + VRAccessibilityManager.CUE_SET_SOURCE + ":" + fileName + ":" + 0  + ":" + "Photo",
                 main.getNearbyManager().getSelectedPeerIDsOrAll());
     }
 
@@ -673,94 +528,6 @@ public class VREmbedPlayer {
     private void changeToDefault(TextView selected, TextView old) {
         if(selected != old) {
             old.setCompoundDrawablesWithIntrinsicBounds(R.drawable.icon_disconnect_peer ,0,0,0);
-        }
-    }
-
-    private void playVideo() {
-        //Play local video
-        controllerVideoView.start();
-        buttonHighlights(VRAccessibilityManager.CUE_PLAY);
-
-        //Send action to peers to play
-        main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG,
-                LeadMeMain.VR_PLAYER_TAG + ":" + VRAccessibilityManager.CUE_PLAY,
-                main.getNearbyManager().getSelectedPeerIDsOrAll());
-    }
-
-    private void pauseVideo() {
-        //Play local video
-        controllerVideoView.pause();
-        buttonHighlights(VRAccessibilityManager.CUE_PAUSE);
-
-        //Send action to peers to pause
-        main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG,
-                LeadMeMain.VR_PLAYER_TAG + ":" + VRAccessibilityManager.CUE_PAUSE,
-                main.getNearbyManager().getSelectedPeerIDsOrAll());
-    }
-
-    //BELOW NOT IMPLEMENTED YET
-    private void stopVideo() {
-        //Stop local video
-        vrplayerPreviewVideoView.stopPlayback();
-        controllerVideoView.stopPlayback();
-
-//        buttonHighlights(VRAccessibilityManager.CUE_STOP);
-//        //stop();
-//
-//        //Send action to peers to stop
-//        main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG,
-//                LeadMeMain.VR_PLAYER_TAG + ":" + VRAccessibilityManager.CUE_STOP,
-//                main.getNearbyManager().getSelectedPeerIDsOrAll());
-    }
-
-    private void fwdVideo() {
-        //Fastforward local video
-        buttonHighlights(VRAccessibilityManager.CUE_FWD);
-        //fwd();
-
-        //Send action to peers to fastforward
-        main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG,
-                LeadMeMain.VR_PLAYER_TAG + ":" + VRAccessibilityManager.CUE_FWD,
-                main.getNearbyManager().getSelectedPeerIDsOrAll());
-    }
-
-    private void rwdVideo() {
-        //Rewind local video
-        buttonHighlights(VRAccessibilityManager.CUE_RWD);
-        //rwd();
-
-        //Send action to peers to rewind
-        main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG,
-                LeadMeMain.VR_PLAYER_TAG + ":" + VRAccessibilityManager.CUE_RWD,
-                main.getNearbyManager().getSelectedPeerIDsOrAll());
-    }
-
-    //change video control icon colour
-    private void buttonHighlights(int state) {
-        switch(state) {
-            case VRAccessibilityManager.CUE_PLAY:
-                playBtn.setImageResource(R.drawable.vid_play_highlight);
-                pauseBtn.setImageResource(R.drawable.vid_pause);
-                break;
-            case VRAccessibilityManager.CUE_PAUSE:
-                playBtn.setImageResource(R.drawable.vid_play);
-                pauseBtn.setImageResource(R.drawable.vid_pause_highlight);
-                break;
-            case VRAccessibilityManager.CUE_STOP:
-                //change the highlights
-                Log.d(TAG, "Stopping video");
-                break;
-            case VRAccessibilityManager.CUE_FWD:
-                //change the highlights
-                Log.d(TAG, "Forwarding video");
-                break;
-            case VRAccessibilityManager.CUE_RWD:
-                //change the highlights
-                Log.d(TAG, "Rewinding video");
-                break;
-            default:
-                Log.d(TAG, "Unknown video state");
-                break;
         }
     }
 }

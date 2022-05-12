@@ -649,12 +649,13 @@ public class DispatchManager {
             if(Integer.parseInt(split[1]) == VRAccessibilityManager.CUE_SET_SOURCE) {
                 additionalInfo = split[2]; //video source
                 additionalInfo += ":" + split[3]; //start time
+                additionalInfo += ":" + split[4]; //content type
             }
 
             if(Integer.parseInt(split[1]) == VRAccessibilityManager.CUE_PROJECTION) {
                 additionalInfo = split[2]; //projection type
             }
-            main.getVRAccessibilityManager().videoPlayerAction(Integer.parseInt(split[1]), additionalInfo);
+            main.getVRAccessibilityManager().vrPlayerAction(Integer.parseInt(split[1]), additionalInfo);
         }
 
         /**
@@ -666,7 +667,7 @@ public class DispatchManager {
         private void requestFile(String action) {
             String[] split = action.split(":");
             String ID = split[1];
-            Log.e("FILE REQUEST", "Requesting: " + main.vrVideoURI + " from: " + ID + " status: " + split[2] + " type: " + split[3]);
+            Log.e("FILE REQUEST", "Requesting: " + main.vrURI + " from: " + ID + " status: " + split[2] + " type: " + split[3]);
 
             //Set the file type for handling when complete
             FileTransferManager.setFileType(split[3]);
@@ -681,7 +682,7 @@ public class DispatchManager {
 
                 //TODO change into a switch case if more request types are handled later
                 if(FileTransferManager.getFileType().equals("VRVideo")) {
-                    main.getVrEmbedPlayer().relaunchVR(peer);
+                    main.getVrEmbedVideoPlayer().relaunchVR(peer);
                 }
             }
         }
