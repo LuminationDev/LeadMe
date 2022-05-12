@@ -424,6 +424,7 @@ public class AuthenticationManager {
                         return;
                     }
 
+                    //TODO crash occurs here - getCurrentUser() or mAuth or isEmailVerified is null?
                     if (!Objects.requireNonNull(mAuth.getCurrentUser()).isEmailVerified()) {
                         Log.d(TAG, "buildloginsignup: email verification sent");
                         mAuth.getCurrentUser().sendEmailVerification().addOnSuccessListener(aVoid ->

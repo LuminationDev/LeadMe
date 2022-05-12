@@ -375,7 +375,7 @@ public class AppManager extends BaseAdapter {
                     Log.d(TAG, "getView: is a within package");
                     withinPlayer.showWithin(); //showGuideController();
                 } else if(packageName.equals(vrplayerPackage)) {
-                    main.getVrEmbedPlayer().showPlaybackPreview(appName);
+                    main.getVrEmbedVideoPlayer().showPlaybackPreview(appName);
                 } else {
                     main.getDialogManager().showAppPushDialog(appName, appIcon, packageName);
                 }

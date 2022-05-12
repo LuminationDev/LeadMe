@@ -44,9 +44,37 @@ public class DialogManager {
     private final LeadMeMain main;
     private final Resources resources;
 
-    private View confirmPushDialogView, loginDialogView, toggleBtnView, manView, permissionDialogView, requestDialogView;
-    private AlertDialog warningDialog, waitingDialog, appPushDialog, confirmPushDialog, studentAlertsDialog, loginDialog, recallPrompt, manualDialog, permissionDialog, requestDialog, fileTypeDialog, firstTimeVRDialog, updateDialog, vrInstallDialog;
-    private TextView appPushMessageView, warningDialogTitle, warningDialogMessage, recallMessage, permissionDialogMessage, requestDialogMessage, additionalInfo;
+    private View confirmPushDialogView,
+            loginDialogView,
+            toggleBtnView,
+            manView,
+            permissionDialogView,
+            requestDialogView;
+
+    private AlertDialog warningDialog,
+            waitingDialog,
+            appPushDialog,
+            confirmPushDialog,
+            studentAlertsDialog,
+            loginDialog,
+            recallPrompt,
+            manualDialog,
+            permissionDialog,
+            requestDialog,
+            fileTypeDialog,
+            updateDialog,
+            vrContentTypeDialog,
+            firstTimeVRDialog,
+            vrInstallDialog;
+
+    private TextView appPushMessageView,
+            warningDialogTitle,
+            warningDialogMessage,
+            recallMessage,
+            permissionDialogMessage,
+            requestDialogMessage,
+            additionalInfo;
+
     private String appPushPackageName, appPushTitle;
     private ArrayList<String> permissions = null;
 
@@ -96,6 +124,7 @@ public class DialogManager {
         setupConfirmPushDialog();
         setupWarningDialog();
         setupUpdateDialog();
+        setupVRContentDialog();
         setupVRInstallDialog();
         setupAlertsViewDialog();
         setupLoginDialogView();
@@ -191,6 +220,37 @@ public class DialogManager {
                 .setView(updateDialogView)
                 .create();
         updateDialog.setOnDismissListener(dialog -> hideSystemUI());
+    }
+
+    private void setupVRContentDialog() {
+        View vrContentType = View.inflate(main, R.layout.e__leader_vr_type_popup, null);
+
+        Button videoBtn = vrContentType.findViewById(R.id.select_video_source_btn);
+        videoBtn.setOnClickListener(v -> {
+            vrContentTypeDialog.dismiss();
+            dialogShowing = false;
+            main.defaultVideo = true;
+            main.getVrEmbedVideoPlayer().showPlaybackPreview();
+        });
+
+        Button photoBtn = vrContentType.findViewById(R.id.select_photo_source_btn);
+        photoBtn.setOnClickListener(v -> {
+            vrContentTypeDialog.dismiss();
+            dialogShowing = false;
+            main.defaultVideo = false;
+            main.getVrEmbedPhotoPlayer().showPlaybackPreview();
+        });
+
+        Button cancelBtn = vrContentType.findViewById(R.id.cancel_btn);
+        cancelBtn.setOnClickListener(v -> {
+            vrContentTypeDialog.dismiss();
+            dialogShowing = false;
+        });
+
+        vrContentTypeDialog = new AlertDialog.Builder(main)
+                .setView(vrContentType)
+                .create();
+        vrContentTypeDialog.setOnDismissListener(dialog -> hideSystemUI());
     }
 
     private void setupVRInstallDialog() {
@@ -328,9 +388,9 @@ public class DialogManager {
 
         allowBtn.setOnClickListener(v -> {
             if(LeadMeMain.isMiUiV9()) {
-                main.getFileTransferManager().startFileServer(main.vrVideoPath, true);
+                main.getFileTransferManager().startFileServer(main.vrPath, true);
             } else {
-                main.getFileTransferManager().startFileServer(main.vrVideoURI, true);
+                main.getFileTransferManager().startFileServer(main.vrURI, true);
             }
 
             Set<String> peerSet = new HashSet<>();
@@ -639,6 +699,21 @@ public class DialogManager {
             setupUpdateDialog();
         }
         updateDialog.show();
+        hideSystemUI();
+        dialogShowing = true;
+    }
+
+    /**
+     * Display a custom pop up message about the VR player available play store.
+     */
+    public void showVRContentDialog() {
+        if (destroying) {
+            return;
+        }
+        if (vrContentTypeDialog == null) {
+            setupVRContentDialog();
+        }
+        vrContentTypeDialog.show();
         hideSystemUI();
         dialogShowing = true;
     }

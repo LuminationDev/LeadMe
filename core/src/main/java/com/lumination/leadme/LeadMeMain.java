@@ -105,7 +105,8 @@ import com.lumination.leadme.managers.PermissionManager;
 import com.lumination.leadme.managers.ScreenSharingManager;
 import com.lumination.leadme.managers.WebManager;
 import com.lumination.leadme.managers.XrayManager;
-import com.lumination.leadme.players.VREmbedPlayer;
+import com.lumination.leadme.players.VREmbedPhotoPlayer;
+import com.lumination.leadme.players.VREmbedVideoPlayer;
 import com.lumination.leadme.services.LumiAccessibilityService;
 import com.lumination.leadme.services.NetworkService;
 import com.lumination.leadme.utilities.AppInstaller;
@@ -260,21 +261,23 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     public static WindowManager.LayoutParams overlayParams, url_overlayParams;
     public View overlayView, url_overlay;
 
-    //VR PLayer
-    private VREmbedPlayer vrEmbedPlayer;
+    //VR Player
+    public boolean defaultVideo = true;
+    private VREmbedPhotoPlayer vrEmbedPhotoPlayer;
+    private VREmbedVideoPlayer vrEmbedVideoPlayer;
     private VRAccessibilityManager vrAccessibilityManager;
     /**
      * A Uri representing the last source pushed by the leader to a learner,
      * saved in case a learners requests a file transfer.
      */
-    public Uri vrVideoURI;
+    public Uri vrURI;
 
     /**
      * A String representing the last source pushed by the leader to a learner,
      * saved in case a learners requests a file transfer. Used for devices with MIUI version 9.5
      * and below.
      */
-    public String vrVideoPath;
+    public String vrPath;
 
     //details about me to send to peers
     public static boolean isGuide = false;
@@ -511,11 +514,21 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         if (resultCode == Activity.RESULT_OK ) {
             if(data != null)  {
                 if(isMiUiV9()) {
-                    vrVideoPath = data.getStringExtra(DirectoryPicker.BUNDLE_SELECTED_FILE);
-                    getVrEmbedPlayer().setFilepath(vrVideoPath);
+                    vrPath = data.getStringExtra(DirectoryPicker.BUNDLE_SELECTED_FILE);
+
+                    if(defaultVideo) {
+                        getVrEmbedVideoPlayer().setFilepath(vrPath);
+                    } else {
+                        getVrEmbedPhotoPlayer().setFilepath(vrPath);
+                    }
                 } else {
-                    vrVideoURI = data.getData();
-                    getVrEmbedPlayer().setFilepath(vrVideoURI);
+                    vrURI = data.getData();
+
+                    if(defaultVideo) {
+                        getVrEmbedVideoPlayer().setFilepath(vrURI);
+                    } else {
+                        getVrEmbedPhotoPlayer().setFilepath(vrURI);
+                    }
                 }
             }
         }
@@ -588,7 +601,9 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
     public FileTransferManager getFileTransferManager() { return fileTransferManager; }
 
-    public VREmbedPlayer getVrEmbedPlayer() { return vrEmbedPlayer; }
+    public VREmbedVideoPlayer getVrEmbedVideoPlayer() { return vrEmbedVideoPlayer; }
+
+    public VREmbedPhotoPlayer getVrEmbedPhotoPlayer() { return vrEmbedPhotoPlayer; }
 
     public PermissionManager getPermissionsManager() {
         return permissionManager;
@@ -1063,7 +1078,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             //if we've got no delayed content, we're properly returning to LeadMe
             if (!getDispatcher().hasDelayedLaunchContent()) {
                 //Don't disengage the lock if using the VR player
-                if(!currentTaskPackageName.equals(VREmbedPlayer.packageName)) {
+                if(!currentTaskPackageName.equals(VREmbedVideoPlayer.packageName)) {
                     studentLockOn=false;
                 }
 
@@ -1074,7 +1089,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                     if (currentTaskPackageName.equals(getAppManager().withinPackage) || currentTaskPackageName.equals(getAppManager().youtubePackage)) {
                         getAppManager().relaunchLast(currentTaskPackageName, currentTaskName, currentTaskType, currentTaskURL, currentTaskURLTitle);
                     } else {
-                        if(!currentTaskPackageName.equals(VREmbedPlayer.packageName)) {
+                        if(!currentTaskPackageName.equals(VREmbedVideoPlayer.packageName)) {
                             getAppManager().relaunchLast();
                         }
                     }
@@ -1418,7 +1433,8 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         leaderSelectAdapter = new LeaderSelectAdapter(this);
         lumiAccessibilityConnector = new LumiAccessibilityConnector(this);
         vrAccessibilityManager = new VRAccessibilityManager(this);
-        vrEmbedPlayer = new VREmbedPlayer(this); //VR PLAYER
+        vrEmbedPhotoPlayer = new VREmbedPhotoPlayer(this);
+        vrEmbedVideoPlayer = new VREmbedVideoPlayer(this); //VR PLAYER
         appLaunchAdapter = new AppManager(this);
         xrayManager = new XrayManager(this, xrayScreen);
         fileTransferManager = new FileTransferManager(this);
@@ -1521,9 +1537,9 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         (appLauncherScreen.findViewById(R.id.repush_btn)).setOnClickListener(v -> {
             Log.d(TAG, "Repushing " + lastAppID);
             //VR player needs to select the source before reopening, handle just like fresh start.
-            if(lastAppID.equals(VREmbedPlayer.packageName)) {
+            if(lastAppID.equals(VREmbedVideoPlayer.packageName)) {
                 //Opens up the preview player again
-                getVrEmbedPlayer().showPlaybackPreview();
+                getVrEmbedVideoPlayer().showPlaybackPreview();
             } else {
                 if (lastLockState != null && lastLockState.equals(LOCK_TAG)) {
                     getDispatcher().requestRemoteAppOpen(APP_TAG, lastAppID, String.valueOf(((TextView) appLauncherScreen.findViewById(R.id.current_app_name)).getText()), LOCK_TAG, "false", getNearbyManager().getSelectedPeerIDsOrAll());
@@ -1588,8 +1604,10 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
             //Custom VR button
             mainLeader.findViewById(R.id.vr_core_btn).setOnClickListener(view -> {
+                getDialogManager().showVRContentDialog();
+
 //            if(vrVideoPath == null) {
-                getVrEmbedPlayer().showPlaybackPreview();
+                //getVrEmbedPlayer().showPlaybackPreview();
 //            } else {
 //                getVrEmbedPlayer().openVideoController();
 //            }

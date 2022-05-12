@@ -43,7 +43,7 @@ public class VRAccessibilityManager {
      * @param cue An integer that defines what action should be taken.
      * @param info A string which supplies additional information - such as the start time and/or source path
      */
-    public void videoPlayerAction(int cue, String info) {
+    public void vrPlayerAction(int cue, String info) {
         switch(cue) {
             case CUE_PLAY:
                 Log.e(TAG, "play");
@@ -108,11 +108,11 @@ public class VRAccessibilityManager {
         //Split the filename and the start time apart.
         String[] split = info.split(":");
         String fileName = split[0];
+        String fileType = split[2];
 
         String absFilepath;
         if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            //Look up the file name in storage, returning the URI
-            Uri source = FileUtilities.getFileByName(main, fileName);
+            Uri source = FileUtilities.searchStorage(main, split[0]);
 
             if(source == null) {
                 requestFile();
@@ -132,10 +132,10 @@ public class VRAccessibilityManager {
             }
         }
 
-        Log.d(TAG, "Sending source: " + absFilepath + ":" + split[1]);
+        Log.d(TAG, "Sending source: " + absFilepath + ":" + split[1] + ":" + fileType);
 
         //Send a source intent with the file path and the start time
-        newIntent("File path:" + absFilepath + ":" + split[1]);
+        newIntent("File path:" + absFilepath + ":" + split[1] + ":" + fileType);
     }
 
     //Send an action to the guide requesting that a file be transferred to this device

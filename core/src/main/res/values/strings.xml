@@ -162,11 +162,12 @@
     <string name="touch_screens_enabled">*Touch screens enabled</string>
     <string name="transfer_file">Transfer file</string>
     <string name="file_requested">File Requested</string>
-    <string name="first_time_vr">Display and share your own\n videos in VR!</string>
-    <string name="vr_file_type">Only 360 video files can be selected for the VR Player</string>
+    <string name="first_time_vr">Display and share your own\n content in VR!</string>
+    <string name="vr_file_type">Only 360 files can be selected for the VR Player</string>
     <string name="selected_file_types">Selected File Types Allowed</string>
     <string name="warning_icon">Warning icon</string>
     <string name="no_video">You\'ve not chosen\n a video yet!</string>
+    <string name="no_photo">You\'ve not chosen\n a photo yet!</string>
     <string name="video_launch_confirm">Your video was successfully launched.</string>
     <string name="view_mode_on">View Mode ON</string>
     <string name="view_mode_off">View Mode OFF</string>
@@ -200,5 +201,10 @@
     <string name="new_version_available">There is a new version of LeadMe \n available on the play store.</string>
     <string name="leadme_vr_player">LeadMe VR Player</string>
     <string name="leadme_vr_install">The LeadMe VR Player is not currently \ninstalled on this device, would \nyou like to install it?</string>
+    <string name="set_photo_source">Choose Photo</string>
+    <string name="content_type">Select what type of content \nto preview.</string>
+    <string name="photos">Photos</string>
+    <string name="local_photo_content">Local photo content</string>
+    <string name="new_photo">New Photo</string>
 
 </resources>
