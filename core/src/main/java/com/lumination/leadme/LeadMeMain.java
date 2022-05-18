@@ -6,6 +6,7 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.ActivityManager;
 import android.app.AlertDialog;
+import android.app.Application;
 import android.content.BroadcastReceiver;
 import android.content.ComponentCallbacks2;
 import android.content.Context;
@@ -715,7 +716,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
         double gForce = Math.sqrt(gX * gX + gY * gY + gZ * gZ);
 
-        if (gForce > SHAKE_THRESHOLD_GRAVITY) {
+        if (gForce > SHAKE_THRESHOLD_GRAVITY && !destroying) {
             showLoginDialog();
         }
     }
@@ -3192,14 +3193,23 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
         VideoView video = OnBoard.findViewById(R.id.animation_view);
         TextView skipIntro = OnBoard.findViewById(R.id.skip_intro);
+
         Button watchVideo = OnBoard.findViewById(R.id.watch_video);
-        watchVideo.setOnClickListener(view -> {
-            String cleanURL = WebManager.cleanYouTubeURL("https://www.youtube.com/watch?v=m96imGHXGGM");
-            final String youTubePackageName = getAppManager().youtubePackage;
-            Intent appIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(cleanURL));
-            appIntent.setPackage(youTubePackageName);
-            startActivity(appIntent);
-        });
+        final String intentPackageName = externalLauncher();
+        if(intentPackageName != null) {
+            watchVideo.setOnClickListener(view -> {
+                String cleanURL = WebManager.cleanYouTubeURL("https://www.youtube.com/watch?v=m96imGHXGGM");
+
+                Intent appIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(cleanURL));
+                appIntent.setPackage(intentPackageName);
+                startActivity(appIntent);
+            });
+        }
+        else {
+            watchVideo.setText(R.string.install_youtube);
+            watchVideo.setAlpha(.5f);
+        }
+
         ImageView nextButton = OnBoard.findViewById(R.id.next_button);
         LinearLayout buttonsLayout = OnBoard.findViewById(R.id.onboard_buttons);
         LinearLayout onboardPages = OnBoard.findViewById(R.id.onboard_pages);
@@ -3258,6 +3268,39 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                 Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://drive.google.com/file/d/1GGU7GeR4Ibq60-6bcc2F_bd698CKRFvZ/view"));
                 startActivity(browserIntent);
             });
+        }
+    }
+
+    /**
+     * Work out which application to launch the introduction video with.
+     * Youtube being the primary source, then chrome and lastly samsung browser.
+     * @return A string representing the package name of the launcher application.
+     */
+    private String externalLauncher() {
+        if(isPackageInstalled(getAppManager().youtubePackage)) {
+            return getAppManager().youtubePackage;
+        }
+        if(isPackageInstalled("com.android.chrome")) {
+            return "com.android.chrome";
+        }
+        if(isPackageInstalled("com.sec.android.app.sbrowser")) {
+            return "com.sec.android.app.sbrowser";
+        }
+
+        return null;
+    }
+
+    /**
+     * Check if a particular package is installed on a device.
+     * @param packageName A string representing the package name. i.e. com.lumination.leadme
+     * @return A boolean representing if the application is install or not.
+     */
+    private boolean isPackageInstalled(String packageName) {
+        try {
+            getPackageManager().getPackageInfo(packageName, 0);
+            return true;
+        } catch (PackageManager.NameNotFoundException e) {
+            return false;
         }
     }
 
