@@ -42,6 +42,7 @@ public class NetworkManager {
     private static LeadMeMain main;
     private static WifiManager.MulticastLock multicastLock; // Acquire multicast lock
     private static boolean init = false; //check if connection has been initialised
+    private static int timeOut = 30; //timeout in seconds(s)
 
     public static ArrayList<Client> currentClients = new ArrayList<>();
 
@@ -144,8 +145,27 @@ public class NetworkManager {
      * not then move the learner from a logged in state to the splash screen.
      */
     public void startConnectionCheck() {
-        scheduledExecutor.scheduleAtFixedRate(() -> NetworkService.sendToServer(getName(), "PING"),
-                3000, 10000, TimeUnit.MILLISECONDS);
+        scheduledExecutor.scheduleAtFixedRate(this::checkTimeout, 1000, 5000, TimeUnit.MILLISECONDS);
+
+        //Kept for future reference
+//        scheduledExecutor.scheduleAtFixedRate(() -> NetworkService.sendToServer(getName(), "PING"),
+//                3000, 10000, TimeUnit.MILLISECONDS);
+    }
+
+    private void checkTimeout() {
+        if(timeOut > 0) {
+            timeOut = timeOut - 5;
+            Log.d(TAG, "timeOut: " + timeOut);
+        } else {
+            messageReceivedFromServer("DISCONNECT,");
+        }
+    }
+
+    /**
+     * Upon receiving a Ping from the leader reset the countdown.
+     */
+    public static void resetTimeout() {
+        timeOut = 30;
     }
 
     /**
@@ -259,6 +279,7 @@ public class NetworkManager {
      */
     private static void receivedPing(String input) {
         main.getNearbyManager().myID = input;
+        resetTimeout();
         Log.d(TAG, "messageReceivedFromServer: PING!!");
         Log.d(TAG, "messageReceivedFromServer: received ping and subsequently ignoring it");
 
@@ -445,6 +466,10 @@ public class NetworkManager {
      */
     public static void sendToSelectedClients(String message, String type, ArrayList<Integer> selectedClientIDs) {
         Log.d(TAG, "sendToSelectedClients: " + selectedClientIDs + " " + currentClients.size());
+
+        if(currentClients.size() == 0) {
+            return;
+        }
 
         for (int i = 0; i < currentClients.size(); i++) {
             for (int selected : selectedClientIDs) {
