@@ -1267,8 +1267,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                 .build();
 
         firstTimeUser();
-
-        CuratedContentManager.getCuratedContent(this);
     }
 
     /**
@@ -1406,7 +1404,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         multiAppManager = View.inflate(context, R.layout.d__app_manager_list, null);
         CuratedContentManager.curatedContentScreen = View.inflate(context, R.layout.d__curated_content_list, null);
         CuratedContentManager.curatedContentScreenSingle = View.inflate(context, R.layout.curated_content_single, null);
-        CuratedContentManager.setupCuratedContent(this);
     }
 
     /**
@@ -1568,6 +1565,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         });
 
         mainLeader.findViewById(R.id.curated_content_btn).setOnClickListener(view -> {
+            CuratedContentManager.setupCuratedContent(this);
             showCuratedContentScreen();
             appLauncherScreen.findViewById(R.id.app_scroll_view).scrollTo(0, 0);
         });
@@ -2527,6 +2525,8 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
             //remove the Firebase listener if server discovery was enabled before logging in
             getFirebaseManager().removeUserListener();
+            CuratedContentManager.hasDoneSetup = false;
+            CuratedContentManager.getCuratedContent(this);
         } else {
             //display main student view
             leadmeAnimator.setDisplayedChild(ANIM_LEARNER_INDEX);

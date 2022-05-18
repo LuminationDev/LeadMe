@@ -76,6 +76,7 @@ public class CuratedContentManager {
 
     public static View curatedContentScreen;
     public static View curatedContentScreenSingle;
+    public static boolean hasDoneSetup = false;
 
     public static void showCuratedContentSingle (LeadMeMain main, CuratedContentItem curatedContentItem, View listItem) {
         CuratedContentManager.curatedContentSingleBinding = DataBindingUtil.bind(CuratedContentManager.curatedContentScreenSingle);
@@ -129,6 +130,9 @@ public class CuratedContentManager {
     }
 
     public static void setupCuratedContent (LeadMeMain main) {
+        if (CuratedContentManager.hasDoneSetup == true) {
+            return;
+        }
         // set up data binding and the list view for curated content
         CuratedContentManager.curatedContentBinding = DataBindingUtil.bind(CuratedContentManager.curatedContentScreen);
         CuratedContentManager.curatedContentBinding.setLifecycleOwner(main);
@@ -137,6 +141,7 @@ public class CuratedContentManager {
         CuratedContentManager.curatedContentAdapter = new CuratedContentAdapter(main, curatedContentScreen.findViewById(R.id.curated_content_list));
         curatedContentListView.setAdapter(CuratedContentManager.curatedContentAdapter);
         CuratedContentManager.curatedContentAdapter.curatedContentList = CuratedContentManager.filteredCuratedContentList;
+        CuratedContentManager.curatedContentAdapter.notifyDataSetChanged();
 
         // handle clicking on a curated content item, if this starts to get more complicated we'll want to split it out
         curatedContentListView.setItemsCanFocus(false);
@@ -154,6 +159,7 @@ public class CuratedContentManager {
         curatedContentScreen.findViewById(R.id.search_button).setOnClickListener(view -> {
             CuratedContentManager.showSearch(main);
         });
+        CuratedContentManager.hasDoneSetup = true;
     }
 
     public static void addToFavourites(String link, String title, CuratedContentType type, Boolean checked) {
@@ -185,8 +191,6 @@ public class CuratedContentManager {
     private static void initializeCuratedContent(ArrayList<CuratedContentItem> curatedContentList, LeadMeMain main) {
         CuratedContentManager.curatedContentList = (ArrayList<CuratedContentItem>) curatedContentList.clone();
         CuratedContentManager.filteredCuratedContentList = (ArrayList<CuratedContentItem>) curatedContentList.clone();
-        CuratedContentManager.curatedContentBinding.setVariable(BR.curatedContentList, CuratedContentManager.filteredCuratedContentList);
-        CuratedContentManager.curatedContentAdapter.curatedContentList = CuratedContentManager.filteredCuratedContentList;
 
         Set<String> curatedContentSubjectsSet = new TreeSet<>();
         for (CuratedContentItem curatedContent:curatedContentList) {
@@ -205,6 +209,12 @@ public class CuratedContentManager {
         CuratedContentManager.urlFavouritesManager = main.getWebManager().getUrlFavouritesManager();
         CuratedContentManager.videoFavouritesManager = main.getWebManager().getYouTubeFavouritesManager();
         CuratedContentManager.main = main;
+        if (CuratedContentManager.curatedContentAdapter != null) {
+            main.runOnUiThread(() -> {
+                CuratedContentManager.curatedContentAdapter.curatedContentList = CuratedContentManager.filteredCuratedContentList;
+                CuratedContentManager.curatedContentAdapter.notifyDataSetChanged();
+            });
+        }
     }
 
     private static void showFilters (LeadMeMain main) {
@@ -497,6 +507,9 @@ public class CuratedContentManager {
                 CuratedContentManager.filteredCuratedContentList.forEach(curatedContentItem -> {
                     if (curatedContentItem.link.equals(sourceContent.getUrl())) {
                         curatedContentItem.img_url = finalImg1;
+                        if (CuratedContentManager.curatedContentAdapter != null) {
+                            CuratedContentManager.curatedContentAdapter.notifyDataSetChanged();
+                        }
                     }
                 });
             }
