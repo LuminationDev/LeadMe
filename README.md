@@ -7,3 +7,12 @@ An Android app that allows a 'guide' to launch apps and deploy videos on connect
 * launch youtube and within videos on student devices
 * launch websites on student devices
 
+
+
+
+
+
+Authors
+*Natalie Teasdale
+*Darragh Kearns
+*Edward Coad
