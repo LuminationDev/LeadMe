@@ -25,6 +25,8 @@ import androidx.core.widget.ImageViewCompat;
 import com.lumination.leadme.LeadMeMain;
 import com.lumination.leadme.R;
 import com.lumination.leadme.accessibility.VRAccessibilityManager;
+import com.lumination.leadme.managers.DispatchManager;
+import com.lumination.leadme.managers.NearbyPeersManager;
 
 import java.io.File;
 import java.util.Set;
@@ -52,10 +54,8 @@ public class VREmbedVideoPlayer {
     private final View videoControllerDialogView; //, videoControls
     private final VideoView controllerVideoView;
 
-    private View projectionDropdown;
     private PopupWindow popupWindow;
     private ImageView changeProjectionBtn;
-    private LinearLayout monoBtn, eacBtn, eac3dBtn, ouBtn, sbsBtn;
     private TextView monoText, eacText, eac3dText, ouText, sbsText;
 
     private Button vrplayerPreviewPushBtn, vrplayerSetSourceBtn;
@@ -111,7 +111,7 @@ public class VREmbedVideoPlayer {
      */
     private void setupProjectionDropdown() {
         changeProjectionBtn = videoControllerDialogView.findViewById(R.id.change_projection_btn);
-        projectionDropdown = View.inflate(main, R.layout.e__projection_menu, null);
+        View projectionDropdown = View.inflate(main, R.layout.e__projection_menu, null);
         popupWindow = new PopupWindow(
                 projectionDropdown,
                 ViewGroup.LayoutParams.WRAP_CONTENT,
@@ -122,14 +122,14 @@ public class VREmbedVideoPlayer {
         popupWindow.setOnDismissListener(() -> {});
 
         monoText = projectionDropdown.findViewById(R.id.mono_text);
-        monoBtn = projectionDropdown.findViewById(R.id.mono_toggle);
+        LinearLayout monoBtn = projectionDropdown.findViewById(R.id.mono_toggle);
         monoBtn.setOnClickListener(v -> {
             changeProjection("mono");
             changeSelectedProjection(monoText);
         });
 
         eacText = projectionDropdown.findViewById(R.id.eac_text);
-        eacBtn = projectionDropdown.findViewById(R.id.eac_toggle);
+        LinearLayout eacBtn = projectionDropdown.findViewById(R.id.eac_toggle);
         eacText.setVisibility(View.VISIBLE);
         eacBtn.setVisibility(View.VISIBLE);
         eacBtn.setOnClickListener(v -> {
@@ -138,7 +138,7 @@ public class VREmbedVideoPlayer {
         });
 
         eac3dText = projectionDropdown.findViewById(R.id.eac3d_text);
-        eac3dBtn = projectionDropdown.findViewById(R.id.eac3d_toggle);
+        LinearLayout eac3dBtn = projectionDropdown.findViewById(R.id.eac3d_toggle);
         eac3dText.setVisibility(View.VISIBLE);
         eac3dBtn.setVisibility(View.VISIBLE);
         eac3dBtn.setOnClickListener(v -> {
@@ -147,14 +147,14 @@ public class VREmbedVideoPlayer {
         });
 
         ouText = projectionDropdown.findViewById(R.id.over_under_text);
-        ouBtn = projectionDropdown.findViewById(R.id.over_under_toggle);
+        LinearLayout ouBtn = projectionDropdown.findViewById(R.id.over_under_toggle);
         ouBtn.setOnClickListener(v -> {
             changeProjection("ou");
             changeSelectedProjection(ouText);
         });
 
         sbsText = projectionDropdown.findViewById(R.id.side_by_side_text);
-        sbsBtn = projectionDropdown.findViewById(R.id.side_by_side_toggle);
+        LinearLayout sbsBtn = projectionDropdown.findViewById(R.id.side_by_side_toggle);
         sbsBtn.setOnClickListener(v -> {
             changeProjection("sbs");
             changeSelectedProjection(sbsText);
@@ -377,7 +377,7 @@ public class VREmbedVideoPlayer {
                 false,
                 "false",
                 true,
-                main.getNearbyManager().getSelectedPeerIDsOrAll());
+                NearbyPeersManager.getSelectedPeerIDsOrAll());
 
         main.showLeaderScreen();
         showPushConfirmed();
@@ -542,7 +542,7 @@ public class VREmbedVideoPlayer {
 
     private void setupGuideVideoControllerButtons() {
         videoControllerDialogView.findViewById(R.id.push_again_btn).setOnClickListener(v ->
-            relaunchVR(main.getNearbyManager().getSelectedPeerIDsOrAll())
+            relaunchVR(NearbyPeersManager.getSelectedPeerIDsOrAll())
         );
 
         videoControllerDialogView.findViewById(R.id.new_video_btn).setOnClickListener(v -> {
@@ -646,9 +646,9 @@ public class VREmbedVideoPlayer {
     //Enhancement - sync time will peers each button press??
     private void setVideoSource(int startTime) {
         //Send action to peers to play
-        main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG,
+        DispatchManager.sendActionToSelected(LeadMeMain.ACTION_TAG,
                 LeadMeMain.VR_PLAYER_TAG + ":" + VRAccessibilityManager.CUE_SET_SOURCE + ":" + fileName + ":" + startTime + ":" + "Video",
-                main.getNearbyManager().getSelectedPeerIDsOrAll());
+                NearbyPeersManager.getSelectedPeerIDsOrAll());
     }
 
     /**
@@ -656,9 +656,9 @@ public class VREmbedVideoPlayer {
      * @param type A string representing what type the projection should change to.
      */
     private void changeProjection(String type) {
-        main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG,
+        DispatchManager.sendActionToSelected(LeadMeMain.ACTION_TAG,
                 LeadMeMain.VR_PLAYER_TAG + ":" + VRAccessibilityManager.CUE_PROJECTION + ":" + type,
-                main.getNearbyManager().getSelectedPeerIDsOrAll());
+                NearbyPeersManager.getSelectedPeerIDsOrAll());
     }
 
     /**
@@ -692,9 +692,9 @@ public class VREmbedVideoPlayer {
         buttonHighlights(VRAccessibilityManager.CUE_PLAY);
 
         //Send action to peers to play
-        main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG,
+        DispatchManager.sendActionToSelected(LeadMeMain.ACTION_TAG,
                 LeadMeMain.VR_PLAYER_TAG + ":" + VRAccessibilityManager.CUE_PLAY,
-                main.getNearbyManager().getSelectedPeerIDsOrAll());
+                NearbyPeersManager.getSelectedPeerIDsOrAll());
     }
 
     private void pauseVideo() {
@@ -703,9 +703,9 @@ public class VREmbedVideoPlayer {
         buttonHighlights(VRAccessibilityManager.CUE_PAUSE);
 
         //Send action to peers to pause
-        main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG,
+        DispatchManager.sendActionToSelected(LeadMeMain.ACTION_TAG,
                 LeadMeMain.VR_PLAYER_TAG + ":" + VRAccessibilityManager.CUE_PAUSE,
-                main.getNearbyManager().getSelectedPeerIDsOrAll());
+                NearbyPeersManager.getSelectedPeerIDsOrAll());
     }
 
     //BELOW NOT IMPLEMENTED YET
@@ -729,9 +729,9 @@ public class VREmbedVideoPlayer {
         //fwd();
 
         //Send action to peers to fastforward
-        main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG,
+        DispatchManager.sendActionToSelected(LeadMeMain.ACTION_TAG,
                 LeadMeMain.VR_PLAYER_TAG + ":" + VRAccessibilityManager.CUE_FWD,
-                main.getNearbyManager().getSelectedPeerIDsOrAll());
+                NearbyPeersManager.getSelectedPeerIDsOrAll());
     }
 
     private void rwdVideo() {
@@ -740,9 +740,9 @@ public class VREmbedVideoPlayer {
         //rwd();
 
         //Send action to peers to rewind
-        main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG,
+        DispatchManager.sendActionToSelected(LeadMeMain.ACTION_TAG,
                 LeadMeMain.VR_PLAYER_TAG + ":" + VRAccessibilityManager.CUE_RWD,
-                main.getNearbyManager().getSelectedPeerIDsOrAll());
+                NearbyPeersManager.getSelectedPeerIDsOrAll());
     }
 
     //change video control icon colour

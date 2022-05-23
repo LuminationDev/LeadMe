@@ -2,7 +2,6 @@ package com.lumination.leadme.connections;
 
 import android.util.Log;
 
-import com.lumination.leadme.managers.NSDManager;
 import com.lumination.leadme.managers.NetworkManager;
 import com.lumination.leadme.services.NetworkService;
 
@@ -25,29 +24,11 @@ public class TcpClient extends Thread {
     public int port = 54320;
     public int ID;
 
-    ScheduledExecutorService scheduledExecutor = new ScheduledThreadPoolExecutor(3);
-
     public TcpClient(InetAddress clientAddress, int clientID) {
         TAG += clientID; //ensures logs are identifiable
         IpAddress = clientAddress;
         ID = clientID;
-
-        scheduledExecutor.scheduleAtFixedRate(ConnectionCheck,300,10000, TimeUnit.MILLISECONDS);
     }
-
-    /**
-     * Responsible for checking the connection between the Leader and the Leaner associated with
-     * this socket connection. Sends a ping every set time period if no other messages are being
-     * sent.
-     */
-    Runnable ConnectionCheck = () -> {
-        if(NetworkService.isRunning) {
-            Log.d(TAG, "Sending Ping to: " + ID);
-            NetworkService.sendToClient(ID, String.valueOf(ID), "PING");
-        } else {
-            scheduledExecutor.shutdown();
-        }
-    };
 
     /**
      * Responsible for handling incoming messages from the learner socket connection. Passes the
@@ -57,6 +38,7 @@ public class TcpClient extends Thread {
         if(input==null || !input.contains(",")){
             return;
         }
+
         Log.d(TAG, "inputHandler: "+ input);
         List<String> inputList = Arrays.asList(input.split(","));
         if(inputList.size()>1) {
@@ -96,9 +78,5 @@ public class TcpClient extends Thread {
     public void setLocalName(String name){
         Name=name;
         NetworkManager.executorService.submit(() -> NetworkManager.updateParent(name+":"+IpAddress.toString(),ID,"NAME"));
-    }
-
-    public void shutdownTCP() {
-        scheduledExecutor.shutdown();
     }
 }

@@ -207,5 +207,7 @@
     <string name="local_photo_content">Local photo content</string>
     <string name="new_photo">New Photo</string>
     <string name="install_youtube">Please install Youtube.</string>
+    <string name="unselect">Unselect</string>
+    <string name="unselected">Unselected</string>
 
 </resources>

@@ -219,13 +219,14 @@ public class AuthenticationManager {
         });
 
         //page 0
-        EditText loginCode = loginView.findViewById(R.id.rego_code_box);
-        TextView regoLost = loginView.findViewById(R.id.rego_lost_code);
-        regoLost.setOnClickListener(v -> {
-            String[] email = {"dev@lumination.com.au"};
-            main.composeEmail(email,"LeadMe Support: Signup Code Request");
-        });
-        TextView regoError = loginView.findViewById(R.id.rego_code_error);
+//        EditText loginCode = loginView.findViewById(R.id.rego_code_box);
+//        TextView regoLost = loginView.findViewById(R.id.rego_lost_code);
+//        regoLost.setOnClickListener(v -> {
+//            String[] email = {"dev@lumination.com.au"};
+//            main.composeEmail(email,"LeadMe Support: Signup Code Request");
+//        });
+        //TextView regoError = loginView.findViewById(R.id.rego_code_error);
+
         //page 2
         TextView signupError = loginView.findViewById(R.id.signup_error);
         EditText signupName = loginView.findViewById(R.id.signup_name);
@@ -262,67 +263,68 @@ public class AuthenticationManager {
         loginView.setOnClickListener(v -> main.getDialogManager().hideSoftKeyboard(v));
 
         switch (page) {
-            case 0:
-                showSystemUI();
-                regoError.setVisibility(View.GONE);
-                //loginCode.requestFocus();
-                loginCode.setOnFocusChangeListener((v, hasFocus) -> {
-                    if (hasFocus) {
-                        showSystemUI();
-                    }
-                });
-                loginCode.addTextChangedListener(new TextWatcher() {
-                    @Override
-                    public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-                        showSystemUI();
-                    }
-
-                    @Override
-                    public void onTextChanged(CharSequence s, int start, int before, int count) {
-                        Log.d(TAG, "onTextChanged: " + count);
-                        if (s.length() == 6) {
-                            closeKeyboard();
-                        }
-                    }
-
-                    @Override
-                    public void afterTextChanged(Editable s) {
-
-                    }
-                });
-
-                next.setOnClickListener(v -> {
-                    if (loginCode.getText().length() == 6) {
-                        main.setProgressSpinner(3000, progressBar);
-                        db.collection("signin_codes").document(loginCode.getText().toString())
-                                .get().addOnCompleteListener(task -> {
-                            if (task.isSuccessful()) {
-                                Log.d(TAG, "buildloginsignup: database accessed");
-                                if (task.getResult().exists()) {
-                                    //todo add email under signup code
-//                                        if(task.getResult().get)
-                                    regoCode = loginCode.getText().toString();
-                                    buildloginsignup(1);
-                                } else {
-                                    progressBar.setVisibility(View.GONE);
-                                    regoError.setText("I'm sorry that code doesn't exist.");
-                                    regoError.setVisibility(View.VISIBLE);
-                                }
-                            } else {
-                                Log.d(TAG, "buildloginsignup: unable to access database");
-                            }
-                        });
-                    } else {
-                        regoError.setVisibility(View.VISIBLE);
-                        regoError.setText("Please check you have entered the code correctly.");
-                    }
-                });
-
-                back.setOnClickListener(v -> {
-                    main.animatorAsContentView();
-                    hideSystemUI();
-                });
-                break;
+            //TODO kept in case of reuse in the future
+//            case 0:
+//                showSystemUI();
+//                regoError.setVisibility(View.GONE);
+//
+//                loginCode.setOnFocusChangeListener((v, hasFocus) -> {
+//                    if (hasFocus) {
+//                        showSystemUI();
+//                    }
+//                });
+//
+//                loginCode.addTextChangedListener(new TextWatcher() {
+//                    @Override
+//                    public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+//                        showSystemUI();
+//                    }
+//
+//                    @Override
+//                    public void onTextChanged(CharSequence s, int start, int before, int count) {
+//                        Log.d(TAG, "onTextChanged: " + count);
+//                        if (s.length() == 6) {
+//                            closeKeyboard();
+//                        }
+//                    }
+//
+//                    @Override
+//                    public void afterTextChanged(Editable s) {
+//
+//                    }
+//                });
+//
+//                next.setOnClickListener(v -> {
+//                    if (loginCode.getText().length() == 6) {
+//                        main.setProgressSpinner(3000, progressBar);
+//                        db.collection("signin_codes").document(loginCode.getText().toString())
+//                                .get().addOnCompleteListener(task -> {
+//                            if (task.isSuccessful()) {
+//                                Log.d(TAG, "buildloginsignup: database accessed");
+//                                if (task.getResult().exists()) {
+////                                        if(task.getResult().get)
+//                                    regoCode = loginCode.getText().toString();
+//                                    buildloginsignup(1);
+//                                } else {
+//                                    progressBar.setVisibility(View.GONE);
+//                                    regoError.setText("I'm sorry that code doesn't exist.");
+//                                    regoError.setVisibility(View.VISIBLE);
+//                                }
+//                            } else {
+//                                Log.d(TAG, "buildloginsignup: unable to access database");
+//                            }
+//                        });
+//                    } else {
+//                        regoError.setVisibility(View.VISIBLE);
+//                        regoError.setText("Please check you have entered the code correctly.");
+//                    }
+//                });
+//
+//                back.setOnClickListener(v -> {
+//                    main.animatorAsContentView();
+//                    hideSystemUI();
+//                });
+//                break;
 
             case 1:
                 hideSystemUI();
@@ -350,7 +352,11 @@ public class AuthenticationManager {
                     }
                 });
 
-                back.setOnClickListener(v -> buildloginsignup(0));
+                back.setOnClickListener(v -> {
+                    main.animatorAsContentView();
+                    hideSystemUI();
+                });
+                //back.setOnClickListener(v -> buildloginsignup(0));
                 break;
 
             case 2:
@@ -396,7 +402,7 @@ public class AuthenticationManager {
                 });
 
                 back.setOnClickListener(v -> {
-                    buildloginsignup(0);
+                    buildloginsignup(1);
                     hideSystemUI();
                 });
                 break;
@@ -425,21 +431,26 @@ public class AuthenticationManager {
                     }
 
                     //TODO crash occurs here - getCurrentUser() or mAuth or isEmailVerified is null?
-                    if (!Objects.requireNonNull(mAuth.getCurrentUser()).isEmailVerified()) {
-                        Log.d(TAG, "buildloginsignup: email verification sent");
-                        mAuth.getCurrentUser().sendEmailVerification().addOnSuccessListener(aVoid ->
-                                scheduledExecutorService.scheduleAtFixedRate(() -> mAuth.addAuthStateListener(firebaseAuth1 -> {
-                                    Log.d(TAG, "run: checking user verification");
-                                    if (!mAuth.getCurrentUser().isEmailVerified()) {
-                                        mAuth.getCurrentUser().reload();
-                                    } else {
-                                        currentUser = mAuth.getCurrentUser();
-                                        scheduledExecutorService.shutdown();
-                                        main.runOnUiThread(() -> buildloginsignup(4));
-                                    }
-                                }), 100, 100, TimeUnit.MILLISECONDS));
-                    } else {
-                        Log.d(TAG, "buildloginsignup: user is already verified");
+                    try {
+                        if (!Objects.requireNonNull(mAuth.getCurrentUser()).isEmailVerified()) {
+                            Log.d(TAG, "buildloginsignup: email verification sent");
+                            mAuth.getCurrentUser().sendEmailVerification().addOnSuccessListener(aVoid ->
+                                    scheduledExecutorService.scheduleAtFixedRate(() -> mAuth.addAuthStateListener(firebaseAuth1 -> {
+                                        Log.d(TAG, "run: checking user verification");
+                                        if (!mAuth.getCurrentUser().isEmailVerified()) {
+                                            mAuth.getCurrentUser().reload();
+                                        } else {
+                                            currentUser = mAuth.getCurrentUser();
+                                            scheduledExecutorService.shutdown();
+                                            main.runOnUiThread(() -> buildloginsignup(4));
+                                        }
+                                    }), 100, 100, TimeUnit.MILLISECONDS));
+                        } else {
+                            Log.d(TAG, "buildloginsignup: user is already verified");
+                        }
+                    }
+                    catch (Exception e) {
+                        e.printStackTrace();
                     }
                 };
 
@@ -531,12 +542,9 @@ public class AuthenticationManager {
     }
 
     private void firebaseRemoveUser(FirebaseUser currentUser) {
-        db.collection("users").document(currentUser.getUid()).delete().addOnCompleteListener(new OnCompleteListener<Void>() {
-            @Override
-            public void onComplete(@NonNull Task<Void> task) {
-                if(task.isSuccessful()){
-                    currentUser.delete();
-                }
+        db.collection("users").document(currentUser.getUid()).delete().addOnCompleteListener(task -> {
+            if(task.isSuccessful()){
+                currentUser.delete();
             }
         });
     }
@@ -608,7 +616,7 @@ public class AuthenticationManager {
                         userDet.put("name", name);
                         userDet.put("email", email);
                         userDet.put("marketing", marketing);
-                        userDet.put("rego_code", regoCode);
+                        //userDet.put("rego_code", regoCode);
 
                         db.collection("users").document(mAuth.getCurrentUser().getUid()).get().addOnCompleteListener(task1 -> {
                             if (task1.getResult().exists()) {

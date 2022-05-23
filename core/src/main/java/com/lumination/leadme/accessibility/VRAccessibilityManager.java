@@ -7,7 +7,9 @@ import android.os.Build;
 import android.os.Environment;
 import android.util.Log;
 
+import com.lumination.leadme.managers.DispatchManager;
 import com.lumination.leadme.managers.FileTransferManager;
+import com.lumination.leadme.managers.NearbyPeersManager;
 import com.lumination.leadme.utilities.FileUtilities;
 import com.lumination.leadme.LeadMeMain;
 
@@ -144,8 +146,8 @@ public class VRAccessibilityManager {
 
         if(main.fileTransferEnabled) {
             FileTransferManager.setFileType("VRVideo");
-            main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.FILE_REQUEST_TAG + ":" + main.getNearbyManager().getID()
-                    + ":" + "false" + ":" + FileTransferManager.getFileType(), main.getNearbyManager().getSelectedPeerIDs());
+            DispatchManager.sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.FILE_REQUEST_TAG + ":" + NearbyPeersManager.getID()
+                    + ":" + "false" + ":" + FileTransferManager.getFileType(), NearbyPeersManager.getSelectedPeerIDs());
             main.runOnUiThread(() ->main.getDialogManager().showWarningDialog("Missing File", "Video is transferring now."));
         } else {
             main.runOnUiThread(() ->main.getDialogManager().showWarningDialog("Permission Needed", "File Transfer is not enabled " +

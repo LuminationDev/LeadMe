@@ -26,6 +26,7 @@ import androidx.core.content.res.ResourcesCompat;
 import com.alimuzaffar.lib.pin.PinEntryEditText;
 import com.lumination.leadme.LeadMeMain;
 import com.lumination.leadme.R;
+import com.lumination.leadme.adapters.ConnectedLearnersAdapter;
 import com.lumination.leadme.adapters.StudentAlertsAdapter;
 import com.lumination.leadme.utilities.FileUtilities;
 
@@ -161,9 +162,9 @@ public class DialogManager {
         appPushDialogView.findViewById(R.id.push_btn).setOnClickListener(v -> {
             Set<String> peerSet;
             if(main.getSelectedOnly()) {
-                peerSet = main.getNearbyManager().getSelectedPeerIDsOrAll();
+                peerSet = NearbyPeersManager.getSelectedPeerIDsOrAll();
             } else {
-                peerSet = main.getNearbyManager().getAllPeerIDs();
+                peerSet = NearbyPeersManager.getAllPeerIDs();
             }
             main.getAppManager().launchApp(appPushPackageName, appPushTitle, false, "false", false, peerSet);
             Log.d(TAG, "LAUNCHING! " + appPushPackageName);
@@ -338,9 +339,9 @@ public class DialogManager {
             showFileTypeDialog();
         });
 
-        cancelBtn.setOnClickListener(v -> {
-            firstTimeVRDialog.dismiss();
-        });
+        cancelBtn.setOnClickListener(v ->
+                firstTimeVRDialog.dismiss()
+        );
     }
 
     //Dialog to describe what sort of files can be chosen
@@ -398,7 +399,7 @@ public class DialogManager {
                 peerSet.add(String.valueOf(ID));
             }
 
-            main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.RETURN_TAG, peerSet);
+            DispatchManager.sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.RETURN_TAG, peerSet);
             requestDialog.dismiss();
         });
 
@@ -838,7 +839,7 @@ public class DialogManager {
             setupRecallDialog();
         }
 
-        if (main.getConnectedLearnersAdapter().someoneIsSelected() && (main.getNearbyManager().getSelectedPeerIDs().size() < main.getNearbyManager().getAllPeerIDs().size())) {
+        if (ConnectedLearnersAdapter.someoneIsSelected() && (NearbyPeersManager.getSelectedPeerIDs().size() < NearbyPeersManager.getAllPeerIDs().size())) {
             recallMessage.setText(resources.getString(R.string.recall_comment_selected));
             toggleBtnView.setVisibility(View.VISIBLE);
         } else {
@@ -902,8 +903,8 @@ public class DialogManager {
      */
     public void toggleSelectedView(View preview) {
         View toggleSelectedBtn = preview.findViewById(R.id.toggleBtnView);
-        toggleSelectedBtn.setVisibility(main.getConnectedLearnersAdapter().someoneIsSelected()
-                && (main.getNearbyManager().getSelectedPeerIDs().size() < main.getNearbyManager().getAllPeerIDs().size())
+        toggleSelectedBtn.setVisibility(ConnectedLearnersAdapter.someoneIsSelected()
+                && (NearbyPeersManager.getSelectedPeerIDs().size() < NearbyPeersManager.getAllPeerIDs().size())
                 ? View.VISIBLE : View.GONE);
     }
 
@@ -954,7 +955,7 @@ public class DialogManager {
             TextView IpAddress = manView.findViewById(R.id.manual_ip);
             IpAddress.setText(ipAddress);
         } else {
-            if(main.getNearbyManager().isConnectedAsFollower()){
+            if(NearbyPeersManager.isConnectedAsFollower()){
                 manualDialog.dismiss();
                 Toast.makeText(main, "You are already connected to a leader", Toast.LENGTH_SHORT).show();
                 return;
@@ -1082,7 +1083,7 @@ public class DialogManager {
 
         signup.setOnClickListener(view -> {
             loginDialog.dismiss();
-            main.buildLoginSignupController(0);
+            main.buildLoginSignupController(1);
         });
 
         backBtn.setOnClickListener(v -> loginDialog.dismiss());
@@ -1105,7 +1106,7 @@ public class DialogManager {
 
                 //Only start discovery again if trying to login as a learner
                 if(main.loginActor.equals("learner")) {
-                    main.getNearbyManager().nsdManager.startDiscovery();
+                    NSDManager.startDiscovery();
                 }
             }
         }

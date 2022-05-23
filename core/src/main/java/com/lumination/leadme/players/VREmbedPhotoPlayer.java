@@ -22,6 +22,8 @@ import androidx.core.widget.ImageViewCompat;
 import com.lumination.leadme.LeadMeMain;
 import com.lumination.leadme.R;
 import com.lumination.leadme.accessibility.VRAccessibilityManager;
+import com.lumination.leadme.managers.DispatchManager;
+import com.lumination.leadme.managers.NearbyPeersManager;
 
 import java.io.File;
 import java.util.Set;
@@ -49,10 +51,8 @@ public class VREmbedPhotoPlayer {
     private final View photoControllerDialogView; //, videoControls
     private final ImageView controllerImageView;
 
-    private View projectionDropdown;
     private PopupWindow popupWindow;
     private ImageView changeProjectionBtn;
-    private LinearLayout monoBtn, eacBtn, eac3dBtn, ouBtn, sbsBtn;
     private TextView monoText, eacText, eac3dText, ouText, sbsText;
 
     private Button vrplayerPreviewPushBtn, vrplayerSetSourceBtn;
@@ -84,7 +84,7 @@ public class VREmbedPhotoPlayer {
      */
     private void setupProjectionDropdown() {
         changeProjectionBtn = photoControllerDialogView.findViewById(R.id.change_projection_btn);
-        projectionDropdown = View.inflate(main, R.layout.e__projection_menu, null);
+        View projectionDropdown = View.inflate(main, R.layout.e__projection_menu, null);
         popupWindow = new PopupWindow(
                 projectionDropdown,
                 ViewGroup.LayoutParams.WRAP_CONTENT,
@@ -95,15 +95,15 @@ public class VREmbedPhotoPlayer {
         popupWindow.setOnDismissListener(() -> {});
 
         monoText = projectionDropdown.findViewById(R.id.mono_text);
-        monoBtn = projectionDropdown.findViewById(R.id.mono_toggle);
+        LinearLayout monoBtn = projectionDropdown.findViewById(R.id.mono_toggle);
         monoBtn.setOnClickListener(v -> {
             changeProjection("mono");
             changeSelectedProjection(monoText);
         });
 
-        //TODO EAC mode is not enabled yet for VR player
+        //TODO EAC mode is not enabled yet for VR photo player
         eacText = projectionDropdown.findViewById(R.id.eac_text);
-        eacBtn = projectionDropdown.findViewById(R.id.eac_toggle);
+        LinearLayout eacBtn = projectionDropdown.findViewById(R.id.eac_toggle);
         eacText.setVisibility(View.GONE);
         eacBtn.setVisibility(View.GONE);
         eacBtn.setOnClickListener(v -> {
@@ -112,7 +112,7 @@ public class VREmbedPhotoPlayer {
         });
 
         eac3dText = projectionDropdown.findViewById(R.id.eac3d_text);
-        eac3dBtn = projectionDropdown.findViewById(R.id.eac3d_toggle);
+        LinearLayout eac3dBtn = projectionDropdown.findViewById(R.id.eac3d_toggle);
         eac3dText.setVisibility(View.GONE);
         eac3dBtn.setVisibility(View.GONE);
         eac3dBtn.setOnClickListener(v -> {
@@ -121,14 +121,14 @@ public class VREmbedPhotoPlayer {
         });
 
         ouText = projectionDropdown.findViewById(R.id.over_under_text);
-        ouBtn = projectionDropdown.findViewById(R.id.over_under_toggle);
+        LinearLayout ouBtn = projectionDropdown.findViewById(R.id.over_under_toggle);
         ouBtn.setOnClickListener(v -> {
             changeProjection("ou");
             changeSelectedProjection(ouText);
         });
 
         sbsText = projectionDropdown.findViewById(R.id.side_by_side_text);
-        sbsBtn = projectionDropdown.findViewById(R.id.side_by_side_toggle);
+        LinearLayout sbsBtn = projectionDropdown.findViewById(R.id.side_by_side_toggle);
         sbsBtn.setOnClickListener(v -> {
             changeProjection("sbs");
             changeSelectedProjection(sbsText);
@@ -320,7 +320,7 @@ public class VREmbedPhotoPlayer {
                 false,
                 "false",
                 true,
-                main.getNearbyManager().getSelectedPeerIDsOrAll());
+                NearbyPeersManager.getSelectedPeerIDsOrAll());
 
         main.showLeaderScreen();
         showPushConfirmed();
@@ -426,7 +426,7 @@ public class VREmbedPhotoPlayer {
 
     private void setupGuideVideoControllerButtons() {
         photoControllerDialogView.findViewById(R.id.push_again_btn).setOnClickListener(v ->
-            relaunchVR(main.getNearbyManager().getSelectedPeerIDsOrAll())
+            relaunchVR(NearbyPeersManager.getSelectedPeerIDsOrAll())
         );
 
         photoControllerDialogView.findViewById(R.id.new_photo_btn).setOnClickListener(v -> {
@@ -491,9 +491,9 @@ public class VREmbedPhotoPlayer {
     //sends an action to the connected peers.
     private void setPhotoSource() {
         //Send action to peers to play
-        main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG,
+        DispatchManager.sendActionToSelected(LeadMeMain.ACTION_TAG,
                 LeadMeMain.VR_PLAYER_TAG + ":" + VRAccessibilityManager.CUE_SET_SOURCE + ":" + fileName + ":" + 0  + ":" + "Photo",
-                main.getNearbyManager().getSelectedPeerIDsOrAll());
+                NearbyPeersManager.getSelectedPeerIDsOrAll());
     }
 
     /**
@@ -501,9 +501,9 @@ public class VREmbedPhotoPlayer {
      * @param type A string representing what type the projection should change to.
      */
     private void changeProjection(String type) {
-        main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG,
+        DispatchManager.sendActionToSelected(LeadMeMain.ACTION_TAG,
                 LeadMeMain.VR_PLAYER_TAG + ":" + VRAccessibilityManager.CUE_PROJECTION + ":" + type,
-                main.getNearbyManager().getSelectedPeerIDsOrAll());
+                NearbyPeersManager.getSelectedPeerIDsOrAll());
     }
 
     /**

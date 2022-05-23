@@ -41,8 +41,6 @@ import com.lumination.leadme.adapters.LumiSpinnerAdapter;
 import com.lumination.leadme.linkpreview.LinkPreviewCallback;
 import com.lumination.leadme.linkpreview.SourceContent;
 import com.lumination.leadme.linkpreview.TextCrawler;
-import com.lumination.leadme.managers.DialogManager;
-import com.lumination.leadme.managers.FavouritesManager;
 import com.lumination.leadme.players.YouTubeEmbedPlayer;
 
 import java.io.ByteArrayInputStream;
@@ -451,26 +449,26 @@ public class WebManager {
         //update lock status
         if (locked) {
             if(selectedOnly) {
-                main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.LOCK_TAG, main.getNearbyManager().getSelectedPeerIDsOrAll());
+                DispatchManager.sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.LOCK_TAG, NearbyPeersManager.getSelectedPeerIDsOrAll());
             }else{
-                main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.LOCK_TAG, main.getNearbyManager().getAllPeerIDs());
+                DispatchManager.sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.LOCK_TAG, NearbyPeersManager.getAllPeerIDs());
             }
         } else {
             //unlocked if selected
             if(selectedOnly) {
-                main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.UNLOCK_TAG, main.getNearbyManager().getSelectedPeerIDsOrAll());
+                DispatchManager.sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.UNLOCK_TAG, NearbyPeersManager.getSelectedPeerIDsOrAll());
             }else{
-                main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.UNLOCK_TAG, main.getNearbyManager().getAllPeerIDs());
+                DispatchManager.sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.UNLOCK_TAG, NearbyPeersManager.getAllPeerIDs());
             }
         }
 
         //push the right instruction to the receivers
         if(selectedOnly) {
-            main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.LAUNCH_YT + url + "&start=" + startFrom + ":::" + urlTitle + ":::" + vrOn,
-                    main.getNearbyManager().getSelectedPeerIDsOrAll());
+            DispatchManager.sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.LAUNCH_YT + url + "&start=" + startFrom + ":::" + urlTitle + ":::" + vrOn,
+                    NearbyPeersManager.getSelectedPeerIDsOrAll());
         }else{
-            main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.LAUNCH_YT + url + "&start=" + startFrom + ":::" + urlTitle + ":::" + vrOn,
-                    main.getNearbyManager().getAllPeerIDs());
+            DispatchManager.sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.LAUNCH_YT + url + "&start=" + startFrom + ":::" + urlTitle + ":::" + vrOn,
+                    NearbyPeersManager.getAllPeerIDs());
         }
     }
 
@@ -481,24 +479,24 @@ public class WebManager {
         if (lockSpinner.getSelectedItem().toString().startsWith("View")) {
             //locked by default
             if(main.getSelectedOnly()) {
-                main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.LOCK_TAG, main.getNearbyManager().getSelectedPeerIDsOrAll());
+                DispatchManager.sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.LOCK_TAG, NearbyPeersManager.getSelectedPeerIDsOrAll());
             }else{
-                main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.LOCK_TAG, main.getNearbyManager().getAllPeerIDs());
+                DispatchManager.sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.LOCK_TAG, NearbyPeersManager.getAllPeerIDs());
             }
         } else {
             //unlocked if selected
             if(main.getSelectedOnly()) {
-                main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.UNLOCK_TAG, main.getNearbyManager().getSelectedPeerIDsOrAll());
+                DispatchManager.sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.UNLOCK_TAG, NearbyPeersManager.getSelectedPeerIDsOrAll());
             }else{
-                main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.UNLOCK_TAG, main.getNearbyManager().getAllPeerIDs());
+                DispatchManager.sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.UNLOCK_TAG, NearbyPeersManager.getAllPeerIDs());
             }
         }
 
         //push the right instruction to the receivers
         if(main.getSelectedOnly()) {
-            main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.LAUNCH_URL + url + ":::" + urlTitle, main.getNearbyManager().getSelectedPeerIDsOrAll());
+            DispatchManager.sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.LAUNCH_URL + url + ":::" + urlTitle, NearbyPeersManager.getSelectedPeerIDsOrAll());
         }else{
-            main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.LAUNCH_URL + url + ":::" + urlTitle, main.getNearbyManager().getAllPeerIDs());
+            DispatchManager.sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.LAUNCH_URL + url + ":::" + urlTitle, NearbyPeersManager.getAllPeerIDs());
         }
     }
 
@@ -540,18 +538,18 @@ public class WebManager {
                     dialogManager.showWarningDialog("No Internet Connection",
                             "Internet based functions are unavailable at this time. " +
                                     "Please check your WiFi connection and try again.");
-                    main.getDispatcher().alertGuidePermissionGranted(LeadMeMain.STUDENT_NO_INTERNET, false);
+                    DispatchManager.alertGuidePermissionGranted(LeadMeMain.STUDENT_NO_INTERNET, false);
                     hideWebsiteLaunchDialog();
                 });
             }
         });
 
-        main.getDispatcher().alertGuidePermissionGranted(LeadMeMain.STUDENT_NO_INTERNET, true); //reset it
+        DispatchManager.alertGuidePermissionGranted(LeadMeMain.STUDENT_NO_INTERNET, true); //reset it
 
         //check it's a minimally sensible url
         if (url == null || url.length() < 3 || !url.contains(".")) {
             main.runOnUiThread(() -> Toast.makeText(main.getApplicationContext(), "Invalid URL", Toast.LENGTH_SHORT).show());
-            main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.AUTO_INSTALL_FAILED + "Invalid URL:" + main.getNearbyManager().getID(), main.getNearbyManager().getSelectedPeerIDsOrAll());
+            DispatchManager.sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.AUTO_INSTALL_FAILED + "Invalid URL:" + NearbyPeersManager.getID(), NearbyPeersManager.getSelectedPeerIDsOrAll());
             return;
         }
 
@@ -590,8 +588,8 @@ public class WebManager {
                 Log.w(TAG, "Selecting browser:  " + ai + " for " + uri.getHost() + ", " + ai.name + ", " + name);
 
                 scheduleActivityLaunch(intent, updateCurrentTask, ai.packageName, name, "Website", url, urlTitle);
-                main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG,
-                        LeadMeMain.LAUNCH_SUCCESS + uri.getHost() + ":" + main.getNearbyManager().getID() + ":" + ai.packageName, main.getNearbyManager().getSelectedPeerIDsOrAll());
+                DispatchManager.sendActionToSelected(LeadMeMain.ACTION_TAG,
+                        LeadMeMain.LAUNCH_SUCCESS + uri.getHost() + ":" + NearbyPeersManager.getID() + ":" + ai.packageName, NearbyPeersManager.getSelectedPeerIDsOrAll());
                 //success!
                 return;
             }
@@ -602,14 +600,14 @@ public class WebManager {
 
         if (browserIntent != null) {
             scheduleActivityLaunch(browserIntent, updateCurrentTask, browserIntent.getStringExtra("packageName"), "Default Browser", "Website", url, urlTitle);
-            main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG,
-                    LeadMeMain.LAUNCH_SUCCESS + uri.getHost() + ":" + main.getNearbyManager().getID() + ":" + browserIntent.getStringExtra("packageName"), main.getNearbyManager().getSelectedPeerIDsOrAll());
+            DispatchManager.sendActionToSelected(LeadMeMain.ACTION_TAG,
+                    LeadMeMain.LAUNCH_SUCCESS + uri.getHost() + ":" + NearbyPeersManager.getID() + ":" + browserIntent.getStringExtra("packageName"), NearbyPeersManager.getSelectedPeerIDsOrAll());
             //success!
 
         } else {
             main.runOnUiThread(() -> Toast.makeText(main.getApplicationContext(), "No browser available", Toast.LENGTH_SHORT).show());
-            main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG,
-                    LeadMeMain.AUTO_INSTALL_FAILED + "No browser:" + main.getNearbyManager().getID(), main.getNearbyManager().getSelectedPeerIDsOrAll());
+            DispatchManager.sendActionToSelected(LeadMeMain.ACTION_TAG,
+                    LeadMeMain.AUTO_INSTALL_FAILED + "No browser:" + NearbyPeersManager.getID(), NearbyPeersManager.getSelectedPeerIDsOrAll());
             //no browser, failure
         }
     }
@@ -1007,7 +1005,7 @@ public class WebManager {
                     dialogManager.showWarningDialog("No Internet Connection",
                             "Internet based functions are unavailable at this time. " +
                                     "Please check your WiFi connection and try again.");
-                    main.getDispatcher().alertGuidePermissionGranted(LeadMeMain.STUDENT_NO_INTERNET, false);
+                    DispatchManager.alertGuidePermissionGranted(LeadMeMain.STUDENT_NO_INTERNET, false);
                     hideWebsiteLaunchDialog();
                 });
             }
@@ -1040,7 +1038,7 @@ public class WebManager {
             Log.d(TAG, "YOUTUBE APP DOESN'T EXIST?! " + youTubePackageName);
             youTubeExists = false;
             //if installing, try that first.
-            if (main.autoInstallApps) {
+            if (LeadMeMain.autoInstallApps) {
                 main.getLumiAppInstaller().autoInstall(youTubePackageName, "YouTube", "false", null);
             }
         }
@@ -1057,8 +1055,8 @@ public class WebManager {
             scheduleActivityLaunch(appIntent, updateTask, youTubePackageName, "YouTube", "VR Video", pushURL, urlTitle);
 
             //alert other peers as needed
-            main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG,
-                    LeadMeMain.LAUNCH_SUCCESS + "YT id=" + getYouTubeID(url) + ":" + main.getNearbyManager().getID() + ":" + youTubePackageName, main.getNearbyManager().getSelectedPeerIDsOrAll());
+            DispatchManager.sendActionToSelected(LeadMeMain.ACTION_TAG,
+                    LeadMeMain.LAUNCH_SUCCESS + "YT id=" + getYouTubeID(url) + ":" + NearbyPeersManager.getID() + ":" + youTubePackageName, NearbyPeersManager.getSelectedPeerIDsOrAll());
 
 
         } catch (Exception ex) {
@@ -1071,7 +1069,7 @@ public class WebManager {
         freshPlay = true;
         if (!main.isAppVisibleInForeground()) {
             Log.w(TAG, "Need focus, scheduling for later " + appIntent + ", " + main + ", " + main.getLifecycle().getCurrentState());
-            main.appIntentOnFocus = appIntent;
+            LeadMeMain.appIntentOnFocus = appIntent;
             main.getLumiAccessibilityConnector().bringMainToFront();
         } else {
             main.verifyOverlay();

@@ -7,6 +7,8 @@ import android.view.accessibility.AccessibilityEvent;
 import android.view.accessibility.AccessibilityNodeInfo;
 
 import com.lumination.leadme.LeadMeMain;
+import com.lumination.leadme.managers.DispatchManager;
+import com.lumination.leadme.managers.NearbyPeersManager;
 
 import java.util.ArrayList;
 
@@ -27,7 +29,7 @@ public class YouTubeAccessibilityManager {
     public static final int CUE_FS_ONLY = 8;
     //don't need to schedule mute as this is managed elsewhere
 
-    private LumiAccessibilityConnector connector;
+    private final LumiAccessibilityConnector connector;
     private LeadMeMain main;
 
     public YouTubeAccessibilityManager(LeadMeMain main, LumiAccessibilityConnector connector) {
@@ -46,7 +48,7 @@ public class YouTubeAccessibilityManager {
     public void manageYouTubeAccess(AccessibilityEvent event, AccessibilityNodeInfo rootInActiveWindow) {
 
         Log.d(TAG, "manageYouTubeAccess: ");
-        if (main.getNearbyManager().isConnectedAsGuide()) {
+        if (NearbyPeersManager.isConnectedAsGuide()) {
             return; //guides manage YT their own way
         }
 
@@ -470,7 +472,7 @@ public class YouTubeAccessibilityManager {
 
     public void cueYouTubeAction(String actionStr) {
         //Log.d(TAG, "cueYouTubeAction: ");
-        if (main.getNearbyManager().isConnectedAsGuide()) {
+        if (NearbyPeersManager.isConnectedAsGuide()) {
             return; //guides manage YT their own way
         }
         int action = Integer.parseInt(actionStr);
@@ -518,7 +520,7 @@ public class YouTubeAccessibilityManager {
     }
 
     //these are not case sensitive, and will return partial matches
-    private static String[] keyYouTubePhrases = {
+    private static final String[] keyYouTubePhrases = {
             "Play video",
             "Pause video",
             "Enter virtual reality mode",
@@ -533,7 +535,7 @@ public class YouTubeAccessibilityManager {
             //"Expand Mini Player"
     };
 
-    private static String[] popupPhrases = {
+    private static final String[] popupPhrases = {
             "Continue",
             "Dismiss",
             "Skip trial",
@@ -544,18 +546,18 @@ public class YouTubeAccessibilityManager {
             "Watch in " //should capture 'Watch in VIEW MASTER VR VIEWER' and similar for other viewers
     };
 
-    private static String[] skipAdsPhrases = {
+    private static final String[] skipAdsPhrases = {
             "Skip ad",
             "Skip ads"
     };
 
-    private static String[] detectAdsPhrases = {
+    private static final String[] detectAdsPhrases = {
             "Video will play after ad",
             "Up next in",
             "Visit advertiser"
     };
 
-    private static String[] detectMiniPlayer = {
+    private static final String[] detectMiniPlayer = {
             "Close miniplayer"
     };
 
@@ -668,8 +670,8 @@ public class YouTubeAccessibilityManager {
     private void alertGuideAdsHaveFinished() {
         Log.d(TAG, "Alerting Guide Ads have finished");
 
-        main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.STUDENT_FINISH_ADS + main.getNearbyManager().getID(),
-                main.getNearbyManager().getAllPeerIDs());
+        DispatchManager.sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.STUDENT_FINISH_ADS + NearbyPeersManager.getID(),
+                NearbyPeersManager.getAllPeerIDs());
     }
 
     boolean videoPlayStarted = false;

@@ -30,11 +30,14 @@ import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.HashMap;
-import java.util.Objects;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Responsible for handling network connection between a leader and a learner.
@@ -77,6 +80,7 @@ public class NetworkService extends Service {
      */
     private static ThreadPoolExecutor serverThreadPool = (ThreadPoolExecutor) Executors.newFixedThreadPool(2);
     private static ExecutorService backgroundExecutor = Executors.newCachedThreadPool();
+    private static ScheduledExecutorService scheduledExecutor = new ScheduledThreadPoolExecutor(1);
 
     // Binder given to clients
     private final IBinder binder = new LocalBinder();
@@ -100,12 +104,31 @@ public class NetworkService extends Service {
         isRunning = true;
         serverThreadPool = (ThreadPoolExecutor) Executors.newFixedThreadPool(2);
         backgroundExecutor = Executors.newCachedThreadPool();
+        scheduledExecutor = new ScheduledThreadPoolExecutor(1);
 
         if(LeadMeMain.isGuide) {
             isGuide = true;
             setArrays();
+            scheduledExecutor.scheduleAtFixedRate(ConnectionCheck,300,10000, TimeUnit.MILLISECONDS);
         }
     }
+
+    /**
+     * Responsible for checking the connection between the Leader and the Leaner associated with
+     * this socket connection. Sends a ping every set time period if no other messages are being
+     * sent.
+     */
+    private static final Runnable ConnectionCheck = () -> {
+        if(isRunning) {
+            Log.d(TAG, "Sending Ping to learners");
+            for (Map.Entry<Integer, InetAddress> entry : clientSocketArray.entrySet()) {
+                Log.d(TAG, "Sending Ping to learner: " + entry.getKey());
+                sendToClient(entry.getKey(), String.valueOf(entry.getKey()), "PING");
+            }
+        } else {
+            scheduledExecutor.shutdown();
+        }
+    };
 
     /**
      * Runs an eternal server allowing any connections that come in. Uses a different port number
@@ -414,7 +437,7 @@ public class NetworkService extends Service {
      */
     public static void removeStudent(int clientID) {
         if(studentThreadArray.get(clientID) != null) {
-            Objects.requireNonNull(studentThreadArray.get(clientID)).tcp.shutdownTCP();
+            //Objects.requireNonNull(studentThreadArray.get(clientID)).tcp.shutdownTCP();
             studentThreadArray.remove(clientID);
         }
 
@@ -480,8 +503,18 @@ public class NetworkService extends Service {
      * server is not running in the background if the application is closed.
      */
     private void stopAllFunction() {
-        if(isGuide) {resetClientIDs();}
+        if(isGuide) {
+            shutdownScheduler();
+            resetClientIDs();
+        }
         stopServer();
         serverThreadPool.shutdown();
+    }
+
+    /**
+     * Shutdown the scheduler associated with the Pinging of learner devices.
+     */
+    public void shutdownScheduler() {
+        scheduledExecutor.shutdown();
     }
 }

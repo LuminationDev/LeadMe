@@ -10,6 +10,7 @@ import android.widget.TextView;
 import com.lumination.leadme.connections.ConnectedPeer;
 import com.lumination.leadme.LeadMeMain;
 import com.lumination.leadme.R;
+import com.lumination.leadme.managers.NSDManager;
 
 import java.util.ArrayList;
 
@@ -85,7 +86,7 @@ public class LeaderSelectAdapter extends BaseAdapter {
 
         convertView.setOnClickListener(v -> {
             Log.d(TAG, "Clicked view: " + textView.getText());
-            main.getNearbyManager().nsdManager.stopDiscovery();
+            NSDManager.stopDiscovery();
             main.getNearbyManager().setSelectedLeader(leader_list.get(position));
             main.showLoginDialog();
         });
