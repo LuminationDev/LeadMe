@@ -12,6 +12,7 @@ import android.widget.TextView;
 import com.lumination.leadme.connections.ConnectedPeer;
 import com.lumination.leadme.LeadMeMain;
 import com.lumination.leadme.R;
+import com.lumination.leadme.managers.DispatchManager;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -310,7 +311,7 @@ public class StudentAlertsAdapter extends BaseAdapter {
                     }
                     if (ids.size() > 0) {
                         Set<String> selectedPeerIDs = new HashSet<>(ids);
-                        main.getDispatcher().repushApp(selectedPeerIDs);
+                        DispatchManager.repushApp(selectedPeerIDs);
                     }
                 } else if(alertBtn.getText().equals("Install")){
                     //Implement auto installer here? - probably not a good idea though
@@ -345,7 +346,7 @@ public class StudentAlertsAdapter extends BaseAdapter {
                     }
                     if (ids.size() > 0) {
                         Set<String> selectedPeerIDs = new HashSet<>(ids);
-                        main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.XRAY_REQUEST, selectedPeerIDs);
+                        DispatchManager.sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.XRAY_REQUEST, selectedPeerIDs);
                     }
                 } else if(alertBtn.getText().equals("Launch")) {
                     ArrayList<String> ids = new ArrayList<>();
@@ -354,7 +355,7 @@ public class StudentAlertsAdapter extends BaseAdapter {
                     }
                     if (ids.size() > 0) {
                         Set<String> selectedPeerIDs = new HashSet<>(ids);
-                        main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG,LeadMeMain.LAUNCH_ACCESS,selectedPeerIDs);
+                        DispatchManager.sendActionToSelected(LeadMeMain.ACTION_TAG,LeadMeMain.LAUNCH_ACCESS,selectedPeerIDs);
                     }
                 } else if(alertBtn.getText().equals("Enable Transfer")) {
                     ArrayList<String> ids = new ArrayList<>();
@@ -364,7 +365,7 @@ public class StudentAlertsAdapter extends BaseAdapter {
 
                     if (ids.size() > 0) {
                         Set<String> selectedPeerIDs = new HashSet<>(ids);
-                        main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.FILE_TRANSFER + ":"
+                        DispatchManager.sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.FILE_TRANSFER + ":"
                                 + true, selectedPeerIDs);
                     }
                 } else if(alertBtn.getText().equals("Enable Installer")) {
@@ -375,7 +376,7 @@ public class StudentAlertsAdapter extends BaseAdapter {
 
                     if (ids.size() > 0) {
                         Set<String> selectedPeerIDs = new HashSet<>(ids);
-                        main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.AUTO_INSTALL + ":"
+                        DispatchManager.sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.AUTO_INSTALL + ":"
                                 + true, selectedPeerIDs);
                     }
                 }

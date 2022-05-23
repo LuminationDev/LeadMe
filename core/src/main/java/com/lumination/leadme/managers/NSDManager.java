@@ -23,37 +23,44 @@ import java.util.List;
 public class NSDManager {
     private static final String TAG = "NSDManager";
 
-    private final LeadMeMain main; //not a good solution work in progress
-    private final NsdManager mNsdManager;
-    private NsdManager.DiscoveryListener mDiscoveryListener = null;
-    private NsdManager.RegistrationListener mRegistrationListener = null;
+    private static NsdManager mNsdManager;
+    private static NsdManager.DiscoveryListener mDiscoveryListener = null;
+    private static NsdManager.RegistrationListener mRegistrationListener = null;
 
     public static NsdServiceInfo mService;
     public static final String SERVICE_TYPE = "_http._tcp.";
-    public String mServiceName = "LeadMe";
+    public static String mServiceName = "LeadMe";
+    public static ArrayList<NsdServiceInfo> discoveredLeaders = new ArrayList<>();
 
-    public ArrayList<NsdServiceInfo> discoveredLeaders = new ArrayList<>();
-
-    public NSDManager(LeadMeMain main) {
-        this.main = main;
-        mNsdManager = (NsdManager) main.getSystemService(Context.NSD_SERVICE);
-        NetworkManager.setMulticastLock(main); //should be set for learners and leaders?
+    /**
+     * NSDManager acts as a utility class, as such it does not need instantiating only the variables
+     * below need to be populated at start up.
+     */
+    public static void initialise()
+    {
+        if (mNsdManager == null) {
+            synchronized(NSDManager.class) {
+                if (mNsdManager == null)
+                    mNsdManager = (NsdManager) LeadMeMain.getInstance().getSystemService(Context.NSD_SERVICE);
+                    NetworkManager.setMulticastLock(LeadMeMain.getInstance()); //should be set for learners and leaders?
+            }
+        }
     }
 
     /*
     Listens for services on the network and will send any that end in #Teacher through to the resolve listener
      */
-    public void initializeDiscoveryListener() {
+    public static void initializeDiscoveryListener() {
         if (mDiscoveryListener == null) {
             mDiscoveryListener = new NsdManager.DiscoveryListener() {
 
                 @Override
                 public void onDiscoveryStarted(String regType) {
                     Log.d(TAG, "Service discovery started");
-                    main.runOnUiThread(() -> {
+                    LeadMeMain.getInstance().runOnUiThread(() -> {
                         ArrayList<ConnectedPeer> temp = new ArrayList<>();
-                        main.getLeaderSelectAdapter().setLeaderList(temp);
-                        main.showLeaderWaitMsg(true);
+                        LeadMeMain.getInstance().getLeaderSelectAdapter().setLeaderList(temp);
+                        LeadMeMain.getInstance().showLeaderWaitMsg(true);
                     });
                 }
 
@@ -86,10 +93,10 @@ public class NSDManager {
                     Log.e(TAG, "service lost" + service);
 
                     //clear the list and then scan again
-                    main.runOnUiThread(() -> {
+                    LeadMeMain.getInstance().runOnUiThread(() -> {
                         ArrayList<ConnectedPeer> temp = new ArrayList<>();
-                        main.getLeaderSelectAdapter().setLeaderList(temp);
-                        main.showLeaderWaitMsg(true);
+                        LeadMeMain.getInstance().getLeaderSelectAdapter().setLeaderList(temp);
+                        LeadMeMain.getInstance().showLeaderWaitMsg(true);
                     });
                     startDiscovery();
                 }
@@ -116,7 +123,7 @@ public class NSDManager {
     Resolves services found by the discovery listener, will check if is same machine
     if not will return and info object that contains IP address and port
      */
-    public class resListener implements NsdManager.ResolveListener {
+    public static class resListener implements NsdManager.ResolveListener {
         @Override
         public void onResolveFailed(NsdServiceInfo serviceInfo, int errorCode) {
             Log.e(TAG, "Resolve failed " + errorCode);
@@ -142,7 +149,7 @@ public class NSDManager {
      * Add the details of the new service to the leader list.
      * @param serviceInfo An NsdServiceInfo object relating to the newly found service.
      */
-    private void resolveSingleService(NsdServiceInfo serviceInfo) {
+    private static void resolveSingleService(NsdServiceInfo serviceInfo) {
         if (!discoveredLeaders.contains(serviceInfo)) {
             Log.d(TAG, "run: added leader");
             InetAddress hardCoded = null, hardCoded_alt = null;
@@ -175,13 +182,13 @@ public class NSDManager {
     /**
      * Add a leader to the UI leader list for learner devices to connect to.
      */
-    private void addToLeaderList(NsdServiceInfo serviceInfo) {
+    private static void addToLeaderList(NsdServiceInfo serviceInfo) {
         List<String> leader = Arrays.asList(serviceInfo.getServiceName().split("#"));
 
-        if (!main.sessionManual && !main.directConnection) {
-            main.runOnUiThread(() -> {
-                main.getLeaderSelectAdapter().addLeader(new ConnectedPeer(leader.get(0), serviceInfo.getHost().toString()));
-                main.showLeaderWaitMsg(false);
+        if (!LeadMeMain.getInstance().sessionManual && !LeadMeMain.getInstance().directConnection) {
+            LeadMeMain.getInstance().runOnUiThread(() -> {
+                LeadMeMain.getInstance().getLeaderSelectAdapter().addLeader(new ConnectedPeer(leader.get(0), serviceInfo.getHost().toString()));
+                LeadMeMain.getInstance().showLeaderWaitMsg(false);
             });
         }
     }
@@ -189,7 +196,7 @@ public class NSDManager {
     /**
      * Initialises the registration listener allowing us to register the service
      */
-    public void initializeRegistrationListener() {
+    public static void initializeRegistrationListener() {
         if (mRegistrationListener == null) {
             mRegistrationListener = new NsdManager.RegistrationListener() {
 
@@ -221,7 +228,7 @@ public class NSDManager {
      * Discovers services that are advertised by leaders, is not continuous so will need to be
      * called in a runnable to implement a scan
      */
-    public void startDiscovery() {
+    public static void startDiscovery() {
         Log.d(TAG, "startDiscovery: ");
         discoveredLeaders = new ArrayList<>();
         stopDiscovery();  // Cancel any existing discovery request
@@ -233,7 +240,7 @@ public class NSDManager {
     /**
      * Stops any discovery processes that are in progress
      */
-    public void stopDiscovery() {
+    public static void stopDiscovery() {
         if (mDiscoveryListener != null) {
             try {
                 mNsdManager.stopServiceDiscovery(mDiscoveryListener);
@@ -247,7 +254,7 @@ public class NSDManager {
     /**
      * Create a NSD service and register it with the details of a logged in leader.
      */
-    public void startAdvertising() {
+    public static void startAdvertising() {
         stopAdvertising();  // Cancel any previous registration request
         initializeRegistrationListener();
         NsdServiceInfo serviceInfo = new NsdServiceInfo();
@@ -279,7 +286,7 @@ public class NSDManager {
      * This should only be called on logout as student should be able to connect at any point during
      * a session.
      */
-    public void stopAdvertising() {
+    public static void stopAdvertising() {
         if (mRegistrationListener != null) {
             try {
                 Log.d(TAG, "Unregister nsd service");

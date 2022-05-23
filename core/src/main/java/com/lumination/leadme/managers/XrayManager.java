@@ -25,6 +25,7 @@ import eu.bolt.screenshotty.ScreenshotManager;
 import static android.view.View.GONE;
 import static android.view.View.VISIBLE;
 
+import com.lumination.leadme.adapters.ConnectedLearnersAdapter;
 import com.lumination.leadme.connections.ConnectedPeer;
 import com.lumination.leadme.LeadMeMain;
 import com.lumination.leadme.R;
@@ -82,11 +83,11 @@ public class XrayManager {
                 //make sure UI is appropriate for displayed peer
                 if (currentlySelected) {
                     selectToggleBtn.setCompoundDrawablesWithIntrinsicBounds(R.drawable.icon_unselect_peer, 0, 0, 0);
-                    selectToggleBtn.setText("Unselect");
+                    selectToggleBtn.setText(R.string.unselect);
 
                 } else {
                     selectToggleBtn.setCompoundDrawablesWithIntrinsicBounds(R.drawable.icon_select_peer, 0, 0, 0);
-                    selectToggleBtn.setText("Select");
+                    selectToggleBtn.setText(R.string.select);
                 }
 
                 xrayDropdown.setVisibility(View.VISIBLE);
@@ -126,7 +127,7 @@ public class XrayManager {
                 updateXrayForSelection(thisPeer);
 
                 selectToggleBtn.setCompoundDrawablesWithIntrinsicBounds(R.drawable.icon_unselect_peer, 0, 0, 0);
-                selectToggleBtn.setText("Unselect");
+                selectToggleBtn.setText(R.string.unselect);
                 xrayButton.callOnClick();
 
             } else if (displayedText.equals("Unselect") && currentlySelected) {
@@ -135,7 +136,7 @@ public class XrayManager {
                 updateXrayForSelection(thisPeer);
 
                 selectToggleBtn.setCompoundDrawablesWithIntrinsicBounds(R.drawable.icon_select_peer, 0, 0, 0);
-                selectToggleBtn.setText("Select");
+                selectToggleBtn.setText(R.string.select);
                 xrayButton.callOnClick();
             }
         });
@@ -172,7 +173,7 @@ public class XrayManager {
         ImageView closeButton = xrayScreen.findViewById(R.id.back_btn);
         closeButton.setOnClickListener(v -> {
             hideXrayView();
-            main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.XRAY_OFF, main.getNearbyManager().getAllPeerIDs());
+            DispatchManager.sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.XRAY_OFF, NearbyPeersManager.getAllPeerIDs());
             //remove last
             if (xrayDropdown.getVisibility() == VISIBLE) {
                 xrayButton.callOnClick(); //hide it
@@ -187,7 +188,7 @@ public class XrayManager {
 
     public ConnectedPeer getCurrentlyDisplayedStudent() {
         Log.w(TAG, "Getting matching peer: " + currentXrayStudentIndex + ", " + selectedXrayStudents.get(currentXrayStudentIndex));
-        return main.getConnectedLearnersAdapter().getMatchingPeer(selectedXrayStudents.get(currentXrayStudentIndex));
+        return ConnectedLearnersAdapter.getMatchingPeer(selectedXrayStudents.get(currentXrayStudentIndex));
     }
 
     private ArrayList<String> selectedXrayStudents = new ArrayList<>();
@@ -204,7 +205,7 @@ public class XrayManager {
 
         //populate list with selected students (or all if none selected)
         selectedXrayStudents = new ArrayList<>();
-        selectedXrayStudents.addAll(main.getNearbyManager().getSelectedPeerIDsOrAll());
+        selectedXrayStudents.addAll(NearbyPeersManager.getSelectedPeerIDsOrAll());
 
         if (selectedXrayStudents.size() > 0) {
             setXrayStudent(peer);
@@ -241,7 +242,7 @@ public class XrayManager {
             monitoredPeer = selectedXrayStudents.get(currentXrayStudentIndex);
         }
 
-        ConnectedPeer xrayStudent = main.getConnectedLearnersAdapter().getMatchingPeer(monitoredPeer);
+        ConnectedPeer xrayStudent = ConnectedLearnersAdapter.getMatchingPeer(monitoredPeer);
 
         Log.w(TAG, "Setting arrows! " + monitoredPeer + ", " + currentXrayStudentIndex + ", " + selectedXrayStudents.size() + ", " + xrayStudent);
 
@@ -249,8 +250,8 @@ public class XrayManager {
             //this student must have disconnected, refresh the UI
             hideXrayView();
             //Check if a learner is connected AND if the xray list is filling properly
-            if (main.getConnectedLearnersAdapter().mData.size() > 0) {
-                Log.w(TAG, "Got connected learners! Showing xray again! " + main.getConnectedLearnersAdapter().mData.size());
+            if (ConnectedLearnersAdapter.mData.size() > 0) {
+                Log.w(TAG, "Got connected learners! Showing xray again! " + ConnectedLearnersAdapter.mData.size());
                 showXrayView("");
             }
             return;
@@ -299,22 +300,22 @@ public class XrayManager {
         Log.w(TAG, "Updating UI for " + xrayStudent.getDisplayName() + "!");
 
         //let everyone else know we're NOT watching so they reduce computational load
-        Set<String> notSelected = main.getNearbyManager().getAllPeerIDs();
+        Set<String> notSelected = NearbyPeersManager.getAllPeerIDs();
         notSelected.remove(xrayStudent.getID());
-        main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.XRAY_OFF, notSelected);
+        DispatchManager.sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.XRAY_OFF, notSelected);
 
         //let student know we're watching so they send screenshots
         Set<String> selected = new HashSet<>();
         selected.add(xrayStudent.getID());
-        main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.XRAY_ON, selected);
+        DispatchManager.sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.XRAY_ON, selected);
 
         Log.e(TAG, "Peers: SEL:" + selected + ", NOT:" + notSelected);
 
         if (xrayStudent.isSelected()) {
-            xrayStudentSelectedView.setText("Selected");
+            xrayStudentSelectedView.setText(R.string.selected);
             xrayStudentSelectedView.setTextColor(main.getResources().getColor(R.color.light, null));
         } else {
-            xrayStudentSelectedView.setText("Unselected");
+            xrayStudentSelectedView.setText(R.string.unselected);
             xrayStudentSelectedView.setTextColor(main.getResources().getColor(R.color.leadme_dark_grey, null));
         }
     }

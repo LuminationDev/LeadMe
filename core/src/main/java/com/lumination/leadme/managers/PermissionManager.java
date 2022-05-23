@@ -135,13 +135,13 @@ public class PermissionManager {
 //                + (main.checkSelfPermission(Manifest.permission.SYSTEM_ALERT_WINDOW) == PackageManager.PERMISSION_GRANTED)
 //                + ", " + Settings.canDrawOverlays(main) + ", " + main.overlayView);
 
-        if (!overlayPermissionGranted && main.getNearbyManager().isConnectedAsFollower()) {
+        if (!overlayPermissionGranted && NearbyPeersManager.isConnectedAsFollower()) {
             //alert the teacher that the student may not be lockable
-            Log.e(TAG, "WARNING! I may be off task - overlay can't be shown. " + main.getNearbyManager().getID());
-            main.getDispatcher().alertGuidePermissionGranted(LeadMeMain.STUDENT_NO_OVERLAY, false);
+            Log.e(TAG, "WARNING! I may be off task - overlay can't be shown. " + NearbyPeersManager.getID());
+            DispatchManager.alertGuidePermissionGranted(LeadMeMain.STUDENT_NO_OVERLAY, false);
 
-        } else if (overlayPermissionGranted && main.getNearbyManager().isConnectedAsFollower()) {
-            main.getDispatcher().alertGuidePermissionGranted(LeadMeMain.STUDENT_NO_OVERLAY, true);
+        } else if (overlayPermissionGranted && NearbyPeersManager.isConnectedAsFollower()) {
+            DispatchManager.alertGuidePermissionGranted(LeadMeMain.STUDENT_NO_OVERLAY, true);
             if(!main.overlayInitialised){
                 main.initialiseOverlayView();
             }
@@ -322,12 +322,12 @@ public class PermissionManager {
 //                }
                 needsRecall = true;
                 waitingForPermission = false;
-                main.getDispatcher().alertGuidePermissionGranted(LeadMeMain.STUDENT_NO_ACCESSIBILITY, true);
+                DispatchManager.alertGuidePermissionGranted(LeadMeMain.STUDENT_NO_ACCESSIBILITY, true);
                 return true;
             }
         }
 
-        main.getDispatcher().alertGuidePermissionGranted(LeadMeMain.STUDENT_NO_ACCESSIBILITY, false);
+        DispatchManager.alertGuidePermissionGranted(LeadMeMain.STUDENT_NO_ACCESSIBILITY, false);
 
         Log.i(TAG, "***ACCESSIBILITY IS DISABLED***");
         waitingForPermission = false;
@@ -345,15 +345,12 @@ public class PermissionManager {
             try {
                 String host = Uri.parse(url).getHost();
 
-                main.backgroundExecutor.submit(new Runnable() {
-                    @Override
-                    public void run() {
-                        try {
-                            successfulPing = InetAddress.getByName(host).isReachable(1000);
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                            successfulPing = false;
-                        }
+                main.backgroundExecutor.submit(() -> {
+                    try {
+                        successfulPing = InetAddress.getByName(host).isReachable(1000);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        successfulPing = false;
                     }
                 });
 

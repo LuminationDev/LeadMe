@@ -32,6 +32,7 @@ import androidx.core.widget.ImageViewCompat;
 
 import com.lumination.leadme.LeadMeMain;
 import com.lumination.leadme.R;
+import com.lumination.leadme.managers.DispatchManager;
 import com.lumination.leadme.managers.WebManager;
 import com.lumination.leadme.accessibility.YouTubeAccessibilityManager;
 import com.lumination.leadme.adapters.LumiSpinnerAdapter;
@@ -164,12 +165,12 @@ public class YouTubeEmbedPlayer {
                 buttonHighlights(PLAYING);
             }
 
-            main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG,
+            DispatchManager.sendActionToSelected(LeadMeMain.ACTION_TAG,
                     LeadMeMain.VID_ACTION_TAG + YouTubeAccessibilityManager.CUE_PLAY,
                     main.getNearbyManager().getSelectedPeerIDsOrAll());
 
         } else if (state == PAUSED) {
-            main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG,
+            DispatchManager.sendActionToSelected(LeadMeMain.ACTION_TAG,
                     LeadMeMain.VID_ACTION_TAG + YouTubeAccessibilityManager.CUE_PAUSE,
                     main.getNearbyManager().getSelectedPeerIDsOrAll());
         }
@@ -286,7 +287,7 @@ public class YouTubeEmbedPlayer {
             webManager.lastWasGuideView = false; //reset
             videoControlDialog.dismiss();
             webManager.showWebLaunchDialog(false);
-            main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.RETURN_TAG, main.getNearbyManager().getSelectedPeerIDsOrAll());
+            DispatchManager.sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.RETURN_TAG, main.getNearbyManager().getSelectedPeerIDsOrAll());
         });
 
         repushBtn = videoControllerDialogView.findViewById(R.id.push_again_btn);
@@ -323,7 +324,7 @@ public class YouTubeEmbedPlayer {
                     vrIcon.setImageDrawable(main.getResources().getDrawable(R.drawable.task_vr_icon, null));
                     playVideo(); //entering VR mode automatically plays the video for students, so replicate that here
 
-                    main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG,
+                    DispatchManager.sendActionToSelected(LeadMeMain.ACTION_TAG,
                             LeadMeMain.VID_ACTION_TAG + YouTubeAccessibilityManager.CUE_VR_ON,
                             main.getNearbyManager().getSelectedPeerIDsOrAll());
                 } else {
@@ -333,7 +334,7 @@ public class YouTubeEmbedPlayer {
 
                     vrIcon.setImageDrawable(main.getResources().getDrawable(R.drawable.task_vr_icon_disabled, null));
 
-                    main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG,
+                    DispatchManager.sendActionToSelected(LeadMeMain.ACTION_TAG,
                             LeadMeMain.VID_ACTION_TAG + YouTubeAccessibilityManager.CUE_VR_OFF,
                             main.getNearbyManager().getSelectedPeerIDsOrAll());
                 }
@@ -383,7 +384,7 @@ public class YouTubeEmbedPlayer {
             activeWebView.loadUrl("javascript:player.playVideo();");
 
             playVideo();
-            main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG,
+            DispatchManager.sendActionToSelected(LeadMeMain.ACTION_TAG,
                     LeadMeMain.VID_ACTION_TAG + YouTubeAccessibilityManager.CUE_PLAY,
                     main.getNearbyManager().getSelectedPeerIDsOrAll());
         });
@@ -397,7 +398,7 @@ public class YouTubeEmbedPlayer {
             activeWebView.loadUrl("javascript:player.pauseVideo();");
 
             pauseVideo();
-            main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG,
+            DispatchManager.sendActionToSelected(LeadMeMain.ACTION_TAG,
                     LeadMeMain.VID_ACTION_TAG + YouTubeAccessibilityManager.CUE_PAUSE,
                     main.getNearbyManager().getSelectedPeerIDsOrAll());
         });
@@ -437,31 +438,31 @@ public class YouTubeEmbedPlayer {
         Log.w(TAG, "Syncing new! " + videoCurrentPlayState + ", " + videoCurrentDisplayMode + ", " + main.isMuted);
         //update on play/pause
         if (videoCurrentPlayState == PLAYING) {
-            main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG,
+            DispatchManager.sendActionToSelected(LeadMeMain.ACTION_TAG,
                     LeadMeMain.VID_ACTION_TAG + YouTubeAccessibilityManager.CUE_PLAY,
                     main.getNearbyManager().getSelectedPeerIDsOrAll());
         } else {
-            main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG,
+            DispatchManager.sendActionToSelected(LeadMeMain.ACTION_TAG,
                     LeadMeMain.VID_ACTION_TAG + YouTubeAccessibilityManager.CUE_PAUSE,
                     main.getNearbyManager().getSelectedPeerIDsOrAll());
         }
 
         //update on VR on/off
         if (videoCurrentDisplayMode == VR_MODE) {
-            main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG,
+            DispatchManager.sendActionToSelected(LeadMeMain.ACTION_TAG,
                     LeadMeMain.VID_ACTION_TAG + YouTubeAccessibilityManager.CUE_VR_ON,
                     main.getNearbyManager().getSelectedPeerIDsOrAll());
         } else {
-            main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG,
+            DispatchManager.sendActionToSelected(LeadMeMain.ACTION_TAG,
                     LeadMeMain.VID_ACTION_TAG + YouTubeAccessibilityManager.CUE_VR_OFF,
                     main.getNearbyManager().getSelectedPeerIDsOrAll());
         }
 
         //update on mute on/off
         if (main.isMuted) {
-            main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.VID_MUTE_TAG, main.getNearbyManager().getSelectedPeerIDsOrAll());
+            DispatchManager.sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.VID_MUTE_TAG, main.getNearbyManager().getSelectedPeerIDsOrAll());
         } else {
-            main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.VID_UNMUTE_TAG, main.getNearbyManager().getSelectedPeerIDsOrAll());
+            DispatchManager.sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.VID_UNMUTE_TAG, main.getNearbyManager().getSelectedPeerIDsOrAll());
         }
     }
 
@@ -492,7 +493,7 @@ public class YouTubeEmbedPlayer {
         if (firstPlay) {
             firstPlay = false;
         }
-        main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG,
+        DispatchManager.sendActionToSelected(LeadMeMain.ACTION_TAG,
                 LeadMeMain.VID_ACTION_TAG + YouTubeAccessibilityManager.CUE_PLAY,
                 main.getNearbyManager().getSelectedPeerIDsOrAll());
 
@@ -510,7 +511,7 @@ public class YouTubeEmbedPlayer {
 
     @JavascriptInterface
     public void pauseVideo() {
-        main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG,
+        DispatchManager.sendActionToSelected(LeadMeMain.ACTION_TAG,
                 LeadMeMain.VID_ACTION_TAG + YouTubeAccessibilityManager.CUE_PAUSE,
                 main.getNearbyManager().getSelectedPeerIDsOrAll());
 

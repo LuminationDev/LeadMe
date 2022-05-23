@@ -223,7 +223,7 @@ public class ConnectedPeer {
         return !getAlertsList().isEmpty(); // !(onTask && accessEnabled && overlayEnabled && lastAppLaunchSucceeded && internetEnabled);
     }
 
-    private ArrayList<String> hiddenAlerts = new ArrayList<>();
+    private final ArrayList<String> hiddenAlerts = new ArrayList<>();
 
     public void hideAlerts(boolean hide) {
         if (!onTask) {

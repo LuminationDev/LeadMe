@@ -17,6 +17,7 @@ import android.widget.Toast;
 
 import androidx.core.app.NotificationCompat;
 
+import com.lumination.leadme.adapters.ConnectedLearnersAdapter;
 import com.lumination.leadme.connections.ConnectedPeer;
 import com.lumination.leadme.LeadMeMain;
 import com.lumination.leadme.R;
@@ -293,7 +294,7 @@ public class FileTransferManager {
             selected.addAll(LeadMeMain.fileRequests);
         } else {
             //cycle through the selected peers adding them to the selected array
-            for (ConnectedPeer peer : main.getConnectedLearnersAdapter().mData) {
+            for (ConnectedPeer peer : ConnectedLearnersAdapter.mData) {
                 if (peer.isSelected()) {
                     int ID = Integer.parseInt(peer.getID());
                     selected.add(ID);
@@ -404,7 +405,7 @@ public class FileTransferManager {
         Log.d(TAG, "Sending ID to the ServerSocket");
 
         // write the message we want to send
-        dataOutputStream.writeUTF(main.getNearbyManager().getID());
+        dataOutputStream.writeUTF(NearbyPeersManager.getID());
         dataOutputStream.flush(); // send the message
 
         //ID has been sent, nothing else is going to be sent so close just the out streams
@@ -437,7 +438,7 @@ public class FileTransferManager {
 
                 //Send message to guide that it already has the video
                 if(fileURI != null || fileExists != null) {
-                    main.transferError(fileOnDevice, main.getNearbyManager().myID);
+                    main.transferError(fileOnDevice, NearbyPeersManager.myID);
                     return;
                 }
 
@@ -482,8 +483,8 @@ public class FileTransferManager {
                 Log.d(TAG, "File saved");
 
                 //Send confirmation that the transfer is complete - guide can then handle it however necessary
-                main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.FILE_REQUEST_TAG + ":" + main.getNearbyManager().getID()
-                                + ":" + "true" + ":" + fileType, main.getNearbyManager().getSelectedPeerIDs());
+                DispatchManager.sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.FILE_REQUEST_TAG + ":" + NearbyPeersManager.getID()
+                                + ":" + "true" + ":" + fileType, NearbyPeersManager.getSelectedPeerIDs());
             } catch (IOException e) {
                 try {
                     fileSocket.close();
@@ -492,7 +493,7 @@ public class FileTransferManager {
                 }
                 e.printStackTrace();
                 transferComplete = false;
-                main.transferError(transferNotSaved, main.getNearbyManager().myID);
+                main.transferError(transferNotSaved, NearbyPeersManager.myID);
             } finally {
                 finishTransfer();
             }
@@ -513,7 +514,6 @@ public class FileTransferManager {
         OutputStream fos = null;
 
         try {
-            //TODO determine file type - extend this in the future
             boolean isMovie = fileName.toLowerCase().contains(".mp4")
                     || fileName.toLowerCase().contains(".avi")
                     || fileName.toLowerCase().contains(".mkv")
@@ -605,7 +605,7 @@ public class FileTransferManager {
      * @param error The error that has occurred.
      */
     public void removePeer(String ID, String error) {
-        String name = main.getConnectedLearnersAdapter().getMatchingPeer(ID).getDisplayName();
+        String name = ConnectedLearnersAdapter.getMatchingPeer(ID).getDisplayName();
 
         main.runOnUiThread(() -> Toast.makeText(main,
                         "Message: " + error + " " + "Peer: " + name, Toast.LENGTH_LONG).show());

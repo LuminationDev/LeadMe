@@ -131,7 +131,7 @@ public class FirebaseManager {
             manualUserListener.remove();
         }
 
-        if(!main.getNearbyManager().isConnectedAsFollower()) {
+        if(!NearbyPeersManager.isConnectedAsFollower()) {
             Log.d(TAG, "trackCollection: listener added");
 
             manualUserListener = collRef.addSnapshotListener((value, error) -> {

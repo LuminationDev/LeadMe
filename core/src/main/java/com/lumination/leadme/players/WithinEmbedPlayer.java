@@ -29,6 +29,7 @@ import java.io.InputStream;
 import java.util.Scanner;
 
 import androidx.core.content.ContextCompat;
+import androidx.core.content.res.ResourcesCompat;
 import androidx.core.widget.ImageViewCompat;
 import androidx.databinding.DataBindingUtil;
 import androidx.databinding.ViewDataBinding;
@@ -37,6 +38,9 @@ import com.lumination.leadme.BR;
 import com.lumination.leadme.LeadMeMain;
 import com.lumination.leadme.R;
 import com.lumination.leadme.adapters.LumiSpinnerAdapter;
+import com.lumination.leadme.managers.AppManager;
+import com.lumination.leadme.managers.DispatchManager;
+import com.lumination.leadme.managers.NearbyPeersManager;
 
 public class WithinEmbedPlayer {
 
@@ -215,12 +219,12 @@ public class WithinEmbedPlayer {
         if (vrMode) {
             vrModeBtn.setText(main.getResources().getString(R.string.vr_mode_on));
             vrModeBtn.setChecked(true);
-            vrIcon.setImageDrawable(main.getResources().getDrawable(R.drawable.task_vr_icon, null));
+            vrIcon.setImageDrawable(ResourcesCompat.getDrawable(main.getResources(), R.drawable.task_vr_icon, null));
 
         } else {
             vrModeBtn.setText(main.getResources().getString(R.string.vr_mode_off));
             vrModeBtn.setChecked(false);
-            vrIcon.setImageDrawable(main.getResources().getDrawable(R.drawable.task_vr_icon_disabled, null));
+            vrIcon.setImageDrawable(ResourcesCompat.getDrawable(main.getResources(), R.drawable.task_vr_icon_disabled, null));
         }
     }
 
@@ -243,10 +247,9 @@ public class WithinEmbedPlayer {
     public String foundURL = "";
     private String foundTitle = "";
 
-    private String setFoundURL (String value) {
+    private void setFoundURL (String value) {
         foundURL = value;
         binding.setVariable(BR.foundURL, foundURL);
-        return foundURL;
     }
 
     private void setupWebClient(WebView tmpWebView, boolean searchView) {
@@ -337,7 +340,7 @@ public class WithinEmbedPlayer {
     }
 
     private void setupWithinSearchButtons() {
-        Drawable disabledBg = main.getResources().getDrawable(R.drawable.bg_disabled, null);
+        Drawable disabledBg = ResourcesCompat.getDrawable(main.getResources(), R.drawable.bg_disabled, null);
         Button withinBackBtn = withinSearchDialogView.findViewById(R.id.within_back_btn);
 
         //set up standard dialog buttons
@@ -346,9 +349,9 @@ public class WithinEmbedPlayer {
             setFoundURL("");
         });
 
-        withinSearchDialogView.findViewById(R.id.within_back).setOnClickListener(v -> {
-            videoSearchDialog.dismiss();
-        });
+        withinSearchDialogView.findViewById(R.id.within_back).setOnClickListener(v ->
+                videoSearchDialog.dismiss()
+        );
 
         withinSearchDialogView.findViewById(R.id.select_btn).setOnClickListener(v -> {
             if (!v.getBackground().equals(disabledBg) && !foundURL.trim().equals("")) {
@@ -411,16 +414,16 @@ public class WithinEmbedPlayer {
 
     private void setupGuideVideoControllerButtons() {
         //set up standard dialog buttons
-        withinControllerDialogView.findViewById(R.id.web_back_btn).setOnClickListener(v -> {
-            controllerWebView.goBack();
-        });
+        withinControllerDialogView.findViewById(R.id.web_back_btn).setOnClickListener(v ->
+                controllerWebView.goBack()
+        );
 
         withinControllerDialogView.findViewById(R.id.new_video).setOnClickListener(v -> {
             controllerWebView.loadUrl("about:blank");
             resetControllerState();
             videoControlDialog.dismiss();
             showWithinSearch();
-            main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.RETURN_TAG, main.getNearbyManager().getSelectedPeerIDsOrAll());
+            DispatchManager.sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.RETURN_TAG, NearbyPeersManager.getSelectedPeerIDsOrAll());
         });
 
         withinControllerDialogView.findViewById(R.id.video_back_btn).setOnClickListener(v -> {
@@ -443,13 +446,13 @@ public class WithinEmbedPlayer {
             main.unmuteLearners();
         });
 
-        repushBtn.setOnClickListener(v -> {
-            main.getDispatcher().repushApp(main.getNearbyManager().getSelectedPeerIDsOrAll());
-        });
+        repushBtn.setOnClickListener(v ->
+                DispatchManager.repushApp(NearbyPeersManager.getSelectedPeerIDsOrAll())
+        );
 
-        pushBtn.setOnClickListener(v -> {
-            pushWithin();
-        });
+        pushBtn.setOnClickListener(v ->
+                pushWithin()
+        );
 
         vrModeBtn.setOnCheckedChangeListener((buttonView, isChecked) -> {
             vrMode = isChecked;
@@ -506,7 +509,7 @@ public class WithinEmbedPlayer {
     }
 
     public void showWithin() {
-        Log.w(TAG, "Showing WITHIN: " + attemptedURL + ", " + foundURL + ", " + main.getAppManager().withinURI);
+        Log.w(TAG, "Showing WITHIN: " + attemptedURL + ", " + foundURL + ", " + AppManager.withinURI);
         if (attemptedURL.isEmpty()) {
             showWithinSearch();
         } else {
@@ -600,12 +603,13 @@ public class WithinEmbedPlayer {
     public String getiFrameData(String url) {
         InputStream htmlTemplate = main.getResources().openRawResource(R.raw.embed_within_player);
         Scanner scanner = new Scanner(htmlTemplate);
-        String output = "";
+        StringBuilder output = new StringBuilder();
         while (scanner.hasNext()) {
-            output += scanner.nextLine() + "\n";
+            output.append(scanner.nextLine()).append("\n");
         }
-        output = output.replace("PLACEHOLDER_URL", url);
-        return output;
+
+        output = new StringBuilder(output.toString().replace("PLACEHOLDER_URL", url));
+        return output.toString();
     }
 
     public void resetControllerState() {

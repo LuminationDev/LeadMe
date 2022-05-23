@@ -12,6 +12,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.nearby.connection.Payload;
+import com.lumination.leadme.adapters.ConnectedLearnersAdapter;
 import com.lumination.leadme.connections.ConnectedPeer;
 import com.lumination.leadme.accessibility.VRAccessibilityManager;
 import com.lumination.leadme.LeadMeMain;
@@ -25,18 +26,18 @@ import java.util.List;
 import java.util.Set;
 
 public class DispatchManager {
-    private final String TAG = "Dispatcher";
+    private static final String TAG = "Dispatcher";
     private final LeadMeMain main;
-    public String[] launchAppOnFocus = null;
-    public String tagRepush;
-    public String packageNameRepush;
-    public String appNameRepush;
-    public String lockTagRepush;
-    public String extraRepush;
-    public boolean streamingRepush;
-    public boolean vrModeRepush;
-    public String mActionTag=null, mAction=null;
-    public int lastEvent =0;
+    public static String[] launchAppOnFocus = null;
+    public static String tagRepush;
+    public static String packageNameRepush;
+    public static String appNameRepush;
+    public static String lockTagRepush;
+    public static String extraRepush;
+    public static boolean streamingRepush;
+    public static boolean vrModeRepush;
+    public static String mActionTag=null, mAction=null;
+    public static int lastEvent =0;
 
     private final Actions dispatchAction = new Actions();
 
@@ -44,9 +45,9 @@ public class DispatchManager {
         this.main = main;
     }
 
-    public void repushApp(Set<String> selectedPeerIDs) {
+    public static void repushApp(Set<String> selectedPeerIDs) {
         Log.w(TAG, "REPUSH: " + tagRepush + ", " + packageNameRepush + ", " + appNameRepush + ", " + lockTagRepush + ", " + extraRepush);
-        main.recallToLeadMe();
+        LeadMeMain.getInstance().recallToLeadMe();
         switch(lastEvent){
             case 1:
                 requestRemoteWithinLaunch(tagRepush, packageNameRepush, appNameRepush, lockTagRepush, extraRepush, streamingRepush, vrModeRepush, selectedPeerIDs);
@@ -70,7 +71,7 @@ public class DispatchManager {
             if (!main.verifyOverlay()) {
                 return;
             }
-            if (main.getNearbyManager().isConnectedAsFollower() && interactionBlocked) {
+            if (NearbyPeersManager.isConnectedAsFollower() && interactionBlocked) {
                 Log.d(TAG, "BLOCKING!");
                 LeadMeMain.overlayParams.flags = LeadMeMain.CORE_FLAGS;
             } else {
@@ -87,9 +88,9 @@ public class DispatchManager {
         main.runOnUiThread(myRunnable);
     }
 
-    private void writeMessageToSelected(byte[] bytes, Set<String> selectedPeerIDs) {
-        if (main.getNearbyManager().isConnectedAsGuide()) {
-            main.getNearbyManager().sendToSelected(Payload.fromBytes(bytes), selectedPeerIDs);
+    private static void writeMessageToSelected(byte[] bytes, Set<String> selectedPeerIDs) {
+        if (NearbyPeersManager.isConnectedAsGuide()) {
+            NearbyPeersManager.sendToSelected(Payload.fromBytes(bytes), selectedPeerIDs);
         } else {
             Log.i(TAG, "Sorry, you can't send messages!");
         }
@@ -106,7 +107,7 @@ public class DispatchManager {
      * @param vrMode A boolean determining if launching in VR mode.
      * @param selectedPeerIDs A set of strings that represents the selected peers.
      */
-    public void requestRemoteWithinLaunch(String tag, String packageName, String appName, String lockTag, String extra, boolean streaming, boolean vrMode, Set<String> selectedPeerIDs) {
+    public static void requestRemoteWithinLaunch(String tag, String packageName, String appName, String lockTag, String extra, boolean streaming, boolean vrMode, Set<String> selectedPeerIDs) {
         Log.d(TAG, "requestRemoteWithinLaunch: " + extra);
         lastEvent=1;
         tagRepush = tag;
@@ -128,7 +129,7 @@ public class DispatchManager {
         bytes = p.marshall();
         p.recycle();
         writeMessageToSelected(bytes, selectedPeerIDs);
-        main.updateLastTask(main.getAppManager().getAppIcon(packageName), main.getAppManager().getAppName(packageName), packageName, lockTag);
+        LeadMeMain.getInstance().updateLastTask(AppManager.getAppIcon(packageName), AppManager.getAppName(packageName), packageName, lockTag);
     }
 
     /**
@@ -140,8 +141,8 @@ public class DispatchManager {
      * @param install A string representing if the application needs to be installed on a device.
      * @param selectedPeerIDs A set of strings that represents the selected peers.
      */
-    public void requestRemoteAppOpen(String tag, String packageName, String appName, String lockTag, String install, Set<String> selectedPeerIDs) {
-        main.setProgressTimer(2000);
+    public static void requestRemoteAppOpen(String tag, String packageName, String appName, String lockTag, String install, Set<String> selectedPeerIDs) {
+        LeadMeMain.getInstance().setProgressTimer(2000);
         Log.d(TAG, "requestRemoteAppOpen: ");
         lastEvent=2;
         tagRepush = tag;
@@ -161,23 +162,23 @@ public class DispatchManager {
         p.recycle();
         writeMessageToSelected(bytes, selectedPeerIDs);
 
-        main.updateLastTask(main.getAppManager().getAppIcon(packageName), main.getAppManager().getAppName(packageName), packageName, lockTag);
+        LeadMeMain.getInstance().updateLastTask(AppManager.getAppIcon(packageName), AppManager.getAppName(packageName), packageName, lockTag);
 
-        if (!packageName.equals(main.getAppManager().withinPackage)) {
-            main.getAppManager().getWithinPlayer().foundURL = "";
+        if (!packageName.equals(LeadMeMain.getInstance().getAppManager().withinPackage)) {
+            LeadMeMain.getInstance().getAppManager().getWithinPlayer().foundURL = "";
         }
     }
 
     public synchronized void alertLogout() {
         ArrayList<Integer> selected = new ArrayList<>();
-        for (String peer : main.getNearbyManager().getAllPeerIDs()) {
+        for (String peer : NearbyPeersManager.getAllPeerIDs()) {
             selected.add(Integer.parseInt(peer));
         }
         NetworkManager.sendToSelectedClients("DISCONNECT", "DISCONNECT", selected);
     }
 
-    public synchronized void sendActionToSelected(String actionTag, String action, Set<String> selectedPeerIDs) {
-        main.setProgressTimer(2000);
+    public static synchronized void sendActionToSelected(String actionTag, String action, Set<String> selectedPeerIDs) {
+        LeadMeMain.getInstance().setProgressTimer(2000);
         if(action.contains(LeadMeMain.LAUNCH_URL) || action.contains(LeadMeMain.LAUNCH_YT)) {
             lastEvent = 3;
             mActionTag = actionTag;
@@ -191,7 +192,7 @@ public class DispatchManager {
         p.recycle();
 
         //auto-install, request, notification tags and success tag are exempt so students can alert teacher to their status
-        if (main.getNearbyManager().isConnectedAsGuide() ||
+        if (NearbyPeersManager.isConnectedAsGuide() ||
                 action.startsWith(LeadMeMain.YOUR_ID_IS) ||
                 action.startsWith(LeadMeMain.RETURN_TAG) ||
                 action.startsWith(LeadMeMain.PERMISSION_DENIED) ||
@@ -210,7 +211,7 @@ public class DispatchManager {
                 action.startsWith(LeadMeMain.STUDENT_NO_XRAY) ||
                 action.startsWith(LeadMeMain.DISCONNECTION) ||
                 action.startsWith(LeadMeMain.NAME_REQUEST)) {
-            main.getNearbyManager().sendToSelected(Payload.fromBytes(bytes), selectedPeerIDs);
+            NearbyPeersManager.sendToSelected(Payload.fromBytes(bytes), selectedPeerIDs);
         } else {
             Log.i(TAG, "Sorry, you can't send actions!");
         }
@@ -355,17 +356,17 @@ public class DispatchManager {
 
     }
 
-    public boolean hasDelayedLaunchContent() {
+    public static boolean hasDelayedLaunchContent() {
         return launchAppOnFocus != null || LeadMeMain.appIntentOnFocus != null;
     }
 
-    public void launchDelayedApp() {
-        main.verifyOverlay();
+    public static void launchDelayedApp() {
+        LeadMeMain.getInstance().verifyOverlay();
         Log.d(TAG, "[XX] Have something to launch? " + Arrays.toString(launchAppOnFocus));
         if (launchAppOnFocus != null) {
             final String[] tmp = launchAppOnFocus;
             launchAppOnFocus = null; //reset
-            main.getAppManager().launchLocalApp(tmp[0], tmp[1], true, false, "false", null);
+            LeadMeMain.getInstance().getAppManager().launchLocalApp(tmp[0], tmp[1], true, false, "false", null);
         }
     }
 
@@ -405,33 +406,33 @@ public class DispatchManager {
                     // save all the info for a Within launch
                     Uri thisURI = Uri.parse(extra);
 
-                    if (main.getAppManager().withinURI != null && main.getAppManager().withinURI.equals(thisURI) && !main.isAppVisibleInForeground()) {
+                    if (AppManager.withinURI != null && AppManager.withinURI.equals(thisURI) && !main.isAppVisibleInForeground()) {
                         Log.w(TAG, "We're already playing " + thisURI.toString() + "! Ignoring...");
                         return true; //successfully extracted the details, no action needed
 
                     } else {
                         Log.e(TAG, String.valueOf(thisURI));
-                        main.getAppManager().withinURI = thisURI;
-                        main.getAppManager().isStreaming = Boolean.parseBoolean(streaming);
-                        main.getAppManager().isVR = Boolean.parseBoolean(vrMode);
+                        AppManager.withinURI = thisURI;
+                        AppManager.isStreaming = Boolean.parseBoolean(streaming);
+                        AppManager.isVR = Boolean.parseBoolean(vrMode);
                         Log.d(TAG, "Setting streaming status, vrMode and URL for WITHIN VR " + extra + ", " + streaming + ", " + vrMode + ", (" + appInForeground + ")");
 
                     }
                 } else {
                     Log.w(TAG, "[1] No URI, reset state!");
                     //no URL was specified, so clear any previous info
-                    main.getAppManager().withinURI = null;
+                    AppManager.withinURI = null;
                     main.getLumiAccessibilityConnector().resetState();
 
                 }
             } else {
                 Log.w(TAG, "[2] No URI, reset state!");
                 //no URL was specified, so clear any previous info
-                main.getAppManager().withinURI = null;
+                AppManager.withinURI = null;
                 main.getLumiAccessibilityConnector().resetState();
             }
 
-            if (!appInForeground) {//!main.getAppLaunchAdapter().lastApp.equals(packageName)) {
+            if (!appInForeground) {
                 Log.d(TAG, "NEED FOCUS!");
                 //only needed if it's not what we've already got open
                 //TODO make this more robust, check if it's actually running
@@ -454,17 +455,17 @@ public class DispatchManager {
     }
 
 
-    public void alertGuidePermissionGranted(String whichPermission, boolean isGranted) {
+    public static void alertGuidePermissionGranted(String whichPermission, boolean isGranted) {
         if (isGranted) {
-            sendActionToSelected(LeadMeMain.ACTION_TAG, whichPermission + "OK:" + main.getNearbyManager().getID(), main.getNearbyManager().getAllPeerIDs());
+            sendActionToSelected(LeadMeMain.ACTION_TAG, whichPermission + "OK:" + NearbyPeersManager.getID(), NearbyPeersManager.getAllPeerIDs());
         } else {
-            sendActionToSelected(LeadMeMain.ACTION_TAG, whichPermission + "FAIL:" + main.getNearbyManager().getID(), main.getNearbyManager().getAllPeerIDs());
+            sendActionToSelected(LeadMeMain.ACTION_TAG, whichPermission + "FAIL:" + NearbyPeersManager.getID(), NearbyPeersManager.getAllPeerIDs());
         }
     }
 
-    public void alertGuideStudentOffTask() {
-        sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.STUDENT_OFF_TASK_ALERT + main.getNearbyManager().getID(),
-                main.getNearbyManager().getAllPeerIDs());
+    public static void alertGuideStudentOffTask() {
+        sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.STUDENT_OFF_TASK_ALERT + NearbyPeersManager.getID(),
+                NearbyPeersManager.getAllPeerIDs());
     }
 
     /**
@@ -500,7 +501,7 @@ public class DispatchManager {
             Set<String> peerSet = new HashSet<>();
             peerSet.add(action.split(":")[1]);
             //send a response back to the ID that pinged me
-            sendActionToSelected(LeadMeMain.PING_TAG, LeadMeMain.PING_ACTION + ":" + main.getNearbyManager().getID(), peerSet);
+            sendActionToSelected(LeadMeMain.PING_TAG, LeadMeMain.PING_ACTION + ":" + NearbyPeersManager.getID(), peerSet);
         }
 
         /**
@@ -508,8 +509,8 @@ public class DispatchManager {
          */
         private void returnToLeadMe() {
             Log.d(TAG, "Trying to return to " + LeadMeMain.leadMeAppName);
-            main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.LAUNCH_SUCCESS + LeadMeMain.leadMePackageName
-                    + ":" + main.getNearbyManager().getID() + ":" + LeadMeMain.leadMePackageName, main.getNearbyManager().getAllPeerIDs());
+            sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.LAUNCH_SUCCESS + LeadMeMain.leadMePackageName
+                    + ":" + NearbyPeersManager.getID() + ":" + LeadMeMain.leadMePackageName, NearbyPeersManager.getAllPeerIDs());
             main.updateFollowerCurrentTaskToLeadMe();
             main.recallToLeadMe();
         }
@@ -547,9 +548,9 @@ public class DispatchManager {
             confirm.setOnClickListener(v -> {
                 String name = newName.getText().toString();
                 if(newName.getText() != null && name.length() > 0){
-                    main.getNearbyManager().myName = name;
+                    NearbyPeersManager.myName = name;
                     main.changeStudentName(name);
-                    sendActionToSelected(LeadMeMain.ACTION_TAG,LeadMeMain.NAME_REQUEST+name+":"+main.getNearbyManager().getID(),main.getNearbyManager().getAllPeerIDs());
+                    sendActionToSelected(LeadMeMain.ACTION_TAG,LeadMeMain.NAME_REQUEST + name + ":"+ NearbyPeersManager.getID(), NearbyPeersManager.getAllPeerIDs());
                     studentNameChangeRequest.dismiss();
                 }
             });
@@ -563,9 +564,9 @@ public class DispatchManager {
             String[] split = action.split(":");
             if (split.length == 3) {
                 //Now I know my ID! Store it.
-                Log.d(TAG, ">>> INCOMING: " + action + " vs " + main.getNearbyManager().getName() + " // " + main.getNearbyManager().getID());
+                Log.d(TAG, ">>> INCOMING: " + action + " vs " + NearbyPeersManager.getName() + " // " + NearbyPeersManager.getID());
                 if (split[2].equals(main.getUUID())) {
-                    Log.d(TAG, "My peer tells me my ID is " + split[1] + " -- " + action + ", " + main.getNearbyManager().getName() + "/" + main.getUUID());
+                    Log.d(TAG, "My peer tells me my ID is " + split[1] + " -- " + action + ", " + NearbyPeersManager.getName() + "/" + main.getUUID());
                     main.getNearbyManager().setID(split[1]);
                 }
             }
@@ -577,7 +578,7 @@ public class DispatchManager {
          */
         private void nameChange(String action) {
             String[] Strsplit = action.split(":");
-            main.getNearbyManager().myName=Strsplit[1];
+            NearbyPeersManager.myName = Strsplit[1];
             main.changeStudentName(Strsplit[1]);
         }
 
@@ -591,7 +592,7 @@ public class DispatchManager {
             //teachers handler for name change
             String[] Strsplit = action.split(":");
 
-            ConnectedPeer peer = main.getConnectedLearnersAdapter().getMatchingPeer(Strsplit[2]);
+            ConnectedPeer peer = ConnectedLearnersAdapter.getMatchingPeer(Strsplit[2]);
             String oldName = peer.getDisplayName();
             peer.setName(Strsplit[1]);
             main.getConnectedLearnersAdapter().refresh();
@@ -701,7 +702,7 @@ public class DispatchManager {
         private void logout(String action) {
             String id = action.split(":")[1];
             Log.d(TAG, "Guide " + id + " has logged out!");
-            main.getNearbyManager().disconnectFromEndpoint(id);
+            NearbyPeersManager.disconnectFromEndpoint(id);
         }
 
         /**
@@ -712,8 +713,8 @@ public class DispatchManager {
             main.blackout(false);
             disableInteraction(ConnectedPeer.STATUS_LOCK);
             sendActionToSelected(LeadMeMain.ACTION_TAG,
-                    LeadMeMain.LAUNCH_SUCCESS + "LOCKON" + ":" + main.getNearbyManager().getID() + ":" + LeadMeMain.leadMePackageName,
-                    main.getNearbyManager().getAllPeerIDs());
+                    LeadMeMain.LAUNCH_SUCCESS + "LOCKON" + ":" + NearbyPeersManager.getID() + ":" + LeadMeMain.leadMePackageName,
+                    NearbyPeersManager.getAllPeerIDs());
         }
 
         /**
@@ -724,8 +725,8 @@ public class DispatchManager {
             main.blackout(false);
             disableInteraction(ConnectedPeer.STATUS_UNLOCK);
             main.getLumiAccessibilityConnector().manageAccessibilityEvent(null,null);
-            sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.LAUNCH_SUCCESS + "LOCKOFF" + ":" + main.getNearbyManager().getID() + ":" + LeadMeMain.leadMePackageName,
-                    main.getNearbyManager().getAllPeerIDs());
+            sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.LAUNCH_SUCCESS + "LOCKOFF" + ":" + NearbyPeersManager.getID() + ":" + LeadMeMain.leadMePackageName,
+                    NearbyPeersManager.getAllPeerIDs());
         }
 
         /**
@@ -734,8 +735,8 @@ public class DispatchManager {
         private void blackout() {
             main.blackout(true);
             disableInteraction(ConnectedPeer.STATUS_BLACKOUT);
-            sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.LAUNCH_SUCCESS + "BLACKOUT" + ":" + main.getNearbyManager().getID() + ":" + main.getApplicationContext().getPackageName(),
-                    main.getNearbyManager().getAllPeerIDs());
+            sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.LAUNCH_SUCCESS + "BLACKOUT" + ":" + NearbyPeersManager.getID() + ":" + main.getApplicationContext().getPackageName(),
+                    NearbyPeersManager.getAllPeerIDs());
         }
 
         /**
@@ -802,7 +803,7 @@ public class DispatchManager {
             main.getConnectedLearnersAdapter().appLaunchFail(split[2], split[1]);
 
             //in this case, student will be back in LeadMe, so update icon too
-            main.getConnectedLearnersAdapter().updateIcon(split[2], main.getAppManager().getAppIcon(LeadMeMain.leadMePackageName));
+            main.getConnectedLearnersAdapter().updateIcon(split[2], AppManager.getAppIcon(LeadMeMain.leadMePackageName));
         }
 
         /**
@@ -813,7 +814,7 @@ public class DispatchManager {
 
             //send back to the leader - placeholder for now
             sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.APP_COLLECTION + ":" + applicationInfo,
-                    main.getNearbyManager().getSelectedPeerIDs());
+                    NearbyPeersManager.getSelectedPeerIDs());
         }
 
         /**
@@ -849,16 +850,15 @@ public class DispatchManager {
         }
 
         /**
-         * The guide is recieving a message that a learner has just abruptly disconnected.
+         * The guide is receiving a message that a learner has just abruptly disconnected.
          * @param action A string of the incoming action, it contains the ID of the disconnecting
          *               peer.
          */
         private void disconnectLearner(String action) {
             String[] split = action.split(":"); //get the peer ID
 
-            //TODO disconnect this student
             Log.e(TAG, split[1] + " has just disconnected");
-            NetworkManager.updateParent("Blah", Integer.parseInt(split[1]), "LOST");
+            NetworkManager.updateParent(split[1] + " has disconnected", Integer.parseInt(split[1]), "LOST");
         }
 
         /**
@@ -989,7 +989,7 @@ public class DispatchManager {
                         }
                         main.updatePeerStatus(split[2], ConnectedPeer.STATUS_SUCCESS, LeadMeMain.STUDENT_OFF_TASK_ALERT);
                         main.getConnectedLearnersAdapter().appLaunchSuccess(split[2], split[1]);
-                        main.getConnectedLearnersAdapter().updateIcon(split[2], main.getAppManager().getAppIcon(split[3]));
+                        main.getConnectedLearnersAdapter().updateIcon(split[2], AppManager.getAppIcon(split[3]));
                 }
             }
         }
