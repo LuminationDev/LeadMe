@@ -10,6 +10,7 @@ import android.view.accessibility.AccessibilityNodeInfo;
 import android.widget.Button;
 
 import com.lumination.leadme.LeadMeMain;
+import com.lumination.leadme.managers.AppManager;
 import com.lumination.leadme.managers.DispatchManager;
 import com.lumination.leadme.managers.NearbyPeersManager;
 import com.lumination.leadme.services.LumiAccessibilityService;
@@ -188,7 +189,7 @@ public class LumiAccessibilityConnector {
 
     public void bringMainToFront() {
         Log.d(TAG, "bringMainToFront: ");
-        main.getHandler().post(() -> {
+        LeadMeMain.UIHandler.post(() -> {
             if (main != null && !main.isAppVisibleInForeground()) {
                 main.recallToLeadMe();
             }
@@ -249,13 +250,13 @@ public class LumiAccessibilityConnector {
             AccessibilityEvent finalEvent = event;
             AccessibilityNodeInfo finalRootInActiveWindow = rootInActiveWindow;
 
-            if (!appInForeground && event.getSource() != null && event.getSource().getPackageName().toString().contains(main.getAppManager().withinPackage)) {
+            if (!appInForeground && event.getSource() != null && event.getSource().getPackageName().toString().contains(AppManager.withinPackage)) {
                 Log.e(TAG, "SOMETHING!");
                 executor.execute(() -> {
                     withinManager.manageWithinAccess(finalEvent, finalRootInActiveWindow);
                 });
 
-            } else if (!appInForeground && event.getSource() != null && event.getSource().getPackageName().toString().contains(main.getAppManager().youtubePackage)) {
+            } else if (!appInForeground && event.getSource() != null && event.getSource().getPackageName().toString().contains(AppManager.youtubePackage)) {
                 executor.execute(() -> {
                     Log.e(TAG, "Youtube: " + finalEvent);
                     //non-UI work here
@@ -367,7 +368,7 @@ public class LumiAccessibilityConnector {
 
                 case LumiAccessibilityService.INFO_CONFIG:
                     if (NearbyPeersManager.isConnectedAsFollower()) {
-                        main.runOnUiThread(main::refreshOverlay);
+                        LeadMeMain.runOnUI(main::refreshOverlay);
                     }
                     break;
 

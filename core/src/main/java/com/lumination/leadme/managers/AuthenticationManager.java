@@ -328,7 +328,7 @@ public class AuthenticationManager {
 
             case 1:
                 hideSystemUI();
-                main.getHandler().postDelayed(this::hideSystemUI, 500);
+                LeadMeMain.UIHandler.postDelayed(this::hideSystemUI, 500);
                 errorText.setVisibility(View.GONE);
                 hasScrolled = true;
                 WebView TOF = loginView.findViewById(R.id.tof_webview);
@@ -408,7 +408,7 @@ public class AuthenticationManager {
                 break;
 
             case 3:
-                main.getHandler().postDelayed(this::hideSystemUI, 500);
+                LeadMeMain.UIHandler.postDelayed(this::hideSystemUI, 500);
 
                 next.setVisibility(View.GONE);
 
@@ -420,7 +420,7 @@ public class AuthenticationManager {
                 animation.setOnPreparedListener(mp -> {
                     mp.setLooping(true);
                     animation.start();
-                    main.getHandler().postDelayed(() -> animation.setBackgroundColor(Color.TRANSPARENT), 100);
+                    LeadMeMain.UIHandler.postDelayed(() -> animation.setBackgroundColor(Color.TRANSPARENT), 100);
                 });
 
                 FirebaseAuth.AuthStateListener mAuthListener = firebaseAuth -> {
@@ -442,7 +442,7 @@ public class AuthenticationManager {
                                         } else {
                                             currentUser = mAuth.getCurrentUser();
                                             scheduledExecutorService.shutdown();
-                                            main.runOnUiThread(() -> buildloginsignup(4));
+                                            LeadMeMain.runOnUI(() -> buildloginsignup(4));
                                         }
                                     }), 100, 100, TimeUnit.MILLISECONDS));
                         } else {

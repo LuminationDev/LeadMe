@@ -257,8 +257,8 @@ public class VREmbedPhotoPlayer {
 
         vrplayerSettingsDialogView.findViewById(R.id.photo_back_btn).setOnClickListener(v -> {
             this.fileName = null;
-            main.vrPath = null;
-            main.vrURI = null;
+            LeadMeMain.vrPath = null;
+            LeadMeMain.vrURI = null;
             playbackSettingsDialog.dismiss();
             main.getDialogManager().showVRContentDialog();
         });
@@ -266,7 +266,7 @@ public class VREmbedPhotoPlayer {
         vrplayerSetSourceBtn.setOnClickListener(view -> selectSource());
 
         vrplayerPreviewPushBtn.setOnClickListener(view -> {
-            main.getHandler().post(this::pushToLearners);
+            LeadMeMain.UIHandler.post(this::pushToLearners);
 
             //TODO test this v
             //VR default is always set to mono
@@ -294,7 +294,7 @@ public class VREmbedPhotoPlayer {
      * device needs a Uri or an absolute path for the playback controller.
      */
     private void pushToLearners() {
-        if (main.vrURI == null && main.vrPath == null) {
+        if (LeadMeMain.vrURI == null && LeadMeMain.vrPath == null) {
             Toast.makeText(main, "A video has not been selected", Toast.LENGTH_SHORT).show();
             return;
         }
@@ -305,12 +305,12 @@ public class VREmbedPhotoPlayer {
             //setting the playback video controller
             setupPhotoPreview(controllerImageView);
 
-            controllerImageView.setImageURI(Uri.parse(main.vrPath));
+            controllerImageView.setImageURI(Uri.parse(LeadMeMain.vrPath));
         } else {
             //setting the playback video controller
             setupPhotoPreview(controllerImageView);
 
-            controllerImageView.setImageURI(main.vrURI);
+            controllerImageView.setImageURI(LeadMeMain.vrURI);
         }
 
         //LAUNCH THE APPLICATION FROM HERE
@@ -340,21 +340,21 @@ public class VREmbedPhotoPlayer {
     }
 
     private void openPreview(String title) {
-        if(main.vrURI != null || main.vrPath != null) {
+        if(LeadMeMain.vrURI != null || LeadMeMain.vrPath != null) {
             if(LeadMeMain.isMiUiV9()) {
                 //setting the playback video controller
                 setupPhotoPreview(vrplayerPreviewPhotoView);
 
-                controllerImageView.setImageURI(Uri.parse(main.vrPath));
+                controllerImageView.setImageURI(Uri.parse(LeadMeMain.vrPath));
             } else {
                 //setting the playback video controller
                 setupPhotoPreview(vrplayerPreviewPhotoView);
 
-                controllerImageView.setImageURI(main.vrURI);
+                controllerImageView.setImageURI(LeadMeMain.vrURI);
             }
         }
 
-        main.runOnUiThread(() -> {
+        LeadMeMain.runOnUI(() -> {
             main.closeKeyboard();
             main.hideSystemUI();
         });
@@ -458,7 +458,7 @@ public class VREmbedPhotoPlayer {
     }
 
     private void showVideoController() {
-        main.runOnUiThread(() -> {
+        LeadMeMain.runOnUI(() -> {
             main.closeKeyboard();
             main.hideSystemUI();
         });
@@ -479,7 +479,7 @@ public class VREmbedPhotoPlayer {
     }
 
     private void hidePhotoController() {
-        main.runOnUiThread(() -> {
+        LeadMeMain.runOnUI(() -> {
             main.closeKeyboard();
             main.hideSystemUI();
         });

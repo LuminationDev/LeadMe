@@ -42,9 +42,9 @@ public class AppManager extends BaseAdapter {
     private final String defaultBrowserUrl;
     protected static Drawable app_placeholder;
 
-    public final String vrplayerPackage = "com.lumination.VRPlayer";
-    public final String withinPackage = "com.shakingearthdigital.vrsecardboard";
-    public final String youtubePackage = "com.google.android.youtube";
+    public static final String vrplayerPackage = "com.lumination.VRPlayer";
+    public static final String withinPackage = "com.shakingearthdigital.vrsecardboard";
+    public static final String youtubePackage = "com.google.android.youtube";
 
     public AppManager(LeadMeMain main) {
         this.main = main;
@@ -161,7 +161,7 @@ public class AppManager extends BaseAdapter {
                 break;
 
             case "VR Video":
-                if (packageName.equals(main.getAppManager().withinPackage)) {
+                if (packageName.equals(withinPackage)) {
                     launchWithin(withinPlayer.foundURL, isStreaming, isVR, main.getSelectedOnly());
                     break;
                 }

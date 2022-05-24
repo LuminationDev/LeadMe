@@ -57,7 +57,7 @@ public class NSDManager {
                 @Override
                 public void onDiscoveryStarted(String regType) {
                     Log.d(TAG, "Service discovery started");
-                    LeadMeMain.getInstance().runOnUiThread(() -> {
+                    LeadMeMain.runOnUI(() -> {
                         ArrayList<ConnectedPeer> temp = new ArrayList<>();
                         LeadMeMain.getInstance().getLeaderSelectAdapter().setLeaderList(temp);
                         LeadMeMain.getInstance().showLeaderWaitMsg(true);
@@ -93,7 +93,7 @@ public class NSDManager {
                     Log.e(TAG, "service lost" + service);
 
                     //clear the list and then scan again
-                    LeadMeMain.getInstance().runOnUiThread(() -> {
+                    LeadMeMain.runOnUI(() -> {
                         ArrayList<ConnectedPeer> temp = new ArrayList<>();
                         LeadMeMain.getInstance().getLeaderSelectAdapter().setLeaderList(temp);
                         LeadMeMain.getInstance().showLeaderWaitMsg(true);
@@ -186,7 +186,7 @@ public class NSDManager {
         List<String> leader = Arrays.asList(serviceInfo.getServiceName().split("#"));
 
         if (!LeadMeMain.getInstance().sessionManual && !LeadMeMain.getInstance().directConnection) {
-            LeadMeMain.getInstance().runOnUiThread(() -> {
+            LeadMeMain.runOnUI(() -> {
                 LeadMeMain.getInstance().getLeaderSelectAdapter().addLeader(new ConnectedPeer(leader.get(0), serviceInfo.getHost().toString()));
                 LeadMeMain.getInstance().showLeaderWaitMsg(false);
             });

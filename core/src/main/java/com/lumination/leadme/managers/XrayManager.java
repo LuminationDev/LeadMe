@@ -365,7 +365,7 @@ public class XrayManager {
                 Bitmap tmpBmp = BitmapFactory.decodeByteArray(buffer, 0, buffer.length);
                 response = tmpBmp;
 
-                main.runOnUiThread(() -> {
+                LeadMeMain.runOnUI(() -> {
                     //remove the loading spinner
                     isAwaitingImage(false);
                     //check if we are receiving images from the correct peer

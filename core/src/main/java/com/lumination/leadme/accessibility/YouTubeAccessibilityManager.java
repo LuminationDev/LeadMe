@@ -101,7 +101,7 @@ public class YouTubeAccessibilityManager {
                     Thread.sleep(1500);
 
                     if(adFinished) {
-                        main.getHandler().post(this::alertGuideAdsHaveFinished);
+                        LeadMeMain.UIHandler.post(this::alertGuideAdsHaveFinished);
                     }
                 } catch (InterruptedException e) {
                     e.printStackTrace();
@@ -705,7 +705,7 @@ public class YouTubeAccessibilityManager {
     }
 
     private void endOfVideo() {
-        main.runOnUiThread(() -> {
+        LeadMeMain.runOnUI(() -> {
             connector.bringMainToFront();
             main.updateFollowerCurrentTaskToLeadMe();
         });

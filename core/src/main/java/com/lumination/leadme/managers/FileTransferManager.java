@@ -303,7 +303,7 @@ public class FileTransferManager {
         }
 
         if (selected.size() < 1) {
-            main.runOnUiThread(() -> Toast.makeText(
+            LeadMeMain.runOnUI(() -> Toast.makeText(
                     main.context,
                     "Peers need to be selected.", Toast.LENGTH_LONG).show());
 
@@ -340,7 +340,7 @@ public class FileTransferManager {
 
         for (int x = 0; x < selected.size(); x++) {
             int finalX = x;
-            main.runOnUiThread(() -> main.updatePeerStatus(
+            LeadMeMain.runOnUI(() -> main.updatePeerStatus(
                     String.valueOf(selected.get(finalX)),
                     ConnectedPeer.STATUS_FILE_TRANSFER, null));
 
@@ -445,7 +445,7 @@ public class FileTransferManager {
                 main.setDeviceStatusMessage(R.string.transfer_in_progress);
 
                 if(testBar) {
-                    main.runOnUiThread(() -> transferBar.setVisibility(View.VISIBLE));
+                    LeadMeMain.runOnUI(() -> transferBar.setVisibility(View.VISIBLE));
                 }
 
                 builder.setProgress(100, 0, false)
@@ -590,7 +590,7 @@ public class FileTransferManager {
         }
 
         if(testBar) {
-            main.runOnUiThread(() -> transferBar.setVisibility(View.GONE));
+            LeadMeMain.runOnUI(() -> transferBar.setVisibility(View.GONE));
         }
 
         transfer_progress = -1;
@@ -607,14 +607,14 @@ public class FileTransferManager {
     public void removePeer(String ID, String error) {
         String name = ConnectedLearnersAdapter.getMatchingPeer(ID).getDisplayName();
 
-        main.runOnUiThread(() -> Toast.makeText(main,
+        LeadMeMain.runOnUI(() -> Toast.makeText(main,
                         "Message: " + error + " " + "Peer: " + name, Toast.LENGTH_LONG).show());
 
         Log.d(TAG, "Message: " + error + " " + "Peer: " + name);
 
         int peerID = Integer.parseInt(ID);
 
-        main.runOnUiThread(() -> main.updatePeerStatus(ID, ConnectedPeer.STATUS_INSTALLED, null));
+        LeadMeMain.runOnUI(() -> main.updatePeerStatus(ID, ConnectedPeer.STATUS_INSTALLED, null));
 
         //remove from transfers
         transfers.remove(peerID);
@@ -691,7 +691,7 @@ public class FileTransferManager {
             checkProgress();
 
             if (testBar && !LeadMeMain.isGuide) {
-                main.runOnUiThread(() -> transferBar.setProgress((int) transfer_progress));
+                LeadMeMain.runOnUI(() -> transferBar.setProgress((int) transfer_progress));
             }
         } else {
             checkProgress();
@@ -711,7 +711,7 @@ public class FileTransferManager {
                 Double value = entry.getValue();
 
                 if (value == 100.0) {
-                    main.runOnUiThread(() -> main.updatePeerStatus(String.valueOf(key), ConnectedPeer.STATUS_INSTALLED, null));
+                    LeadMeMain.runOnUI(() -> main.updatePeerStatus(String.valueOf(key), ConnectedPeer.STATUS_INSTALLED, null));
                     //Reset the position as to not constantly call update
                     transfers.put(key, -1.0);
                 }

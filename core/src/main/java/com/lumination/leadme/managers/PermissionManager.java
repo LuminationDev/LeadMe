@@ -250,7 +250,7 @@ public class PermissionManager {
     }
 
     private void pingForAccess() {
-        main.getHandler().post(() -> {
+        LeadMeMain.UIHandler.post(() -> {
             while (waitingForPermission && !isAccessibilityGranted()) {
                 try {
                     Thread.sleep(500);

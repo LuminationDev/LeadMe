@@ -534,7 +534,7 @@ public class WebManager {
             if (!main.getPermissionsManager().isInternetConnectionAvailable()) {
                 Log.w(TAG, "No internet connection in LaunchWebsite");
 
-                main.getHandler().post(() -> {
+                LeadMeMain.UIHandler.post(() -> {
                     dialogManager.showWarningDialog("No Internet Connection",
                             "Internet based functions are unavailable at this time. " +
                                     "Please check your WiFi connection and try again.");
@@ -548,7 +548,7 @@ public class WebManager {
 
         //check it's a minimally sensible url
         if (url == null || url.length() < 3 || !url.contains(".")) {
-            main.runOnUiThread(() -> Toast.makeText(main.getApplicationContext(), "Invalid URL", Toast.LENGTH_SHORT).show());
+            LeadMeMain.runOnUI(() -> Toast.makeText(main.getApplicationContext(), "Invalid URL", Toast.LENGTH_SHORT).show());
             DispatchManager.sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.AUTO_INSTALL_FAILED + "Invalid URL:" + NearbyPeersManager.getID(), NearbyPeersManager.getSelectedPeerIDsOrAll());
             return;
         }
@@ -562,7 +562,7 @@ public class WebManager {
         intent.setAction(Intent.ACTION_VIEW);
 
         if (url.contains("with.in/watch")) {
-            intent.setPackage(main.getAppManager().withinPackage);
+            intent.setPackage(AppManager.withinPackage);
             Uri uri = Uri.parse(url);
             intent.setData(uri);
 
@@ -605,7 +605,7 @@ public class WebManager {
             //success!
 
         } else {
-            main.runOnUiThread(() -> Toast.makeText(main.getApplicationContext(), "No browser available", Toast.LENGTH_SHORT).show());
+            LeadMeMain.runOnUI(() -> Toast.makeText(main.getApplicationContext(), "No browser available", Toast.LENGTH_SHORT).show());
             DispatchManager.sendActionToSelected(LeadMeMain.ACTION_TAG,
                     LeadMeMain.AUTO_INSTALL_FAILED + "No browser:" + NearbyPeersManager.getID(), NearbyPeersManager.getSelectedPeerIDsOrAll());
             //no browser, failure
@@ -815,7 +815,7 @@ public class WebManager {
         main.backgroundExecutor.submit(() -> {
             if (!main.getPermissionsManager().isInternetConnectionAvailable()) {
                 Log.w(TAG, "No internet connection in showPreview");
-                main.getHandler().post(() ->
+                LeadMeMain.UIHandler.post(() ->
                     dialogManager.showWarningDialog("No Internet Connection",
                             "Internet based functions are unavailable at this time. " +
                                     "Please check your WiFi connection and try again.")
@@ -1001,7 +1001,7 @@ public class WebManager {
         main.backgroundExecutor.submit(() -> {
             if (!main.getPermissionsManager().isInternetConnectionAvailable()) {
                 Log.w(TAG, "No internet connection in launchYouTube");
-                main.getHandler().post(() -> {
+                LeadMeMain.UIHandler.post(() -> {
                     dialogManager.showWarningDialog("No Internet Connection",
                             "Internet based functions are unavailable at this time. " +
                                     "Please check your WiFi connection and try again.");
@@ -1130,7 +1130,7 @@ public class WebManager {
         main.backgroundExecutor.submit(() -> {
             if (!main.getPermissionsManager().isInternetConnectionAvailable()) {
                 Log.w(TAG, "No internet connection in buildAndShowSearch");
-                main.getHandler().post(() -> {
+                LeadMeMain.UIHandler.post(() -> {
                     dialogManager.showWarningDialog("No Internet Connection",
                             "Internet based functions are unavailable at this time. " +
                                     "Please check your WiFi connection and try again.");
@@ -1345,14 +1345,14 @@ public class WebManager {
                     hideSearchDialog();
                     showPreview(URL);
 
-                    main.runOnUiThread(() -> {
+                    LeadMeMain.runOnUI(() -> {
                         main.hideSystemUI();
                         main.closeKeyboard();
                     });
                     return true;
                 }
 
-                main.runOnUiThread(() -> {
+                LeadMeMain.runOnUI(() -> {
                     main.hideSystemUI();
                     main.closeKeyboard();
                 });
@@ -1378,7 +1378,7 @@ public class WebManager {
 
                     if(bitmap == null) {
                         Log.d(TAG, "intercepted jpg: null exception");
-                        main.runOnUiThread(() -> Toast.makeText(main.getApplicationContext(), "An image was unable to be displayed.", Toast.LENGTH_SHORT).show());
+                        LeadMeMain.runOnUI(() -> Toast.makeText(main.getApplicationContext(), "An image was unable to be displayed.", Toast.LENGTH_SHORT).show());
                         return null;
                     }
 
@@ -1398,7 +1398,7 @@ public class WebManager {
 
                     if(bitmap == null) {
                         Log.d(TAG, "intercepted png: null exception");
-                        main.runOnUiThread(() -> Toast.makeText(main.getApplicationContext(), "An image was unable to be displayed.", Toast.LENGTH_SHORT).show());
+                        LeadMeMain.runOnUI(() -> Toast.makeText(main.getApplicationContext(), "An image was unable to be displayed.", Toast.LENGTH_SHORT).show());
                         return null;
                     }
 
@@ -1418,7 +1418,7 @@ public class WebManager {
 
                     if(bitmap == null) {
                         Log.d(TAG, "intercepted webp: null exception");
-                        main.runOnUiThread(() -> Toast.makeText(main.getApplicationContext(), "An image was unable to be displayed.", Toast.LENGTH_SHORT).show());
+                        LeadMeMain.runOnUI(() -> Toast.makeText(main.getApplicationContext(), "An image was unable to be displayed.", Toast.LENGTH_SHORT).show());
                         return null;
                     }
 
@@ -1438,7 +1438,7 @@ public class WebManager {
 
         });
 
-        main.runOnUiThread(() -> {
+        LeadMeMain.runOnUI(() -> {
             main.hideSystemUI();
             main.closeKeyboard();
         });

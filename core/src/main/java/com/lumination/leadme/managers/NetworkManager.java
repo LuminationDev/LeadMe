@@ -128,7 +128,7 @@ public class NetworkManager {
 
         NSDManager.stopDiscovery();
 
-        LeadMeMain.getInstance().runOnUiThread(() -> {
+        LeadMeMain.runOnUI(() -> {
             LeadMeMain.getInstance().findViewById(R.id.client_main).setVisibility(View.VISIBLE);
             List<String> inputList = Arrays.asList(NSDManager.getChosenServiceInfo().getServiceName().split("#"));
             LeadMeMain.getInstance().setLeaderName(inputList.get(0));
@@ -248,7 +248,7 @@ public class NetworkManager {
         final String timestamp = System.currentTimeMillis() + "MS";
         Log.d(TAG, timestamp + "]] messageReceivedFromServer: [ACTION] " + p.readString() + ", " + payload);
 
-        LeadMeMain.getInstance().getHandler().postAtFrontOfQueue(() -> {
+        LeadMeMain.UIHandler.postAtFrontOfQueue(() -> {
             Log.d(TAG, timestamp + "]] messageReceivedFromServer: [ACTION] INSIDE MAIN THREAD");
             LeadMeMain.getInstance().handlePayload(payload.asBytes());
             try {
@@ -378,7 +378,7 @@ public class NetworkManager {
             endpoint.name = message;
             endpoint.Id = String.valueOf(clientID);
             ConnectedPeer thisPeer = new ConnectedPeer(endpoint);
-            LeadMeMain.getInstance().runOnUiThread(() -> {
+            LeadMeMain.runOnUI(() -> {
                 LeadMeMain.getInstance().getConnectedLearnersAdapter().addStudent(thisPeer);
                 LeadMeMain.getInstance().showConnectedStudents(true);
             });
@@ -403,7 +403,7 @@ public class NetworkManager {
                 NetworkService.removeStudent(clientID);
                 currentClients.remove(i);
                 if (currentClients.size() == 0) {
-                    LeadMeMain.getInstance().runOnUiThread(() -> LeadMeMain.getInstance().waitingForLearners.setVisibility(View.VISIBLE));
+                    LeadMeMain.runOnUI(() -> LeadMeMain.getInstance().waitingForLearners.setVisibility(View.VISIBLE));
                 } else {
                     Log.d(TAG, "updateParent: " + currentClients.size() + " remaining students");
                 }
@@ -424,7 +424,7 @@ public class NetworkManager {
         cleanUpTransfer(clientID);
         currentClients.remove(clientID);
         LeadMeMain.getInstance().getXrayManager().removePeerFromMap(String.valueOf(clientID));
-        LeadMeMain.getInstance().runOnUiThread(() -> {
+        LeadMeMain.runOnUI(() -> {
             if (ConnectedLearnersAdapter.getMatchingPeer(String.valueOf(clientID)) != null) {
                 if (ConnectedLearnersAdapter.getMatchingPeer(String.valueOf(clientID)).getStatus() != ConnectedPeer.STATUS_ERROR) {
                     LeadMeMain.getInstance().updatePeerStatus(String.valueOf(clientID), ConnectedPeer.STATUS_ERROR, null);
@@ -451,7 +451,7 @@ public class NetworkManager {
         p.setDataPosition(0);
         Log.d(TAG, "messageReceivedFromServer: " + p.readString());
         Payload payload = fromBytes(bytes);
-        LeadMeMain.getInstance().runOnUiThread(() -> LeadMeMain.getInstance().handlePayload(payload.asBytes()));
+        LeadMeMain.runOnUI(() -> LeadMeMain.getInstance().handlePayload(payload.asBytes()));
         p.recycle();
     }
 
