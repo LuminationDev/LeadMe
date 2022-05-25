@@ -70,6 +70,7 @@
                         android:background="@drawable/search_icon_simple"></LinearLayout>
                 </LinearLayout>
                 <TextView
+                    android:id="@+id/search_heading"
                     android:fontFamily="@font/poppins_semibold"
                     android:textSize="24dp"
                     android:layout_width="match_parent"
@@ -80,6 +81,7 @@
                     android:text="What are\nyou searching for?">
                 </TextView>
                 <TextView
+                    android:id="@+id/search_subheading"
                     android:fontFamily="@font/poppins_regular"
                     android:textSize="14dp"
                     android:textColor="@color/leadme_darkest_grey"

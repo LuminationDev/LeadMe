@@ -329,6 +329,17 @@ public class CuratedContentManager {
                         searchInfo.setVisibility(View.GONE);
                     } else {
                         searchInfo.setVisibility(View.VISIBLE);
+                        // todo - here is where we're going to set the text when we have a search term but no results
+                        TextView searchHeading = searchSheetDialog.findViewById(R.id.search_heading); // grab the search heading
+                        if (textView.getText().length() > 0) { // todo - update this if statement - something about if we have a search term or not
+                            searchHeading.setText("Brand new text"); // todo - use the correct text
+
+                            // todo - let's set the text for the subheading, for this we'll need to add the search term into the text, we can get this from textView.getText()
+                        } else { // otherwise, we don't have a search term, so we want to go back to the normal text
+                            searchHeading.setText("aaa new text"); // todo - update this to the correct text
+
+                            // todo - we'll also need to do the subheading
+                        }
                     }
                     // handle clicking on a curated content item, if this starts to get more complicated we'll want to split it out
                     curatedContentListSearch.setOnItemClickListener(new AdapterView.OnItemClickListener() {
