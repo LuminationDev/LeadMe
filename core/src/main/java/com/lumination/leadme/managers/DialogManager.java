@@ -389,9 +389,9 @@ public class DialogManager {
 
         allowBtn.setOnClickListener(v -> {
             if(LeadMeMain.isMiUiV9()) {
-                main.getFileTransferManager().startFileServer(main.vrPath, true);
+                main.getFileTransferManager().startFileServer(LeadMeMain.vrPath, true);
             } else {
-                main.getFileTransferManager().startFileServer(main.vrURI, true);
+                main.getFileTransferManager().startFileServer(LeadMeMain.vrURI, true);
             }
 
             Set<String> peerSet = new HashSet<>();
@@ -670,12 +670,12 @@ public class DialogManager {
 
         //auto close after 1.5 seconds
         if (isSavedOnly) {
-            main.getHandler().postDelayed(() -> {
+            LeadMeMain.UIHandler.postDelayed(() -> {
                 hideConfirmPushDialog();
                 main.getWebManager().launchUrlYtFavourites();
             }, 1500);
         } else {
-            main.getHandler().postDelayed(this::hideConfirmPushDialog, 1500);
+            LeadMeMain.UIHandler.postDelayed(this::hideConfirmPushDialog, 1500);
         }
     }
 

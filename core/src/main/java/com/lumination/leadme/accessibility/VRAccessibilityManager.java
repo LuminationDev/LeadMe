@@ -142,15 +142,15 @@ public class VRAccessibilityManager {
 
     //Send an action to the guide requesting that a file be transferred to this device
     private void requestFile() {
-        main.fileTransferEnabled = true; //hard coded for now - change to permission later
+        LeadMeMain.fileTransferEnabled = true; //hard coded for now - change to permission later
 
-        if(main.fileTransferEnabled) {
+        if(LeadMeMain.fileTransferEnabled) {
             FileTransferManager.setFileType("VRVideo");
             DispatchManager.sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.FILE_REQUEST_TAG + ":" + NearbyPeersManager.getID()
                     + ":" + "false" + ":" + FileTransferManager.getFileType(), NearbyPeersManager.getSelectedPeerIDs());
-            main.runOnUiThread(() ->main.getDialogManager().showWarningDialog("Missing File", "Video is transferring now."));
+            LeadMeMain.runOnUI(() ->main.getDialogManager().showWarningDialog("Missing File", "Video is transferring now."));
         } else {
-            main.runOnUiThread(() ->main.getDialogManager().showWarningDialog("Permission Needed", "File Transfer is not enabled " +
+            LeadMeMain.runOnUI(() ->main.getDialogManager().showWarningDialog("Permission Needed", "File Transfer is not enabled " +
                     "\nThe file cannot be sent."));
         }
     }

@@ -85,7 +85,7 @@ public class DispatchManager {
             }
         };
 
-        main.runOnUiThread(myRunnable);
+        LeadMeMain.runOnUI(myRunnable);
     }
 
     private static void writeMessageToSelected(byte[] bytes, Set<String> selectedPeerIDs) {
@@ -164,7 +164,7 @@ public class DispatchManager {
 
         LeadMeMain.getInstance().updateLastTask(AppManager.getAppIcon(packageName), AppManager.getAppName(packageName), packageName, lockTag);
 
-        if (!packageName.equals(LeadMeMain.getInstance().getAppManager().withinPackage)) {
+        if (!packageName.equals(AppManager.withinPackage)) {
             LeadMeMain.getInstance().getAppManager().getWithinPlayer().foundURL = "";
         }
     }
@@ -401,7 +401,7 @@ public class DispatchManager {
             }
 
             boolean appInForeground = main.isAppVisibleInForeground();
-            if (packageName.equals(main.getAppManager().withinPackage)) {
+            if (packageName.equals(AppManager.withinPackage)) {
                 if (!extra.isEmpty()) {
                     // save all the info for a Within launch
                     Uri thisURI = Uri.parse(extra);
@@ -444,7 +444,7 @@ public class DispatchManager {
             } else {
                 Log.d(TAG, "HAVE FOCUS!");
                 launchAppOnFocus = null; //reset
-                main.getHandler().post(() -> main.getAppManager().launchLocalApp(packageName, appName, true, false, extra, null));
+                LeadMeMain.UIHandler.post(() -> main.getAppManager().launchLocalApp(packageName, appName, true, false, extra, null));
 
             }
             return true;
@@ -668,7 +668,7 @@ public class DispatchManager {
         private void requestFile(String action) {
             String[] split = action.split(":");
             String ID = split[1];
-            Log.e("FILE REQUEST", "Requesting: " + main.vrURI + " from: " + ID + " status: " + split[2] + " type: " + split[3]);
+            Log.e("FILE REQUEST", "Requesting: " + LeadMeMain.vrURI + " from: " + ID + " status: " + split[2] + " type: " + split[3]);
 
             //Set the file type for handling when complete
             FileTransferManager.setFileType(split[3]);

@@ -398,7 +398,7 @@ public class WithinAccessibilityManager {
     private void endOfVideo() {
         Log.w(TAG, "The video is done!");
         cleanUpVideo();
-        main.runOnUiThread(main::updateFollowerCurrentTaskToLeadMe);
+        LeadMeMain.runOnUI(main::updateFollowerCurrentTaskToLeadMe);
         connector.bringMainToFront();
     }
 

@@ -30,6 +30,7 @@ import android.net.wifi.WifiManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Looper;
 import android.os.Message;
 import android.os.PowerManager;
 import android.text.Editable;
@@ -152,6 +153,18 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     public static LeadMeMain getInstance()
     {
         return leadMeInstance;
+    }
+
+    //private final Handler handler = new Handler(this);
+
+    public static Handler UIHandler;
+    static { UIHandler = new Handler(Looper.getMainLooper()); }
+
+    /**
+     * Allows runOnUIThread calls from anywhere in the program.
+     */
+    public static void runOnUI(Runnable runnable) {
+        UIHandler.post(runnable);
     }
 
     //Turn the updated content on or off - still need to manually switch the layout in c__leader_main.xml
@@ -279,14 +292,14 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
      * A Uri representing the last source pushed by the leader to a learner,
      * saved in case a learners requests a file transfer.
      */
-    public Uri vrURI;
+    public static Uri vrURI;
 
     /**
      * A String representing the last source pushed by the leader to a learner,
      * saved in case a learners requests a file transfer. Used for devices with MIUI version 9.5
      * and below.
      */
-    public String vrPath;
+    public static String vrPath;
 
     //details about me to send to peers
     public static boolean isGuide = false;
@@ -297,7 +310,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     public String lastLockState = LOCK_TAG;
     public String lastAppID;
 
-    private final Handler handler = new Handler(this);
     public ViewAnimator leadmeAnimator;
     private ViewSwitcher leaderLearnerSwitcher;
     protected boolean loggingInAsLeader = true;
@@ -312,16 +324,16 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     private final int SWITCH_LEADER_INDEX = 0;
     private final int SWITCH_LEARNER_INDEX = 1;
 
-    private final int ANIM_SPLASH_INDEX = 0;
-    private final int ANIM_START_SWITCH_INDEX = 1;
-    private final int ANIM_LEARNER_INDEX = 2;
-    private final int ANIM_LEADER_INDEX = 3;
-    private final int ANIM_APP_LAUNCH_INDEX = 4;
-    private final int ANIM_OPTIONS_INDEX = 5;
-    private final int ANIM_XRAY_INDEX = 6;
-    protected final int ANIM_MULTI_INDEX = 7;
-    public final int ANIM_CURATED_CONTENT_LAUNCH_INDEX = 8;
-    private final int ANIM_CURATED_CONTENT_SINGLE_LAUNCH_INDEX = 9;
+    private static final int ANIM_SPLASH_INDEX = 0;
+    private static final int ANIM_START_SWITCH_INDEX = 1;
+    private static final int ANIM_LEARNER_INDEX = 2;
+    private static final int ANIM_LEADER_INDEX = 3;
+    private static final int ANIM_APP_LAUNCH_INDEX = 4;
+    private static final int ANIM_OPTIONS_INDEX = 5;
+    private static final int ANIM_XRAY_INDEX = 6;
+    protected static final int ANIM_MULTI_INDEX = 7;
+    public static final int ANIM_CURATED_CONTENT_LAUNCH_INDEX = 8;
+    private static final int ANIM_CURATED_CONTENT_SINGLE_LAUNCH_INDEX = 9;
 
     public View waitingForLearners, appLauncherScreen;
     public View splashscreen, startLearner, mainLearner, startLeader, mainLeader, optionsScreen, switcherView, xrayScreen;
@@ -333,7 +345,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     private GridView connectedStudentsView;
 
     //Checking for updates on the Play Store
-    private final int UPDATE_REQUEST_CODE = 100;
+    //private final int UPDATE_REQUEST_CODE = 100;
 
     public Context context;
     public ActivityManager activityManager;
@@ -392,9 +404,9 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
     public ScreenSharingManager screenSharingManager;
 
-    public Handler getHandler() {
-        return handler;
-    }
+//    public Handler getHandler() {
+//        return handler;
+//    }
 
     public void stopShakeDetection() {
         if(mSensorManager != null) {
@@ -794,7 +806,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     }
 
     private void moveAwayFromSplashScreen() {
-        handler.postDelayed(() -> {
+        UIHandler.postDelayed(() -> {
             logo.setImageResource(android.R.color.transparent);
             leadmeAnimator.setDisplayedChild(ANIM_START_SWITCH_INDEX);
 
@@ -854,7 +866,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                 overlayParams.flags = WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN | WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE;
                 getWindowManager().updateViewLayout(overlayView, overlayParams);
             }
-            handler.post(() -> {
+            runOnUI(() -> {
                 //wait until layout update is actioned before trying to gesture
                 try {
                     Thread.sleep(200);
@@ -879,9 +891,9 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                 getWindowManager().updateViewLayout(overlayView, overlayParams);
             }
 
-            handler.post(() -> {
+            runOnUI(() -> {
                 //wait until layout update is actioned before trying to gesture
-                while (currentTaskPackageName.equals(getAppManager().withinPackage) && overlayView.isLayoutRequested()) {
+                while (currentTaskPackageName.equals(AppManager.withinPackage) && overlayView.isLayoutRequested()) {
                     try {
                         Thread.sleep(200);
                     } catch (InterruptedException e) {
@@ -919,7 +931,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             gestureBuilder.addStroke(new GestureDescription.StrokeDescription(swipePath, 0, 200)); //50 was too short for Within
             GestureDescription swipe = gestureBuilder.build();
 
-            handler.postAtFrontOfQueue(() -> {
+            UIHandler.postAtFrontOfQueue(() -> {
                 //change overlay so taps can temporarily pass through
                 if (overlayView.isAttachedToWindow()) {
                     overlayParams.flags = WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE | WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN | WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE;
@@ -934,10 +946,10 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                             } catch (InterruptedException e) {
                                 e.printStackTrace();
                             }
-                        } while (currentTaskPackageName.equals(getAppManager().withinPackage) && overlayView.isLayoutRequested());
+                        } while (currentTaskPackageName.equals(AppManager.withinPackage) && overlayView.isLayoutRequested());
 
                         runOnUiThread(() -> { //must be UI thread
-                            boolean success = accessibilityService.dispatchGesture(swipe, gestureResultCallback, getHandler());
+                            boolean success = accessibilityService.dispatchGesture(swipe, gestureResultCallback, UIHandler);
                             Log.e(TAG, "Did I dispatch " + swipe + " to " + accessibilityService + "? " + success + " // " + overlayView.isAttachedToWindow() + " // " + overlayView.isLayoutRequested());
                         });
                     });
@@ -983,7 +995,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             //do a delayed check to give Android OS time
             //to catch up from a permission being set
             if (!overlayInitialised) {
-                getHandler().postDelayed(() ->
+                UIHandler.postDelayed(() ->
                         DispatchManager.alertGuidePermissionGranted(LeadMeMain.STUDENT_NO_OVERLAY, permissionManager.isOverlayPermissionGranted()),
                         1000);
             }
@@ -1098,7 +1110,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                 if (studentLockOn && currentTaskPackageName != null && !currentTaskPackageName.equals(leadMePackageName)) {
                     Log.e(TAG, "RELAUNCH?? " + currentTaskPackageName);
 
-                    if (currentTaskPackageName.equals(getAppManager().withinPackage) || currentTaskPackageName.equals(getAppManager().youtubePackage)) {
+                    if (currentTaskPackageName.equals(AppManager.withinPackage) || currentTaskPackageName.equals(AppManager.youtubePackage)) {
                         getAppManager().relaunchLast(currentTaskPackageName, currentTaskName, currentTaskType, currentTaskURL, currentTaskURLTitle);
                     } else {
                         if(!currentTaskPackageName.equals(VREmbedVideoPlayer.packageName)) {
@@ -1483,7 +1495,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             Log.d(TAG, "DECOR VIEW! " + NearbyPeersManager.isConnectedAsFollower() + ", " + dialogManager.dialogShowing);
             if (NearbyPeersManager.isConnectedAsFollower() || OnBoardStudentInProgress) {
                 if (allowHide) {
-                    handler.postDelayed(this::hideSystemUIStudent, 0);
+                    UIHandler.postDelayed(this::hideSystemUIStudent, 0);
                 }
             }
         });
@@ -2609,7 +2621,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             //display main student view
             leadmeAnimator.setDisplayedChild(ANIM_LEARNER_INDEX);
             allowHide = true;
-            handler.postDelayed(this::hideSystemUIStudent, 1000);
+            UIHandler.postDelayed(this::hideSystemUIStudent, 1000);
 
             changeStudentName(name);
 
@@ -2814,13 +2826,13 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             }
 
             String finalStatusMsg = statusMsg;
-            getHandler().post(() -> {
+            runOnUI(() -> {
                 Toast studentStatus = Toast.makeText(context, finalStatusMsg, Toast.LENGTH_SHORT);
                 studentStatus.show();
             });
         }
 
-        getHandler().post(() -> {
+        runOnUI(() -> {
             if (!verifyOverlay()) {
                 return;
             }
@@ -3039,7 +3051,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         }
         Intent closeDialog = new Intent(Intent.ACTION_CLOSE_SYSTEM_DIALOGS);
         sendBroadcast(closeDialog);
-        handler.postDelayed(() -> sendBroadcast(closeDialog), 3000);
+        UIHandler.postDelayed(() -> sendBroadcast(closeDialog), 3000);
 
     }
 
@@ -3170,7 +3182,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         video.requestFocus();
         video.start();
         video.setOnCompletionListener(mp -> video.start());
-        video.setOnPreparedListener(mp -> handler.postDelayed(() -> video.setBackgroundColor(Color.TRANSPARENT), 150));
+        video.setOnPreparedListener(mp -> UIHandler.postDelayed(() -> video.setBackgroundColor(Color.TRANSPARENT), 150));
 
 
         GestureDetector gestureDetector = new GestureDetector(this, new OnboardingGestureDetector(this));
@@ -3313,7 +3325,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             buttonsLayout.setVisibility(View.VISIBLE);
             OnBoard.findViewById(R.id.onboard_ok_btn).setOnClickListener(v1 -> {
                 video.setBackgroundColor(Color.WHITE);
-                handler.postDelayed(() -> setContentView(leadmeAnimator), 50);
+                UIHandler.postDelayed(() -> setContentView(leadmeAnimator), 50);
                 video.suspend();
                 OnBoard = null;
             });

@@ -163,7 +163,7 @@ public class ScreenSharingManager {
      * this stopped it in the past if memory was running low.
      */
     public void getBitmapsFromScreen() {
-       mImageReader.setOnImageAvailableListener(reader, main.getHandler());
+       mImageReader.setOnImageAvailableListener(reader, LeadMeMain.UIHandler);
     }
 
     ImageReader.OnImageAvailableListener reader = new ImageReader.OnImageAvailableListener() {

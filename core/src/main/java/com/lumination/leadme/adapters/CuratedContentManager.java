@@ -210,7 +210,7 @@ public class CuratedContentManager {
         CuratedContentManager.videoFavouritesManager = main.getWebManager().getYouTubeFavouritesManager();
         CuratedContentManager.main = main;
         if (CuratedContentManager.curatedContentAdapter != null) {
-            main.runOnUiThread(() -> {
+            LeadMeMain.runOnUI(() -> {
                 CuratedContentManager.curatedContentAdapter.curatedContentList = CuratedContentManager.filteredCuratedContentList;
                 CuratedContentManager.curatedContentAdapter.notifyDataSetChanged();
             });

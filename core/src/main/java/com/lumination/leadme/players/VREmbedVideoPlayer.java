@@ -293,8 +293,8 @@ public class VREmbedVideoPlayer {
 
         vrplayerSettingsDialogView.findViewById(R.id.video_back_btn).setOnClickListener(v -> {
             this.fileName = null;
-            main.vrPath = null;
-            main.vrURI = null;
+            LeadMeMain.vrPath = null;
+            LeadMeMain.vrURI = null;
             playbackSettingsDialog.dismiss();
             main.getDialogManager().showVRContentDialog();
         });
@@ -323,7 +323,7 @@ public class VREmbedVideoPlayer {
         vrplayerSetSourceBtn.setOnClickListener(view -> selectSource());
 
         vrplayerPreviewPushBtn.setOnClickListener(view -> {
-            main.getHandler().post(this::pushToLearners);
+            LeadMeMain.UIHandler.post(this::pushToLearners);
 
             //TODO test this v
             //VR default is always set to mono
@@ -351,7 +351,7 @@ public class VREmbedVideoPlayer {
      * device needs a Uri or an absolute path for the playback controller.
      */
     private void pushToLearners() {
-        if (main.vrURI == null && main.vrPath == null) {
+        if (LeadMeMain.vrURI == null && LeadMeMain.vrPath == null) {
             Toast.makeText(main, "A video has not been selected", Toast.LENGTH_SHORT).show();
             return;
         }
@@ -363,11 +363,11 @@ public class VREmbedVideoPlayer {
         if(LeadMeMain.isMiUiV9()) {
             //setting the playback video controller
             setupVideoPreview(controllerVideoView);
-            controllerVideoView.setVideoPath(main.vrPath);
+            controllerVideoView.setVideoPath(LeadMeMain.vrPath);
         } else {
             //setting the playback video controller
             setupVideoPreview(controllerVideoView);
-            controllerVideoView.setVideoURI(main.vrURI);
+            controllerVideoView.setVideoURI(LeadMeMain.vrURI);
         }
 
         //LAUNCH THE APPLICATION FROM HERE
@@ -391,7 +391,7 @@ public class VREmbedVideoPlayer {
         Log.d("SetTotalTime", "Value: " + value);
         if (value > 0) {
             totalTime = value;
-            main.runOnUiThread(() -> totalTimeText.setText(intToTime(totalTime)));
+            LeadMeMain.runOnUI(() -> totalTimeText.setText(intToTime(totalTime)));
         }
     }
 
@@ -407,7 +407,7 @@ public class VREmbedVideoPlayer {
         if (tmpCurr > -1) {
             currentTime = tmpCurr;
         }
-        main.runOnUiThread(() -> {
+        LeadMeMain.runOnUI(() -> {
             elapsedTimeText.setText(intToTime((int) currentTime));
             int progress = Math.round((currentTime / totalTime) * 100);
             progressBar.setProgress(progress);
@@ -434,7 +434,7 @@ public class VREmbedVideoPlayer {
         startFromTime = newTime;
 
         //update player and local view
-        main.runOnUiThread(() -> {
+        LeadMeMain.runOnUI(() -> {
             //set the video at new time (needs to be in ms)
             if(startFromTime == 0) {
                 //show the first frame
@@ -458,19 +458,19 @@ public class VREmbedVideoPlayer {
     }
 
     private void openPreview(String title) {
-        if(main.vrURI != null || main.vrPath != null) {
+        if(LeadMeMain.vrURI != null || LeadMeMain.vrPath != null) {
             if(LeadMeMain.isMiUiV9()) {
                 //setting the playback video controller
                 setupVideoPreview(vrplayerPreviewVideoView);
-                controllerVideoView.setVideoPath(main.vrPath);
+                controllerVideoView.setVideoPath(LeadMeMain.vrPath);
             } else {
                 //setting the playback video controller
                 setupVideoPreview(vrplayerPreviewVideoView);
-                controllerVideoView.setVideoURI(main.vrURI);
+                controllerVideoView.setVideoURI(LeadMeMain.vrURI);
             }
         }
 
-        main.runOnUiThread(() -> {
+        LeadMeMain.runOnUI(() -> {
             main.closeKeyboard();
             main.hideSystemUI();
         });
@@ -593,7 +593,7 @@ public class VREmbedVideoPlayer {
     }
 
     private void showVideoController() {
-        main.runOnUiThread(() -> {
+        LeadMeMain.runOnUI(() -> {
             main.closeKeyboard();
             main.hideSystemUI();
         });
@@ -619,7 +619,7 @@ public class VREmbedVideoPlayer {
     }
 
     private void hideVideoController() {
-        main.runOnUiThread(() -> {
+        LeadMeMain.runOnUI(() -> {
             main.closeKeyboard();
             main.hideSystemUI();
         });

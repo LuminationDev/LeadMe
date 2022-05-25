@@ -136,7 +136,7 @@ public class NearbyPeersManager {
             manInfo = info;
             NSDManager.discoveredLeaders.add(info);
             selectedLeader = new ConnectedPeer(leaderName, IpAddress);
-            LeadMeMain.getInstance().runOnUiThread(NearbyPeersManager::connectToSelectedLeader);
+            LeadMeMain.runOnUI(NearbyPeersManager::connectToSelectedLeader);
         });
     }
 
@@ -227,7 +227,7 @@ public class NearbyPeersManager {
             LeadMeMain.getInstance().getConnectedLearnersAdapter().refresh();
             disconnectStudent(endpointId);
         } else {
-            LeadMeMain.getInstance().runOnUiThread(() -> {
+            LeadMeMain.runOnUI(() -> {
                 LeadMeMain.getInstance().screenSharingManager.clientToServerSocket = null;
                 LeadMeMain.getInstance().screenSharingManager.stopService(); //stop the screen sharing service
                 ArrayList<ConnectedPeer> temp = new ArrayList<>();

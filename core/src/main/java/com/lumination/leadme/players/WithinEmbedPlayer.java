@@ -493,7 +493,7 @@ public class WithinEmbedPlayer {
         attemptedURL = foundURL;
         Log.d(TAG, "Launching WithinVR for students: " + attemptedURL + ", [STR] " + stream + ", [VR] " + vrMode);
         main.getAppManager().launchWithin(attemptedURL, stream, vrMode, main.getSelectedOnly());
-        main.updateFollowerCurrentTask(main.getAppManager().withinPackage, "Within VR", "VR Video", attemptedURL, foundTitle);
+        main.updateFollowerCurrentTask(AppManager.withinPackage, "Within VR", "VR Video", attemptedURL, foundTitle);
 
         //update UI
         main.showLeaderScreen();
