@@ -13,6 +13,7 @@ import com.google.android.gms.nearby.connection.Payload;
 import com.lumination.leadme.adapters.ConnectedLearnersAdapter;
 import com.lumination.leadme.connections.ConnectedPeer;
 import com.lumination.leadme.LeadMeMain;
+import com.lumination.leadme.controller.Controller;
 import com.lumination.leadme.services.NetworkService;
 import com.lumination.leadme.models.Client;
 
@@ -103,7 +104,7 @@ public class NearbyPeersManager {
                 "again.");
 
         //In case the device is trying to connect manually when not in manual mode
-        if((!LeadMeMain.getInstance().sessionManual || !LeadMeMain.getInstance().directConnection) && manInfo != null) {
+        if((!LeadMeMain.sessionManual || !LeadMeMain.directConnection) && manInfo != null) {
             manInfo = null;
         }
 
@@ -200,7 +201,7 @@ public class NearbyPeersManager {
      * Set the ID of a user that has just logged in.
      * @param id A string representing the new user.
      */
-    public void setID(String id) {
+    public static void setID(String id) {
         if (id != null && id.length() > 0) {
             myID = id;
             Log.i(TAG, "My ID is now " + myID);
@@ -214,7 +215,7 @@ public class NearbyPeersManager {
      * @param endpointId A string representing a students device.
      */
     public static void disconnectStudent(String endpointId) {
-        LeadMeMain.getInstance().getNetworkManager().removeClient(Integer.parseInt(endpointId));
+        Controller.getInstance().getNetworkManager().removeClient(Integer.parseInt(endpointId));
     }
 
     /**
@@ -223,15 +224,15 @@ public class NearbyPeersManager {
      */
     public static void disconnectFromEndpoint(String endpointId) {
         if (LeadMeMain.isGuide) {
-            LeadMeMain.getInstance().getConnectedLearnersAdapter().alertStudentDisconnect(endpointId);
-            LeadMeMain.getInstance().getConnectedLearnersAdapter().refresh();
+            Controller.getInstance().getConnectedLearnersAdapter().alertStudentDisconnect(endpointId);
+            Controller.getInstance().getConnectedLearnersAdapter().refresh();
             disconnectStudent(endpointId);
         } else {
             LeadMeMain.runOnUI(() -> {
-                LeadMeMain.getInstance().screenSharingManager.clientToServerSocket = null;
-                LeadMeMain.getInstance().screenSharingManager.stopService(); //stop the screen sharing service
+                Controller.getInstance().getScreenSharingManager().clientToServerSocket = null;
+                Controller.getInstance().getScreenSharingManager().stopService(); //stop the screen sharing service
                 ArrayList<ConnectedPeer> temp = new ArrayList<>();
-                LeadMeMain.getInstance().getLeaderSelectAdapter().setLeaderList(temp);
+                Controller.getInstance().getLeaderSelectAdapter().setLeaderList(temp);
                 LeadMeMain.getInstance().showLeaderWaitMsg(true);
                 NSDManager.startDiscovery();
                 LeadMeMain.getInstance().setUIDisconnected();

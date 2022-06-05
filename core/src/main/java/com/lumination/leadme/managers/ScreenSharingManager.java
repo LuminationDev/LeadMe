@@ -16,6 +16,7 @@ import android.util.DisplayMetrics;
 import android.util.Log;
 
 import com.lumination.leadme.LeadMeMain;
+import com.lumination.leadme.controller.Controller;
 import com.lumination.leadme.services.NetworkService;
 import com.lumination.leadme.services.ScreensharingService;
 
@@ -37,8 +38,8 @@ public class ScreenSharingManager {
     private ImageReader mImageReader;
 
     private final ExecutorService screenshotSender = Executors.newFixedThreadPool(1);
-    public boolean permissionGranted = false;
-    public boolean sendImages = false;
+    public static boolean permissionGranted = false;
+    public static boolean sendImages = false;
     public Socket clientToServerSocket = null;
 
     public ScreenSharingManager(LeadMeMain main){
@@ -77,7 +78,6 @@ public class ScreenSharingManager {
         try {
             if(clientToServerSocket != null) {
                 clientToServerSocket.close();
-                //mImageReader.close();
             }
             sendImages = false;
         } catch (IOException e) {
@@ -116,10 +116,12 @@ public class ScreenSharingManager {
     public void handleResultReturn(int resultCode, Intent data){
         Log.d(TAG, "handleResultReturn: "+ resultCode);
         if(resultCode == -1){
-            DispatchManager.sendActionToSelected(LeadMeMain.ACTION_TAG,LeadMeMain.STUDENT_NO_XRAY+"OK:"+ NearbyPeersManager.myID, NearbyPeersManager.getAllPeerIDs());
+            DispatchManager.sendActionToSelected(Controller.ACTION_TAG,
+                    Controller.STUDENT_NO_XRAY + "OK:" + NearbyPeersManager.myID, NearbyPeersManager.getAllPeerIDs());
             permissionGranted=true;
         }else{
-            DispatchManager.sendActionToSelected(LeadMeMain.ACTION_TAG,LeadMeMain.STUDENT_NO_XRAY+"BAD:"+ NearbyPeersManager.myID, NearbyPeersManager.getAllPeerIDs());
+            DispatchManager.sendActionToSelected(Controller.ACTION_TAG,
+                    Controller.STUDENT_NO_XRAY + "BAD:" + NearbyPeersManager.myID, NearbyPeersManager.getAllPeerIDs());
             return;
         }
 

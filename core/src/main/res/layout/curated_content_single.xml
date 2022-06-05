@@ -5,7 +5,7 @@
 
     <data>
         <import type="com.lumination.leadme.models.CuratedContentItem"></import>
-        <import type="com.lumination.leadme.adapters.CuratedContentManager"></import>
+        <import type="com.lumination.leadme.managers.CuratedContentManager"></import>
         <variable
             name="curatedContentItem"
             type="com.lumination.leadme.models.CuratedContentItem" />

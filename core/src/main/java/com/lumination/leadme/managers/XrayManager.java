@@ -29,6 +29,7 @@ import com.lumination.leadme.adapters.ConnectedLearnersAdapter;
 import com.lumination.leadme.connections.ConnectedPeer;
 import com.lumination.leadme.LeadMeMain;
 import com.lumination.leadme.R;
+import com.lumination.leadme.controller.Controller;
 
 public class XrayManager {
     private final String TAG = "XrayManager";
@@ -111,7 +112,7 @@ public class XrayManager {
         xrayDropdown.findViewById(R.id.disconnect_text).setOnClickListener(view -> {
             ConnectedPeer thisPeer = getCurrentlyDisplayedStudent();
             Log.w(TAG, "Removing student: " + thisPeer.getID() + ", " + thisPeer.getDisplayName());
-            main.getConnectedLearnersAdapter().showLogoutPrompt(thisPeer.getID());
+            Controller.getInstance().getConnectedLearnersAdapter().showLogoutPrompt(thisPeer.getID());
             xrayButton.callOnClick();
         });
 
@@ -123,7 +124,7 @@ public class XrayManager {
 
             if (displayedText.equals("Select") && !currentlySelected) {
                 Log.e(TAG, "Setting SELECTED!");
-                main.getConnectedLearnersAdapter().selectPeer(thisPeer.getID(), true);
+                Controller.getInstance().getConnectedLearnersAdapter().selectPeer(thisPeer.getID(), true);
                 updateXrayForSelection(thisPeer);
 
                 selectToggleBtn.setCompoundDrawablesWithIntrinsicBounds(R.drawable.icon_unselect_peer, 0, 0, 0);
@@ -132,7 +133,7 @@ public class XrayManager {
 
             } else if (displayedText.equals("Unselect") && currentlySelected) {
                 Log.e(TAG, "Setting UNSELECTED!");
-                main.getConnectedLearnersAdapter().selectPeer(thisPeer.getID(), false);
+                Controller.getInstance().getConnectedLearnersAdapter().selectPeer(thisPeer.getID(), false);
                 updateXrayForSelection(thisPeer);
 
                 selectToggleBtn.setCompoundDrawablesWithIntrinsicBounds(R.drawable.icon_select_peer, 0, 0, 0);
@@ -173,7 +174,7 @@ public class XrayManager {
         ImageView closeButton = xrayScreen.findViewById(R.id.back_btn);
         closeButton.setOnClickListener(v -> {
             hideXrayView();
-            DispatchManager.sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.XRAY_OFF, NearbyPeersManager.getAllPeerIDs());
+            DispatchManager.sendActionToSelected(Controller.ACTION_TAG, Controller.XRAY_OFF, NearbyPeersManager.getAllPeerIDs());
             //remove last
             if (xrayDropdown.getVisibility() == VISIBLE) {
                 xrayButton.callOnClick(); //hide it
@@ -282,7 +283,7 @@ public class XrayManager {
 
             Drawable icon = xrayStudent.getIcon();
             if (icon == null) {
-                icon = main.leadmeIcon;
+                icon = main.leadMeIcon;
             }
             //update app icon
             xrayStudentIcon.setImageDrawable(icon);
@@ -302,12 +303,12 @@ public class XrayManager {
         //let everyone else know we're NOT watching so they reduce computational load
         Set<String> notSelected = NearbyPeersManager.getAllPeerIDs();
         notSelected.remove(xrayStudent.getID());
-        DispatchManager.sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.XRAY_OFF, notSelected);
+        DispatchManager.sendActionToSelected(Controller.ACTION_TAG, Controller.XRAY_OFF, notSelected);
 
         //let student know we're watching so they send screenshots
         Set<String> selected = new HashSet<>();
         selected.add(xrayStudent.getID());
-        DispatchManager.sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.XRAY_ON, selected);
+        DispatchManager.sendActionToSelected(Controller.ACTION_TAG, Controller.XRAY_ON, selected);
 
         Log.e(TAG, "Peers: SEL:" + selected + ", NOT:" + notSelected);
 

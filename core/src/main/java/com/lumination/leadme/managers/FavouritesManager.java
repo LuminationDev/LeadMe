@@ -21,6 +21,7 @@ import androidx.core.content.res.ResourcesCompat;
 import com.koushikdutta.urlimageviewhelper.UrlImageViewHelper;
 import com.lumination.leadme.LeadMeMain;
 import com.lumination.leadme.R;
+import com.lumination.leadme.controller.Controller;
 import com.lumination.leadme.linkpreview.LinkPreviewCallback;
 import com.lumination.leadme.linkpreview.SourceContent;
 import com.lumination.leadme.linkpreview.TextCrawler;
@@ -693,7 +694,7 @@ public class FavouritesManager extends BaseAdapter {
             convertView.setClickable(true);
             convertView.setOnClickListener(v -> {
                 favAdding = false;
-                main.getDialogManager().showAppPushDialog(appName, appIcon, favPackage);
+                Controller.getInstance().getDialogManager().showAppPushDialog(appName, appIcon, favPackage);
             });
 
             convertView.setLongClickable(true);

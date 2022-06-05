@@ -7,6 +7,7 @@ import android.view.accessibility.AccessibilityEvent;
 import android.view.accessibility.AccessibilityNodeInfo;
 
 import com.lumination.leadme.LeadMeMain;
+import com.lumination.leadme.controller.Controller;
 import com.lumination.leadme.managers.DispatchManager;
 import com.lumination.leadme.managers.NearbyPeersManager;
 
@@ -75,7 +76,7 @@ public class YouTubeAccessibilityManager {
 
         ArrayList<AccessibilityNodeInfo> detectAdNodes = connector.collectChildren(rootInActiveWindow, detectAdsPhrases, 0);
         if (!detectAdNodes.isEmpty()) {
-            Log.e(TAG, "WAITING FOR AD TO FINISH >> " + main.getWebManager().getLaunchTitle());
+            Log.e(TAG, "WAITING FOR AD TO FINISH >> " + Controller.getInstance().getWebManager().getLaunchTitle());
             adFinished = false;
 
             for (AccessibilityNodeInfo detectNode : detectAdNodes) {
@@ -121,17 +122,17 @@ public class YouTubeAccessibilityManager {
         dismissPopups(rootInActiveWindow); //do this for each fresh load of the video
 
         ArrayList<AccessibilityNodeInfo> adNodes = null;
-        if (!main.getWebManager().isFreshPlay() && !videoPlayStarted) {
+        if (!Controller.getInstance().getWebManager().isFreshPlay() && !videoPlayStarted) {
             //this code assists in confirming that the ACTUAL video (not just an ad) has started
             //tapVideoScreen();
-            pushTitle = main.getWebManager().getLaunchTitle().trim();
-            pushURL = main.getWebManager().getPushURL();
+            pushTitle = Controller.getInstance().getWebManager().getLaunchTitle().trim();
+            pushURL = Controller.getInstance().getWebManager().getPushURL();
 
             adNodes = connector.collectChildren(rootInActiveWindow, "Ad", 0);
 
             adNodes.addAll(connector.collectChildren(rootInActiveWindow, "title", 0));
 
-            Log.d(TAG, "Has it started? " + videoPlayStarted + ", " + main.getWebManager().isFreshPlay() + ", " + adNodes.size() + " for " + pushTitle);
+            Log.d(TAG, "Has it started? " + videoPlayStarted + ", " + Controller.getInstance().getWebManager().isFreshPlay() + ", " + adNodes.size() + " for " + pushTitle);
 //            tapVideoScreen();
 
             if (adNodes.isEmpty()) {
@@ -141,13 +142,13 @@ public class YouTubeAccessibilityManager {
 //            tapVideoScreen();
         }
 
-        if (main.getWebManager().isFreshPlay()) {
+        if (Controller.getInstance().getWebManager().isFreshPlay()) {
             //this typically happens before ads play,
             //but sometimes doesn't trigger until after
             Log.w(TAG, "FRESH PLAY");
             videoPlayStarted = false; //reset this here
             closedMini = false; //reset
-            main.getWebManager().setFreshPlay(false); //done!
+            Controller.getInstance().getWebManager().setFreshPlay(false); //done!
             cueYouTubeAction(CUE_PAUSE + "");
             cueYouTubeAction(CUE_FS_ONLY + "");
         } else if (!videoPlayStarted && !pushTitle.isEmpty() && adNodes == null && adNodes.isEmpty()) {
@@ -162,9 +163,9 @@ public class YouTubeAccessibilityManager {
         }
 
         //check if this should auto-enter VR mode
-        if (main.getWebManager().launchingVR) {
+        if (Controller.getInstance().getWebManager().launchingVR) {
             cuedActions.add(CUE_VR_ON + "");
-            main.getWebManager().launchingVR = false;
+            Controller.getInstance().getWebManager().launchingVR = false;
         }
 
         if (goalTime.isEmpty()) {
@@ -507,15 +508,9 @@ public class YouTubeAccessibilityManager {
         Log.e(TAG, "LAST ACTIONS Event: " + connector.lastEvent + " Info: " + connector.lastInfo);
 
         if (connector.lastEvent != null && connector.lastInfo != null) {
-            //new Thread(() -> {
-            main.backgroundExecutor.submit(new Runnable() {
-                @Override
-                public void run() {
-                    manageYouTubeAccess(connector.lastEvent, connector.lastInfo); //re-try last event
-                }
+            main.backgroundExecutor.submit(() -> {
+                manageYouTubeAccess(connector.lastEvent, connector.lastInfo); //re-try last event
             });
-
-            //}).start();
         }
     }
 
@@ -670,7 +665,7 @@ public class YouTubeAccessibilityManager {
     private void alertGuideAdsHaveFinished() {
         Log.d(TAG, "Alerting Guide Ads have finished");
 
-        DispatchManager.sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.STUDENT_FINISH_ADS + NearbyPeersManager.getID(),
+        DispatchManager.sendActionToSelected(Controller.ACTION_TAG, Controller.STUDENT_FINISH_ADS + NearbyPeersManager.getID(),
                 NearbyPeersManager.getAllPeerIDs());
     }
 
@@ -687,8 +682,8 @@ public class YouTubeAccessibilityManager {
             Log.d(TAG, "Closing Mini Player");
             closedMini = true;
             //difficult to accurately tap the right button, so just relaunch the video
-            main.getWebManager().launchYouTube(pushURL, pushTitle, main.getWebManager().getYouTubeEmbedPlayer().isVROn(), false);
-            if (!main.getWebManager().launchingVR) {
+            Controller.getInstance().getWebManager().launchYouTube(pushURL, pushTitle, Controller.getInstance().getWebManager().getYouTubeEmbedPlayer().isVROn(), false);
+            if (!Controller.getInstance().getWebManager().launchingVR) {
                 cueYouTubeAction(CUE_PAUSE + "");
                 cueYouTubeAction(CUE_VR_OFF + "");
             }

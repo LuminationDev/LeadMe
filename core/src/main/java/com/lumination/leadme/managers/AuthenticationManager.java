@@ -41,6 +41,7 @@ import com.himanshurawat.hasher.HashType;
 import com.himanshurawat.hasher.Hasher;
 import com.lumination.leadme.LeadMeMain;
 import com.lumination.leadme.R;
+import com.lumination.leadme.controller.Controller;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -260,7 +261,7 @@ public class AuthenticationManager {
 
         main.setContentView(loginView);
 
-        loginView.setOnClickListener(v -> main.getDialogManager().hideSoftKeyboard(v));
+        loginView.setOnClickListener(v -> Controller.getInstance().getDialogManager().hideSoftKeyboard(v));
 
         switch (page) {
             //TODO kept in case of reuse in the future
@@ -480,7 +481,7 @@ public class AuthenticationManager {
                         if (task.getResult().exists()) {
                             if (task.getResult().getString("pin").length() > 0) {
                                 progressBar.setVisibility(View.GONE);
-                                main.setUserName(currentUser.getDisplayName(), false);
+                                setUserName(currentUser.getDisplayName(), false);
                                 main.animatorAsContentView();
                             }
                         }
@@ -509,7 +510,7 @@ public class AuthenticationManager {
                             db.collection("users").document(mAuth.getCurrentUser().getUid()).get().addOnCompleteListener(task -> {
                                 if (task.isSuccessful()) {
                                     progressBar.setVisibility(View.GONE);
-                                    main.setUserName(task.getResult().getString("name"), false);
+                                    setUserName(task.getResult().getString("name"), false);
                                     main.animatorAsContentView();
                                     loginPassword="";
                                     Name="";
@@ -566,7 +567,7 @@ public class AuthenticationManager {
                             if (task1.isSuccessful()) {
                                 if (task1.getResult().exists()) {
                                     Log.d(TAG, "handleSignInResult: user found");
-                                    main.setUserName(account.getGivenName(), false);
+                                    setUserName(account.getGivenName(), false);
 
                                 } else {
                                     Log.d(TAG, "handleSignInResult: new user");
@@ -577,7 +578,7 @@ public class AuthenticationManager {
                                     db.collection("users").document(currentUser.getUid()).set(userDet)
                                             .addOnSuccessListener(aVoid -> {
                                                 Log.d(TAG, "handleSignInResult: new user created");
-                                                main.setUserName(account.getGivenName(), false);
+                                                setUserName(account.getGivenName(), false);
                                                 hideSystemUI();
                                             })
                                             .addOnFailureListener(e -> Log.d(TAG, "handleSignInResult: failed to create new user please check internet"));
@@ -587,7 +588,7 @@ public class AuthenticationManager {
                         });
                     } else {
                         Intent signInIntent = mGoogleSignInClient.getSignInIntent();
-                        main.startActivityForResult(signInIntent, main.RC_SIGN_IN);
+                        main.startActivityForResult(signInIntent, LeadMeMain.RC_SIGN_IN);
                     }
                 });
             } else {
@@ -665,23 +666,23 @@ public class AuthenticationManager {
 
                         if (!currentUser.isEmailVerified()) {
                             //not clearing
-                            main.cleanDialogs();
+                            Controller.getInstance().getDialogManager().cleanUpDialogs();
                             buildloginsignup(3, false);
                         } else {
                             db.collection("users").document(mAuth.getCurrentUser().getUid()).get()
                                     .addOnCompleteListener((OnCompleteListener<DocumentSnapshot>) task1 -> {
                                 Log.d(TAG, "onComplete: ");
-                                main.setIndeterminateBar(View.GONE);
+                                Controller.getInstance().getDialogManager().setIndeterminateBar(View.GONE);
 
                                 if (task1.isSuccessful()) {
-                                    main.setIndeterminateBar(View.GONE);
+                                    Controller.getInstance().getDialogManager().setIndeterminateBar(View.GONE);
                                     if (task1.getResult().get("pin") == null ) {
-                                        main.cleanDialogs();
+                                        Controller.getInstance().getDialogManager().cleanUpDialogs();
                                         buildloginsignup(4, false);
                                         return;
                                     }
 
-                                    main.setUserName((String) task1.getResult().get("name"), false);
+                                    setUserName((String) task1.getResult().get("name"), false);
                                     Log.d(TAG, "onComplete: name found: " + task1.getResult().get("name"));
                                     main.animatorAsContentView();
                                 }
@@ -691,7 +692,7 @@ public class AuthenticationManager {
                     } else {
                         // If sign in fails, display a message to the user.
                         Log.w(TAG, "signInWithEmail:failure", task.getException());
-                        main.setIndeterminateBar(View.GONE);
+                        Controller.getInstance().getDialogManager().setIndeterminateBar(View.GONE);
                         errorText.setVisibility(View.VISIBLE);
                         errorText.setText(task.getException().getMessage());
                     }
@@ -701,6 +702,17 @@ public class AuthenticationManager {
     }
 
     //HELPER FUNCTIONS
+    /**
+     * Sets the name of the current user and calls the loginAction.
+     * @param name A string representing the name of the user that is connecting.
+     * @param manualLogin A boolean representing if the user is manually finding guides.
+     */
+    public void setUserName(String name, Boolean manualLogin) {
+        NearbyPeersManager.myName = name;
+        LeadMeMain.getInstance().getNameViewController().setText(name);
+        LeadMeMain.getInstance().loginAction(manualLogin);
+    }
+
     /**
      * Make a call to firebase to set the pin of a new account.
      * @param pin A string representing the chosen pin.

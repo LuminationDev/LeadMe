@@ -9,8 +9,11 @@ import android.widget.CheckBox;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 
+import androidx.core.content.res.ResourcesCompat;
+
 import com.koushikdutta.urlimageviewhelper.UrlImageViewHelper;
 import com.lumination.leadme.R;
+import com.lumination.leadme.managers.CuratedContentManager;
 import com.lumination.leadme.models.CuratedContentItem;
 import com.lumination.leadme.LeadMeMain;
 import com.lumination.leadme.databinding.RowCuratedContentItemBinding;
@@ -26,7 +29,7 @@ public class CuratedContentAdapter extends BaseAdapter {
     private LeadMeMain main;
     private View list_view;
 
-    CuratedContentAdapter(LeadMeMain main, View list_view) {
+    public CuratedContentAdapter(LeadMeMain main, View list_view) {
         this.main = main;
         this.mInflater = LayoutInflater.from(main);
         this.list_view = list_view;
@@ -71,28 +74,27 @@ public class CuratedContentAdapter extends BaseAdapter {
 
         binding.setCuratedContentItem(item);
         CheckBox fav = result.findViewById(R.id.fav_checkbox_curated_content);
-        CuratedContentItem curatedContentItem = item;
 
-        boolean isInFavourites = CuratedContentManager.isInFavourites(curatedContentItem.link, curatedContentItem.type);
+        boolean isInFavourites = CuratedContentManager.isInFavourites(item.link, item.type);
         fav.setOnCheckedChangeListener(null);
         fav.setChecked(isInFavourites);
-        fav.setOnCheckedChangeListener((button, checked) -> CuratedContentManager.addToFavourites(curatedContentItem.link, curatedContentItem.title, curatedContentItem.type, checked));
+        fav.setOnCheckedChangeListener((button, checked) -> CuratedContentManager.addToFavourites(item.link, item.title, item.type, checked));
 
         ImageView imageView = result.findViewById(R.id.img_view);
-        if (curatedContentItem.img_url != null) {
-            UrlImageViewHelper.setUrlDrawable(imageView, curatedContentItem.img_url);
+        if (item.img_url != null) {
+            UrlImageViewHelper.setUrlDrawable(imageView, item.img_url);
         }
 
         ImageView curatedContentTypeIcon = result.findViewById(R.id.curated_content_type_icon);
-        switch (curatedContentItem.type) {
+        switch (item.type) {
             case WITHIN:
-                curatedContentTypeIcon.setBackground(main.getResources().getDrawable(R.drawable.search_within, null));
+                curatedContentTypeIcon.setBackground(ResourcesCompat.getDrawable(main.getResources(), R.drawable.search_within, null));
                 break;
             case YOUTUBE:
-                curatedContentTypeIcon.setBackground(main.getResources().getDrawable(R.drawable.core_yt_icon, null));
+                curatedContentTypeIcon.setBackground(ResourcesCompat.getDrawable(main.getResources(), R.drawable.core_yt_icon, null));
                 break;
             case LINK:
-                curatedContentTypeIcon.setBackground(main.getResources().getDrawable(R.drawable.task_website_icon, null));
+                curatedContentTypeIcon.setBackground(ResourcesCompat.getDrawable(main.getResources(), R.drawable.task_website_icon, null));
                 break;
         }
 

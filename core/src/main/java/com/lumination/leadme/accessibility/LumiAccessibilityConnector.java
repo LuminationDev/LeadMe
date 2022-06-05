@@ -10,6 +10,7 @@ import android.view.accessibility.AccessibilityNodeInfo;
 import android.widget.Button;
 
 import com.lumination.leadme.LeadMeMain;
+import com.lumination.leadme.controller.Controller;
 import com.lumination.leadme.managers.AppManager;
 import com.lumination.leadme.managers.DispatchManager;
 import com.lumination.leadme.managers.NearbyPeersManager;
@@ -306,7 +307,7 @@ public class LumiAccessibilityConnector {
                     //if (showDebugMsg)
                     Log.d(TAG, "HAVE FOCUS!");
                     DispatchManager.launchAppOnFocus = null; //reset
-                    main.getAppManager().relaunchLast();
+                    Controller.getInstance().getAppManager().relaunchLast();
                 }
 
             } else if (event.getPackageName().toString().equals("com.android.systemui")
@@ -335,7 +336,9 @@ public class LumiAccessibilityConnector {
             if ((AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED == event.getEventType()
                     || (AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED == event.getEventType()))) {
                 //run the install event
-                main.autoInstall(event);
+                if(LeadMeMain.managingAutoInstaller) {
+                    Controller.getInstance().getLumiAppInstaller().install(event);
+                }
             }
 
         } catch (Exception e) {

@@ -17,6 +17,7 @@ import com.lumination.leadme.adapters.ConnectedLearnersAdapter;
 import com.lumination.leadme.connections.ConnectedPeer;
 import com.lumination.leadme.LeadMeMain;
 import com.lumination.leadme.R;
+import com.lumination.leadme.controller.Controller;
 import com.lumination.leadme.services.FileTransferService;
 import com.lumination.leadme.services.NetworkService;
 import com.lumination.leadme.models.Client;
@@ -291,7 +292,7 @@ public class NetworkManager {
         List<String> inputList2 = Arrays.asList(input.split(":"));
         if (LeadMeMain.fileTransferEnabled) {
             FileTransferManager.setFileType(inputList2.get(2));
-            LeadMeMain.getInstance().getFileTransferManager().receivingFile(NetworkService.getLeaderIPAddress(), Integer.parseInt(inputList2.get(1)));
+            Controller.getInstance().getFileTransferManager().receivingFile(NetworkService.getLeaderIPAddress(), Integer.parseInt(inputList2.get(1)));
         }
     }
 
@@ -379,7 +380,7 @@ public class NetworkManager {
             endpoint.Id = String.valueOf(clientID);
             ConnectedPeer thisPeer = new ConnectedPeer(endpoint);
             LeadMeMain.runOnUI(() -> {
-                LeadMeMain.getInstance().getConnectedLearnersAdapter().addStudent(thisPeer);
+                Controller.getInstance().getConnectedLearnersAdapter().addStudent(thisPeer);
                 LeadMeMain.getInstance().showConnectedStudents(true);
             });
         }
@@ -423,7 +424,7 @@ public class NetworkManager {
         Log.d(TAG, "updateParent: client: " + clientID + " has lost connection");
         cleanUpTransfer(clientID);
         currentClients.remove(clientID);
-        LeadMeMain.getInstance().getXrayManager().removePeerFromMap(String.valueOf(clientID));
+        Controller.getInstance().getXrayManager().removePeerFromMap(String.valueOf(clientID));
         LeadMeMain.runOnUI(() -> {
             if (ConnectedLearnersAdapter.getMatchingPeer(String.valueOf(clientID)) != null) {
                 if (ConnectedLearnersAdapter.getMatchingPeer(String.valueOf(clientID)).getStatus() != ConnectedPeer.STATUS_ERROR) {
