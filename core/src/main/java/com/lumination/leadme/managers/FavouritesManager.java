@@ -28,6 +28,7 @@ import com.lumination.leadme.linkpreview.TextCrawler;
 
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
@@ -144,7 +145,13 @@ public class FavouritesManager extends BaseAdapter {
                 String[] tmp = o.toString().split(breaker);
                 actualItems.add(tmp[0]);
                 contentList.add(tmp[0]);
-                titleList.add(tmp[1]);
+
+                if(tmp.length > 1) {
+                    titleList.add(tmp[1]);
+                } else {
+                    titleList.add(tmp[0]);
+                }
+
                 iconList.add(null);
             }
         }

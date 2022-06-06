@@ -494,6 +494,7 @@ public class VREmbedVideoPlayer {
             disableSetSourceBtn(firstOpen);
         }
 
+        Controller.getInstance().getDialogManager().toggleSelectedView(vrplayerSettingsDialogView);
         playbackSettingsDialog.show();
     }
 

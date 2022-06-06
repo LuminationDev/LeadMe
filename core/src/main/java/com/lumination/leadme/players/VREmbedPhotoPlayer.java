@@ -378,6 +378,7 @@ public class VREmbedPhotoPlayer {
             disableSetSourceBtn(firstOpen);
         }
 
+        Controller.getInstance().getDialogManager().toggleSelectedView(vrplayerSettingsDialogView);
         playbackSettingsDialog.show();
     }
 
