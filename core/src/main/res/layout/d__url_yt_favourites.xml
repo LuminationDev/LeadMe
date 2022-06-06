@@ -110,7 +110,7 @@
 
             <Button
                 android:id="@+id/yt_del_btn"
-                android:layout_width="70dp"
+                android:layout_width="75dp"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_vertical|end"
                 android:layout_marginStart="20dp"
@@ -224,7 +224,7 @@
 
             <Button
                 android:id="@+id/url_del_btn"
-                android:layout_width="70dp"
+                android:layout_width="75dp"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_vertical|end"
                 android:layout_marginStart="20dp"

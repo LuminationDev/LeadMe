@@ -285,7 +285,8 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     private ImageView currentTaskIcon;
     private TextView currentTaskTitle, currentTaskDescription;
     private Button currentTaskLaunchBtn;
-    public static String currentTaskPackageName, currentTaskURLTitle, currentTaskName, currentTaskURL, currentTaskType;
+    public static String currentTaskPackageName = "none";
+    public static String currentTaskURLTitle, currentTaskName, currentTaskURL, currentTaskType;
 
     public static Intent appIntentOnFocus = null;
     Toast appToast = null;
@@ -2593,7 +2594,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     }
 
     public void updateFollowerCurrentTaskToLeadMe() {
-        if (currentTaskPackageName != leadMePackageName) {
+        if (!currentTaskPackageName.equals(leadMePackageName)) {
             activityManager.killBackgroundProcesses(currentTaskPackageName);
         }
         updateFollowerCurrentTask(leadMePackageName, leadMeAppName, "Application", "", "");
@@ -2618,6 +2619,12 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                         e.printStackTrace();
                     }
                 });
+
+                if (!currentTaskPackageName.equals(leadMePackageName)) {
+                    currentTaskLaunchBtn.setVisibility(View.VISIBLE);
+                } else {
+                    currentTaskLaunchBtn.setVisibility(View.INVISIBLE);
+                }
             }
             currentTaskPackageName = packageName;
             currentTaskName = appName;
