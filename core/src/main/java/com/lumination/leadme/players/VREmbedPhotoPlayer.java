@@ -22,6 +22,7 @@ import androidx.core.widget.ImageViewCompat;
 import com.lumination.leadme.LeadMeMain;
 import com.lumination.leadme.R;
 import com.lumination.leadme.accessibility.VRAccessibilityManager;
+import com.lumination.leadme.controller.Controller;
 import com.lumination.leadme.managers.DispatchManager;
 import com.lumination.leadme.managers.NearbyPeersManager;
 
@@ -253,14 +254,14 @@ public class VREmbedPhotoPlayer {
         vrplayerPhotoControls = vrplayerSettingsDialogView.findViewById(R.id.photo_controls);
         vrplayerNoVideo = vrplayerSettingsDialogView.findViewById(R.id.no_source_yet);
         vrplayerPreviewPhotoView = vrplayerSettingsDialogView.findViewById(R.id.photo_stream_imageview);
-        main.getDialogManager().setupPushToggle(vrplayerSettingsDialogView, false);
+        Controller.getInstance().getDialogManager().setupPushToggle(vrplayerSettingsDialogView, false);
 
         vrplayerSettingsDialogView.findViewById(R.id.photo_back_btn).setOnClickListener(v -> {
             this.fileName = null;
             LeadMeMain.vrPath = null;
             LeadMeMain.vrURI = null;
             playbackSettingsDialog.dismiss();
-            main.getDialogManager().showVRContentDialog();
+            Controller.getInstance().getDialogManager().showVRContentDialog();
         });
 
         vrplayerSetSourceBtn.setOnClickListener(view -> selectSource());
@@ -286,7 +287,7 @@ public class VREmbedPhotoPlayer {
         Log.d(TAG, "FileUtilities: picking a file");
 
         //Function to let leaders know what files can be picked
-        main.getDialogManager().showFileTypeDialog();
+        Controller.getInstance().getDialogManager().showFileTypeDialog();
     }
 
     /**
@@ -301,7 +302,7 @@ public class VREmbedPhotoPlayer {
 
         playbackSettingsDialog.dismiss();
 
-        if(LeadMeMain.isMiUiV9()) {
+        if(Controller.isMiUiV9()) {
             //setting the playback video controller
             setupPhotoPreview(controllerImageView);
 
@@ -314,7 +315,7 @@ public class VREmbedPhotoPlayer {
         }
 
         //LAUNCH THE APPLICATION FROM HERE
-        main.getAppManager().launchApp(
+        Controller.getInstance().getAppManager().launchApp(
                 packageName,
                 appName,
                 false,
@@ -341,7 +342,7 @@ public class VREmbedPhotoPlayer {
 
     private void openPreview(String title) {
         if(LeadMeMain.vrURI != null || LeadMeMain.vrPath != null) {
-            if(LeadMeMain.isMiUiV9()) {
+            if(Controller.isMiUiV9()) {
                 //setting the playback video controller
                 setupPhotoPreview(vrplayerPreviewPhotoView);
 
@@ -391,7 +392,7 @@ public class VREmbedPhotoPlayer {
         ok.setOnClickListener(v -> {
             confirmPopup.dismiss();
             //return to main screen
-            main.getDialogManager().hideConfirmPushDialog();
+            Controller.getInstance().getDialogManager().hideConfirmPushDialog();
             showVideoController();
         });
     }
@@ -412,7 +413,7 @@ public class VREmbedPhotoPlayer {
      * @param peerSet A set of strings representing the learner ID's to send the action to.
      */
     public void launchVR(Set<String> peerSet) {
-        main.getAppManager().launchApp(packageName, appName, false, "false", true, peerSet);
+        Controller.getInstance().getAppManager().launchApp(packageName, appName, false, "false", true, peerSet);
     }
 
     /**
@@ -420,7 +421,7 @@ public class VREmbedPhotoPlayer {
      * @param peerSet A set of strings representing the learner ID's to send the action to.
      */
     public void relaunchVR(Set<String> peerSet) {
-        main.getAppManager().launchApp(packageName, appName, false, "false", true, peerSet);
+        Controller.getInstance().getAppManager().launchApp(packageName, appName, false, "false", true, peerSet);
         setPhotoSource();
     }
 
@@ -491,8 +492,8 @@ public class VREmbedPhotoPlayer {
     //sends an action to the connected peers.
     private void setPhotoSource() {
         //Send action to peers to play
-        DispatchManager.sendActionToSelected(LeadMeMain.ACTION_TAG,
-                LeadMeMain.VR_PLAYER_TAG + ":" + VRAccessibilityManager.CUE_SET_SOURCE + ":" + fileName + ":" + 0  + ":" + "Photo",
+        DispatchManager.sendActionToSelected(Controller.ACTION_TAG,
+                Controller.VR_PLAYER_TAG + ":" + VRAccessibilityManager.CUE_SET_SOURCE + ":" + fileName + ":" + 0  + ":" + "Photo",
                 NearbyPeersManager.getSelectedPeerIDsOrAll());
     }
 
@@ -501,8 +502,8 @@ public class VREmbedPhotoPlayer {
      * @param type A string representing what type the projection should change to.
      */
     private void changeProjection(String type) {
-        DispatchManager.sendActionToSelected(LeadMeMain.ACTION_TAG,
-                LeadMeMain.VR_PLAYER_TAG + ":" + VRAccessibilityManager.CUE_PROJECTION + ":" + type,
+        DispatchManager.sendActionToSelected(Controller.ACTION_TAG,
+                Controller.VR_PLAYER_TAG + ":" + VRAccessibilityManager.CUE_PROJECTION + ":" + type,
                 NearbyPeersManager.getSelectedPeerIDsOrAll());
     }
 

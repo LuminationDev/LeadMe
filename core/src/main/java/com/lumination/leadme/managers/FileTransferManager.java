@@ -21,6 +21,7 @@ import com.lumination.leadme.adapters.ConnectedLearnersAdapter;
 import com.lumination.leadme.connections.ConnectedPeer;
 import com.lumination.leadme.LeadMeMain;
 import com.lumination.leadme.R;
+import com.lumination.leadme.controller.Controller;
 import com.lumination.leadme.services.FileTransferService;
 import com.lumination.leadme.utilities.FileUtilities;
 
@@ -327,7 +328,8 @@ public class FileTransferManager {
             peerSet.add(String.valueOf(ID));
         }
 
-        main.sendDeviceMessage(R.string.waiting_for_transfer, peerSet);
+        DispatchManager.sendActionToSelected(Controller.ACTION_TAG,
+                Controller.UPDATE_DEVICE_MESSAGE + ":" + R.string.waiting_for_transfer, peerSet);
     }
 
     /**
@@ -438,7 +440,11 @@ public class FileTransferManager {
 
                 //Send message to guide that it already has the video
                 if(fileURI != null || fileExists != null) {
-                    main.transferError(fileOnDevice, NearbyPeersManager.myID);
+                    DispatchManager.sendActionToSelected(Controller.ACTION_TAG,
+                            Controller.TRANSFER_ERROR
+                                    + ":" + NearbyPeersManager.myID
+                                    + ":" + fileOnDevice,
+                            NearbyPeersManager.getSelectedPeerIDsOrAll());
                     return;
                 }
 
@@ -483,7 +489,7 @@ public class FileTransferManager {
                 Log.d(TAG, "File saved");
 
                 //Send confirmation that the transfer is complete - guide can then handle it however necessary
-                DispatchManager.sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.FILE_REQUEST_TAG + ":" + NearbyPeersManager.getID()
+                DispatchManager.sendActionToSelected(Controller.ACTION_TAG, Controller.FILE_REQUEST_TAG + ":" + NearbyPeersManager.getID()
                                 + ":" + "true" + ":" + fileType, NearbyPeersManager.getSelectedPeerIDs());
             } catch (IOException e) {
                 try {
@@ -493,7 +499,11 @@ public class FileTransferManager {
                 }
                 e.printStackTrace();
                 transferComplete = false;
-                main.transferError(transferNotSaved, NearbyPeersManager.myID);
+                DispatchManager.sendActionToSelected(Controller.ACTION_TAG,
+                        Controller.TRANSFER_ERROR
+                                + ":" + NearbyPeersManager.myID
+                                + ":" + transferNotSaved,
+                        NearbyPeersManager.getSelectedPeerIDsOrAll());
             } finally {
                 finishTransfer();
             }

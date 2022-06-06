@@ -1,7 +1,5 @@
-package com.lumination.leadme.adapters;
+package com.lumination.leadme.managers;
 
-import android.graphics.drawable.Drawable;
-import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
@@ -19,6 +17,7 @@ import android.widget.Spinner;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.core.content.res.ResourcesCompat;
 import androidx.databinding.DataBindingUtil;
 import androidx.databinding.ViewDataBinding;
 
@@ -28,15 +27,15 @@ import com.google.android.material.slider.RangeSlider;
 import com.google.firebase.crashlytics.FirebaseCrashlytics;
 import com.koushikdutta.urlimageviewhelper.UrlImageViewHelper;
 import com.lumination.leadme.BR;
+import com.lumination.leadme.adapters.CuratedContentAdapter;
+import com.lumination.leadme.controller.Controller;
 import com.lumination.leadme.linkpreview.LinkPreviewCallback;
 import com.lumination.leadme.linkpreview.SourceContent;
 import com.lumination.leadme.linkpreview.TextCrawler;
-import com.lumination.leadme.managers.FavouritesManager;
 import com.lumination.leadme.models.CuratedContentItem;
 import com.lumination.leadme.models.CuratedContentType;
 import com.lumination.leadme.LeadMeMain;
 import com.lumination.leadme.R;
-import com.lumination.leadme.managers.WebManager;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -109,13 +108,13 @@ public class CuratedContentManager {
         ImageView curatedContentTypeIcon = curatedContentScreenSingle.findViewById(R.id.curated_content_type_icon);
         switch (curatedContentItem.type) {
             case WITHIN:
-                curatedContentTypeIcon.setBackground(main.getResources().getDrawable(R.drawable.search_within, null));
+                curatedContentTypeIcon.setBackground(ResourcesCompat.getDrawable(main.getResources(), R.drawable.search_within, null));
                 break;
             case YOUTUBE:
-                curatedContentTypeIcon.setBackground(main.getResources().getDrawable(R.drawable.core_yt_icon, null));
+                curatedContentTypeIcon.setBackground(ResourcesCompat.getDrawable(main.getResources(), R.drawable.core_yt_icon, null));
                 break;
             case LINK:
-                curatedContentTypeIcon.setBackground(main.getResources().getDrawable(R.drawable.task_website_icon, null));
+                curatedContentTypeIcon.setBackground(ResourcesCompat.getDrawable(main.getResources(), R.drawable.task_website_icon, null));
                 break;
         }
 
@@ -130,7 +129,7 @@ public class CuratedContentManager {
     }
 
     public static void setupCuratedContent (LeadMeMain main) {
-        if (CuratedContentManager.hasDoneSetup == true) {
+        if (CuratedContentManager.hasDoneSetup) {
             return;
         }
         // set up data binding and the list view for curated content
@@ -188,7 +187,7 @@ public class CuratedContentManager {
         }
     }
 
-    private static void initializeCuratedContent(ArrayList<CuratedContentItem> curatedContentList, LeadMeMain main) {
+    private static void initializeCuratedContent(ArrayList<CuratedContentItem> curatedContentList) {
         CuratedContentManager.curatedContentList = (ArrayList<CuratedContentItem>) curatedContentList.clone();
         CuratedContentManager.filteredCuratedContentList = (ArrayList<CuratedContentItem>) curatedContentList.clone();
 
@@ -206,9 +205,9 @@ public class CuratedContentManager {
         ccSubjects.add(0, "Please select");
         CuratedContentManager.curatedContentSubjects = ccSubjects;
 
-        CuratedContentManager.urlFavouritesManager = main.getWebManager().getUrlFavouritesManager();
-        CuratedContentManager.videoFavouritesManager = main.getWebManager().getYouTubeFavouritesManager();
-        CuratedContentManager.main = main;
+        CuratedContentManager.urlFavouritesManager = Controller.getInstance().getWebManager().getUrlFavouritesManager();
+        CuratedContentManager.videoFavouritesManager = Controller.getInstance().getWebManager().getYouTubeFavouritesManager();
+        CuratedContentManager.main = LeadMeMain.getInstance();
         if (CuratedContentManager.curatedContentAdapter != null) {
             LeadMeMain.runOnUI(() -> {
                 CuratedContentManager.curatedContentAdapter.curatedContentList = CuratedContentManager.filteredCuratedContentList;
@@ -443,7 +442,7 @@ public class CuratedContentManager {
                             ));
                             getPreviewImages(main, curatedContentJson.getString(3));
                         }
-                        CuratedContentManager.initializeCuratedContent(processedCuratedContent, main);
+                        CuratedContentManager.initializeCuratedContent(processedCuratedContent);
                     } catch (JSONException e) {
                         e.printStackTrace();
                         FirebaseCrashlytics.getInstance().recordException(e);
@@ -517,7 +516,7 @@ public class CuratedContentManager {
     };
 
     public static void getPreviewImages (LeadMeMain main, String url) {
-        TextCrawler textCrawler = new TextCrawler(main.getWebManager());
+        TextCrawler textCrawler = new TextCrawler(Controller.getInstance().getWebManager());
         textCrawler.makePreview(previewImageCallback, url);
     }
 }

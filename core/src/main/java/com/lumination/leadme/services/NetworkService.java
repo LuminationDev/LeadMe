@@ -289,7 +289,6 @@ public class NetworkService extends Service {
             Log.d(TAG, "Message sent closing socket");
         } catch (IOException e) {
             backgroundExecutor.submit(() -> determineAction(ipAddress, "DISCONNECT,No connection"));
-            removeStudent(learnerID);
             e.printStackTrace();
         }
     }
@@ -317,6 +316,10 @@ public class NetworkService extends Service {
                 learnerManager(clientAddress);
                 determineAction(clientAddress, message);
             }
+        }
+
+        if(message.equals("DISCONNECT,No connection") && tempID != null) {
+            removeStudent(tempID);
         }
     }
 

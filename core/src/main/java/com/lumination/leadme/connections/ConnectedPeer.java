@@ -3,6 +3,7 @@ package com.lumination.leadme.connections;
 import android.graphics.drawable.Drawable;
 
 import com.lumination.leadme.LeadMeMain;
+import com.lumination.leadme.controller.Controller;
 import com.lumination.leadme.models.Endpoint;
 
 import java.util.ArrayList;
@@ -83,39 +84,39 @@ public class ConnectedPeer {
         //Log.w(TAG, "Setting warning state: " + warning + ", " + success);
 
         switch (warning) {
-            case LeadMeMain.AUTO_INSTALL_FAILED:
+            case Controller.AUTO_INSTALL_FAILED:
                 hiddenAlerts.remove("launchSuccess");
                 lastAppLaunchSucceeded = false; //if it failed, it's always false here
                 break;
-            case LeadMeMain.APP_TAG:
+            case Controller.APP_TAG:
                 hiddenAlerts.remove("launchSuccess");
                 lastAppLaunchSucceeded = success;
                 break;
-            case LeadMeMain.STUDENT_NO_OVERLAY:
+            case Controller.STUDENT_NO_OVERLAY:
                 hiddenAlerts.remove("overlayOn");
                 overlayEnabled = success;
                 break;
-            case LeadMeMain.STUDENT_NO_ACCESSIBILITY:
+            case Controller.STUDENT_NO_ACCESSIBILITY:
                 hiddenAlerts.remove("accessOn");
                 accessEnabled = success;
                 break;
-            case LeadMeMain.STUDENT_NO_INTERNET:
+            case Controller.STUDENT_NO_INTERNET:
                 hiddenAlerts.remove("internetOn");
                 internetEnabled = success;
                 break;
-            case LeadMeMain.STUDENT_OFF_TASK_ALERT:
+            case Controller.STUDENT_OFF_TASK_ALERT:
                 hiddenAlerts.remove("onTask");
                 onTask = success;
                 break;
-            case LeadMeMain.STUDENT_NO_XRAY:
+            case Controller.STUDENT_NO_XRAY:
                 hiddenAlerts.remove("xrayOn");
                 xray=success;
                 break;
-            case LeadMeMain.PERMISSION_TRANSFER_DENIED:
+            case Controller.PERMISSION_TRANSFER_DENIED:
                 hiddenAlerts.remove("transferOn");
                 transfer=success;
                 break;
-            case LeadMeMain.PERMISSION_AUTOINSTALL_DENIED:
+            case Controller.PERMISSION_AUTOINSTALL_DENIED:
                 hiddenAlerts.remove("installerOn");
                 installer=success;
                 break;
