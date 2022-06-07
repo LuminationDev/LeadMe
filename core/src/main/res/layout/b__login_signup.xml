@@ -81,7 +81,7 @@
             android:singleLine="true"
             android:textColorHint="@color/leadme_dark_grey"
             android:textSize="16sp"
-            android:visibility="visible"></EditText>
+            android:visibility="visible" />
 
         <TextView
             android:id="@+id/rego_lost_code"
@@ -145,6 +145,7 @@
             android:layout_marginLeft="20dp"
             android:layout_marginRight="20dp"
             android:fontFamily="@font/poppins_regular"
+            android:textColor="@color/leadme_red"
             android:text="Please enter your details to create an account." />
 
         <EditText
@@ -170,7 +171,8 @@
             android:singleLine="true"
             android:textColorHint="@color/leadme_dark_grey"
             android:textSize="16sp"
-            android:visibility="visible"></EditText>
+            android:visibility="visible"
+            android:digits="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"/>
 
         <EditText
             android:id="@+id/signup_email"
@@ -195,7 +197,7 @@
             android:singleLine="true"
             android:textColorHint="@color/leadme_dark_grey"
             android:textSize="16sp"
-            android:visibility="visible"></EditText>
+            android:visibility="visible" />
 
         <EditText
             android:id="@+id/signup_password"
@@ -221,7 +223,7 @@
             android:singleLine="true"
             android:textColorHint="@color/leadme_dark_grey"
             android:textSize="16sp"
-            android:visibility="visible"></EditText>
+            android:visibility="visible" />
 
         <EditText
             android:id="@+id/signup_confirmpass"
@@ -248,7 +250,7 @@
             android:singleLine="true"
             android:textColorHint="@color/leadme_dark_grey"
             android:textSize="16sp"
-            android:visibility="visible"></EditText>
+            android:visibility="visible" />
 
         <CheckBox
             android:id="@+id/signup_marketing"
@@ -357,7 +359,7 @@
             android:layout_marginBottom="10dp"
             android:fontFamily="@font/poppins_semibold"
             android:gravity="center_horizontal"
-            android:text="We have sent you an email" />
+            android:text="We have sent you an email. \n Please remember to check your spam folders." />
 
         <TextView
             android:layout_width="match_parent"
@@ -437,7 +439,7 @@
             android:cursorVisible="false"
             android:digits="1234567890"
             android:gravity="center"
-            android:hint="0"
+            android:hint=""
             android:inputType="number"
             android:layoutDirection="ltr"
             android:maxLength="4"
@@ -470,7 +472,7 @@
             android:cursorVisible="false"
             android:digits="1234567890"
             android:gravity="center"
-            android:hint="0"
+            android:hint=""
             android:inputType="number"
             android:layoutDirection="ltr"
             android:maxLength="4"
