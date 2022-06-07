@@ -231,7 +231,7 @@ public class DialogManager {
         videoBtn.setOnClickListener(v -> {
             vrContentTypeDialog.dismiss();
             dialogShowing = false;
-            main.defaultVideo = true;
+            LeadMeMain.defaultVideo = true;
             Controller.getInstance().getVrEmbedVideoPlayer().showPlaybackPreview();
         });
 
@@ -239,7 +239,7 @@ public class DialogManager {
         photoBtn.setOnClickListener(v -> {
             vrContentTypeDialog.dismiss();
             dialogShowing = false;
-            main.defaultVideo = false;
+            LeadMeMain.defaultVideo = false;
             Controller.getInstance().getVrEmbedPhotoPlayer().showPlaybackPreview();
         });
 

@@ -22,6 +22,7 @@ import android.widget.Toast;
 import android.widget.VideoView;
 
 import androidx.annotation.NonNull;
+import androidx.core.content.res.ResourcesCompat;
 
 import com.alimuzaffar.lib.pin.PinEntryEditText;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
@@ -337,11 +338,22 @@ public class AuthenticationManager {
                 String pdf = "https://github.com/LuminationDev/public/raw/main/LeadMeEdu-TermsAndConditions.pdf";
                 TOF.loadUrl("https://drive.google.com/viewerng/viewer?embedded=true&url=" + pdf);
 
+                next.setBackground(ResourcesCompat.getDrawable(main.getResources(), R.drawable.bg_passive, null));
+                next.setEnabled(false);
+
                 touAgree.setOnCheckedChangeListener((buttonView, isChecked) -> {
                     if (isChecked && !hasScrolled) {
                         touAgree.setChecked(false);
                         errorText.setVisibility(View.VISIBLE);
                         errorText.setText("Please read all of the terms of use");
+                    }
+
+                    if(isChecked) {
+                        next.setBackground(ResourcesCompat.getDrawable(main.getResources(), R.drawable.bg_active, null));
+                        next.setEnabled(isChecked);
+                    } else {
+                        next.setBackground(ResourcesCompat.getDrawable(main.getResources(), R.drawable.bg_passive, null));
+                        next.setEnabled(isChecked);
                     }
                 });
 
@@ -379,8 +391,8 @@ public class AuthenticationManager {
                         return;
                     }
 
-                    if (signupPass.getText().toString().length() == 0) {
-                        signupError.setText("Please enter a password");
+                    if (signupPass.getText().toString().length() < 8) {
+                        signupError.setText("Please enter a password with 8 or more characters");
                         signupError.setVisibility(View.VISIBLE);
                         progressBar.setVisibility(View.GONE);
                         return;
@@ -416,7 +428,6 @@ public class AuthenticationManager {
                 Uri uri = Uri.parse("android.resource://" + main.getPackageName() + "/" + R.raw.email_sent);
                 animation.setVideoURI(uri);
                 animation.setBackgroundColor(Color.WHITE);
-                Log.d(TAG, "buildloginsignup: here");
 
                 animation.setOnPreparedListener(mp -> {
                     mp.setLooping(true);
@@ -431,21 +442,13 @@ public class AuthenticationManager {
                         return;
                     }
 
-                    //TODO crash occurs here - getCurrentUser() or mAuth or isEmailVerified is null?
                     try {
                         if (!Objects.requireNonNull(mAuth.getCurrentUser()).isEmailVerified()) {
                             Log.d(TAG, "buildloginsignup: email verification sent");
+
                             mAuth.getCurrentUser().sendEmailVerification().addOnSuccessListener(aVoid ->
-                                    scheduledExecutorService.scheduleAtFixedRate(() -> mAuth.addAuthStateListener(firebaseAuth1 -> {
-                                        Log.d(TAG, "run: checking user verification");
-                                        if (!mAuth.getCurrentUser().isEmailVerified()) {
-                                            mAuth.getCurrentUser().reload();
-                                        } else {
-                                            currentUser = mAuth.getCurrentUser();
-                                            scheduledExecutorService.shutdown();
-                                            LeadMeMain.runOnUI(() -> buildloginsignup(4));
-                                        }
-                                    }), 100, 100, TimeUnit.MILLISECONDS));
+                                    scheduledExecutorService.scheduleAtFixedRate(this::authCheck
+                                    , 100, 1000, TimeUnit.MILLISECONDS));
                         } else {
                             Log.d(TAG, "buildloginsignup: user is already verified");
                         }
@@ -456,7 +459,6 @@ public class AuthenticationManager {
                 };
 
                 mAuth.addAuthStateListener(mAuthListener);
-                Log.d(TAG, "buildloginsignup: and here");
 
                 /*If not they can exit the app and verify whenever they want. Otherwise open to here
                 *until the verify.
@@ -464,7 +466,9 @@ public class AuthenticationManager {
                 back.setOnClickListener(v -> {
                     scheduledExecutorService.shutdown();
                     mAuth.removeAuthStateListener(mAuthListener);
-                    buildloginsignup(2);
+                    mAuth.signOut();
+                    main.animatorAsContentView();
+                    hideSystemUI();
                 });
                 break;
 
@@ -481,7 +485,7 @@ public class AuthenticationManager {
                         if (task.getResult().exists()) {
                             if (task.getResult().getString("pin").length() > 0) {
                                 progressBar.setVisibility(View.GONE);
-                                setUserName(currentUser.getDisplayName(), false);
+                                //setUserName(currentUser.getDisplayName(), false);
                                 main.animatorAsContentView();
                             }
                         }
@@ -546,6 +550,24 @@ public class AuthenticationManager {
         db.collection("users").document(currentUser.getUid()).delete().addOnCompleteListener(task -> {
             if(task.isSuccessful()){
                 currentUser.delete();
+            }
+        });
+    }
+
+    private void authCheck() {
+        if(mAuth.getCurrentUser() == null) {
+            scheduledExecutorService.shutdown();
+            return;
+        }
+
+        mAuth.addAuthStateListener(firebaseAuth1 -> {
+            Log.d(TAG, "run: checking user verification");
+            if (!mAuth.getCurrentUser().isEmailVerified()) {
+                mAuth.getCurrentUser().reload();
+            } else {
+                currentUser = mAuth.getCurrentUser();
+                scheduledExecutorService.shutdown();
+                LeadMeMain.runOnUI(() -> buildloginsignup(4));
             }
         });
     }
