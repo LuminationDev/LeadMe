@@ -124,10 +124,10 @@ public class WithinEmbedPlayer {
         });
 
         searchSpinner = (Spinner) withinSearchDialogView.findViewById(R.id.search_spinner);
-        String[] searchSpinnerItems = new String[3];
+        String[] searchSpinnerItems = new String[2];
         searchSpinnerItems[0] = "Default";
         searchSpinnerItems[1] = "Within search";
-        searchSpinnerItems[2] = "YouTube search";
+        //searchSpinnerItems[2] = "YouTube search";
         Integer[] search_imgs = {R.drawable.search_icon_larger, R.drawable.search_within, R.drawable.search_yt};
         LumiSpinnerAdapter search_adapter = new LumiSpinnerAdapter(main, R.layout.row_search_spinner, searchSpinnerItems, search_imgs);
         searchSpinner.setAdapter(search_adapter);
@@ -136,12 +136,12 @@ public class WithinEmbedPlayer {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 switch (position) {
-                    case 2: //youtube search
-                        main.closeKeyboard();
-                        main.hideSystemUI();
-                        videoSearchDialog.dismiss();
-                        Controller.getInstance().getWebManager().buildAndShowSearchDialog(1);
-                        break;
+//                    case 2: //youtube search
+//                        main.closeKeyboard();
+//                        main.hideSystemUI();
+//                        videoSearchDialog.dismiss();
+//                        Controller.getInstance().getWebManager().buildAndShowSearchDialog(1);
+//                        break;
                     case 1:
                         main.closeKeyboard();
                         main.hideSystemUI();

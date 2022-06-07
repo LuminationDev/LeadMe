@@ -2619,13 +2619,8 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                         e.printStackTrace();
                     }
                 });
-
-                if (!currentTaskPackageName.equals(leadMePackageName)) {
-                    currentTaskLaunchBtn.setVisibility(View.VISIBLE);
-                } else {
-                    currentTaskLaunchBtn.setVisibility(View.INVISIBLE);
-                }
             }
+
             currentTaskPackageName = packageName;
             currentTaskName = appName;
             currentTaskURL = url;
@@ -2637,6 +2632,12 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             currentTaskDescription.setText(taskType);
             currentTaskLaunchBtn.setEnabled(true);
             currentTaskLaunchBtn.setBackgroundResource(R.drawable.bg_active);
+
+            if (!currentTaskPackageName.equals(leadMePackageName)) {
+                currentTaskLaunchBtn.setVisibility(View.VISIBLE);
+            } else {
+                currentTaskLaunchBtn.setVisibility(View.INVISIBLE);
+            }
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -3314,8 +3315,8 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         }
 
         View resetPinView = View.inflate(this, R.layout.c__forgot_pin, null);
-        if(savedViewIndex==-1){
-            savedViewIndex= leadmeAnimator.getDisplayedChild();
+        if(savedViewIndex == -1){
+            savedViewIndex = leadmeAnimator.getDisplayedChild();
         }
 
         leadmeAnimator.addView(resetPinView);

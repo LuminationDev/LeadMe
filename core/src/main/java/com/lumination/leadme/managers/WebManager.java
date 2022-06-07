@@ -1281,7 +1281,7 @@ public class WebManager {
             //web.loadUrl("https://www.youtube.com/results?search_query="+newText);
 
         } else if (searchType == SEARCH_WITHIN) {
-            searchWebView.loadUrl("https://www.google.com/search?q=" + newText + "&tbm=vid&as_sitesearch=with.in");
+            searchWebView.loadUrl("https://www.google.com/search?q=" + newText + "&as_sitesearch=with.in");
 
         } else {
             searchWebView.loadUrl("https://www.google.com/search?q=" + newText);
