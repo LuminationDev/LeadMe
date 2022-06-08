@@ -16,8 +16,10 @@ import static androidx.test.espresso.matcher.ViewMatchers.withText;
 import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.is;
 
+import android.content.Context;
 import android.view.View;
 
+import androidx.test.InstrumentationRegistry;
 import androidx.test.espresso.ViewInteraction;
 import androidx.test.filters.LargeTest;
 import androidx.test.rule.ActivityTestRule;
@@ -28,15 +30,26 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.io.File;
+
 @LargeTest
 @RunWith(AndroidJUnit4.class)
 public class HomeScreenTest extends BaseTest {
 
-    @Rule
-    public ActivityTestRule<LeadMeMain> mActivityTestRule = new ActivityTestRule<>(LeadMeMain.class);
-
     @Test
     public void canToggleLeaderLearnerRadio() {
+        onView(isRoot()).perform(waitId(R.id.skip_guide, 2000));
+
+        ViewInteraction textView = onView(
+                allOf(withId(R.id.skip_guide), withText("Continue"),
+                        childAtPosition(
+                                childAtPosition(
+                                        withId(R.id.login_root_layout),
+                                        4),
+                                1),
+                        isDisplayed()));
+        textView.perform(click());
+
         onView(isRoot()).perform(waitId(R.id.learner_btn, 2000));
 
         ViewInteraction button = onView(
@@ -62,6 +75,18 @@ public class HomeScreenTest extends BaseTest {
 
     @Test
     public void loginPasswordRequired() {
+        onView(isRoot()).perform(waitId(R.id.skip_guide, 2000));
+
+        ViewInteraction textView = onView(
+                allOf(withId(R.id.skip_guide), withText("Continue"),
+                        childAtPosition(
+                                childAtPosition(
+                                        withId(R.id.login_root_layout),
+                                        4),
+                                1),
+                        isDisplayed()));
+        textView.perform(click());
+
         onView(isRoot()).perform(waitId(R.id.app_login, 2000));
 
         ViewInteraction button = onView(
@@ -108,5 +133,72 @@ public class HomeScreenTest extends BaseTest {
                                 withParent(IsInstanceOf.<View>instanceOf(android.widget.FrameLayout.class)))),
                         isDisplayed()));
         textView3.check(matches(withText("Please check you have entered your details correctly.")));
+    }
+
+    @Test
+    public void emailAddressTest() {
+        onView(isRoot()).perform(waitId(R.id.skip_guide, 2000));
+
+        ViewInteraction textView = onView(
+                allOf(withId(R.id.skip_guide), withText("Continue"),
+                        childAtPosition(
+                                childAtPosition(
+                                        withId(R.id.login_root_layout),
+                                        4),
+                                1),
+                        isDisplayed()));
+        textView.perform(click());
+
+        onView(isRoot()).perform(waitId(R.id.app_login, 2000));
+        ViewInteraction button = onView(
+                allOf(withId(R.id.app_login), withText("Quick Login"),
+                        childAtPosition(
+                                childAtPosition(
+                                        withClassName(is("android.widget.LinearLayout")),
+                                        2),
+                                3),
+                        isDisplayed()));
+        button.perform(click());
+
+        ViewInteraction editText = onView(
+                allOf(withId(R.id.login_email),
+                        childAtPosition(
+                                allOf(withId(R.id.login_signup_view),
+                                        childAtPosition(
+                                                withClassName(is("android.widget.FrameLayout")),
+                                                1)),
+                                2),
+                        isDisplayed()));
+        editText.perform(replaceText("test"), closeSoftKeyboard());
+
+        ViewInteraction showHidePasswordEditText = onView(
+                allOf(withId(R.id.login_password),
+                        childAtPosition(
+                                allOf(withId(R.id.login_signup_view),
+                                        childAtPosition(
+                                                withClassName(is("android.widget.FrameLayout")),
+                                                1)),
+                                3),
+                        isDisplayed()));
+        showHidePasswordEditText.perform(replaceText("test"), closeSoftKeyboard());
+
+        ViewInteraction button2 = onView(
+                allOf(withId(R.id.login_enter), withText("Enter"),
+                        childAtPosition(
+                                childAtPosition(
+                                        withId(R.id.login_signup_view),
+                                        7),
+                                0),
+                        isDisplayed()));
+        button2.perform(click());
+
+        onView(isRoot()).perform(waitId(R.id.error_text, 2000));
+
+        ViewInteraction textView3 = onView(
+                allOf(withId(R.id.error_text), withText("The email address is badly formatted."),
+                        withParent(allOf(withId(R.id.login_signup_view),
+                                withParent(IsInstanceOf.<View>instanceOf(android.widget.FrameLayout.class)))),
+                        isDisplayed()));
+        textView3.check(matches(isDisplayed()));
     }
 }

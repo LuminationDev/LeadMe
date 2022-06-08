@@ -3,25 +3,36 @@ package com.lumination.leadme;
 import static androidx.test.espresso.matcher.ViewMatchers.isRoot;
 import static androidx.test.espresso.matcher.ViewMatchers.withId;
 
+import android.app.Activity;
+import android.content.Context;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewParent;
 
+import androidx.test.InstrumentationRegistry;
 import androidx.test.espresso.PerformException;
 import androidx.test.espresso.UiController;
 import androidx.test.espresso.ViewAction;
 import androidx.test.espresso.util.HumanReadables;
 import androidx.test.espresso.util.TreeIterables;
+import androidx.test.rule.ActivityTestRule;
 import androidx.test.rule.GrantPermissionRule;
+
+import com.google.api.Authentication;
 
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
 import org.hamcrest.TypeSafeMatcher;
 import org.junit.Rule;
 
+import java.io.File;
 import java.util.concurrent.TimeoutException;
 
 public class BaseTest {
+
+    @Rule
+    public ActivityTestRule<LeadMeMain> mActivityTestRule = new ClearDataActivityTestRule<>(LeadMeMain.class);
+
     @Rule
     public GrantPermissionRule mGrantPermissionRule =
             GrantPermissionRule.grant(
@@ -94,4 +105,22 @@ public class BaseTest {
         };
         return viewAction;
     }
+}
+
+class ClearDataActivityTestRule<T extends Activity> extends ActivityTestRule<T> {
+
+    public ClearDataActivityTestRule(Class<T> activityClass) {
+        super(activityClass);
+    }
+
+    @Override
+    protected void beforeActivityLaunched() {
+        super.beforeActivityLaunched();
+        File root = InstrumentationRegistry.getTargetContext().getFilesDir().getParentFile();
+        String[] sharedPreferencesFileNames = new File(root, "shared_prefs").list();
+        for (String fileName : sharedPreferencesFileNames) {
+            InstrumentationRegistry.getTargetContext().getSharedPreferences(fileName.replace(".xml", ""), Context.MODE_PRIVATE).edit().clear().commit();
+        }
+    }
+
 }
