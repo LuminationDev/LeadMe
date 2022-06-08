@@ -19,6 +19,7 @@ import androidx.test.rule.ActivityTestRule;
 import androidx.test.rule.GrantPermissionRule;
 
 import com.google.api.Authentication;
+import com.lumination.leadme.controller.Controller;
 
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
@@ -121,6 +122,12 @@ class ClearDataActivityTestRule<T extends Activity> extends ActivityTestRule<T> 
         for (String fileName : sharedPreferencesFileNames) {
             InstrumentationRegistry.getTargetContext().getSharedPreferences(fileName.replace(".xml", ""), Context.MODE_PRIVATE).edit().clear().commit();
         }
+    }
+
+    @Override
+    protected void afterActivityLaunched() {
+        super.afterActivityLaunched();
+        Controller.getInstance().getAuthenticationManager().logoutAction();
     }
 
 }
