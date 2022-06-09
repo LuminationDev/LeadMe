@@ -106,6 +106,48 @@ public class BaseTest {
         };
         return viewAction;
     }
+
+    /**
+     * Perform action of waiting for a specific view id.
+     * @param viewId The id of the view to wait for.
+     * @param millis The timeout of until when to wait for.
+     */
+    protected ViewAction waitForTime(final int viewId, final long millis) {
+        ViewAction viewAction = new ViewAction() {
+            @Override
+            public Matcher<View> getConstraints() {
+                return isRoot();
+            }
+
+            @Override
+            public String getDescription() {
+                return "wait for a specific view with id <" + viewId + "> during " + millis + " millis.";
+            }
+
+            @Override
+            public void perform(final UiController uiController, final View view) {
+                uiController.loopMainThreadUntilIdle();
+                final long startTime = System.currentTimeMillis();
+                final long endTime = startTime + millis;
+                final Matcher<View> viewMatcher = withId(viewId);
+
+                Log.e("AA", String.valueOf(view));
+
+                do {
+                    for (View child : TreeIterables.breadthFirstViewTraversal(view)) {
+                        // found view with required ID
+                        if (viewMatcher.matches(child) && child.isShown()) {
+                            return;
+                        }
+                    }
+
+                    uiController.loopMainThreadForAtLeast(50);
+                }
+                while (System.currentTimeMillis() < endTime);
+            }
+        };
+        return viewAction;
+    }
 }
 
 class ClearDataActivityTestRule<T extends Activity> extends ActivityTestRule<T> {
