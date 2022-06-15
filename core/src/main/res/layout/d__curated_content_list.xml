@@ -81,6 +81,50 @@
             </Button>
         </LinearLayout>
 
+<!--        todo - this is the section we're going to be showing or hiding based on if there are any results-->
+        <LinearLayout
+            android:id="@+id/no_results_info"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:visibility="visible"
+            android:gravity="center_horizontal"
+            android:orientation="vertical"
+            android:paddingTop="80dp"
+            android:paddingBottom="120dp">
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:background="@drawable/blue_circle_bg">
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:background="@drawable/icon_filter_large"></LinearLayout>
+            </LinearLayout>
+            <TextView
+                android:fontFamily="@font/poppins_semibold"
+                android:textSize="24dp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:textColor="@color/black"
+                android:paddingVertical="10dp"
+                android:text="What are\nyou searching for?">
+                <!--                    todo - update the text here-->
+            </TextView>
+            <TextView
+                android:fontFamily="@font/poppins_regular"
+                android:textSize="14dp"
+                android:textColor="@color/leadme_darkest_grey"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:text="Search through our curated content\nfor classrooms!">
+                <!--                    todo - update the text here -->
+            </TextView>
+        </LinearLayout>
+
         <LinearLayout
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"

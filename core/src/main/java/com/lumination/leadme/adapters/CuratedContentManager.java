@@ -287,6 +287,21 @@ public class CuratedContentManager {
             CuratedContentManager.curatedContentBinding.setVariable(BR.curatedContentList, CuratedContentManager.filteredCuratedContentList);
             CuratedContentManager.curatedContentAdapter.curatedContentList = CuratedContentManager.filteredCuratedContentList;
             CuratedContentManager.curatedContentAdapter.notifyDataSetChanged();
+
+            //            todo - here is where we actually set the list, so this seems like a good place to check how many items are in the list
+
+            if (CuratedContentManager.filteredCuratedContentList.size() > 0) {
+                // there are items in the list - what do we want to do here?
+
+                // hint - we'll need to grab either the curated content list or the no results info
+                // hint - we can grab them by using: curatedContentScreen.findViewById(R.id.the_id_of_the_thing_we_want)
+                // hint - remember how we set the visibility last time?
+
+            } else {
+                // there are no items in the list - what do we want to do here?
+            }
+
+
             filterSheetDialog.hide();
         });
 
