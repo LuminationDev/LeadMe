@@ -329,19 +329,19 @@ public class CuratedContentManager {
                     TextView searchSubheading = searchSheetDialog.findViewById(R.id.search_subheading); // grab the search subheading
                     if (curatedContent.size() > 0) {
                         searchInfo.setVisibility(View.GONE);
-                        searchHeading.setText("What are you searching for?"); // todo - update this to the correct text
+                        searchHeading.setText("What are you searching for?");
                         searchSubheading.setText("Search through our curated content for classrooms!");
                     } else {
                         searchInfo.setVisibility(View.VISIBLE);
-                       // todo - here is where we're going to set the text when we have a search term but no results
-                        if (textView.getText().length() > 0) { // todo - update this if statement - something about if we have a search term or not: textView.getText() to find the text, now we just need to check if it's length is longer than 0
-                            searchHeading.setText("No Results Found!"); // todo - use the correct text
+
+                        if (textView.getText().length() > 0) {
+                            searchHeading.setText("No Results Found!");
                             searchSubheading.setText("No results for " + textView.getText() + " found in curated content");
-                            // todo - let's set the text for the subheading, for this we'll need to add the search term into the text, we can get this from textView.getText()
+
                         } else { // otherwise, we don't have a search term, so we want to go back to the normal text
-                            searchHeading.setText("What are you searching for?"); // todo - update this to the correct text
+                            searchHeading.setText("What are you searching for?");
                             searchSubheading.setText("Search through our curated content for classrooms!");
-                            // todo - we'll also need to do the subheading
+
                         }
                     }
                     // handle clicking on a curated content item, if this starts to get more complicated we'll want to split it out
