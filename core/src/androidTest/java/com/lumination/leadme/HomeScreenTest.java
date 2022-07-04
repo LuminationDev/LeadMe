@@ -87,7 +87,7 @@ public class HomeScreenTest extends BaseTest {
                         isDisplayed()));
         textView.perform(click());
 
-        onView(isRoot()).perform(waitId(R.id.app_list_grid, 2000));
+        onView(isRoot()).perform(waitId(R.id.app_login, 2000));
 
         ViewInteraction button = onView(
                 allOf(withId(R.id.app_login), withText("Quick Login"),
