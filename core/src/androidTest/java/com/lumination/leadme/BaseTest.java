@@ -38,7 +38,9 @@ public class BaseTest {
     public GrantPermissionRule mGrantPermissionRule =
             GrantPermissionRule.grant(
                     "android.permission.ACCESS_FINE_LOCATION",
-                    "android.permission.ACCESS_COARSE_LOCATION");
+                    "android.permission.ACCESS_COARSE_LOCATION",
+                    "android.permission.READ_EXTERNAL_STORAGE",
+                    "android.permission.WRITE_EXTERNAL_STORAGE");
 
     protected Matcher<View> childAtPosition(
             final Matcher<View> parentMatcher, final int position) {
