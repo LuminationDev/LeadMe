@@ -5,6 +5,7 @@ import static androidx.test.espresso.matcher.ViewMatchers.withId;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewParent;
@@ -164,6 +165,8 @@ class ClearDataActivityTestRule<T extends Activity> extends ActivityTestRule<T> 
         for (String fileName : sharedPreferencesFileNames) {
             InstrumentationRegistry.getTargetContext().getSharedPreferences(fileName.replace(".xml", ""), Context.MODE_PRIVATE).edit().clear().commit();
         }
+        Context context = InstrumentationRegistry.getInstrumentation().getTargetContext();
+        context.sendBroadcast(new Intent(Intent.ACTION_CLOSE_SYSTEM_DIALOGS));
     }
 
     @Override
