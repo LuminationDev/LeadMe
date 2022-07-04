@@ -22,9 +22,14 @@ jobs:
     steps:
       - name: checkout
         uses: actions/checkout@v3
+        
+      - name: setup-java
+        uses: actions/setup-java@v1
+        with:
+          java-version: 11
 
       - name: run tests
         uses: reactivecircus/android-emulator-runner@v2
         with:
-          api-level: 29
+          api-level: 30
           script: ./gradlew connectedCheck
