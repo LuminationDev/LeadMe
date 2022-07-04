@@ -165,8 +165,6 @@ class ClearDataActivityTestRule<T extends Activity> extends ActivityTestRule<T> 
         for (String fileName : sharedPreferencesFileNames) {
             InstrumentationRegistry.getTargetContext().getSharedPreferences(fileName.replace(".xml", ""), Context.MODE_PRIVATE).edit().clear().commit();
         }
-        Context context = InstrumentationRegistry.getInstrumentation().getTargetContext();
-        context.sendBroadcast(new Intent(Intent.ACTION_CLOSE_SYSTEM_DIALOGS));
     }
 
     @Override
