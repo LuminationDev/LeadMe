@@ -131,8 +131,6 @@ public class BaseTest {
                 final long endTime = startTime + millis;
                 final Matcher<View> viewMatcher = withId(viewId);
 
-                Log.e("AA", String.valueOf(view));
-
                 do {
                     for (View child : TreeIterables.breadthFirstViewTraversal(view)) {
                         // found view with required ID
