@@ -1055,7 +1055,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         leadMeAppName = getResources().getString(R.string.app_title);
         leadMePackageName = getPackageName();
 
-        setTheme(R.style.Theme_AppCompat_Light_NoActionBar); //switches from splash screen to main
+//        setTheme(R.style.Theme_AppCompat_Light_NoActionBar); //switches from splash screen to main
         //https://android.jlelse.eu/the-complete-android-splash-screen-guide-c7db82bce565
     }
 
