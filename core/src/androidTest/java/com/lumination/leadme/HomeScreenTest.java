@@ -61,10 +61,7 @@ public class HomeScreenTest extends BaseTest {
                         isDisplayed()));
         textView.perform(click());
 
-        Thread.sleep(1500);
-
         onView(isRoot()).perform(waitId(R.id.learner_btn, 2000));
-        Thread.sleep(1500);
 
         ViewInteraction button = onView(
                 allOf(withId(R.id.learner_btn), withText("Learner"),
@@ -76,8 +73,6 @@ public class HomeScreenTest extends BaseTest {
                         isDisplayed()));
         button.perform(click());
 
-        Thread.sleep(1500);
-
         ViewInteraction button2 = onView(
                 allOf(withId(R.id.leader_btn), withText("Leader"),
                         childAtPosition(
@@ -87,6 +82,7 @@ public class HomeScreenTest extends BaseTest {
                                 0),
                         isDisplayed()));
         button2.perform(click());
+        Thread.sleep(3000);
     }
 
 
@@ -104,7 +100,7 @@ public class HomeScreenTest extends BaseTest {
                         isDisplayed()));
         textView.perform(click());
 
-        Thread.sleep(1500);
+        onView(isRoot()).perform(waitId(R.id.app_login, 2000));
 
         ViewInteraction button = onView(
                 allOf(withId(R.id.app_login), withText("Quick Login"),
@@ -116,7 +112,7 @@ public class HomeScreenTest extends BaseTest {
                         isDisplayed()));
         button.perform(click());
 
-        Thread.sleep(1500);
+        onView(isRoot()).perform(waitId(R.id.login_email, 2000));
 
         ViewInteraction editText = onView(
                 allOf(withId(R.id.login_email),
@@ -129,7 +125,7 @@ public class HomeScreenTest extends BaseTest {
                         isDisplayed()));
         editText.perform(replaceText("kabivishal@gmail.com"), closeSoftKeyboard());
 
-        Thread.sleep(1500);
+        onView(isRoot()).perform(waitId(R.id.login_password, 2000));
 
         ViewInteraction showHidePasswordEditText = onView(
                 allOf(withId(R.id.login_password),
@@ -142,7 +138,7 @@ public class HomeScreenTest extends BaseTest {
                         isDisplayed()));
         showHidePasswordEditText.perform(replaceText("Tester123"), closeSoftKeyboard());
 
-        Thread.sleep(1500);
+        onView(isRoot()).perform(waitId(R.id.login_enter, 2000));
 
         ViewInteraction button2 = onView(
                 allOf(withId(R.id.login_enter), withText("Enter"),
@@ -155,7 +151,7 @@ public class HomeScreenTest extends BaseTest {
         button2.perform(click());
 
         onView(isRoot()).perform(waitForTime(R.id.content, 2000));
-        Thread.sleep(1500);
+        onView(isRoot()).perform(waitId(R.id.vr_core_btn, 2000));
 
         ViewInteraction linearLayout = onView(
                 allOf(withId(R.id.vr_core_btn),
@@ -167,7 +163,7 @@ public class HomeScreenTest extends BaseTest {
                                 5)));
         linearLayout.perform(scrollTo(), click());
 
-        Thread.sleep(1500);
+        onView(isRoot()).perform(waitId(R.id.cancel_btn, 2000));
 
         ViewInteraction button3 = onView(
                 allOf(withId(R.id.cancel_btn), withText("Cancel"),
@@ -180,7 +176,7 @@ public class HomeScreenTest extends BaseTest {
                         isDisplayed()));
         button3.perform(click());
 
-        Thread.sleep(1500);
+        onView(isRoot()).perform(waitId(R.id.select_video_source_btn, 2000));
 
         ViewInteraction button4 = onView(
                 allOf(withId(R.id.select_video_source_btn), withText("Videos"),
@@ -193,7 +189,7 @@ public class HomeScreenTest extends BaseTest {
                         isDisplayed()));
         button4.perform(click());
 
-        Thread.sleep(1500);
+        onView(isRoot()).perform(waitId(R.id.video_back_btn, 2000));
 
         ViewInteraction button5 = onView(
                 allOf(withId(R.id.video_back_btn), withText("Back"),
@@ -206,7 +202,7 @@ public class HomeScreenTest extends BaseTest {
                         isDisplayed()));
         button5.perform(click());
 
-        Thread.sleep(1500);
+        onView(isRoot()).perform(waitId(R.id.select_photo_source_btn, 2000));
 
         ViewInteraction button6 = onView(
                 allOf(withId(R.id.select_photo_source_btn), withText("Photos"),
@@ -219,7 +215,7 @@ public class HomeScreenTest extends BaseTest {
                         isDisplayed()));
         button6.perform(click());
 
-        Thread.sleep(1500);
+        onView(isRoot()).perform(waitId(R.id.photo_back_btn, 2000));
 
         ViewInteraction button7 = onView(
                 allOf(withId(R.id.photo_back_btn), withText("Back"),
@@ -232,7 +228,7 @@ public class HomeScreenTest extends BaseTest {
                         isDisplayed()));
         button7.perform(click());
 
-        Thread.sleep(1500);
+        onView(isRoot()).perform(waitId(R.id.cancel_btn, 2000));
 
         ViewInteraction button8 = onView(
                 allOf(withId(R.id.cancel_btn), withText("Cancel"),
@@ -245,7 +241,7 @@ public class HomeScreenTest extends BaseTest {
                         isDisplayed()));
         button8.perform(click());
 
-        Thread.sleep(1500);
+        onView(isRoot()).perform(waitId(R.id.vr_core_btn, 2000));
 
         ViewInteraction linearLayout2 = onView(
                 allOf(withId(R.id.vr_core_btn),
@@ -257,7 +253,7 @@ public class HomeScreenTest extends BaseTest {
                                 5)));
         linearLayout2.perform(scrollTo(), click());
 
-        Thread.sleep(1500);
+        onView(isRoot()).perform(waitId(R.id.select_video_source_btn, 2000));
 
         ViewInteraction button9 = onView(
                 allOf(withId(R.id.select_video_source_btn), withText("Videos"),
@@ -270,7 +266,7 @@ public class HomeScreenTest extends BaseTest {
                         isDisplayed()));
         button9.perform(click());
 
-        Thread.sleep(1500);
+        onView(isRoot()).perform(waitId(R.id.video_back_btn, 2000));
 
         ViewInteraction button10 = onView(
                 allOf(withId(R.id.video_back_btn), withText("Back"),
@@ -283,7 +279,7 @@ public class HomeScreenTest extends BaseTest {
                         isDisplayed()));
         button10.perform(click());
 
-        Thread.sleep(1500);
+        onView(isRoot()).perform(waitId(R.id.cancel_btn, 2000));
 
         ViewInteraction button11 = onView(
                 allOf(withId(R.id.cancel_btn), withText("Cancel"),
@@ -296,7 +292,7 @@ public class HomeScreenTest extends BaseTest {
                         isDisplayed()));
         button11.perform(click());
 
-        Thread.sleep(1500);
+        onView(isRoot()).perform(waitId(R.id.vr_core_btn, 2000));
 
         ViewInteraction linearLayout3 = onView(
                 allOf(withId(R.id.vr_core_btn),
@@ -308,7 +304,7 @@ public class HomeScreenTest extends BaseTest {
                                 5)));
         linearLayout3.perform(scrollTo(), click());
 
-        Thread.sleep(1500);
+        onView(isRoot()).perform(waitId(R.id.cancel_btn, 2000));
 
         ViewInteraction button12 = onView(
                 allOf(withId(R.id.cancel_btn), withText("Cancel"),
@@ -321,7 +317,7 @@ public class HomeScreenTest extends BaseTest {
                         isDisplayed()));
         button12.perform(click());
 
-        Thread.sleep(1500);
+        onView(isRoot()).perform(waitId(R.id.file_core_btn, 2000));
 
         ViewInteraction linearLayout4 = onView(
                 allOf(withId(R.id.file_core_btn),
@@ -333,7 +329,7 @@ public class HomeScreenTest extends BaseTest {
                                 6)));
         linearLayout4.perform(scrollTo(), click());
 
-        Thread.sleep(1500);
+        onView(isRoot()).perform(waitId(R.id.end_core_btn, 2000));
 
         ViewInteraction linearLayout5 = onView(
                 allOf(withId(R.id.end_core_btn),
@@ -344,6 +340,7 @@ public class HomeScreenTest extends BaseTest {
                                                 0)),
                                 7)));
         linearLayout5.perform(scrollTo(), click());
+        Thread.sleep(3000);
     }
 
     @Test
@@ -360,7 +357,7 @@ public class HomeScreenTest extends BaseTest {
                         isDisplayed()));
         textView.perform(click());
 
-        Thread.sleep(1500);
+        onView(isRoot()).perform(waitId(R.id.app_login, 2000));
 
         ViewInteraction button = onView(
                 allOf(withId(R.id.app_login), withText("Quick Login"),
@@ -372,7 +369,7 @@ public class HomeScreenTest extends BaseTest {
                         isDisplayed()));
         button.perform(click());
 
-        Thread.sleep(1500);
+        onView(isRoot()).perform(waitId(R.id.login_email, 2000));
 
         ViewInteraction editText = onView(
                 allOf(withId(R.id.login_email),
@@ -385,7 +382,7 @@ public class HomeScreenTest extends BaseTest {
                         isDisplayed()));
         editText.perform(replaceText("kabivishal@gmail.com"), closeSoftKeyboard());
 
-        Thread.sleep(1500);
+        onView(isRoot()).perform(waitId(R.id.login_password, 2000));
 
         ViewInteraction showHidePasswordEditText = onView(
                 allOf(withId(R.id.login_password),
@@ -398,7 +395,7 @@ public class HomeScreenTest extends BaseTest {
                         isDisplayed()));
         showHidePasswordEditText.perform(replaceText("Tester123"), closeSoftKeyboard());
 
-        Thread.sleep(1500);
+        onView(isRoot()).perform(waitId(R.id.login_enter, 2000));
 
         ViewInteraction button2 = onView(
                 allOf(withId(R.id.login_enter), withText("Enter"),
@@ -411,7 +408,7 @@ public class HomeScreenTest extends BaseTest {
         button2.perform(click());
 
         onView(isRoot()).perform(waitForTime(R.id.content, 2000));
-        Thread.sleep(1500);
+        onView(isRoot()).perform(waitId(R.id.app_core_btn, 2000));
 
         ViewInteraction linearLayout = onView(
                 allOf(withId(R.id.app_core_btn),
@@ -423,7 +420,7 @@ public class HomeScreenTest extends BaseTest {
                                 0)));
         linearLayout.perform(scrollTo(), click());
 
-        Thread.sleep(1500);
+        onView(isRoot()).perform(waitId(R.id.app_list_grid, 2000));
 
         DataInteraction linearLayout2 = onData(anything())
                 .inAdapterView(allOf(withId(R.id.app_list_grid),
@@ -433,7 +430,7 @@ public class HomeScreenTest extends BaseTest {
                 .atPosition(0);
         linearLayout2.perform(scrollTo(), longClick());
 
-        Thread.sleep(1500);
+        onView(isRoot()).perform(waitId(R.id.ok_btn, 2000));
 
         ViewInteraction button3 = onView(
                 allOf(withId(R.id.ok_btn), withText("OK"),
@@ -446,7 +443,7 @@ public class HomeScreenTest extends BaseTest {
                         isDisplayed()));
         button3.perform(click());
 
-        Thread.sleep(1500);
+        onView(isRoot()).perform(waitId(R.id.fav_list_grid, 2000));
 
         DataInteraction linearLayout3 = onData(anything())
                 .inAdapterView(allOf(withId(R.id.fav_list_grid),
@@ -456,7 +453,7 @@ public class HomeScreenTest extends BaseTest {
                 .atPosition(0);
         linearLayout3.perform(scrollTo(), longClick());
 
-        Thread.sleep(1500);
+        onView(isRoot()).perform(waitId(R.id.ok_btn, 2000));
 
         ViewInteraction button4 = onView(
                 allOf(withId(R.id.ok_btn), withText("OK"),
@@ -469,7 +466,7 @@ public class HomeScreenTest extends BaseTest {
                         isDisplayed()));
         button4.perform(click());
 
-        Thread.sleep(1500);
+        onView(isRoot()).perform(waitId(R.id.app_list_grid, 2000));
 
         DataInteraction linearLayout4 = onData(anything())
                 .inAdapterView(allOf(withId(R.id.app_list_grid),
@@ -479,7 +476,7 @@ public class HomeScreenTest extends BaseTest {
                 .atPosition(1);
         linearLayout4.perform(scrollTo(), click());
 
-        Thread.sleep(1500);
+        onView(isRoot()).perform(waitId(R.id.push_btn, 2000));
 
         ViewInteraction button5 = onView(
                 allOf(withId(R.id.push_btn), withText("Push to everyone"),
@@ -491,7 +488,8 @@ public class HomeScreenTest extends BaseTest {
                         isDisplayed()));
         button5.perform(click());
 
-        Thread.sleep(1500);
+        Thread.sleep(2000);
+        onView(isRoot()).perform(waitId(R.id.curated_content_btn, 2000));
 
         ViewInteraction linearLayout5 = onView(
                 allOf(withId(R.id.curated_content_btn),
@@ -503,7 +501,7 @@ public class HomeScreenTest extends BaseTest {
                                 1)));
         linearLayout5.perform(scrollTo(), click());
 
-        Thread.sleep(1500);
+        onView(isRoot()).perform(waitId(R.id.curated_content_list, 2000));
 
         DataInteraction linearLayout6 = onData(anything())
                 .inAdapterView(allOf(withId(R.id.curated_content_list),
@@ -513,7 +511,7 @@ public class HomeScreenTest extends BaseTest {
                 .atPosition(1);
         linearLayout6.perform(click());
 
-        Thread.sleep(1500);
+        onView(isRoot()).perform(waitId(R.id.fav_checkbox_curated_content, 2000));
 
         ViewInteraction checkBox = onView(
                 allOf(withId(R.id.fav_checkbox_curated_content), withText("Add to favourites"),
@@ -524,7 +522,7 @@ public class HomeScreenTest extends BaseTest {
                                 1)));
         checkBox.perform(scrollTo(), click());
 
-        Thread.sleep(1500);
+        onView(isRoot()).perform(waitId(R.id.close_curated_content_single, 2000));
 
         ViewInteraction button6 = onView(
                 allOf(withId(R.id.close_curated_content_single), withText("Back"),
@@ -536,7 +534,7 @@ public class HomeScreenTest extends BaseTest {
                         isDisplayed()));
         button6.perform(click());
 
-        Thread.sleep(1500);
+        onView(isRoot()).perform(waitId(R.id.filter_button, 2000));
 
         ViewInteraction button7 = onView(
                 allOf(withId(R.id.filter_button), withText("Filter"),
@@ -548,7 +546,7 @@ public class HomeScreenTest extends BaseTest {
                         isDisplayed()));
         button7.perform(click());
 
-        Thread.sleep(1500);
+        onView(isRoot()).perform(waitId(R.id.radio2, 2000));
 
         ViewInteraction radioButton = onView(
                 allOf(withId(R.id.radio2), withText("Within"),
@@ -561,7 +559,7 @@ public class HomeScreenTest extends BaseTest {
                         isDisplayed()));
         radioButton.perform(click());
 
-        Thread.sleep(1500);
+        onView(isRoot()).perform(waitId(R.id.apply_filters, 2000));
 
         ViewInteraction button8 = onView(
                 allOf(withId(R.id.apply_filters), withText("Apply"),
@@ -573,7 +571,7 @@ public class HomeScreenTest extends BaseTest {
                         isDisplayed()));
         button8.perform(click());
 
-        Thread.sleep(1500);
+        onView(isRoot()).perform(waitId(R.id.curated_content_list, 2000));
 
         DataInteraction linearLayout7 = onData(anything())
                 .inAdapterView(allOf(withId(R.id.curated_content_list),
@@ -585,7 +583,6 @@ public class HomeScreenTest extends BaseTest {
 
         onView(isRoot()).perform(waitForTime(R.id.content, 2000));
         onView(isRoot()).perform(waitId(R.id.fav_checkbox_curated_content, 5000));
-        Thread.sleep(1500);
 
         ViewInteraction checkBox2 = onView(
                 allOf(withId(R.id.fav_checkbox_curated_content), withText("Add to favourites"),
@@ -596,7 +593,7 @@ public class HomeScreenTest extends BaseTest {
                                 1)));
         checkBox2.perform(scrollTo(), click());
 
-        Thread.sleep(1500);
+        onView(isRoot()).perform(waitId(R.id.close_curated_content_single, 2000));
 
         ViewInteraction button9 = onView(
                 allOf(withId(R.id.close_curated_content_single), withText("Back"),
@@ -608,7 +605,7 @@ public class HomeScreenTest extends BaseTest {
                         isDisplayed()));
         button9.perform(click());
 
-        Thread.sleep(1500);
+        onView(isRoot()).perform(waitId(R.id.back_btn, 2000));
 
         ViewInteraction imageView = onView(
                 allOf(withId(R.id.back_btn), withContentDescription("Preview image"),
@@ -620,7 +617,7 @@ public class HomeScreenTest extends BaseTest {
                         isDisplayed()));
         imageView.perform(click());
 
-        Thread.sleep(1500);
+        onView(isRoot()).perform(waitId(R.id.url_core_btn, 2000));
 
         ViewInteraction linearLayout8 = onView(
                 allOf(withId(R.id.url_core_btn),
@@ -632,7 +629,7 @@ public class HomeScreenTest extends BaseTest {
                                 2)));
         linearLayout8.perform(scrollTo(), click());
 
-        Thread.sleep(1500);
+        onView(isRoot()).perform(waitId(R.id.open_favourites, 2000));
 
         ViewInteraction textView2 = onView(
                 allOf(withId(R.id.open_favourites), withText("Browse favourites"),
@@ -644,7 +641,7 @@ public class HomeScreenTest extends BaseTest {
                         isDisplayed()));
         textView2.perform(click());
 
-        Thread.sleep(1500);
+        onView(isRoot()).perform(waitId(R.id.url_add_btn, 2000));
 
         ViewInteraction button10 = onView(
                 allOf(withId(R.id.url_add_btn), withText("Add"),
@@ -656,7 +653,7 @@ public class HomeScreenTest extends BaseTest {
                         isDisplayed()));
         button10.perform(click());
 
-        Thread.sleep(1500);
+        onView(isRoot()).perform(waitId(R.id.url_input_field, 2000));
 
         ViewInteraction editText2 = onView(
                 allOf(withId(R.id.url_input_field),
@@ -669,7 +666,7 @@ public class HomeScreenTest extends BaseTest {
                         isDisplayed()));
         editText2.perform(replaceText("google.com"), closeSoftKeyboard());
 
-        Thread.sleep(1500);
+        onView(isRoot()).perform(waitId(R.id.confirm_btn, 2000));
 
         ViewInteraction button11 = onView(
                 allOf(withId(R.id.confirm_btn), withText("Next"),
@@ -682,7 +679,7 @@ public class HomeScreenTest extends BaseTest {
                         isDisplayed()));
         button11.perform(click());
 
-        Thread.sleep(1500);
+        onView(isRoot()).perform(waitId(R.id.push_btn, 2000));
 
         ViewInteraction button12 = onView(
                 allOf(withId(R.id.push_btn), withText("Add to favourites?"),
@@ -694,7 +691,8 @@ public class HomeScreenTest extends BaseTest {
                         isDisplayed()));
         button12.perform(click());
 
-        Thread.sleep(1500);
+        Thread.sleep(2000);
+        onView(isRoot()).perform(waitId(R.id.yt_favourites, 2000));
 
         DataInteraction linearLayout9 = onData(anything())
                 .inAdapterView(allOf(withId(R.id.yt_favourites),
@@ -704,7 +702,7 @@ public class HomeScreenTest extends BaseTest {
                 .atPosition(0);
         linearLayout9.perform(scrollTo(), longClick());
 
-        Thread.sleep(1500);
+        onView(isRoot()).perform(waitId(R.id.ok_btn, 2000));
 
         ViewInteraction button13 = onView(
                 allOf(withId(R.id.ok_btn), withText("OK"),
@@ -717,7 +715,7 @@ public class HomeScreenTest extends BaseTest {
                         isDisplayed()));
         button13.perform(click());
 
-        Thread.sleep(1500);
+        onView(isRoot()).perform(waitId(R.id.clear_fav_btn, 2000));
 
         ViewInteraction textView3 = onView(
                 allOf(withId(R.id.clear_fav_btn), withText("Clear"),
@@ -729,7 +727,7 @@ public class HomeScreenTest extends BaseTest {
                         isDisplayed()));
         textView3.perform(click());
 
-        Thread.sleep(1500);
+        onView(isRoot()).perform(waitId(R.id.ok_btn, 2000));
 
         ViewInteraction button14 = onView(
                 allOf(withId(R.id.ok_btn), withText("Yes, delete them"),
@@ -741,7 +739,7 @@ public class HomeScreenTest extends BaseTest {
                         isDisplayed()));
         button14.perform(click());
 
-        Thread.sleep(1500);
+        onView(isRoot()).perform(waitId(R.id.back_btn, 2000));
 
         ViewInteraction imageView2 = onView(
                 allOf(withId(R.id.back_btn), withContentDescription("Back"),
@@ -752,7 +750,7 @@ public class HomeScreenTest extends BaseTest {
                                 0),
                         isDisplayed()));
         imageView2.perform(click());
-
+        Thread.sleep(3000);
     }
 
     @Test
@@ -770,6 +768,7 @@ public class HomeScreenTest extends BaseTest {
         textView.perform(click());
 
         onView(isRoot()).perform(waitId(R.id.learner_btn, 2000));
+        onView(isRoot()).perform(waitForTime(R.id.content, 5000));
         onView(isRoot()).perform(waitId(R.id.menu_btn, 2000));
 
         ViewInteraction imageView = onView(
@@ -781,6 +780,7 @@ public class HomeScreenTest extends BaseTest {
                                 0),
                         isDisplayed()));
         imageView.perform(click());
+
 
         onView(isRoot()).perform(waitId(R.id.options_notsigned, 2000));
 
@@ -1080,18 +1080,6 @@ public class HomeScreenTest extends BaseTest {
                                 1),
                         isDisplayed()));
         button9.perform(click());
-
-        onView(isRoot()).perform(waitId(R.id.menu_btn, 5000));
-
-        ViewInteraction imageView300 = onView(
-                allOf(withId(R.id.menu_btn),
-                        childAtPosition(
-                                childAtPosition(
-                                        withId(R.id.viewswitcher),
-                                        0),
-                                0),
-                        isDisplayed()));
-        imageView300.perform(click());
 
         onView(isRoot()).perform(waitId(R.id.options_loginBtn, 5000));
 
@@ -1750,6 +1738,8 @@ public class HomeScreenTest extends BaseTest {
                                 0),
                         isDisplayed()));
         button32.perform(click());
+
+        Thread.sleep(5000);
     }
 
     @Test
@@ -1766,7 +1756,8 @@ public class HomeScreenTest extends BaseTest {
                         isDisplayed()));
         textView.perform(click());
 
-        Thread.sleep(3500);
+        Thread.sleep(2000);
+        onView(isRoot()).perform(waitId(R.id.menu_btn, 3500));
 
         ViewInteraction imageView = onView(
                 allOf(withId(R.id.menu_btn),
@@ -1778,7 +1769,7 @@ public class HomeScreenTest extends BaseTest {
                         isDisplayed()));
         imageView.perform(click());
 
-        Thread.sleep(1500);
+        onView(isRoot()).perform(waitId(R.id.on_boarding, 2000));
 
         ViewInteraction textView2 = onView(
                 allOf(withId(R.id.on_boarding), withText("Display Onboarding"),
@@ -1791,7 +1782,7 @@ public class HomeScreenTest extends BaseTest {
                         isDisplayed()));
         textView2.perform(click());
 
-        Thread.sleep(1500);
+        onView(isRoot()).perform(waitId(R.id.next_button, 2000));
 
         ViewInteraction imageView2 = onView(
                 allOf(withId(R.id.next_button),
@@ -1803,7 +1794,7 @@ public class HomeScreenTest extends BaseTest {
                         isDisplayed()));
         imageView2.perform(click());
 
-        Thread.sleep(1500);
+        onView(isRoot()).perform(waitId(R.id.next_button, 2000));
 
         ViewInteraction imageView3 = onView(
                 allOf(withId(R.id.next_button),
@@ -1815,7 +1806,7 @@ public class HomeScreenTest extends BaseTest {
                         isDisplayed()));
         imageView3.perform(click());
 
-        Thread.sleep(1500);
+        onView(isRoot()).perform(waitId(R.id.next_button, 2000));
 
         ViewInteraction imageView4 = onView(
                 allOf(withId(R.id.next_button),
@@ -1827,7 +1818,7 @@ public class HomeScreenTest extends BaseTest {
                         isDisplayed()));
         imageView4.perform(click());
 
-        Thread.sleep(1500);
+        onView(isRoot()).perform(waitId(R.id.next_button, 2000));
 
         ViewInteraction imageView5 = onView(
                 allOf(withId(R.id.next_button),
@@ -1839,7 +1830,7 @@ public class HomeScreenTest extends BaseTest {
                         isDisplayed()));
         imageView5.perform(click());
 
-        Thread.sleep(1500);
+        onView(isRoot()).perform(waitId(R.id.onboard_btn_4, 2000));
 
         ViewInteraction imageView6 = onView(
                 allOf(withId(R.id.onboard_btn_4),
@@ -1852,7 +1843,7 @@ public class HomeScreenTest extends BaseTest {
                         isDisplayed()));
         imageView6.perform(click());
 
-        Thread.sleep(1500);
+        onView(isRoot()).perform(waitId(R.id.next_button, 2000));
 
         ViewInteraction imageView7 = onView(
                 allOf(withId(R.id.next_button),
@@ -1864,7 +1855,7 @@ public class HomeScreenTest extends BaseTest {
                         isDisplayed()));
         imageView7.perform(click());
 
-        Thread.sleep(1500);
+        onView(isRoot()).perform(waitId(R.id.skip_intro, 2000));
 
         ViewInteraction textView3 = onView(
                 allOf(withId(R.id.skip_intro), withText("Skip Intro"),
@@ -1875,8 +1866,6 @@ public class HomeScreenTest extends BaseTest {
                                 6),
                         isDisplayed()));
         textView3.perform(click());
-
-        Thread.sleep(1500);
 
         ViewInteraction textView4 = onView(
                 allOf(withId(R.id.manual_connect), withText("Manual connect"),
@@ -1889,7 +1878,7 @@ public class HomeScreenTest extends BaseTest {
                         isDisplayed()));
         textView4.perform(click());
 
-        Thread.sleep(1500);
+        onView(isRoot()).perform(waitId(R.id.manual_enterIP, 2000));
 
         ViewInteraction editText = onView(
                 allOf(withId(R.id.manual_enterIP), withText("10.0.2."),
@@ -1913,7 +1902,7 @@ public class HomeScreenTest extends BaseTest {
                         isDisplayed()));
         editText2.perform(closeSoftKeyboard());
 
-        Thread.sleep(1500);
+        onView(isRoot()).perform(waitId(R.id.manual_name, 2000));
 
         ViewInteraction editText3 = onView(
                 allOf(withId(R.id.manual_name),
@@ -1926,7 +1915,7 @@ public class HomeScreenTest extends BaseTest {
                         isDisplayed()));
         editText3.perform(replaceText("stud"), closeSoftKeyboard());
 
-        Thread.sleep(1500);
+        onView(isRoot()).perform(waitId(R.id.manual_back, 2000));
 
         ViewInteraction button = onView(
                 allOf(withId(R.id.manual_back), withText("Back"),
@@ -1939,7 +1928,7 @@ public class HomeScreenTest extends BaseTest {
                         isDisplayed()));
         button.perform(click());
 
-        Thread.sleep(1500);
+        onView(isRoot()).perform(waitId(R.id.server_discovery, 2000));
 
         ViewInteraction switch_ = onView(
                 allOf(withId(R.id.server_discovery), withText("Server Discovery"),
@@ -1952,7 +1941,7 @@ public class HomeScreenTest extends BaseTest {
                         isDisplayed()));
         switch_.perform(click());
 
-        Thread.sleep(1500);
+        onView(isRoot()).perform(waitId(R.id.server_discovery, 2000));
 
         ViewInteraction switch_2 = onView(
                 allOf(withId(R.id.server_discovery), withText("Server Discovery"),
@@ -1965,7 +1954,7 @@ public class HomeScreenTest extends BaseTest {
                         isDisplayed()));
         switch_2.perform(click());
 
-        Thread.sleep(1500);
+        onView(isRoot()).perform(waitId(R.id.options_notsigned, 2000));
 
         ViewInteraction linearLayout = onView(
                 allOf(withId(R.id.options_notsigned),
@@ -1978,7 +1967,7 @@ public class HomeScreenTest extends BaseTest {
                         isDisplayed()));
         linearLayout.perform(click());
 
-        Thread.sleep(1500);
+        onView(isRoot()).perform(waitId(R.id.tou_check, 2000));
 
         ViewInteraction checkBox = onView(
                 allOf(withId(R.id.tou_check), withText("I agree"),
@@ -1991,7 +1980,7 @@ public class HomeScreenTest extends BaseTest {
                         isDisplayed()));
         checkBox.perform(click());
 
-        Thread.sleep(1500);
+        onView(isRoot()).perform(waitId(R.id.signup_enter, 2000));
 
         ViewInteraction button2 = onView(
                 allOf(withId(R.id.signup_enter), withText("Enter"),
@@ -2004,7 +1993,7 @@ public class HomeScreenTest extends BaseTest {
                         isDisplayed()));
         button2.perform(click());
 
-        Thread.sleep(1500);
+        onView(isRoot()).perform(waitId(R.id.signup_enter, 2000));
 
         ViewInteraction button3 = onView(
                 allOf(withId(R.id.signup_enter), withText("Enter"),
@@ -2017,7 +2006,7 @@ public class HomeScreenTest extends BaseTest {
                         isDisplayed()));
         button3.perform(click());
 
-        Thread.sleep(1500);
+        onView(isRoot()).perform(waitId(R.id.signup_name, 2000));
 
         ViewInteraction editText4 = onView(
                 allOf(withId(R.id.signup_name),
@@ -2030,7 +2019,7 @@ public class HomeScreenTest extends BaseTest {
                         isDisplayed()));
         editText4.perform(replaceText("kabilan"), closeSoftKeyboard());
 
-        Thread.sleep(1500);
+        onView(isRoot()).perform(waitId(R.id.signup_enter, 2000));
 
         ViewInteraction button4 = onView(
                 allOf(withId(R.id.signup_enter), withText("Enter"),
@@ -2043,7 +2032,7 @@ public class HomeScreenTest extends BaseTest {
                         isDisplayed()));
         button4.perform(click());
 
-        Thread.sleep(1500);
+        onView(isRoot()).perform(waitId(R.id.signup_email, 2000));
 
         ViewInteraction editText5 = onView(
                 allOf(withId(R.id.signup_email),
@@ -2056,7 +2045,7 @@ public class HomeScreenTest extends BaseTest {
                         isDisplayed()));
         editText5.perform(replaceText("ksh1234"), closeSoftKeyboard());
 
-        Thread.sleep(1500);
+        onView(isRoot()).perform(waitId(R.id.signup_password, 2000));
 
         ViewInteraction editText6 = onView(
                 allOf(withId(R.id.signup_password),
@@ -2069,7 +2058,7 @@ public class HomeScreenTest extends BaseTest {
                         isDisplayed()));
         editText6.perform(replaceText("12345678"), closeSoftKeyboard());
 
-        Thread.sleep(1500);
+        onView(isRoot()).perform(waitId(R.id.signup_confirmpass, 2000));
 
         ViewInteraction editText7 = onView(
                 allOf(withId(R.id.signup_confirmpass),
@@ -2093,7 +2082,7 @@ public class HomeScreenTest extends BaseTest {
                         isDisplayed()));
         button5.perform(click());
 
-        Thread.sleep(1500);
+        onView(isRoot()).perform(waitId(R.id.signup_confirmpass, 2000));
 
         ViewInteraction editText8 = onView(
                 allOf(withId(R.id.signup_confirmpass), withText("123456788"),
@@ -2106,7 +2095,7 @@ public class HomeScreenTest extends BaseTest {
                         isDisplayed()));
         editText8.perform(click());
 
-        Thread.sleep(1500);
+        onView(isRoot()).perform(waitId(R.id.signup_confirmpass, 2000));
 
         ViewInteraction editText9 = onView(
                 allOf(withId(R.id.signup_confirmpass), withText("123456788"),
@@ -2130,7 +2119,7 @@ public class HomeScreenTest extends BaseTest {
                         isDisplayed()));
         editText10.perform(closeSoftKeyboard());
 
-        Thread.sleep(1500);
+        onView(isRoot()).perform(waitId(R.id.signup_enter, 2000));
 
         ViewInteraction button6 = onView(
                 allOf(withId(R.id.signup_enter), withText("Enter"),
@@ -2143,7 +2132,7 @@ public class HomeScreenTest extends BaseTest {
                         isDisplayed()));
         button6.perform(click());
 
-        Thread.sleep(1500);
+        onView(isRoot()).perform(waitId(R.id.signup_email, 2000));
 
         ViewInteraction editText11 = onView(
                 allOf(withId(R.id.signup_email), withText("ksh1234"),
@@ -2167,7 +2156,7 @@ public class HomeScreenTest extends BaseTest {
                         isDisplayed()));
         editText12.perform(closeSoftKeyboard());
 
-        Thread.sleep(1500);
+        onView(isRoot()).perform(waitId(R.id.signup_marketing, 2000));
 
         ViewInteraction checkBox2 = onView(
                 allOf(withId(R.id.signup_marketing), withText("I want to recieve emails about product updates, new features and offerings (optional)"),
@@ -2180,7 +2169,7 @@ public class HomeScreenTest extends BaseTest {
                         isDisplayed()));
         checkBox2.perform(click());
 
-        Thread.sleep(1500);
+        onView(isRoot()).perform(waitId(R.id.signup_marketing, 2000));
 
         ViewInteraction checkBox3 = onView(
                 allOf(withId(R.id.signup_marketing), withText("I want to recieve emails about product updates, new features and offerings (optional)"),
@@ -2193,7 +2182,7 @@ public class HomeScreenTest extends BaseTest {
                         isDisplayed()));
         checkBox3.perform(click());
 
-        Thread.sleep(1500);
+        onView(isRoot()).perform(waitId(R.id.signup_confirmpass, 2000));
 
         ViewInteraction editText13 = onView(
                 allOf(withId(R.id.signup_confirmpass), withText("12345678"),
@@ -2206,7 +2195,7 @@ public class HomeScreenTest extends BaseTest {
                         isDisplayed()));
         editText13.perform(pressImeActionButton());
 
-        Thread.sleep(1500);
+        onView(isRoot()).perform(waitId(R.id.signup_enter, 2000));
 
         ViewInteraction button7 = onView(
                 allOf(withId(R.id.signup_enter), withText("Enter"),
@@ -2219,7 +2208,7 @@ public class HomeScreenTest extends BaseTest {
                         isDisplayed()));
         button7.perform(click());
 
-        Thread.sleep(1500);
+        onView(isRoot()).perform(waitId(R.id.signup_back, 2000));
 
         ViewInteraction button8 = onView(
                 allOf(withId(R.id.signup_back), withText("Back"),
@@ -2232,7 +2221,7 @@ public class HomeScreenTest extends BaseTest {
                         isDisplayed()));
         button8.perform(click());
 
-        Thread.sleep(1500);
+        onView(isRoot()).perform(waitId(R.id.signup_back, 2000));
 
         ViewInteraction button9 = onView(
                 allOf(withId(R.id.signup_back), withText("Back"),
@@ -2245,7 +2234,7 @@ public class HomeScreenTest extends BaseTest {
                         isDisplayed()));
         button9.perform(click());
 
-        Thread.sleep(1500);
+        onView(isRoot()).perform(waitId(R.id.options_loginBtn, 2000));
 
         ViewInteraction button10 = onView(
                 allOf(withId(R.id.options_loginBtn), withText("Login"),
@@ -2258,7 +2247,7 @@ public class HomeScreenTest extends BaseTest {
                         isDisplayed()));
         button10.perform(click());
 
-        Thread.sleep(1500);
+        onView(isRoot()).perform(waitId(R.id.login_email, 2000));
 
         ViewInteraction editText14 = onView(
                 allOf(withId(R.id.login_email),
@@ -2271,7 +2260,7 @@ public class HomeScreenTest extends BaseTest {
                         isDisplayed()));
         editText14.perform(click());
 
-        Thread.sleep(1500);
+        onView(isRoot()).perform(waitId(R.id.login_email, 2000));
 
         ViewInteraction editText15 = onView(
                 allOf(withId(R.id.login_email),
@@ -2295,7 +2284,7 @@ public class HomeScreenTest extends BaseTest {
                         isDisplayed()));
         showHidePasswordEditText.perform(longClick());
 
-        Thread.sleep(1500);
+        onView(isRoot()).perform(waitId(R.id.login_password, 2000));
 
         ViewInteraction showHidePasswordEditText2 = onView(
                 allOf(withId(R.id.login_password),
@@ -2308,7 +2297,7 @@ public class HomeScreenTest extends BaseTest {
                         isDisplayed()));
         showHidePasswordEditText2.perform(replaceText("234567"), closeSoftKeyboard());
 
-        Thread.sleep(1500);
+        onView(isRoot()).perform(waitId(R.id.login_enter, 2000));
 
         ViewInteraction button11 = onView(
                 allOf(withId(R.id.login_enter), withText("Enter"),
@@ -2320,7 +2309,7 @@ public class HomeScreenTest extends BaseTest {
                         isDisplayed()));
         button11.perform(click());
 
-        Thread.sleep(1500);
+        onView(isRoot()).perform(waitId(R.id.login_email, 2000));
 
         ViewInteraction editText16 = onView(
                 allOf(withId(R.id.login_email), withText("kabivishal@gmail.com1"),
@@ -2344,7 +2333,7 @@ public class HomeScreenTest extends BaseTest {
                         isDisplayed()));
         editText17.perform(closeSoftKeyboard());
 
-        Thread.sleep(1500);
+        onView(isRoot()).perform(waitId(R.id.login_enter, 2000));
 
         ViewInteraction button12 = onView(
                 allOf(withId(R.id.login_enter), withText("Enter"),
@@ -2356,7 +2345,7 @@ public class HomeScreenTest extends BaseTest {
                         isDisplayed()));
         button12.perform(click());
 
-        Thread.sleep(1500);
+        onView(isRoot()).perform(waitId(R.id.login_password, 2000));
 
         ViewInteraction showHidePasswordEditText3 = onView(
                 allOf(withId(R.id.login_password), withText("234567"),
@@ -2380,7 +2369,7 @@ public class HomeScreenTest extends BaseTest {
                         isDisplayed()));
         showHidePasswordEditText4.perform(closeSoftKeyboard());
 
-        Thread.sleep(1500);
+        onView(isRoot()).perform(waitId(R.id.login_enter, 2000));
 
         ViewInteraction button13 = onView(
                 allOf(withId(R.id.login_enter), withText("Enter"),
@@ -2394,7 +2383,6 @@ public class HomeScreenTest extends BaseTest {
 
         onView(isRoot()).perform(waitForTime(R.id.content, 2000));
         onView(isRoot()).perform(waitId(R.id.menu_btn, 5000));
-        Thread.sleep(1500);
 
         ViewInteraction imageView8 = onView(
                 allOf(withId(R.id.menu_btn), withContentDescription("Lumination Logo"),
@@ -2406,7 +2394,7 @@ public class HomeScreenTest extends BaseTest {
                         isDisplayed()));
         imageView8.perform(click());
 
-        Thread.sleep(1500);
+        onView(isRoot()).perform(waitId(R.id.options_endSess, 2000));
 
         ViewInteraction button14 = onView(
                 allOf(withId(R.id.options_endSess), withText("End Session"),
@@ -2422,7 +2410,6 @@ public class HomeScreenTest extends BaseTest {
 
         onView(isRoot()).perform(waitForTime(R.id.content, 2000));
         onView(isRoot()).perform(waitId(R.id.app_login, 5000));
-        Thread.sleep(1500);
 
         ViewInteraction button15 = onView(
                 allOf(withId(R.id.app_login), withText("Quick Login"),
@@ -2434,7 +2421,7 @@ public class HomeScreenTest extends BaseTest {
                         isDisplayed()));
         button15.perform(click());
 
-        Thread.sleep(1500);
+        onView(isRoot()).perform(waitId(R.id.name_input_field, 2000));
 
         ViewInteraction editText18 = onView(
                 allOf(withId(R.id.name_input_field), withText("Kabilan"),
@@ -2447,7 +2434,7 @@ public class HomeScreenTest extends BaseTest {
                         isDisplayed()));
         editText18.perform(replaceText(""));
 
-        Thread.sleep(1500);
+        onView(isRoot()).perform(waitId(R.id.name_input_field, 2000));
 
         ViewInteraction editText19 = onView(
                 allOf(withId(R.id.name_input_field),
@@ -2460,7 +2447,7 @@ public class HomeScreenTest extends BaseTest {
                         isDisplayed()));
         editText19.perform(closeSoftKeyboard());
 
-        Thread.sleep(1500);
+        onView(isRoot()).perform(waitId(R.id.connect_btn, 2000));
 
         ViewInteraction button16 = onView(
                 allOf(withId(R.id.connect_btn), withText("Connect"),
@@ -2472,7 +2459,8 @@ public class HomeScreenTest extends BaseTest {
                                 0),
                         isDisplayed()));
         button16.perform(click());
-        Thread.sleep(1500);
+
+        onView(isRoot()).perform(waitId(R.id.close_login_alert_btn, 2000));
 
         ViewInteraction button17 = onView(
                 allOf(withId(R.id.close_login_alert_btn), withText("OK"),
@@ -2485,7 +2473,7 @@ public class HomeScreenTest extends BaseTest {
                         isDisplayed()));
         button17.perform(click());
 
-        Thread.sleep(1500);
+        onView(isRoot()).perform(waitId(R.id.name_input_field, 2000));
 
         ViewInteraction editText20 = onView(
                 allOf(withId(R.id.name_input_field),
@@ -2509,7 +2497,7 @@ public class HomeScreenTest extends BaseTest {
                         isDisplayed()));
         pinEntryEditText.perform(replaceText("6788"), closeSoftKeyboard());
 
-        Thread.sleep(1500);
+        onView(isRoot()).perform(waitId(R.id.connect_btn, 2000));
 
         ViewInteraction button18 = onView(
                 allOf(withId(R.id.connect_btn), withText("Connect"),
@@ -2522,7 +2510,7 @@ public class HomeScreenTest extends BaseTest {
                         isDisplayed()));
         button18.perform(click());
 
-        Thread.sleep(1500);
+        onView(isRoot()).perform(waitId(R.id.close_login_alert_btn, 2000));
 
         ViewInteraction button19 = onView(
                 allOf(withId(R.id.close_login_alert_btn), withText("OK"),
@@ -2535,7 +2523,7 @@ public class HomeScreenTest extends BaseTest {
                         isDisplayed()));
         button19.perform(click());
 
-        Thread.sleep(1500);
+        onView(isRoot()).perform(waitId(R.id.login_pin_entry, 2000));
 
         ViewInteraction pinEntryEditText2 = onView(
                 allOf(withId(R.id.login_pin_entry),
@@ -2548,7 +2536,7 @@ public class HomeScreenTest extends BaseTest {
                         isDisplayed()));
         pinEntryEditText2.perform(click());
 
-        Thread.sleep(1500);
+        onView(isRoot()).perform(waitId(R.id.login_pin_entry, 2000));
 
         ViewInteraction pinEntryEditText3 = onView(
                 allOf(withId(R.id.login_pin_entry),
@@ -2561,7 +2549,7 @@ public class HomeScreenTest extends BaseTest {
                         isDisplayed()));
         pinEntryEditText3.perform(replaceText("6789"), closeSoftKeyboard());
 
-        Thread.sleep(1500);
+        onView(isRoot()).perform(waitId(R.id.connect_btn, 2000));
 
         ViewInteraction button20 = onView(
                 allOf(withId(R.id.connect_btn), withText("Connect"),
@@ -2574,7 +2562,7 @@ public class HomeScreenTest extends BaseTest {
                         isDisplayed()));
         button20.perform(click());
 
-        Thread.sleep(1500);
+        onView(isRoot()).perform(waitId(R.id.menu_btn, 2000));
 
         ViewInteraction imageView9 = onView(
                 allOf(withId(R.id.menu_btn), withContentDescription("Lumination Logo"),
@@ -2586,7 +2574,7 @@ public class HomeScreenTest extends BaseTest {
                         isDisplayed()));
         imageView9.perform(click());
 
-        Thread.sleep(1500);
+        onView(isRoot()).perform(waitId(R.id.options_endSess, 2000));
 
         ViewInteraction button21 = onView(
                 allOf(withId(R.id.options_endSess), withText("End Session"),
