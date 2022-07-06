@@ -9,9 +9,9 @@ name: Java CI with Gradle
 
 on:
   push:
-    branches: [ "automated-tests" ]
+    branches: [ "automated-tests", "Automated_Tests_Edu" ]
   pull_request:
-    branches: [ "automated-tests" ]
+    branches: [ "automated-tests", "Automated_Tests_Edu" ]
 
 permissions:
   contents: read
