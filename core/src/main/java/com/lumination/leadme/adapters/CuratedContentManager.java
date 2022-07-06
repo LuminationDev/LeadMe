@@ -324,7 +324,8 @@ public class CuratedContentManager {
             CuratedContentManager.currentRadioSelection = -1;
             CuratedContentManager.currentSubjectSelection = null;
             filterSheetDialog.hide();
-            filterInfo.setVisibility(View.VISIBLE);
+            filterInfo.setVisibility(View.GONE);
+
         });
 
         filterSheetDialog.show();
@@ -348,20 +349,31 @@ public class CuratedContentManager {
                     curatedContentAdapterSearch.curatedContentList = curatedContent;
                     curatedContentAdapterSearch.notifyDataSetChanged();
                     LinearLayout searchInfo = searchSheetDialog.findViewById(R.id.search_info);
-                    TextView searchHeading = searchSheetDialog.findViewById(R.id.search_heading); // grab the search heading
-                    TextView searchSubheading = searchSheetDialog.findViewById(R.id.search_subheading); // grab the search subheading
-
+                    TextView searchHeading = searchSheetDialog.findViewById(R.id.search_heading);
+                    TextView searchSubheading = searchSheetDialog.findViewById(R.id.search_subheading);
+                    if (textView.getText().length() > 0 && curatedContent.size() > 0) {
                         searchInfo.setVisibility(View.GONE);
                         searchHeading.setText("What are you searching for?");
                         searchSubheading.setText("Search through our curated content for classrooms!");
-                    if (textView.getText().length() > 0){
-                        searchInfo.setVisibility(View.VISIBLE);
-                            searchHeading.setText("No Results Found!");
-                            searchSubheading.setText("No results for " + textView.getText() + " found in curated content");}
+                        curatedContentListSearch.setVisibility(View.VISIBLE);
+                    }
 
-                    else {
+                    else if (textView.getText().length() > 0 && curatedContent.size() == 0){
                         searchInfo.setVisibility(View.VISIBLE);
+                        searchHeading.setText("No Results Found!");
+                        searchSubheading.setText("No results for " + textView.getText() + " found in curated content");
+                        curatedContentListSearch.setVisibility(View.VISIBLE);
+                    }
+
+                    else if (textView.getText().length() == 0){
+                        searchInfo.setVisibility(View.VISIBLE);
+                        searchHeading.setText("What are you searching for?");
+                        searchSubheading.setText("Search through our curated content for classrooms!");
                         curatedContentListSearch.setVisibility(View.GONE);
+                    }
+                    //not sure if this is required now but will leave here in case
+                    else{
+                        curatedContentListSearch.setVisibility(View.VISIBLE);
                     }
                     // handle clicking on a curated content item, if this starts to get more complicated we'll want to split it out
                     curatedContentListSearch.setOnItemClickListener(new AdapterView.OnItemClickListener() {

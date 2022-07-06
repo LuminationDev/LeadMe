@@ -84,8 +84,8 @@
         <LinearLayout
             android:id="@+id/no_results_info"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:visibility="visible"
+            android:layout_height="wrap_content"
+            android:visibility="gone"
             android:gravity="center_horizontal"
             android:orientation="vertical"
             android:padding="45dp">
