@@ -81,16 +81,14 @@
             </Button>
         </LinearLayout>
 
-
         <LinearLayout
             android:id="@+id/no_results_info"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
             android:visibility="visible"
             android:gravity="center_horizontal"
             android:orientation="vertical"
-            android:paddingTop="80dp"
-            android:paddingBottom="120dp">
+            android:padding="45dp">
             <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"

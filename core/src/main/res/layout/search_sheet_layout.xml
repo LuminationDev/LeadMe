@@ -36,28 +36,16 @@
                 android:padding="15dp"
                 android:imeOptions="actionDone">
             </EditText>
-            <ListView
-                android:id="@+id/curated_content_list"
-                android:layout_width="fill_parent"
-                android:layout_height="fill_parent"
-                android:background="@color/leadme_light_grey"
-                android:fontFamily="@font/poppins_regular"
-                android:gravity="center"
-                android:isScrollContainer="true"
-                android:scrollbarAlwaysDrawHorizontalTrack="false"
-                android:scrollbarStyle="insideInset"
-                android:scrollbars="vertical"
-                android:textColor="@color/leadme_light_grey"
-                android:visibility="visible"
-                tools:listitem="@layout/row_curated_content_item"></ListView>
+
             <LinearLayout
                 android:id="@+id/search_info"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:gravity="center_horizontal"
                 android:orientation="vertical"
-                android:paddingTop="80dp"
-                android:paddingBottom="120dp">
+                android:padding="45dp"
+                android:paddingTop="35dp"
+                android:paddingBottom="100dp">
                 <LinearLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -88,9 +76,23 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:gravity="center"
-                    android:text="Search through our curated content\nfor classrooms!">
+                    android:text="Search through our curated content for classrooms!">
                 </TextView>
             </LinearLayout>
+            <ListView
+                android:id="@+id/curated_content_list"
+                android:layout_width="fill_parent"
+                android:layout_height="fill_parent"
+                android:background="@color/leadme_light_grey"
+                android:fontFamily="@font/poppins_regular"
+                android:gravity="center"
+                android:isScrollContainer="true"
+                android:scrollbarAlwaysDrawHorizontalTrack="false"
+                android:scrollbarStyle="insideInset"
+                android:scrollbars="vertical"
+                android:textColor="@color/leadme_light_grey"
+                android:visibility="visible"
+                tools:listitem="@layout/row_curated_content_item"></ListView>
         </LinearLayout>
     </LinearLayout>
 </layout>

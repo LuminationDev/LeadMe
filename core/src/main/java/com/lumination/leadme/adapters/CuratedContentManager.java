@@ -25,6 +25,7 @@ import androidx.databinding.ViewDataBinding;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.slider.LabelFormatter;
 import com.google.android.material.slider.RangeSlider;
+import com.google.api.Distribution;
 import com.google.firebase.crashlytics.FirebaseCrashlytics;
 import com.koushikdutta.urlimageviewhelper.UrlImageViewHelper;
 import com.lumination.leadme.BR;
@@ -62,7 +63,8 @@ public class CuratedContentManager {
     public static String currentSubjectSelection = null;
     public static ArrayList<String> curatedContentSubjects;
 
-    public static ArrayList<CuratedContentItem> curatedContentList;
+
+    public static ArrayList<CuratedContentItem> curatedContentList = new ArrayList<>();
     public static ArrayList<CuratedContentItem> filteredCuratedContentList;
     public static ViewDataBinding curatedContentBinding;
     public static ViewDataBinding curatedContentSingleBinding;
@@ -220,7 +222,7 @@ public class CuratedContentManager {
     private static void showFilters (LeadMeMain main) {
         final BottomSheetDialog filterSheetDialog = new BottomSheetDialog(main, R.style.BottomSheetDialogTransparentBackground);
         filterSheetDialog.setContentView(R.layout.filter_sheet_layout);
-
+        LinearLayout filterInfo = curatedContentScreen.findViewById(R.id.no_results_info);
         // set up the years slider
         RangeSlider yearsSlider = filterSheetDialog.findViewById(R.id.years_slider);
         yearsSlider.setLabelFormatter(new LabelFormatter() {
@@ -287,18 +289,25 @@ public class CuratedContentManager {
             CuratedContentManager.curatedContentBinding.setVariable(BR.curatedContentList, CuratedContentManager.filteredCuratedContentList);
             CuratedContentManager.curatedContentAdapter.curatedContentList = CuratedContentManager.filteredCuratedContentList;
             CuratedContentManager.curatedContentAdapter.notifyDataSetChanged();
-            LinearLayout filterInfo = curatedContentScreen.findViewById(R.id.no_results_info);
             TextView filterHeading = curatedContentScreen.findViewById(R.id.filter_heading);
             TextView filterSubheading = curatedContentScreen.findViewById(R.id.filter_subheading);
-
+            //display of results
             if (CuratedContentManager.filteredCuratedContentList.size() > 0) {
                 filterInfo.setVisibility(View.GONE);
                 curatedContentScreen.findViewById(R.id.curated_content_list);
             }
+            //no results found
             else {
-                filterInfo.setVisibility(View.VISIBLE);
-                filterHeading.setText("No Results Found!");
-                filterSubheading.setText("Sorry, that filter combination has no results. Please try different criteria.");
+               if (curatedContentList.size() > 0) {
+                   filterInfo.setVisibility(View.VISIBLE);
+                   filterHeading.setText("No Results Found!");
+                   filterSubheading.setText("Sorry, that filter combination has no results. Please try different criteria.");
+               }
+                else {
+                    filterInfo.setVisibility(View.GONE);
+                    filterHeading.setText("What are you searching for?");
+                    filterSubheading.setText("Search through our curated content for classrooms!");
+               }
             }
 
             filterSheetDialog.hide();
@@ -315,6 +324,7 @@ public class CuratedContentManager {
             CuratedContentManager.currentRadioSelection = -1;
             CuratedContentManager.currentSubjectSelection = null;
             filterSheetDialog.hide();
+            filterInfo.setVisibility(View.VISIBLE);
         });
 
         filterSheetDialog.show();
@@ -340,22 +350,18 @@ public class CuratedContentManager {
                     LinearLayout searchInfo = searchSheetDialog.findViewById(R.id.search_info);
                     TextView searchHeading = searchSheetDialog.findViewById(R.id.search_heading); // grab the search heading
                     TextView searchSubheading = searchSheetDialog.findViewById(R.id.search_subheading); // grab the search subheading
-                    if (curatedContent.size() > 0) {
+
                         searchInfo.setVisibility(View.GONE);
                         searchHeading.setText("What are you searching for?");
                         searchSubheading.setText("Search through our curated content for classrooms!");
-                    } else {
+                    if (textView.getText().length() > 0){
                         searchInfo.setVisibility(View.VISIBLE);
-
-                        if (textView.getText().length() > 0) {
                             searchHeading.setText("No Results Found!");
-                            searchSubheading.setText("No results for " + textView.getText() + " found in curated content");
+                            searchSubheading.setText("No results for " + textView.getText() + " found in curated content");}
 
-                        } else { // otherwise, we don't have a search term, so we want to go back to the normal text
-                            searchHeading.setText("What are you searching for?");
-                            searchSubheading.setText("Search through our curated content for classrooms!");
-
-                        }
+                    else {
+                        searchInfo.setVisibility(View.VISIBLE);
+                        curatedContentListSearch.setVisibility(View.GONE);
                     }
                     // handle clicking on a curated content item, if this starts to get more complicated we'll want to split it out
                     curatedContentListSearch.setOnItemClickListener(new AdapterView.OnItemClickListener() {
