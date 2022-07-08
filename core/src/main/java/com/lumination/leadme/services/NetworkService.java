@@ -13,6 +13,8 @@ import android.util.Log;
 
 import androidx.core.app.NotificationCompat;
 
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 import com.lumination.leadme.LeadMeMain;
 import com.lumination.leadme.R;
 import com.lumination.leadme.connections.TcpClient;
@@ -173,6 +175,10 @@ public class NetworkService extends Service {
         }
     }
 
+    public static void receiveMessageNew(String message) {
+        NetworkManager.messageReceivedFromServer(message);
+    }
+
     private static void receiveMessage(Socket clientSocket) {
         try {
             // get the input stream from the connected socket
@@ -283,13 +289,10 @@ public class NetworkService extends Service {
     public static void sendLearnerMessage(InetAddress ipAddress, String message) {
         Log.d(TAG, "Attempting to send: " + message);
 
-        try {
-            sendMessage(message, ipAddress, learnerPORT);
-            Log.d(TAG, "Message sent closing socket");
-        } catch (IOException e) {
-            backgroundExecutor.submit(() -> determineAction(ipAddress, "DISCONNECT,No connection"));
-            e.printStackTrace();
-        }
+        DatabaseReference database = FirebaseDatabase.getInstance("https://leafy-rope-301003-default-rtdb.asia-southeast1.firebasedatabase.app/").getReference();
+        database.child("roomID").child("currentMessage").setValue(message);
+//            sendMessage(message, ipAddress, learnerPORT);
+//            Log.d(TAG, "Message sent closing socket");
     }
 
     /**

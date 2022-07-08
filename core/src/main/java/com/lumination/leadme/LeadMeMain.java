@@ -67,6 +67,7 @@ import android.widget.VideoView;
 import android.widget.ViewAnimator;
 import android.widget.ViewSwitcher;
 
+import androidx.annotation.NonNull;
 import androidx.collection.ArraySet;
 import androidx.core.content.res.ResourcesCompat;
 import androidx.fragment.app.FragmentActivity;
@@ -75,11 +76,17 @@ import androidx.lifecycle.LifecycleObserver;
 import androidx.lifecycle.OnLifecycleEvent;
 
 import com.BoardiesITSolutions.FileDirectoryPicker.OpenFilePicker;
+import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthCredential;
 import com.google.firebase.auth.EmailAuthProvider;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import com.himanshurawat.hasher.HashType;
 import com.himanshurawat.hasher.Hasher;
 import com.lumination.leadme.controller.Controller;
@@ -1028,6 +1035,40 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                 .build();
 
         firstTimeUser();
+
+//        FirebaseDatabase.getInstance("https://leafy-rope-301003-default-rtdb.asia-southeast1.firebasedatabase.app/").setPersistenceEnabled(true);
+        DatabaseReference database = FirebaseDatabase.getInstance("https://leafy-rope-301003-default-rtdb.asia-southeast1.firebasedatabase.app/").getReference();
+        ValueEventListener postListener = new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                // Get Post object and use the values to update the UI
+                if (!isGuide) {
+                    NetworkService.receiveMessageNew(dataSnapshot.getValue().toString());
+                }
+
+                Log.e("firebase", dataSnapshot.getValue().toString());
+                // ..
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                // Getting Post failed, log a message
+                Log.e(TAG, "loadPost:onCancelled", databaseError.toException());
+            }
+        };
+        database.child("roomID").child("currentMessage").addValueEventListener(postListener);
+        database.child("roomID").child("learners").get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
+            @Override
+            public void onComplete(@NonNull Task<DataSnapshot> task) {
+                if (!task.isSuccessful()) {
+                    Log.e("firebase", "Error getting data", task.getException());
+                }
+                else {
+                    Log.e("firebase", String.valueOf(task.getResult().getValue()));
+                }
+            }
+        });
+
     }
 
     /**
