@@ -396,7 +396,7 @@ public class DialogManager {
             }
 
             Set<String> peerSet = new HashSet<>();
-            for(int ID : LeadMeMain.fileRequests) {
+            for(String ID : LeadMeMain.fileRequests) {
                 peerSet.add(String.valueOf(ID));
             }
 

@@ -24,7 +24,7 @@ ClientTransferTask implements Runnable {
     private static final String TAG = "ClientTransferTask";
 
     private final Socket clientSocket;
-    private int ID;
+    private String ID;
 
     public ClientTransferTask(Socket clientSocket) {
         this.clientSocket = clientSocket;
@@ -56,7 +56,7 @@ ClientTransferTask implements Runnable {
             String message = dataInputStream.readUTF();
             Log.d(TAG, "Peer number: " + message + " has just connected.");
 
-            this.ID = Integer.parseInt(message);
+            this.ID = message;
 
             //ID has been received, nothing else is sent so close just the input streams
             this.clientSocket.shutdownInput();

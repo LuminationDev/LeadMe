@@ -4,5 +4,5 @@ import com.lumination.leadme.connections.TcpClient;
 
 public class Learner {
     public TcpClient tcp;
-    public int ID;
+    public String ID;
 }

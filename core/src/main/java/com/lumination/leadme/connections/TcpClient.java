@@ -20,11 +20,11 @@ public class TcpClient extends Thread {
     private String TAG = "TcpClient: ";
 
     private String Name;
-    public InetAddress IpAddress;
+    public String IpAddress;
     public int port = 54320;
-    public int ID;
+    public String ID;
 
-    public TcpClient(InetAddress clientAddress, int clientID) {
+    public TcpClient(String clientAddress, String clientID) {
         TAG += clientID; //ensures logs are identifiable
         IpAddress = clientAddress;
         ID = clientID;

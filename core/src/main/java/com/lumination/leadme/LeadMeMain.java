@@ -274,7 +274,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     //File transfer
     public static Boolean fileTransferEnabled = false; //hard coded so have to enable each session
     public Switch transferToggle = null;
-    public static ArrayList<Integer> fileRequests = new ArrayList<>(); //array to hold learner ID's that are requesting a file
+    public static ArrayList<String> fileRequests = new ArrayList<>(); //array to hold learner ID's that are requesting a file
 
     //Auto app installer
     public static Boolean autoInstallApps = false; //if true, missing apps on student devices get installed automatically

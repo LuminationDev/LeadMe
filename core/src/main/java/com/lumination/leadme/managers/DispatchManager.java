@@ -171,9 +171,9 @@ public class DispatchManager {
     }
 
     public synchronized void alertLogout() {
-        ArrayList<Integer> selected = new ArrayList<>();
+        ArrayList<String> selected = new ArrayList<>();
         for (String peer : NearbyPeersManager.getAllPeerIDs()) {
-            selected.add(Integer.parseInt(peer));
+            selected.add(peer);
         }
         NetworkManager.sendToSelectedClients("DISCONNECT", "DISCONNECT", selected);
     }
@@ -771,7 +771,7 @@ public class DispatchManager {
 
             //If false, then the learner needs the file, otherwise the transfer is complete - relaunch the app
             if(split[2].equals("false")) {
-                LeadMeMain.fileRequests.add(Integer.parseInt(ID));
+                LeadMeMain.fileRequests.add(ID);
                 Controller.getInstance().getDialogManager().showRequestDialog(5);
             } else {
                 Set<String> peer = new HashSet<>();
@@ -960,7 +960,7 @@ public class DispatchManager {
             String[] split = action.split(":"); //get the peer ID
 
             Log.e(TAG, split[1] + " has just disconnected");
-            NetworkManager.updateParent(split[1] + " has disconnected", Integer.parseInt(split[1]), "LOST");
+            NetworkManager.updateParent(split[1] + " has disconnected", split[1], "LOST");
         }
 
         /**

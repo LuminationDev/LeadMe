@@ -68,8 +68,8 @@ public class FileTransferManager {
     private boolean request = false; //if a learner is requesting a file
 
     public static int selectedCounter = 0;
-    public static ArrayList<Integer> selected;
-    public static HashMap<Integer, Double> transfers;
+    public static ArrayList<String> selected;
+    public static HashMap<String, Double> transfers;
     public static double transfer_progress = -1;
     public static File file;
 
@@ -297,8 +297,7 @@ public class FileTransferManager {
             //cycle through the selected peers adding them to the selected array
             for (ConnectedPeer peer : ConnectedLearnersAdapter.mData) {
                 if (peer.isSelected()) {
-                    int ID = Integer.parseInt(peer.getID());
-                    selected.add(ID);
+                    selected.add(peer.getID());
                 }
             }
         }
@@ -324,8 +323,8 @@ public class FileTransferManager {
         Set<String> peerSet = new HashSet<>();
 
         //Add the peer to the set for message updates
-        for (int ID: selected) {
-            peerSet.add(String.valueOf(ID));
+        for (String ID: selected) {
+            peerSet.add(ID);
         }
 
         DispatchManager.sendActionToSelected(Controller.ACTION_TAG,
@@ -647,7 +646,7 @@ public class FileTransferManager {
      * @param index An integer representing a Peer ID within the transfers hashmap for which the
      *              specific progress is being updated.
      */
-    public static void updateGuideProgress(long total, int current, int index) {
+    public static void updateGuideProgress(long total, int current, String index) {
         double overallPercent = 0;
         double percent = (((double) current / (double) total) * 100);
 
@@ -657,7 +656,7 @@ public class FileTransferManager {
         }
 
         //get the average of array of percentages
-        for(Map.Entry<Integer, Double> entry : transfers.entrySet()) {
+        for(Map.Entry<String, Double> entry : transfers.entrySet()) {
             overallPercent += entry.getValue();
         }
 
@@ -716,8 +715,8 @@ public class FileTransferManager {
      */
     private void checkProgress() {
         if(LeadMeMain.isGuide) {
-            for (Map.Entry<Integer, Double> entry : transfers.entrySet()) {
-                Integer key = entry.getKey();
+            for (Map.Entry<String, Double> entry : transfers.entrySet()) {
+                String key = entry.getKey();
                 Double value = entry.getValue();
 
                 if (value == 100.0) {

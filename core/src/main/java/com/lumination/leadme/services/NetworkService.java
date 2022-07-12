@@ -60,19 +60,19 @@ public class NetworkService extends Service {
     /**
      * Keep track of the student threads that are currently being managed by the leader device.
      */
-    public static HashMap<Integer, Learner> studentThreadArray = new HashMap<>();
+    public static HashMap<String, Learner> studentThreadArray = new HashMap<>();
 
     /**
      * Keep Track of the Client ID as the key and student socket as the value. It can then be used
      * to determine if a student is reconnecting or is a new user.
      */
-    public static HashMap<Integer, InetAddress> clientSocketArray = new HashMap<>();
+    public static HashMap<String, String> clientSocketArray = new HashMap<>();
 
     /**
      * Only purpose is to provide a reverse look up in comparison to the clientSocketArray for
      * when receiving a message from learners. Quickly able to get their ID by their address.
      */
-    public static HashMap<InetAddress, Integer> addressSocketArray = new HashMap<>();
+    public static HashMap<String, String> addressSocketArray = new HashMap<>();
 
     /**
      * Specific executor just for the server, has not automatic cut off period like the
@@ -121,7 +121,7 @@ public class NetworkService extends Service {
     private static final Runnable ConnectionCheck = () -> {
         if(isRunning) {
             Log.d(TAG, "Sending Ping to learners");
-            for (Map.Entry<Integer, InetAddress> entry : clientSocketArray.entrySet()) {
+            for (Map.Entry<String, String> entry : clientSocketArray.entrySet()) {
                 Log.d(TAG, "Sending Ping to learner: " + entry.getKey());
                 sendToClient(entry.getKey(), String.valueOf(entry.getKey()), "PING");
             }
@@ -196,7 +196,7 @@ public class NetworkService extends Service {
             clientSocket.close();
 
             if(isGuide) {
-                determineAction(ipAddress, message);
+                determineAction(ipAddress.getHostAddress().replace(".", "_"), message);
             } else {
                 NetworkManager.messageReceivedFromServer(message);
             }
@@ -271,20 +271,18 @@ public class NetworkService extends Service {
     }
 
     //LEADER NETWORK FUNCTIONS
-    public static void sendToClient(int learnerID, String message, String type) {
+    public static void sendToClient(String learnerID, String message, String type) {
         Log.d(TAG, "sendToClient: "+message+" Type: "+type);
 
-        InetAddress ipAddress = clientSocketArray.get(learnerID);
-        if (ipAddress != null) {
-            backgroundExecutor.submit(() -> sendLearnerMessage(ipAddress, type + "," + message));
-        }
+        backgroundExecutor.submit(() -> sendLearnerMessage(learnerID, type + "," + message));
     }
 
-    public static void sendLearnerMessage(InetAddress ipAddress, String message) {
+    public static void sendLearnerMessage(String ipAddress, String message) {
         Log.d(TAG, "Attempting to send: " + message);
 
         try {
-            sendMessage(message, ipAddress, learnerPORT);
+            InetAddress iiii = InetAddress.getByName(ipAddress.replace("_", "."));
+            sendMessage(message, iiii, learnerPORT);
             Log.d(TAG, "Message sent closing socket");
         } catch (IOException e) {
             backgroundExecutor.submit(() -> determineAction(ipAddress, "DISCONNECT,No connection"));
@@ -299,14 +297,14 @@ public class NetworkService extends Service {
      *                      studentThreadArray.
      * @param message A string containing the action that has/or needs to be performed.
      */
-    private static void determineAction(InetAddress clientAddress, String message) {
-        Integer tempID = addressSocketArray.get(clientAddress);
+    private static void determineAction(String clientAddress, String message) {
+        String tempID = addressSocketArray.get(clientAddress);
         Learner learner = studentThreadArray.get(tempID);
 
         if(learner != null) {
             learner.tcp.inputReceived(message);
         } else {
-            Log.d(TAG, "Learner not found: " + clientAddress.getHostAddress() +
+            Log.d(TAG, "Learner not found: " + clientAddress +
                     " Message:" + message);
 
             //Only create a new connecting if a Name is being sent through
@@ -318,7 +316,7 @@ public class NetworkService extends Service {
         }
 
         if(message.equals("DISCONNECT,No connection") && tempID != null) {
-            removeStudent(tempID);
+            removeStudent(clientAddress);
         }
     }
 
@@ -367,42 +365,17 @@ public class NetworkService extends Service {
      * assigned the a student thread to it.
      * @param clientAddress An InetAddress object of the newly connected user.
      */
-    public static void learnerManager(InetAddress clientAddress) {
-        int ID = manageClientID(clientAddress);
+    public static void learnerManager(String clientAddress) {
+        String id = clientAddress.replace(".", "_");
 
-        TcpClient tcpClient = new TcpClient(clientAddress, ID);
+        TcpClient tcpClient = new TcpClient(id, clientAddress);
         Learner learner = new Learner();
         learner.tcp = tcpClient;
-        learner.ID = ID;
+        learner.ID = id;
 
-        clientSocketArray.put(ID, clientAddress);
-        studentThreadArray.put(ID, learner);
-        addressSocketArray.put(clientAddress, ID);
-    }
-
-    /**
-     * Find the correct Client ID to pass to the new user depending on if they are reconnecting or
-     * are a new user.
-     * @param clientAddress A socket object of the newly connected user.
-     */
-    public static int manageClientID(InetAddress clientAddress) {
-        int tempID = -1;
-
-        //find any matching IP addresses if they have previously connected
-        Integer ID = addressSocketArray.get(clientAddress);
-        if(ID != null) {
-            tempID = ID;
-        }
-
-        if(tempID != -1) {
-            Log.d(TAG, "Reconnecting Student: " + tempID);
-            Log.d(TAG, "Is user reconnecting: " + true);
-            studentThreadArray.remove(tempID);
-            return tempID;
-        } else {
-            Log.d(TAG, "New Student: " + clientID);
-            return clientID++;
-        }
+        clientSocketArray.put(id, id);
+        studentThreadArray.put(id, learner);
+        addressSocketArray.put(id, id);
     }
 
     /**
@@ -437,7 +410,7 @@ public class NetworkService extends Service {
      * student or if there is a crash on a device.
      * @param clientID An integer representing the ID of the learner to remove.
      */
-    public static void removeStudent(int clientID) {
+    public static void removeStudent(String clientID) {
         if(studentThreadArray.get(clientID) != null) {
             //Objects.requireNonNull(studentThreadArray.get(clientID)).tcp.shutdownTCP();
             studentThreadArray.remove(clientID);

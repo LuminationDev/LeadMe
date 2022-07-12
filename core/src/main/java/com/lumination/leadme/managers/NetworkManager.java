@@ -169,8 +169,8 @@ public class NetworkManager {
      * have been disconnected.
      * @param id An int representing the ID of the learner who is being disconnected.
      */
-    public void removeClient(int id) {
-        ArrayList<Integer> selected = new ArrayList<>();
+    public void removeClient(String id) {
+        ArrayList<String> selected = new ArrayList<>();
         selected.add(id);
         sendToSelectedClients("disconnect", "DISCONNECT", selected);
         Log.d(TAG, "removeClient: client successfully removed");
@@ -317,7 +317,7 @@ public class NetworkManager {
      * @param clientID An int representing which learner this update relates to.
      * @param type     A string to determine what action is being taken.
      */
-    public static void updateParent(String message, int clientID, String type) {
+    public static void updateParent(String message, String clientID, String type) {
         switch (type) {
             case "NAME":
                 parentUpdateName(message, clientID);
@@ -350,9 +350,9 @@ public class NetworkManager {
      * @param clientID An integer representing the clients ID saved within the student class on a
      *                 leaders device.
      */
-    private static void parentUpdateName(String message, int clientID) {
+    private static void parentUpdateName(String message, String clientID) {
         boolean exists = false;
-        ArrayList<Integer> selected = new ArrayList<>();
+        ArrayList<String> selected = new ArrayList<>();
 
         for (int i = 0; i < currentClients.size(); i++) {
             if (currentClients.get(i).ID == clientID) {
@@ -396,9 +396,9 @@ public class NetworkManager {
      * @param clientID An integer representing the clients ID saved within the student class on a
      *                 leaders device.
      */
-    private static void parentUpdateDisconnect(int clientID) {
+    private static void parentUpdateDisconnect(String clientID) {
         for (int i = 0; i < currentClients.size(); i++) {
-            if (currentClients.get(i).ID == clientID) {
+            if (currentClients.get(i).ID.equals(clientID)) {
                 Log.d(TAG, "updateParent: student has been disconnected: " + clientID);
                 cleanUpTransfer(clientID);
                 NetworkService.removeStudent(clientID);
@@ -420,7 +420,7 @@ public class NetworkManager {
      * @param clientID An integer representing the clients ID saved within the student class on a
      *                 leaders device.
      */
-    private static void parentUpdateLost(int clientID) {
+    private static void parentUpdateLost(String clientID) {
         Log.d(TAG, "updateParent: client: " + clientID + " has lost connection");
         cleanUpTransfer(clientID);
         currentClients.remove(clientID);
@@ -459,7 +459,7 @@ public class NetworkManager {
     /**
      * Add messages to the message queue which is then checked by each student thread.
      */
-    public static void sendToSelectedClients(String message, String type, ArrayList<Integer> selectedClientIDs) {
+    public static void sendToSelectedClients(String message, String type, ArrayList<String> selectedClientIDs) {
         Log.d(TAG, "sendToSelectedClients: " + selectedClientIDs + " " + currentClients.size());
 
         if(currentClients.size() == 0) {
@@ -467,8 +467,8 @@ public class NetworkManager {
         }
 
         for (int i = 0; i < currentClients.size(); i++) {
-            for (int selected : selectedClientIDs) {
-                if (selected == currentClients.get(i).ID) {
+            for (String selected : selectedClientIDs) {
+                if (selected.equals(currentClients.get(i).ID)) {
                     NetworkService.sendToClient(selected, message, type);
 
                     if(type.equals("DISCONNECT")) {
@@ -483,7 +483,7 @@ public class NetworkManager {
      * Remove any devices that may have disconnected while file transfer was active.
      * @param ID An ID representing a learner.
      */
-    private static void cleanUpTransfer(int ID) {
+    private static void cleanUpTransfer(String ID) {
         if(FileTransferManager.selected != null && FileTransferManager.transfers != null) {
             FileTransferManager.selected.remove(ID);
             FileTransferManager.transfers.remove(ID);
@@ -495,8 +495,8 @@ public class NetworkManager {
      * Stop the screenSharingService from sending images to the guide.
      * @param ID An int representing the learner that needs to stop sending images.
      */
-    public void stopMonitoring(int ID) {
-        ArrayList<Integer> selected = new ArrayList<>();
+    public void stopMonitoring(String ID) {
+        ArrayList<String> selected = new ArrayList<>();
         selected.add(ID);
         sendToSelectedClients("STOP", "MONITOR", selected);
     }
@@ -507,9 +507,9 @@ public class NetworkManager {
      * @param localPort An int representing the port to use for the transfer server.
      * @param fileType  A string representing the type of file that is being transferred.
      */
-    public static void sendFile(int ID, int localPort, String fileType) {
+    public static void sendFile(String ID, int localPort, String fileType) {
         Log.e(TAG, "Sending file to: " + ID);
-        ArrayList<Integer> selected = new ArrayList<>();
+        ArrayList<String> selected = new ArrayList<>();
         selected.add(ID);
         sendToSelectedClients("SEND:" + localPort + ":" + fileType, "FILE", selected);
     }

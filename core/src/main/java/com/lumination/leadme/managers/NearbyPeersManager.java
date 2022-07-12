@@ -215,7 +215,7 @@ public class NearbyPeersManager {
      * @param endpointId A string representing a students device.
      */
     public static void disconnectStudent(String endpointId) {
-        Controller.getInstance().getNetworkManager().removeClient(Integer.parseInt(endpointId));
+        Controller.getInstance().getNetworkManager().removeClient(endpointId);
     }
 
     /**
@@ -338,10 +338,10 @@ public class NearbyPeersManager {
                 NetworkService.sendToServer(encoded, "ACTION");
             }
         } else {
-            ArrayList<Integer> selected = new ArrayList<>();
+            ArrayList<String> selected = new ArrayList<>();
             for (String peer : selectedString) {
                 Log.d(TAG, "sendToSelected: " + peer);
-                selected.add(Integer.parseInt(peer));
+                selected.add(peer);
             }
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 String encoded = Base64.getEncoder().encodeToString(b);

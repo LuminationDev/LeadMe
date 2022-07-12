@@ -345,8 +345,8 @@ public class ConnectedLearnersAdapter extends BaseAdapter {
 
                 removeStudent(lastPromptedID);
                 refresh();
-                Controller.getInstance().getNetworkManager().stopMonitoring(Integer.parseInt(lastPromptedID));
-                Controller.getInstance().getNetworkManager().removeClient(Integer.parseInt(lastPromptedID));
+                Controller.getInstance().getNetworkManager().stopMonitoring(lastPromptedID);
+                Controller.getInstance().getNetworkManager().removeClient(lastPromptedID);
 
                 logoutPrompt.dismiss();
                 if (mData.size() <= 0) {
@@ -464,10 +464,10 @@ public class ConnectedLearnersAdapter extends BaseAdapter {
                 disconnect.setOnClickListener(v2 -> {
                     Log.d(TAG, "[adapter] Removing student: " + lastClickedID);
                     Controller.getInstance().getXrayManager().resetClientMaps(lastClickedID); //remove the peer from the HashMaps
-                    ArrayList<Integer> selected = new ArrayList<>();
-                    selected.add(Integer.valueOf(lastClickedID));
+                    ArrayList<String> selected = new ArrayList<>();
+                    selected.add(lastClickedID);
                     NetworkManager.sendToSelectedClients("", "DISCONNECT", selected);
-                    NetworkService.removeStudent(Integer.parseInt(lastClickedID));
+                    NetworkService.removeStudent(lastClickedID);
                     removeStudent(lastClickedID);
                     refresh();
                     finalConvertView.setVisibility(View.GONE);
@@ -494,8 +494,8 @@ public class ConnectedLearnersAdapter extends BaseAdapter {
 
                         ok_btn.setOnClickListener(v12 -> {
                             Log.d(TAG, "[adapter] Removing student: " + lastClickedID);
-                            ArrayList<Integer> selected = new ArrayList<>();
-                            selected.add(Integer.valueOf(lastClickedID));
+                            ArrayList<String> selected = new ArrayList<>();
+                            selected.add(lastClickedID);
                             NetworkManager.sendToSelectedClients("", "DISCONNECT", selected);
                             removeStudent(lastClickedID);
                             refresh();
@@ -610,8 +610,8 @@ public class ConnectedLearnersAdapter extends BaseAdapter {
 
         Disconnect.setOnClickListener(v -> {
             Log.d(TAG, "[adapter] Removing student: " + lastClickedID);
-            ArrayList<Integer> selected = new ArrayList<>();
-            selected.add(Integer.valueOf(lastClickedID));
+            ArrayList<String> selected = new ArrayList<>();
+            selected.add(lastClickedID);
             NetworkManager.sendToSelectedClients("", "DISCONNECT", selected);
             removeStudent(lastClickedID);
             refresh();
