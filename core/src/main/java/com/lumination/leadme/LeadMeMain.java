@@ -67,6 +67,7 @@ import android.widget.VideoView;
 import android.widget.ViewAnimator;
 import android.widget.ViewSwitcher;
 
+import androidx.annotation.NonNull;
 import androidx.collection.ArraySet;
 import androidx.core.content.res.ResourcesCompat;
 import androidx.fragment.app.FragmentActivity;
@@ -75,11 +76,17 @@ import androidx.lifecycle.LifecycleObserver;
 import androidx.lifecycle.OnLifecycleEvent;
 
 import com.BoardiesITSolutions.FileDirectoryPicker.OpenFilePicker;
+import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthCredential;
 import com.google.firebase.auth.EmailAuthProvider;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import com.himanshurawat.hasher.HashType;
 import com.himanshurawat.hasher.Hasher;
 import com.lumination.leadme.controller.Controller;
@@ -2141,7 +2148,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
      * starts the networking service, on start up the leader server starts.
      */
     public void startServer() {
-        NetworkService.startServer();
+//        NetworkService.startServer();
     }
 
     /**
@@ -2330,23 +2337,50 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                 buildAndDisplayOnBoard(true);
             }
 
+            String ipAddress = null;
+            try {
+                ipAddress = InetAddress.getByAddress(
+                        ByteBuffer
+                                .allocate(Integer.BYTES)
+                                .order(ByteOrder.LITTLE_ENDIAN)
+                                .putInt(LeadMeMain.wifiManager.getConnectionInfo().getIpAddress())
+                                .array()
+                ).getHostAddress();
+            } catch (UnknownHostException e) {
+                e.printStackTrace();
+            }
+
             //if it is a manual connection session, create a firebase lookup entry
             if(sessionManual) {
-                String ipAddress = null;
-                try {
-                    ipAddress = InetAddress.getByAddress(
-                        ByteBuffer
-                            .allocate(Integer.BYTES)
-                            .order(ByteOrder.LITTLE_ENDIAN)
-                            .putInt(wifiManager.getConnectionInfo().getIpAddress())
-                            .array()
-                    ).getHostAddress();
-                } catch (UnknownHostException e) {
-                    e.printStackTrace();
-                }
-
                 Controller.getInstance().getFirebaseManager().createManualConnection(ipAddress);
             }
+
+            DatabaseReference database = FirebaseDatabase.getInstance("https://leafy-rope-301003-default-rtdb.asia-southeast1.firebasedatabase.app/").getReference();
+            ipAddress = ipAddress.replace(".", "_");
+            database.child(ipAddress).setValue("roomCreated");
+            database.child(ipAddress).child("learners").setValue("emptyLearners");
+            database.child(ipAddress).child("currentMessage").setValue("");
+
+            ValueEventListener postListener = new ValueEventListener() {
+                @Override
+                public void onDataChange(DataSnapshot dataSnapshot) {
+                    // Get Post object and use the values to update the UI
+                    Object messageObj = dataSnapshot.getValue();
+                    Log.e("firebase", dataSnapshot.toString());
+                    if (dataSnapshot.getChildrenCount() != ConnectedLearnersAdapter.mData.size()) {
+                        for (DataSnapshot data:dataSnapshot.getChildren()) {
+                            NetworkManager.parentUpdateName("No_Name_yet", data.getKey());
+                        }
+                    }
+                }
+
+                @Override
+                public void onCancelled(DatabaseError databaseError) {
+                    // Getting Post failed, log a message
+                    Log.e(TAG, "loadPost:onCancelled", databaseError.toException());
+                }
+            };
+            database.child(ipAddress).child("learners").addValueEventListener(postListener);
 
             //remove the Firebase listener if server discovery was enabled before logging in
             Controller.getInstance().getFirebaseManager().removeUserListener();

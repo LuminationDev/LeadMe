@@ -308,7 +308,6 @@ public class XrayManager {
         //let student know we're watching so they send screenshots
         Set<String> selected = new HashSet<>();
         selected.add(xrayStudent.getID());
-        DispatchManager.sendActionToSelected(Controller.ACTION_TAG, Controller.XRAY_ON, selected);
 
         Log.e(TAG, "Peers: SEL:" + selected + ", NOT:" + notSelected);
 
@@ -410,6 +409,8 @@ public class XrayManager {
         monitorInProgress = true;
         imageSocketThread = new Thread(() -> imageRunnableFunction(peer));
         imageSocketThread.start();
+        DispatchManager.sendActionToSelected(Controller.ACTION_TAG, Controller.XRAY_ON, NearbyPeersManager.getSelectedPeerIDs());
+        Log.d(TAG, "Socket thread created");
     }
 
     public void removePeerFromMap(String peer) {

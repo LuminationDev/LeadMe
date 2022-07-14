@@ -13,6 +13,8 @@ import android.util.Log;
 
 import androidx.core.app.NotificationCompat;
 
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 import com.lumination.leadme.LeadMeMain;
 import com.lumination.leadme.R;
 import com.lumination.leadme.connections.TcpClient;
@@ -29,6 +31,9 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.UnknownHostException;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
@@ -79,7 +84,6 @@ public class NetworkService extends Service {
      * CachedThreadPool.
      */
     private static ThreadPoolExecutor serverThreadPool = (ThreadPoolExecutor) Executors.newFixedThreadPool(2);
-    private static ExecutorService backgroundExecutor = Executors.newCachedThreadPool();
     private static ScheduledExecutorService scheduledExecutor = new ScheduledThreadPoolExecutor(1);
 
     // Binder given to clients
@@ -96,139 +100,8 @@ public class NetworkService extends Service {
         }
     }
 
-    /**
-     * Each time the server is started (after logout or end session) reset the thread pool
-     * and client arrays.
-     */
-    private static void setupService() {
-        isRunning = true;
-        serverThreadPool = (ThreadPoolExecutor) Executors.newFixedThreadPool(2);
-        backgroundExecutor = Executors.newCachedThreadPool();
-        scheduledExecutor = new ScheduledThreadPoolExecutor(1);
-
-        if(LeadMeMain.isGuide) {
-            isGuide = true;
-            setArrays();
-            scheduledExecutor.scheduleAtFixedRate(ConnectionCheck,300,10000, TimeUnit.MILLISECONDS);
-        }
-    }
-
-    /**
-     * Responsible for checking the connection between the Leader and the Leaner associated with
-     * this socket connection. Sends a ping every set time period if no other messages are being
-     * sent.
-     */
-    private static final Runnable ConnectionCheck = () -> {
-        if(isRunning) {
-            Log.d(TAG, "Sending Ping to learners");
-            for (Map.Entry<String, String> entry : clientSocketArray.entrySet()) {
-                Log.d(TAG, "Sending Ping to learner: " + entry.getKey());
-                sendToClient(entry.getKey(), String.valueOf(entry.getKey()), "PING");
-            }
-        } else {
-            scheduledExecutor.shutdown();
-        }
-    };
-
-    /**
-     * Runs an eternal server allowing any connections that come in. Uses a different port number
-     * depending on if the user is a leader or learner.
-     */
-    public static void startServer() {
-        setupService();
-        Log.e(TAG, "Starting server");
-        if(server == null) {
-            server = serverThreadPool.submit(() -> {
-                try {
-                    mServerSocket = new ServerSocket();
-                    mServerSocket.setReuseAddress(true);
-
-                    if(isGuide) {
-                        mServerSocket.bind(new InetSocketAddress(leaderPORT));
-                    } else {
-                        mServerSocket.bind(new InetSocketAddress(learnerPORT));
-                    }
-
-                    while (true) {
-                        Log.d(TAG, "ServerSocket Created, awaiting connection");
-                        Socket clientSocket;
-
-                        try {
-                            clientSocket = mServerSocket.accept();//blocks the thread until client is accepted
-                        } catch (IOException e) {
-                            //Exits the server loop on session end
-                            e.printStackTrace();
-                            return;
-                        }
-
-                        //Supporting functions in network manager or network adapter? don't want to be too cluttered
-                        backgroundExecutor.submit(() -> receiveMessage(clientSocket));
-                        Log.d(TAG, "run: client connected");
-                    }
-                } catch (Exception e) {
-                    Log.e(TAG, "Error creating ServerSocket: ", e);
-                    e.printStackTrace();
-                }
-            });
-        }
-    }
-
-    private static void receiveMessage(Socket clientSocket) {
-        try {
-            // get the input stream from the connected socket
-            InputStream inputStream = clientSocket.getInputStream();
-            // read from the stream
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-
-            byte[] content = new byte[ 2048 ];
-            int bytesRead;
-
-            while( ( bytesRead = inputStream.read( content ) ) != -1 ) {
-                baos.write( content, 0, bytesRead );
-            }
-
-            String message = baos.toString();
-
-            //Get the IP address used to determine who has just connected.
-            InetAddress ipAddress = clientSocket.getInetAddress();
-
-            //Message has been received close the socket
-            clientSocket.close();
-
-            if(isGuide) {
-                determineAction(ipAddress.getHostAddress().replace(".", "_"), message);
-            } else {
-                NetworkManager.messageReceivedFromServer(message);
-            }
-
-            Log.d(TAG, "Message: " + message + " IpAddress:" + ipAddress.getHostAddress());
-
-        } catch (IOException e) {
-            Log.e(TAG, "Unable to process client request");
-            e.printStackTrace();
-        }
-    }
-
-    /**
-     * An interface for sending a message to a destination.
-     * @param message A string representing the communication that is being sent.
-     * @param ipAddress An InetAddress of the destination.
-     * @param destPORT A int representing the destinations port.
-     * @throws IOException Throws an error if the socket was unable to be connected.
-     */
-    private static void sendMessage(String message, InetAddress ipAddress, int destPORT) throws IOException {
-        Socket soc = new Socket(ipAddress, destPORT);
-
-        OutputStream toServer = soc.getOutputStream();
-        PrintWriter output = new PrintWriter(toServer);
-        output.println(message);
-        DataOutputStream out = new DataOutputStream(toServer);
-        out.writeBytes(message);
-
-        toServer.close();
-        output.close();
-        out.close();
-        soc.close();
+    public static void receiveMessage(String message) {
+        NetworkManager.messageReceivedFromServer(message);
     }
 
     //LEARNER NETWORK FUNCTIONS
@@ -247,8 +120,8 @@ public class NetworkService extends Service {
 
     public static void sendToServer(String message, String type) {
         if (getLeaderIPAddress() != null) {
-            backgroundExecutor.submit(() -> sendLeaderMessage(type + "," +
-                    message.replace("\n", "_").replace("\r", "|")));
+            sendLeaderMessage(type + "," +
+                    message.replace("\n", "_").replace("\r", "|"));
         }
     }
 
@@ -260,34 +133,47 @@ public class NetworkService extends Service {
     public static void sendLeaderMessage(String message) {
         Log.d(TAG, "Attempting to send: " + message);
 
+        InetAddress leaderIpAddress = NetworkService.getLeaderIPAddress();
+        String myIpAddress = null;
         try {
-            sendMessage(message, leaderIPAddress, leaderPORT);
-            Log.d(TAG, "Message sent closing socket");
-        } catch (IOException e) {
-            //Disconnect if no connection is achieved
-            NetworkManager.messageReceivedFromServer("DISCONNECT,");
+            myIpAddress = InetAddress.getByAddress(
+                    ByteBuffer
+                            .allocate(Integer.BYTES)
+                            .order(ByteOrder.LITTLE_ENDIAN)
+                            .putInt(LeadMeMain.wifiManager.getConnectionInfo().getIpAddress())
+                            .array()
+            ).getHostAddress();
+        } catch (UnknownHostException e) {
             e.printStackTrace();
         }
+        DatabaseReference database = FirebaseDatabase.getInstance("https://leafy-rope-301003-default-rtdb.asia-southeast1.firebasedatabase.app/").getReference();
+        database.child(leaderIpAddress.getHostAddress().replace(".", "_")).child("learners").child(myIpAddress.replace(".", "_")).child("currentMessage").setValue(message);
     }
 
     //LEADER NETWORK FUNCTIONS
     public static void sendToClient(String learnerID, String message, String type) {
         Log.d(TAG, "sendToClient: "+message+" Type: "+type);
 
-        backgroundExecutor.submit(() -> sendLearnerMessage(learnerID, type + "," + message));
+        sendLearnerMessage(learnerID, type + "," + message);
     }
 
     public static void sendLearnerMessage(String ipAddress, String message) {
         Log.d(TAG, "Attempting to send: " + message);
-
+        String myIpAddress = null;
         try {
-            InetAddress iiii = InetAddress.getByName(ipAddress.replace("_", "."));
-            sendMessage(message, iiii, learnerPORT);
-            Log.d(TAG, "Message sent closing socket");
-        } catch (IOException e) {
-            backgroundExecutor.submit(() -> determineAction(ipAddress, "DISCONNECT,No connection"));
+            myIpAddress = InetAddress.getByAddress(
+                    ByteBuffer
+                            .allocate(Integer.BYTES)
+                            .order(ByteOrder.LITTLE_ENDIAN)
+                            .putInt(LeadMeMain.wifiManager.getConnectionInfo().getIpAddress())
+                            .array()
+            ).getHostAddress();
+        } catch (UnknownHostException e) {
             e.printStackTrace();
         }
+
+        DatabaseReference database = FirebaseDatabase.getInstance("https://leafy-rope-301003-default-rtdb.asia-southeast1.firebasedatabase.app/").getReference();
+        database.child(myIpAddress.replace(".", "_")).child("learners").child(ipAddress.replace(".", "_")).child("leaderMessage").setValue(message);
     }
 
     /**
@@ -297,7 +183,8 @@ public class NetworkService extends Service {
      *                      studentThreadArray.
      * @param message A string containing the action that has/or needs to be performed.
      */
-    private static void determineAction(String clientAddress, String message) {
+    public static void determineAction(String clientAddress, String message) {
+        clientAddress = clientAddress.replace(".", "_");
         String tempID = addressSocketArray.get(clientAddress);
         Learner learner = studentThreadArray.get(tempID);
 
@@ -393,16 +280,8 @@ public class NetworkService extends Service {
         clientID = 0;
     }
 
-    private static void setArrays() {
-        clientSocketArray = new HashMap<>();
-        studentThreadArray = new HashMap<>();
-        addressSocketArray = new HashMap<>();
-    }
-
     private static void disconnection() {
-        clientSocketArray.forEach((key, value) -> backgroundExecutor.submit(() ->
-                sendLearnerMessage(value, "DISCONNECT" + ","))
-        );
+        clientSocketArray.forEach((key, value) -> sendLearnerMessage(value, "DISCONNECT" + ","));
     }
 
     /**

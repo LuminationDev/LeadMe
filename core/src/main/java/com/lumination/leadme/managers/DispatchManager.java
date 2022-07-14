@@ -90,11 +90,12 @@ public class DispatchManager {
     }
 
     private static void writeMessageToSelected(byte[] bytes, Set<String> selectedPeerIDs) {
-        if (NearbyPeersManager.isConnectedAsGuide()) {
+//        if (NearbyPeersManager.isConnectedAsGuide()) {
+        Log.d(TAG, "writeMessageToSelected");
             NearbyPeersManager.sendToSelected(Payload.fromBytes(bytes), selectedPeerIDs);
-        } else {
-            Log.i(TAG, "Sorry, you can't send messages!");
-        }
+//        } else {
+//            Log.i(TAG, "Sorry, you can't send messages!");
+//        }
     }
 
     /**
@@ -179,6 +180,7 @@ public class DispatchManager {
     }
 
     public static synchronized void sendActionToSelected(String actionTag, String action, Set<String> selectedPeerIDs) {
+        Log.d(TAG, "sendActionToSelected: " + actionTag + " " + action);
         LeadMeMain.getInstance().setProgressTimer(2000);
         if(action.contains(Controller.LAUNCH_URL) || action.contains(Controller.LAUNCH_YT)) {
             lastEvent = 3;
@@ -193,29 +195,7 @@ public class DispatchManager {
         p.recycle();
 
         //auto-install, request, notification tags and success tag are exempt so students can alert teacher to their status
-        if (NearbyPeersManager.isConnectedAsGuide() ||
-                action.startsWith(Controller.YOUR_ID_IS) ||
-                action.startsWith(Controller.RETURN_TAG) ||
-                action.startsWith(Controller.PERMISSION_DENIED) ||
-                action.startsWith(Controller.TRANSFER_ERROR) ||
-                action.startsWith(Controller.FILE_REQUEST_TAG) ||
-                action.startsWith(Controller.APP_NOT_INSTALLED) ||
-                action.startsWith(Controller.AUTO_INSTALL_ATTEMPT) ||
-                action.startsWith(Controller.AUTO_INSTALL_FAILED) ||
-                action.startsWith(Controller.STUDENT_NO_OVERLAY) ||
-                action.startsWith(Controller.STUDENT_NO_INTERNET) ||
-                action.startsWith(Controller.STUDENT_NO_ACCESSIBILITY) ||
-                action.startsWith(Controller.STUDENT_OFF_TASK_ALERT) ||
-                action.startsWith(Controller.STUDENT_FINISH_ADS) ||
-                action.startsWith(Controller.PING_TAG) ||
-                action.startsWith(Controller.LAUNCH_SUCCESS) ||
-                action.startsWith(Controller.STUDENT_NO_XRAY) ||
-                action.startsWith(Controller.DISCONNECTION) ||
-                action.startsWith(Controller.NAME_REQUEST)) {
-            NearbyPeersManager.sendToSelected(Payload.fromBytes(bytes), selectedPeerIDs);
-        } else {
-            Log.i(TAG, "Sorry, you can't send actions!");
-        }
+        NearbyPeersManager.sendToSelected(Payload.fromBytes(bytes), selectedPeerIDs);
     }
 
     public synchronized boolean readAction(byte[] bytes) {

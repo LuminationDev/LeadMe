@@ -10,6 +10,11 @@ import android.util.Log;
 import androidx.collection.ArraySet;
 
 import com.google.android.gms.nearby.connection.Payload;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import com.lumination.leadme.adapters.ConnectedLearnersAdapter;
 import com.lumination.leadme.connections.ConnectedPeer;
 import com.lumination.leadme.LeadMeMain;
@@ -19,6 +24,8 @@ import com.lumination.leadme.models.Client;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.HashSet;
@@ -93,29 +100,66 @@ public class NearbyPeersManager {
                 Log.d(TAG, "connectToSelectedLeader: " + info.getServiceName());
                 if (info.getServiceName().equals(Name + "#Teacher")) {
                     LeadMeMain.getInstance().manageServerConnection(info);
-                    return;
                 }
             }
         } else {
             LeadMeMain.getInstance().manageServerConnection(manInfo);
-            return;
         }
-        Log.d(TAG, "connectToSelectedLeader: no leader found with the name " + Name + ". Trying" +
-                "again.");
+        DatabaseReference database = FirebaseDatabase.getInstance("https://leafy-rope-301003-default-rtdb.asia-southeast1.firebasedatabase.app/").getReference();
+        ValueEventListener postListener = new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                // Get Post object and use the values to update the UI
+                NetworkService.receiveMessage(dataSnapshot.getValue().toString());
 
-        //In case the device is trying to connect manually when not in manual mode
-        if((!LeadMeMain.sessionManual || !LeadMeMain.directConnection) && manInfo != null) {
-            manInfo = null;
+                Log.e("firebase", dataSnapshot.getValue().toString());
+                // ..
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                // Getting Post failed, log a message
+                Log.e(TAG, "loadPost:onCancelled", databaseError.toException());
+            }
+        };
+        String myIpAddress = null;
+        try {
+            myIpAddress = InetAddress.getByAddress(
+                    ByteBuffer
+                            .allocate(Integer.BYTES)
+                            .order(ByteOrder.LITTLE_ENDIAN)
+                            .putInt(LeadMeMain.wifiManager.getConnectionInfo().getIpAddress())
+                            .array()
+            ).getHostAddress();
+        } catch (UnknownHostException e) {
+            e.printStackTrace();
         }
 
-        //Try connection again after a set time
-        if(tryConnect < 10) {
-            tryConnect++;
-            connectToSelectedLeader();
-        } else {
-            tryConnect = 0;
-            Log.d(TAG, "connectToSelectedLeader: unable to find leader.");
-        }
+        database.child(NetworkService.getLeaderIPAddress().getHostAddress().replace(".", "_")).child("learners").child(myIpAddress.replace(".", "_")).child("currentMessage").setValue("");
+        database.child(NetworkService.getLeaderIPAddress().getHostAddress().replace(".", "_")).child("learners").child(myIpAddress.replace(".", "_")).child("leaderMessage").setValue("");
+
+
+        database.child(NetworkService.getLeaderIPAddress().getHostAddress().replace(".", "_")).child("currentMessage").addValueEventListener(postListener);
+        database.child(NetworkService.getLeaderIPAddress().getHostAddress().replace(".", "_")).child("learners").child(myIpAddress.replace(".", "_")).child("leaderMessage").addValueEventListener(postListener);
+
+        NetworkService.sendToServer(getName(), "NAME");
+        return;
+//        Log.d(TAG, "connectToSelectedLeader: no leader found with the name " + Name + ". Trying" +
+//                "again.");
+//
+//        //In case the device is trying to connect manually when not in manual mode
+//        if((!LeadMeMain.sessionManual || !LeadMeMain.directConnection) && manInfo != null) {
+//            manInfo = null;
+//        }
+//
+//        //Try connection again after a set time
+//        if(tryConnect < 10) {
+//            tryConnect++;
+//            connectToSelectedLeader();
+//        } else {
+//            tryConnect = 0;
+//            Log.d(TAG, "connectToSelectedLeader: unable to find leader.");
+//        }
     }
 
     public static void connectToManualLeader(String leaderName, String IpAddress) {
@@ -175,7 +219,7 @@ public class NearbyPeersManager {
      * @return A boolean representing if they are a guide.
      */
     public static boolean isConnectedAsGuide() {
-        return LeadMeMain.isGuide && NetworkService.isServerRunning();
+        return LeadMeMain.isGuide;
     }
 
     /**
@@ -288,17 +332,11 @@ public class NearbyPeersManager {
     public static Set<String> getSelectedPeerIDs() {
         Set<String> endpoints = new ArraySet<>();
         //if connected as guide, send message to specific peers
-        if (isConnectedAsGuide()) {
-            for (ConnectedPeer thisPeer : ConnectedLearnersAdapter.mData) {
-                if (thisPeer.isSelected()) {
-                    Log.d(TAG, "Adding " + thisPeer.getDisplayName());
-                    endpoints.add(thisPeer.getID());
-                }
+        for (ConnectedPeer thisPeer : ConnectedLearnersAdapter.mData) {
+            if (thisPeer.isSelected()) {
+                Log.d(TAG, "Adding " + thisPeer.getDisplayName());
+                endpoints.add(thisPeer.getID());
             }
-            return endpoints;
-        //if connected as follower, send message back to guide
-        } else {
-            endpoints.add("-1");
         }
         return endpoints;
     }

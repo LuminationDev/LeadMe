@@ -13,6 +13,11 @@ import android.util.Log;
 import android.view.View;
 
 import com.google.android.gms.nearby.connection.Payload;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import com.lumination.leadme.adapters.ConnectedLearnersAdapter;
 import com.lumination.leadme.connections.ConnectedPeer;
 import com.lumination.leadme.LeadMeMain;
@@ -23,6 +28,10 @@ import com.lumination.leadme.services.NetworkService;
 import com.lumination.leadme.models.Client;
 import com.lumination.leadme.models.Endpoint;
 
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
@@ -43,7 +52,6 @@ public class NetworkManager {
 
     private static WifiManager.MulticastLock multicastLock; // Acquire multicast lock
     private static boolean init = false; //check if connection has been initialised
-    private static int timeOut = 30; //timeout in seconds(s)
 
     public static ArrayList<Client> currentClients = new ArrayList<>();
 
@@ -110,11 +118,9 @@ public class NetworkManager {
         connectionThreadPool.submit(() -> {
             Log.d(TAG, "connectToServer: attempting to connect to " + serviceInfo.getHost() + ":" + serviceInfo.getPort());
 
-            NetworkService.startServer();
+//            NetworkService.startServer();
 
             NSDManager.mService = serviceInfo;
-
-            NetworkService.sendToServer(getName(), "NAME");
 
             clientSetup();
         });
@@ -134,34 +140,6 @@ public class NetworkManager {
             List<String> inputList = Arrays.asList(NSDManager.getChosenServiceInfo().getServiceName().split("#"));
             LeadMeMain.getInstance().setLeaderName(inputList.get(0));
         });
-
-        startConnectionCheck();
-    }
-
-    /**
-     * Send the learner's name to the leaders server, this acts as the initial connection method.
-     * Start an executor to continually check if the leader has disconnected or is still active. If
-     * not then move the learner from a logged in state to the splash screen.
-     */
-    public void startConnectionCheck() {
-        scheduledExecutor.scheduleAtFixedRate(this::checkTimeout, 1000, 5000, TimeUnit.MILLISECONDS);
-    }
-
-    private void checkTimeout() {
-        if(timeOut > 0) {
-            timeOut = timeOut - 5;
-            Log.d(TAG, "timeOut: " + timeOut);
-        } else {
-            messageReceivedFromServer("DISCONNECT,");
-            resetTimeout();
-        }
-    }
-
-    /**
-     * Upon receiving a Ping from the leader reset the countdown.
-     */
-    public static void resetTimeout() {
-        timeOut = 30;
     }
 
     /**
@@ -275,7 +253,6 @@ public class NetworkManager {
      */
     private static void receivedPing(String input) {
         NearbyPeersManager.myID = input;
-        resetTimeout();
         Log.d(TAG, "messageReceivedFromServer: received ping and subsequently ignoring it");
 
         if (!init) {
@@ -350,7 +327,7 @@ public class NetworkManager {
      * @param clientID An integer representing the clients ID saved within the student class on a
      *                 leaders device.
      */
-    private static void parentUpdateName(String message, String clientID) {
+    public static void parentUpdateName(String message, String clientID) {
         boolean exists = false;
         ArrayList<String> selected = new ArrayList<>();
 
@@ -376,13 +353,54 @@ public class NetworkManager {
             temp.pingCycle = 1;
             currentClients.add(temp);
             Endpoint endpoint = new Endpoint();
-            endpoint.name = message;
+            endpoint.name = message + ":" + clientID;
             endpoint.Id = String.valueOf(clientID);
             ConnectedPeer thisPeer = new ConnectedPeer(endpoint);
             LeadMeMain.runOnUI(() -> {
                 Controller.getInstance().getConnectedLearnersAdapter().addStudent(thisPeer);
                 LeadMeMain.getInstance().showConnectedStudents(true);
             });
+
+            String ipAddress = null;
+            try {
+                ipAddress = InetAddress.getByAddress(
+                        ByteBuffer
+                                .allocate(Integer.BYTES)
+                                .order(ByteOrder.LITTLE_ENDIAN)
+                                .putInt(LeadMeMain.wifiManager.getConnectionInfo().getIpAddress())
+                                .array()
+                ).getHostAddress();
+            } catch (UnknownHostException e) {
+                e.printStackTrace();
+            }
+
+            DatabaseReference database = FirebaseDatabase.getInstance("https://leafy-rope-301003-default-rtdb.asia-southeast1.firebasedatabase.app/").getReference();
+
+            ValueEventListener postListener = new ValueEventListener() {
+                @Override
+                public void onDataChange(DataSnapshot dataSnapshot) {
+                    // Get Post object and use the values to update the UI
+                    Object messageObj = dataSnapshot.getValue();
+                    Log.e("firebase", dataSnapshot.toString());
+                    if (messageObj != null) {
+                        String message = messageObj.toString();
+                        Log.e("firebase", message);
+                        Log.e("firebase", dataSnapshot.getKey());
+                        if (message != null && message.length() > 0) {
+                            NetworkService.determineAction(clientID, message);
+                        }
+                    }
+
+                    // ..
+                }
+
+                @Override
+                public void onCancelled(DatabaseError databaseError) {
+                    // Getting Post failed, log a message
+                    Log.e(TAG, "loadPost:onCancelled", databaseError.toException());
+                }
+            };
+            database.child(ipAddress.replace(".", "_")).child("learners").child(clientID).child("currentMessage").addValueEventListener(postListener);
         }
 
         selected.add(clientID);
