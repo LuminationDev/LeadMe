@@ -56,10 +56,6 @@ public class NetworkService extends Service {
     private static Future<?> server = null;
     private static ServerSocket mServerSocket = null; //server socket for server
     private static InetAddress leaderIPAddress;
-    public static final int leaderPORT = 54321;
-    private static final int learnerPORT = 54320;
-    private static int clientID = 0;
-    public static boolean isRunning = false;
     public static boolean isGuide = false;
 
     /**
@@ -157,6 +153,31 @@ public class NetworkService extends Service {
         sendLearnerMessage(learnerID, type + "," + message);
     }
 
+    public static void sendToAllClients(String message, String type) {
+        Log.d(TAG, "sendToAllClients: "+message+" Type: "+type);
+
+        sendAllLearnerMessage(type + "," + message);
+    }
+
+    public static void sendAllLearnerMessage(String message) {
+        Log.d(TAG, "Attempting to send: " + message);
+        String myIpAddress = null;
+        try {
+            myIpAddress = InetAddress.getByAddress(
+                    ByteBuffer
+                            .allocate(Integer.BYTES)
+                            .order(ByteOrder.LITTLE_ENDIAN)
+                            .putInt(LeadMeMain.wifiManager.getConnectionInfo().getIpAddress())
+                            .array()
+            ).getHostAddress();
+        } catch (UnknownHostException e) {
+            e.printStackTrace();
+        }
+
+        DatabaseReference database = FirebaseDatabase.getInstance("https://leafy-rope-301003-default-rtdb.asia-southeast1.firebasedatabase.app/").getReference();
+        database.child(myIpAddress.replace(".", "_")).child("currentMessage").setValue(message);
+    }
+
     public static void sendLearnerMessage(String ipAddress, String message) {
         Log.d(TAG, "Attempting to send: " + message);
         String myIpAddress = null;
@@ -240,14 +261,6 @@ public class NetworkService extends Service {
     }
 
     /**
-     * Get the instance of the server socket running on the leader's device.
-     * @return A ServerSocket representing the server the leader is associated with.
-     */
-    public static ServerSocket getServerSocket() {
-        return mServerSocket;
-    }
-
-    /**
      * Manages what Client IDs are currently in use. Gets the first index equaling null and
      * assigned the a student thread to it.
      * @param clientAddress An InetAddress object of the newly connected user.
@@ -273,11 +286,9 @@ public class NetworkService extends Service {
      * consecutively grows
      */
     public static void resetClientIDs() {
-        isRunning = false;
         studentThreadArray.clear();
         clientSocketArray.clear();
         addressSocketArray.clear();
-        clientID = 0;
     }
 
     private static void disconnection() {

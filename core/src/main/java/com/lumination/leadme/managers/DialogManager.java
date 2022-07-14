@@ -1114,11 +1114,6 @@ public class DialogManager {
             loginDialog.dismiss();
             if (cancelled) {
                 main.startShakeDetection();
-
-                //Only start discovery again if trying to login as a learner
-                if(main.loginActor.equals("learner")) {
-                    NSDManager.startDiscovery();
-                }
             }
         }
     }

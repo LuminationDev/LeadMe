@@ -96,7 +96,6 @@ import com.lumination.leadme.managers.DispatchManager;
 import com.lumination.leadme.accessibility.LumiAccessibilityConnector;
 import com.lumination.leadme.adapters.ConnectedLearnersAdapter;
 import com.lumination.leadme.managers.AppManager;
-import com.lumination.leadme.managers.NSDManager;
 import com.lumination.leadme.managers.NearbyPeersManager;
 import com.lumination.leadme.managers.NetworkManager;
 import com.lumination.leadme.managers.PermissionManager;
@@ -443,15 +442,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             Intent accessibilityIntent = new Intent(getApplicationContext(), LumiAccessibilityService.class);
             startService(accessibilityIntent);
         }
-    }
-
-    //TODO implement this across managers
-    /**
-     * Generic intent starter.
-     * @param intent An intent that is about to be started.
-     */
-    public void startIntent(Intent intent) {
-        startService(intent);
     }
 
     @Override
@@ -2036,7 +2026,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         leaderLearnerSwitcher.setDisplayedChild(SWITCH_LEADER_INDEX);
         leader_toggle.setBackground(ResourcesCompat.getDrawable(getResources(), R.drawable.bg_active_right_leader, null));
         learner_toggle.setBackground(ResourcesCompat.getDrawable(getResources(), R.drawable.bg_passive_left_white, null));
-        NSDManager.stopDiscovery();
     }
 
     private void displayLearnerStartToggle() {
@@ -2145,13 +2134,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     }
 
     /**
-     * starts the networking service, on start up the leader server starts.
-     */
-    public void startServer() {
-//        NetworkService.startServer();
-    }
-
-    /**
      * Submit a runnable to connect to a specific service.
      * @param NSDInformation An NsdServiceInfo that holds the required information to connect
      *                          to the selected leaders service.
@@ -2170,9 +2152,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         Log.d(TAG, "Initiating Manual Leader Discovery");
         Controller.getInstance().getLeaderSelectAdapter().setLeaderList(new ArrayList<>());
         isReadyToConnect = true;
-        if (Controller.getInstance().getNearbyManager().isDiscovering()) {
-            NSDManager.stopDiscovery();
-        }
         Controller.getInstance().getFirebaseManager().retrieveLeaders();
     }
 
@@ -3261,7 +3240,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
         toggleConnectionOptions(View.GONE); //Remove connection options
         Controller.getInstance().getFirebaseManager().removeUserListener(); //remove the Firebase listener if connection was manual
-        NSDManager.stopDiscovery();
 
         optionsScreen.findViewById(R.id.connected_only_view).setVisibility(View.VISIBLE);
     }
@@ -3566,18 +3544,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         } else {
             Controller.getInstance().getConnectedLearnersAdapter().updateStatus(peerID, status, msg);
         }
-    }
-
-    //TODO This isn't used but can be implemented in the future.
-    /**
-     * Send an action to the guide on the destruction of a learners application. Notifying the guide
-     * that the learner has abruptly disconnected.
-     * @param peerID A string representing the ID of the disconnected peer.
-     */
-    public void disconnection(String peerID) {
-        DispatchManager.sendActionToSelected(Controller.ACTION_TAG,
-                Controller.DISCONNECTION + ":" + peerID,
-                NearbyPeersManager.getSelectedPeerIDsOrAll());
     }
 
     /**

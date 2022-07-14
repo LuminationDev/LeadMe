@@ -66,8 +66,6 @@ public class NearbyPeersManager {
 
     public void discoverLeaders() {
         discovering = true;
-        NSDManager.stopAdvertising();
-        NSDManager.startDiscovery();
     }
 
     public void setSelectedLeader(ConnectedPeer peer) {
@@ -80,7 +78,6 @@ public class NearbyPeersManager {
 
     public void onStop() {
         Log.d(TAG, "onStop: deprecated");
-        stopAdvertising();
         disconnectFromAllEndpoints();
     }
 
@@ -93,18 +90,7 @@ public class NearbyPeersManager {
 
         Log.e(TAG, "Teacher: " + Name);
 
-        if(manInfo == null) {
-            ArrayList<NsdServiceInfo> discoveredLeaders = NSDManager.discoveredLeaders;
-            Log.d(TAG, "Leaders array: " + discoveredLeaders.size());
-            for (NsdServiceInfo info : discoveredLeaders) {
-                Log.d(TAG, "connectToSelectedLeader: " + info.getServiceName());
-                if (info.getServiceName().equals(Name + "#Teacher")) {
-                    LeadMeMain.getInstance().manageServerConnection(info);
-                }
-            }
-        } else {
-            LeadMeMain.getInstance().manageServerConnection(manInfo);
-        }
+        LeadMeMain.getInstance().manageServerConnection(manInfo);
         DatabaseReference database = FirebaseDatabase.getInstance("https://leafy-rope-301003-default-rtdb.asia-southeast1.firebasedatabase.app/").getReference();
         ValueEventListener postListener = new ValueEventListener() {
             @Override
@@ -179,7 +165,6 @@ public class NearbyPeersManager {
             info.setServiceType("_http._tcp.");
             Log.d(TAG, "run: "+info);
             manInfo = info;
-            NSDManager.discoveredLeaders.add(info);
             selectedLeader = new ConnectedPeer(leaderName, IpAddress);
             LeadMeMain.runOnUI(NearbyPeersManager::connectToSelectedLeader);
         });
@@ -192,18 +177,6 @@ public class NearbyPeersManager {
     public void setAsGuide() {
         Log.e(TAG, "Server starting for leader");
         LeadMeMain.isGuide = true;
-        LeadMeMain.getInstance().startServer();
-
-        //Wait a little bit for the server to start before making the guide discoverable.
-        final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
-
-        final Runnable runnable = () -> {
-            NSDManager.stopDiscovery();
-            NSDManager.startAdvertising();
-
-            scheduler.shutdown();
-        };
-        scheduler.scheduleAtFixedRate(runnable, 2, 1, SECONDS);
     }
 
     /**
@@ -278,17 +251,9 @@ public class NearbyPeersManager {
                 ArrayList<ConnectedPeer> temp = new ArrayList<>();
                 Controller.getInstance().getLeaderSelectAdapter().setLeaderList(temp);
                 LeadMeMain.getInstance().showLeaderWaitMsg(true);
-                NSDManager.startDiscovery();
                 LeadMeMain.getInstance().setUIDisconnected();
             });
         }
-    }
-
-    /**
-     * Stops advertising.
-     */
-    protected void stopAdvertising() {
-        NSDManager.stopAdvertising();
     }
 
     public boolean isDiscovering() {

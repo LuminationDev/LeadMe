@@ -21,7 +21,6 @@ import com.lumination.leadme.managers.DialogManager;
 import com.lumination.leadme.managers.DispatchManager;
 import com.lumination.leadme.managers.FileTransferManager;
 import com.lumination.leadme.managers.FirebaseManager;
-import com.lumination.leadme.managers.NSDManager;
 import com.lumination.leadme.managers.NearbyPeersManager;
 import com.lumination.leadme.managers.NetworkManager;
 import com.lumination.leadme.managers.PermissionManager;
@@ -140,9 +139,6 @@ public class Controller {
     public Controller() {
         controllerInstance = this;
         LeadMeMain main = LeadMeMain.getInstance();
-
-        //Instantiate the utility class
-        NSDManager.initialise();
 
         screenSharingManager = new ScreenSharingManager(main);
         firebaseManager = new FirebaseManager(main);

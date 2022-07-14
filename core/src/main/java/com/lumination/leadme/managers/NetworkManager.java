@@ -81,16 +81,6 @@ public class NetworkManager {
     }
 
     /**
-     * Acquire multicast lock - required for pre API 11 and some devices.
-     */
-    public static void setMulticastLock(Activity main) {
-        WifiManager wifi = (WifiManager) main.getSystemService(Context.WIFI_SERVICE);
-        multicastLock = wifi.createMulticastLock("multicastLock");
-        multicastLock.setReferenceCounted(true);
-        multicastLock.acquire();
-    }
-
-    /**
      * Stop the leaders socket server. This will drop all currently connected clients.
      */
     public static void stopServer() {
@@ -103,13 +93,6 @@ public class NetworkManager {
     }
 
     /**
-     * Get the name set for the current device
-     */
-    public static String getName() {
-        return NearbyPeersManager.getName();
-    }
-
-    /**
      * Using a supplied NsdService connect to a server using the details provided.
      *
      * @param serviceInfo An NsdServiceInfo object containing the details about the selected leader.
@@ -117,10 +100,6 @@ public class NetworkManager {
     public void connectToServer(NsdServiceInfo serviceInfo) {
         connectionThreadPool.submit(() -> {
             Log.d(TAG, "connectToServer: attempting to connect to " + serviceInfo.getHost() + ":" + serviceInfo.getPort());
-
-//            NetworkService.startServer();
-
-            NSDManager.mService = serviceInfo;
 
             clientSetup();
         });
@@ -133,12 +112,9 @@ public class NetworkManager {
     private void clientSetup() {
         Log.d(TAG, "connectToServer: connection successful");
 
-        NSDManager.stopDiscovery();
-
         LeadMeMain.runOnUI(() -> {
             LeadMeMain.getInstance().findViewById(R.id.client_main).setVisibility(View.VISIBLE);
-            List<String> inputList = Arrays.asList(NSDManager.getChosenServiceInfo().getServiceName().split("#"));
-            LeadMeMain.getInstance().setLeaderName(inputList.get(0));
+            LeadMeMain.getInstance().setLeaderName("TODO GET LEADER NAME"); // todo - get leader name
         });
     }
 
@@ -332,7 +308,7 @@ public class NetworkManager {
         ArrayList<String> selected = new ArrayList<>();
 
         for (int i = 0; i < currentClients.size(); i++) {
-            if (currentClients.get(i).ID == clientID) {
+            if (currentClients.get(i).ID.equals(clientID)) {
                 if (!currentClients.get(i).name.equals(message)) {
                     Log.d(TAG, "updateParent: " + currentClients.get(i).name + " has changed to " + message);
                     currentClients.get(i).name = message;
@@ -481,6 +457,10 @@ public class NetworkManager {
         Log.d(TAG, "sendToSelectedClients: " + selectedClientIDs + " " + currentClients.size());
 
         if(currentClients.size() == 0) {
+            return;
+        }
+        if (currentClients.size() == selectedClientIDs.size()) {
+            NetworkService.sendToAllClients(message, type);
             return;
         }
 
