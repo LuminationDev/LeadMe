@@ -128,22 +128,7 @@ public class NetworkService extends Service {
      */
     public static void sendLeaderMessage(String message) {
         Log.d(TAG, "Attempting to send: " + message);
-
-        InetAddress leaderIpAddress = NetworkService.getLeaderIPAddress();
-        String myIpAddress = null;
-        try {
-            myIpAddress = InetAddress.getByAddress(
-                    ByteBuffer
-                            .allocate(Integer.BYTES)
-                            .order(ByteOrder.LITTLE_ENDIAN)
-                            .putInt(LeadMeMain.wifiManager.getConnectionInfo().getIpAddress())
-                            .array()
-            ).getHostAddress();
-        } catch (UnknownHostException e) {
-            e.printStackTrace();
-        }
-        DatabaseReference database = FirebaseDatabase.getInstance("https://leafy-rope-301003-default-rtdb.asia-southeast1.firebasedatabase.app/").getReference();
-        database.child(leaderIpAddress.getHostAddress().replace(".", "_")).child("learners").child(myIpAddress.replace(".", "_")).child("currentMessage").setValue(message);
+        LeadMeMain.learnerReference.child("currentMessage").setValue(message);
     }
 
     //LEADER NETWORK FUNCTIONS
@@ -161,40 +146,13 @@ public class NetworkService extends Service {
 
     public static void sendAllLearnerMessage(String message) {
         Log.d(TAG, "Attempting to send: " + message);
-        String myIpAddress = null;
-        try {
-            myIpAddress = InetAddress.getByAddress(
-                    ByteBuffer
-                            .allocate(Integer.BYTES)
-                            .order(ByteOrder.LITTLE_ENDIAN)
-                            .putInt(LeadMeMain.wifiManager.getConnectionInfo().getIpAddress())
-                            .array()
-            ).getHostAddress();
-        } catch (UnknownHostException e) {
-            e.printStackTrace();
-        }
-
-        DatabaseReference database = FirebaseDatabase.getInstance("https://leafy-rope-301003-default-rtdb.asia-southeast1.firebasedatabase.app/").getReference();
-        database.child(myIpAddress.replace(".", "_")).child("currentMessage").setValue(message);
+        LeadMeMain.roomReference.child("currentMessage").setValue(message);
     }
 
     public static void sendLearnerMessage(String ipAddress, String message) {
         Log.d(TAG, "Attempting to send: " + message);
-        String myIpAddress = null;
-        try {
-            myIpAddress = InetAddress.getByAddress(
-                    ByteBuffer
-                            .allocate(Integer.BYTES)
-                            .order(ByteOrder.LITTLE_ENDIAN)
-                            .putInt(LeadMeMain.wifiManager.getConnectionInfo().getIpAddress())
-                            .array()
-            ).getHostAddress();
-        } catch (UnknownHostException e) {
-            e.printStackTrace();
-        }
 
-        DatabaseReference database = FirebaseDatabase.getInstance("https://leafy-rope-301003-default-rtdb.asia-southeast1.firebasedatabase.app/").getReference();
-        database.child(myIpAddress.replace(".", "_")).child("learners").child(ipAddress.replace(".", "_")).child("leaderMessage").setValue(message);
+        LeadMeMain.roomReference.child("learners").child(ipAddress.replace(".", "_")).child("leaderMessage").setValue(message);
     }
 
     /**

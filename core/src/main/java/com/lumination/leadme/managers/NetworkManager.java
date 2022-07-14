@@ -93,32 +93,6 @@ public class NetworkManager {
     }
 
     /**
-     * Using a supplied NsdService connect to a server using the details provided.
-     *
-     * @param serviceInfo An NsdServiceInfo object containing the details about the selected leader.
-     */
-    public void connectToServer(NsdServiceInfo serviceInfo) {
-        connectionThreadPool.submit(() -> {
-            Log.d(TAG, "connectToServer: attempting to connect to " + serviceInfo.getHost() + ":" + serviceInfo.getPort());
-
-            clientSetup();
-        });
-    }
-
-    /**
-     * If the socket is connected send the learners name back to the server to start the TCP client
-     * and then begin monitoring the connection.
-     */
-    private void clientSetup() {
-        Log.d(TAG, "connectToServer: connection successful");
-
-        LeadMeMain.runOnUI(() -> {
-            LeadMeMain.getInstance().findViewById(R.id.client_main).setVisibility(View.VISIBLE);
-            LeadMeMain.getInstance().setLeaderName("TODO GET LEADER NAME"); // todo - get leader name
-        });
-    }
-
-    /**
      * Disconnect a student from the leaders side. Sends an action to the client to know they
      * have been disconnected.
      * @param id An int representing the ID of the learner who is being disconnected.
@@ -337,21 +311,6 @@ public class NetworkManager {
                 LeadMeMain.getInstance().showConnectedStudents(true);
             });
 
-            String ipAddress = null;
-            try {
-                ipAddress = InetAddress.getByAddress(
-                        ByteBuffer
-                                .allocate(Integer.BYTES)
-                                .order(ByteOrder.LITTLE_ENDIAN)
-                                .putInt(LeadMeMain.wifiManager.getConnectionInfo().getIpAddress())
-                                .array()
-                ).getHostAddress();
-            } catch (UnknownHostException e) {
-                e.printStackTrace();
-            }
-
-            DatabaseReference database = FirebaseDatabase.getInstance("https://leafy-rope-301003-default-rtdb.asia-southeast1.firebasedatabase.app/").getReference();
-
             ValueEventListener postListener = new ValueEventListener() {
                 @Override
                 public void onDataChange(DataSnapshot dataSnapshot) {
@@ -376,7 +335,7 @@ public class NetworkManager {
                     Log.e(TAG, "loadPost:onCancelled", databaseError.toException());
                 }
             };
-            database.child(ipAddress.replace(".", "_")).child("learners").child(clientID).child("currentMessage").addValueEventListener(postListener);
+            LeadMeMain.roomReference.child("learners").child(clientID).child("currentMessage").addValueEventListener(postListener);
         }
 
         selected.add(clientID);

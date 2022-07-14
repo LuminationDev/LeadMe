@@ -106,7 +106,12 @@ import com.lumination.leadme.services.NetworkService;
 import com.lumination.leadme.utilities.FileUtilities;
 import com.lumination.leadme.utilities.OnboardingGestureDetector;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.InetAddress;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -302,6 +307,11 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     boolean allowHide = false;
     private ScheduledExecutorService scheduledExecutorService = new ScheduledThreadPoolExecutor(1);
     public ExecutorService backgroundExecutor = Executors.newCachedThreadPool();
+
+    public static String publicIpAddress = "";
+    public static String localIpAddress = "";
+    public static DatabaseReference roomReference;
+    public static DatabaseReference learnerReference;
     /**
      * Used exclusively for handling messages from a server on learner devices
      */
@@ -990,6 +1000,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         //onCreate can get called when device rotated, keyboard opened/shut, etc
         super.onCreate(savedInstanceState);
 
+
         leadMeInstance = this;
         context = getApplicationContext();
         Log.w(TAG, "On create! " + init);
@@ -1002,6 +1013,47 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         checkSharedPreferences();
         inflateViews();
         createManagers();
+
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    localIpAddress = InetAddress.getByAddress(
+                            ByteBuffer
+                                    .allocate(Integer.BYTES)
+                                    .order(ByteOrder.LITTLE_ENDIAN)
+                                    .putInt(wifiManager.getConnectionInfo().getIpAddress())
+                                    .array()
+                    ).getHostAddress();
+                } catch (UnknownHostException e) {
+                    e.printStackTrace();
+                }
+
+                URL ipify = null;
+                try {
+                    ipify = new URL("https://api.ipify.org/");
+                } catch (MalformedURLException e) {
+                    e.printStackTrace();
+                }
+                BufferedReader in = null;
+                try {
+                    in = new BufferedReader(new InputStreamReader(
+                            ipify.openStream()));
+                    publicIpAddress = in.readLine();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                } finally {
+                    if (in != null) {
+                        try {
+                            in.close();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+            }
+        }).start();
+
         setupReceiver();
         setupInitialDetails();
         UIListener();
@@ -1716,20 +1768,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         //direct ip input connection
         TextView manualConnect = optionsScreen.findViewById(R.id.manual_connect);
         manualConnect.setOnClickListener(view -> {
-            String ipAddress = null;
-            try {
-                ipAddress = InetAddress.getByAddress(
-                    ByteBuffer
-                        .allocate(Integer.BYTES)
-                        .order(ByteOrder.LITTLE_ENDIAN)
-                        .putInt(wifiManager.getConnectionInfo().getIpAddress())
-                        .array()
-                ).getHostAddress();
-            } catch (UnknownHostException e) {
-                e.printStackTrace();
-            }
-
-            Controller.getInstance().getDialogManager().showManualDialog(isGuide, ipAddress);
+            Controller.getInstance().getDialogManager().showManualDialog(isGuide, localIpAddress);
         });
 
         optionsScreen.findViewById(R.id.logout_btn).setOnClickListener(view -> {
@@ -1882,21 +1921,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         editor.apply();
 
         if(isManual && isGuide) {
-            String ipAddress = null;
-            try {
-                ipAddress = InetAddress.getByAddress(
-                        ByteBuffer
-                                .allocate(Integer.BYTES)
-                                .order(ByteOrder.LITTLE_ENDIAN)
-                                .putInt(wifiManager.getConnectionInfo().getIpAddress())
-                                .array()
-                ).getHostAddress();
-            } catch (UnknownHostException e) {
-                e.printStackTrace();
-            }
-
-            Controller.getInstance().getFirebaseManager().createManualConnection(ipAddress);
-
+            Controller.getInstance().getFirebaseManager().createManualConnection(localIpAddress);
         } else if(!isManual) {
             //reset manual connection info (switching between session discovery and other
             Controller.getInstance().getNearbyManager().resetManualInfo();
@@ -2133,16 +2158,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         Controller.getInstance().getNearbyManager().discoverLeaders();
     }
 
-    /**
-     * Submit a runnable to connect to a specific service.
-     * @param NSDInformation An NsdServiceInfo that holds the required information to connect
-     *                          to the selected leaders service.
-     */
-    public void manageServerConnection(NsdServiceInfo NSDInformation) {
-        NetworkService.setLeaderIPAddress(NSDInformation.getHost());
-        backgroundExecutor.submit(() -> Controller.getInstance().getNetworkManager().connectToServer(NSDInformation));
-    }
-
     //MANUAL CONNECTION FOR LEARNERS
     /**
      * Empty the current leader list and stop any Nsd discovery. Start the client socket listener
@@ -2316,29 +2331,17 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                 buildAndDisplayOnBoard(true);
             }
 
-            String ipAddress = null;
-            try {
-                ipAddress = InetAddress.getByAddress(
-                        ByteBuffer
-                                .allocate(Integer.BYTES)
-                                .order(ByteOrder.LITTLE_ENDIAN)
-                                .putInt(LeadMeMain.wifiManager.getConnectionInfo().getIpAddress())
-                                .array()
-                ).getHostAddress();
-            } catch (UnknownHostException e) {
-                e.printStackTrace();
-            }
-
             //if it is a manual connection session, create a firebase lookup entry
             if(sessionManual) {
-                Controller.getInstance().getFirebaseManager().createManualConnection(ipAddress);
+                Controller.getInstance().getFirebaseManager().createManualConnection(localIpAddress);
             }
 
             DatabaseReference database = FirebaseDatabase.getInstance("https://leafy-rope-301003-default-rtdb.asia-southeast1.firebasedatabase.app/").getReference();
-            ipAddress = ipAddress.replace(".", "_");
-            database.child(ipAddress).setValue("roomCreated");
-            database.child(ipAddress).child("learners").setValue("emptyLearners");
-            database.child(ipAddress).child("currentMessage").setValue("");
+            database.child(LeadMeMain.publicIpAddress.replace(".", "_")).child("rooms").child(localIpAddress.replace(".", "_")).setValue("roomCreated");
+            roomReference = database.child(LeadMeMain.publicIpAddress.replace(".", "_")).child("rooms").child(localIpAddress.replace(".", "_"));
+            roomReference.child("learners").setValue("emptyLearners");
+            roomReference.child("currentMessage").setValue("");
+            roomReference.child("leaderName").setValue(name);
 
             ValueEventListener postListener = new ValueEventListener() {
                 @Override
@@ -2359,7 +2362,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                     Log.e(TAG, "loadPost:onCancelled", databaseError.toException());
                 }
             };
-            database.child(ipAddress).child("learners").addValueEventListener(postListener);
+            roomReference.child("learners").addValueEventListener(postListener);
 
             //remove the Firebase listener if server discovery was enabled before logging in
             Controller.getInstance().getFirebaseManager().removeUserListener();

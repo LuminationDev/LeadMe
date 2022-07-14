@@ -6,6 +6,7 @@ import android.net.nsd.NsdServiceInfo;
 import android.os.Build;
 import android.os.Parcel;
 import android.util.Log;
+import android.view.View;
 
 import androidx.collection.ArraySet;
 
@@ -15,6 +16,7 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.lumination.leadme.R;
 import com.lumination.leadme.adapters.ConnectedLearnersAdapter;
 import com.lumination.leadme.connections.ConnectedPeer;
 import com.lumination.leadme.LeadMeMain;
@@ -90,8 +92,11 @@ public class NearbyPeersManager {
 
         Log.e(TAG, "Teacher: " + Name);
 
-        LeadMeMain.getInstance().manageServerConnection(manInfo);
+        NetworkService.setLeaderIPAddress(manInfo.getHost());
+        LeadMeMain.getInstance().findViewById(R.id.client_main).setVisibility(View.VISIBLE);
+        LeadMeMain.getInstance().setLeaderName(Name);
         DatabaseReference database = FirebaseDatabase.getInstance("https://leafy-rope-301003-default-rtdb.asia-southeast1.firebasedatabase.app/").getReference();
+        LeadMeMain.roomReference = database.child(LeadMeMain.publicIpAddress.replace(".", "_")).child("rooms").child(NetworkService.getLeaderIPAddress().getHostAddress().replace(".", "_"));
         ValueEventListener postListener = new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
@@ -99,7 +104,6 @@ public class NearbyPeersManager {
                 NetworkService.receiveMessage(dataSnapshot.getValue().toString());
 
                 Log.e("firebase", dataSnapshot.getValue().toString());
-                // ..
             }
 
             @Override
@@ -108,25 +112,14 @@ public class NearbyPeersManager {
                 Log.e(TAG, "loadPost:onCancelled", databaseError.toException());
             }
         };
-        String myIpAddress = null;
-        try {
-            myIpAddress = InetAddress.getByAddress(
-                    ByteBuffer
-                            .allocate(Integer.BYTES)
-                            .order(ByteOrder.LITTLE_ENDIAN)
-                            .putInt(LeadMeMain.wifiManager.getConnectionInfo().getIpAddress())
-                            .array()
-            ).getHostAddress();
-        } catch (UnknownHostException e) {
-            e.printStackTrace();
-        }
 
-        database.child(NetworkService.getLeaderIPAddress().getHostAddress().replace(".", "_")).child("learners").child(myIpAddress.replace(".", "_")).child("currentMessage").setValue("");
-        database.child(NetworkService.getLeaderIPAddress().getHostAddress().replace(".", "_")).child("learners").child(myIpAddress.replace(".", "_")).child("leaderMessage").setValue("");
+        LeadMeMain.roomReference.child("learners").child(LeadMeMain.localIpAddress.replace(".", "_")).child("currentMessage").setValue("");
+        LeadMeMain.learnerReference = LeadMeMain.roomReference.child("learners").child(LeadMeMain.localIpAddress.replace(".", "_"));
+        LeadMeMain.learnerReference.child("leaderMessage").setValue("");
 
 
-        database.child(NetworkService.getLeaderIPAddress().getHostAddress().replace(".", "_")).child("currentMessage").addValueEventListener(postListener);
-        database.child(NetworkService.getLeaderIPAddress().getHostAddress().replace(".", "_")).child("learners").child(myIpAddress.replace(".", "_")).child("leaderMessage").addValueEventListener(postListener);
+        LeadMeMain.roomReference.child("currentMessage").addValueEventListener(postListener);
+        LeadMeMain.learnerReference.child("leaderMessage").addValueEventListener(postListener);
 
         NetworkService.sendToServer(getName(), "NAME");
         return;
