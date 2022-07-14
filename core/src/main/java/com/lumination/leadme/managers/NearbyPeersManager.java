@@ -123,22 +123,6 @@ public class NearbyPeersManager {
 
         NetworkService.sendToServer(getName(), "NAME");
         return;
-//        Log.d(TAG, "connectToSelectedLeader: no leader found with the name " + Name + ". Trying" +
-//                "again.");
-//
-//        //In case the device is trying to connect manually when not in manual mode
-//        if((!LeadMeMain.sessionManual || !LeadMeMain.directConnection) && manInfo != null) {
-//            manInfo = null;
-//        }
-//
-//        //Try connection again after a set time
-//        if(tryConnect < 10) {
-//            tryConnect++;
-//            connectToSelectedLeader();
-//        } else {
-//            tryConnect = 0;
-//            Log.d(TAG, "connectToSelectedLeader: unable to find leader.");
-//        }
     }
 
     public static void connectToManualLeader(String leaderName, String IpAddress) {

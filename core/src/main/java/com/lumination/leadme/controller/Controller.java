@@ -98,7 +98,6 @@ public class Controller {
     public static final String LAUNCH_SUCCESS = "LumiSuccess:";
 
     public static final String SESSION_UUID_TAG = "SessionUUID";
-    public static final String SESSION_MANUAL_TAG = "SessionManual";
     public static final String SESSION_VR_TAG = "SessionFirstVR";
 
     public static final String XRAY_REQUEST = "LumiXrayRequest";

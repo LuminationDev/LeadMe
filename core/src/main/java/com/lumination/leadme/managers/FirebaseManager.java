@@ -6,6 +6,11 @@ import android.os.Build;
 import android.util.Log;
 
 import com.google.common.net.InetAddresses;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
@@ -16,6 +21,7 @@ import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.SetOptions;
 import com.lumination.leadme.LeadMeMain;
+import com.lumination.leadme.adapters.ConnectedLearnersAdapter;
 import com.lumination.leadme.connections.ConnectedPeer;
 import com.lumination.leadme.controller.Controller;
 import com.lumination.leadme.services.FirebaseService;
@@ -38,16 +44,11 @@ public class FirebaseManager {
 
     private final LeadMeMain main;
     private final FirebaseFirestore db = FirebaseFirestore.getInstance();
-    private CollectionReference collRef = null;
-    private ListenerRegistration manualUserListener;
 
     private Timer timestampUpdater;
-    private final int inactiveUser = 30; //cut off for hiding inactive leaders (mins)
-    private final int waitForGuide = 10000; //how long to wait before peer re-query's firestore
     private String serverIP = ""; //needs to be "" so that the learner can see check against
     private String publicIP;
     private final HashMap<String, Object> manualConnectionDetails = new HashMap<>();
-    private final ScheduledExecutorService scheduledExecutorService = new ScheduledThreadPoolExecutor(1);
 
     public FirebaseManager(LeadMeMain main) {
         this.main = main;
@@ -103,98 +104,34 @@ public class FirebaseManager {
             return;
         }
 
-        collRef = db.collection("addresses").document(publicIP).collection("Leaders");
+        DatabaseReference database = FirebaseDatabase.getInstance("https://leafy-rope-301003-default-rtdb.asia-southeast1.firebasedatabase.app/").getReference();
+        DatabaseReference roomsReference = database.child(LeadMeMain.publicIpAddress.replace(".", "_")).child("rooms");
+        ValueEventListener postListener = new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                // Get Post object and use the values to update the UI
+                Log.e("firebase", dataSnapshot.toString());
+                if (dataSnapshot.getChildrenCount() != ConnectedLearnersAdapter.mData.size()) {
+                    for (DataSnapshot data:dataSnapshot.getChildren()) {
+                        LeadMeMain.runOnUI(() -> {
+                            Controller.getInstance().getLeaderSelectAdapter().addLeader(
+                                    new ConnectedPeer(
+                                            data.child("leaderName").getValue().toString(),
+                                            data.getKey().replace("_", ".")));
 
-        collRef.get().addOnCompleteListener(task -> {
-            if (task.isSuccessful()) {
-                //if no one has registered on the public IP yet, wait sometime and try again.
-                try {
-                    if (Objects.requireNonNull(task.getResult()).size() == 0) {
-                        //In case the user switches back to auto
-                        if (LeadMeMain.sessionManual && !LeadMeMain.directConnection) {
-                            scheduledExecutorService.schedule(this::retrieveLeaders, waitForGuide, TimeUnit.MILLISECONDS);
-                        }
-                    } else {
-                        //add listeners to track if leader hasn't logged in but publicIP exists (multiple leaders on network)
-                        trackCollection(collRef);
+                            LeadMeMain.getInstance().showLeaderWaitMsg(false);
+                        });
                     }
-                } catch (NullPointerException e) {
-                    Log.d(TAG, "onComplete: " + e);
                 }
-            } else {
-                Log.d(TAG, "Error getting documents: ", task.getException());
             }
-        });
-    }
 
-    //add a listener to the Leader collection to wait for log in
-    private void trackCollection(CollectionReference collRef) {
-        if(manualUserListener != null){
-            manualUserListener.remove();
-        }
-
-        if(!NearbyPeersManager.isConnectedAsFollower()) {
-            Log.d(TAG, "trackCollection: listener added");
-
-            manualUserListener = collRef.addSnapshotListener((value, error) -> {
-                Log.d(TAG, "onEvent: ip listener fired");
-                if (error != null) {
-                    Log.w(TAG, "Listen failed.", error);
-                    return;
-                }
-
-                if (value != null) {
-                    for (QueryDocumentSnapshot document : value) {
-                        Date leaderTimeStamp = Objects.requireNonNull(document.getTimestamp("TimeStamp")).toDate();
-
-                        if (checkTimeDifference(leaderTimeStamp) >= inactiveUser) {
-                            return;
-                        }
-
-                        if (document.get("Username") != null) {
-                            LeadMeMain.runOnUI(() -> {
-                                Controller.getInstance().getLeaderSelectAdapter().addLeader(
-                                        new ConnectedPeer(
-                                                document.get("Username").toString(),
-                                                document.get("ServerIP").toString()));
-
-                                LeadMeMain.getInstance().showLeaderWaitMsg(false);
-                            });
-                        }
-                    }
-                } else {
-                    Log.d(TAG, "Current data: null");
-                }
-            });
-        }
-    }
-
-    /**
-     * Removes the user entry listener attached to the firebase collection that looks for new
-     * leaders signing in.
-     */
-    public void removeUserListener() {
-        if (manualUserListener != null) {
-            Log.d(TAG, "loginAction: listener removed");
-            manualUserListener.remove();
-            manualUserListener = null;
-        }
-    }
-
-    /**
-     * calculate the difference between the firebase timestamp and the current time
-     * return the minutes, can also work out other units if necessary.
-     */
-    private int checkTimeDifference(Date leaderTimeStamp) {
-        Date now = new Date();
-
-        long difference_In_Time = now.getTime() - leaderTimeStamp.getTime();
-        long difference_In_Minutes = (difference_In_Time / (1000 * 60)) % 60;
-        long difference_In_Hours = (difference_In_Time / (1000 * 60 * 60)) % 24;
-
-        /*max difference can be 24 * 60 (mins), server clears firestore once or twice a day
-        so anything more is not necessary at this point.*/
-        return (int) (difference_In_Hours * 60) + (int) difference_In_Minutes;
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                // Getting Post failed, log a message
+                Log.e(TAG, "loadPost:onCancelled", databaseError.toException());
+            }
+        };
+        roomsReference.addValueEventListener(postListener);
     }
 
     /**

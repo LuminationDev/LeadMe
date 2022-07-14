@@ -161,7 +161,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     public static final boolean FLAG_INSTALLER = false;
 
     public Drawable leadMeIcon;
-    protected PowerManager powerManager;
 
     public static String leadMeAppName = "";
     public static String leadMePackageName = "";
@@ -188,17 +187,9 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
      */
     private String sessionUUID = null;
     /**
-     * Used to determine if server discovery is on
-     */
-    public static Boolean sessionManual = null;
-    /**
      * Used to determine if the user has used the VR player before
      */
     public Boolean vrFirstTime = null;
-    /**
-     * Used to determine if connecting through direct IP input
-     */
-    public static Boolean directConnection = false;
 
     private InputMethodManager imm;
     private LumiAccessibilityConnector lumiAccessibilityConnector;
@@ -228,7 +219,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
     //details about me to send to peers
     public static boolean isGuide = false;
-    public boolean isReadyToConnect = false;
     public boolean studentLockOn = true; //students start locked
     public static boolean selectedOnly = false; //sending to all learners or just selected
 
@@ -238,13 +228,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     public ViewAnimator leadmeAnimator;
     private ViewSwitcher leaderLearnerSwitcher;
     protected boolean loggingInAsLeader = true;
-    public String leaderName = "Leader";
-
-    /**
-     * Determine if a using is trying to login as a leader or a learner.
-     * Toggled on the splash page by the leader and learner buttons.
-     */
-    public String loginActor = "leader";
 
     private final int SWITCH_LEADER_INDEX = 0;
     private final int SWITCH_LEARNER_INDEX = 1;
@@ -276,10 +259,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     public ActivityManager activityManager;
     public static WifiManager wifiManager;
 
-    private Switch serverDiscoveryToggle = null;
-
-    //New lock button
-    public static boolean learnerLock = true;
     public static Set<ConnectedPeer> selectedLearners = new ArraySet<>();
 
     //File transfer
@@ -923,7 +902,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
         //clean up nearby connections
         isGuide = false;
-        isReadyToConnect = false;
         Controller.getInstance().getNearbyManager().onStop();
 
         //remove the overlay if necessary
@@ -1092,7 +1070,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     private void setupInitialDetails() {
         studentLockOn = false; //students start unlocked
         isGuide = false;
-        isReadyToConnect = false;
         loggingInAsLeader = true;
 
         if (Controller.getInstance().getNearbyManager() != null) {
@@ -1126,17 +1103,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         if (sessionUUID == null) {
             sessionUUID = UUID.randomUUID().toString();
             editor.putString(Controller.SESSION_UUID_TAG, sessionUUID);
-            editor.apply();
-        }
-
-        //Change the session connect type between Manual and Auto
-        if (sharedPreferences.contains(Controller.SESSION_MANUAL_TAG)) {
-            sessionManual = sharedPreferences.getBoolean(Controller.SESSION_MANUAL_TAG, false);
-        }
-
-        if (sessionManual == null) {
-            sessionManual = false;
-            editor.putBoolean(Controller.SESSION_MANUAL_TAG, sessionManual);
             editor.apply();
         }
 
@@ -1228,9 +1194,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
 
         new Controller();
-
-        //Managers
-        powerManager = (PowerManager) getSystemService(POWER_SERVICE);
         lumiAccessibilityConnector = new LumiAccessibilityConnector(this);
         connectedStudentsView = mainLeader.findViewById(R.id.studentListView);
         connectedStudentsView.setAdapter(Controller.getInstance().getConnectedLearnersAdapter());
@@ -1457,35 +1420,14 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         if(LeadMeMain.FLAG_UPDATES) {
 
             //Lock/Unlock button
-            TextView lockTitle = mainLeader.findViewById(R.id.lock_core_text);
             mainLeader.findViewById(R.id.lock_core_btn).setOnTouchListener(touchListener);
 
             //TODO something really wrong with the lock/unlock functionality
             mainLeader.findViewById(R.id.lock_core_btn).setOnClickListener(view -> {
                 Log.e(TAG, "LOCK");
-//                if(learnerLock) {
-//                    lockFromMainAction(); //this is really resource intensive or not sending?
-//                    lockTitle.setText("Unlock");
-//                } else {
-//                    unlockFromMainAction();
-//                    lockTitle.setText("Lock");
-//                }
-//
-//                checkLockStatus();
             });
-
-            //End session button
-//            mainLeader.findViewById(R.id.end_core_btn).setOnTouchListener(touchListener);
-//            mainLeader.findViewById(R.id.end_core_btn).setOnClickListener(view -> {
-//                if (isGuide || !NearbyPeersManager.isConnectedAsFollower()) {
-//                    logoutResetController();
-//                } else {
-//                    Toast.makeText(context, "Logout is unavailable.", Toast.LENGTH_SHORT).show();
-//                }
-//            });
         } else {
             mainLeader.findViewById(R.id.lock_core_btn).setVisibility(View.GONE);
-//            mainLeader.findViewById(R.id.end_core_btn).setVisibility(View.GONE);
         }
     }
 
@@ -1503,12 +1445,10 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         TextView lockTitle = mainLeader.findViewById(R.id.lock_core_text);
         for (ConnectedPeer peer : selectedLearners) {
             if(!peer.locked) {
-                learnerLock = true;
                 lockTitle.setText("Lock");
                 return;
             }
         }
-        learnerLock = false;
         runOnUiThread(() -> lockTitle.setText("Unlock"));
     }
 
@@ -1707,22 +1647,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             composeEmail(email,"LeadMe Support");
         });
 
-        //change the shared preferences, do the rest on login for guide or learner button select
-        serverDiscoveryToggle = optionsScreen.findViewById(R.id.server_discovery);
-        serverDiscoveryToggle.setChecked(sessionManual);
-        serverDiscoveryToggle.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            //Guide or student needs internet to access firebase database
-            if(!PermissionManager.isInternetAvailable(context)) {
-                Controller.getInstance().getDialogManager().showWarningDialog("Currently Offline", "No internet access detected. Please connect to continue."
-                        + "\n\n Note: Try our new manual connection feature if you're having trouble");
-                serverDiscoveryToggle.setChecked(false);
-                return;
-            }
-
-            //Learner cannot switch while logged in
-            switchManualPreference(sharedPreferences, isChecked);
-        });
-
         //change the shared preferences for auto installing student devices
         autoToggle = optionsScreen.findViewById(R.id.auto_install_apps);
         autoToggle.setVisibility(View.GONE); //disable until logged in
@@ -1802,7 +1726,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         learner_toggle = switcherView.findViewById(R.id.learner_btn);
 
         leader_toggle.setOnClickListener(v -> {
-            loginActor = "leader";
             displayLeaderStartToggle();
             if (Controller.getInstance().getAuthenticationManager().getCurrentAuthUser() == null) {
                 Controller.getInstance().getDialogManager().changeLoginViewOptions(View.VISIBLE, View.GONE, View.GONE);
@@ -1816,10 +1739,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         }
 
         learner_toggle.setOnClickListener(v -> {
-            loginActor = "learner";
-            if(!sessionManual) {
-                initiateLeaderDiscovery();
-            }
             displayLearnerStartToggle();
             if (Controller.getInstance().getAuthenticationManager().getCurrentAuthUser() == null) {
                 Controller.getInstance().getDialogManager().changeLoginViewOptions(View.GONE, View.GONE, View.VISIBLE);
@@ -1912,26 +1831,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 //
 //        appUpdateManager.getAppUpdateInfo().addOnFailureListener(e -> Log.e("Error", "A Failure has occurred: " + e));
 //    }
-
-    //MANUAL CONNECTION FUNCTIONS START
-    public void switchManualPreference(SharedPreferences sharedPreferences, boolean isManual) {
-        SharedPreferences.Editor editor = sharedPreferences.edit();
-        sessionManual = isManual;
-        editor.putBoolean(Controller.SESSION_MANUAL_TAG, sessionManual);
-        editor.apply();
-
-        if(isManual && isGuide) {
-            Controller.getInstance().getFirebaseManager().createManualConnection(localIpAddress);
-        } else if(!isManual) {
-            //reset manual connection info (switching between session discovery and other
-            Controller.getInstance().getNearbyManager().resetManualInfo();
-            Controller.getInstance().getFirebaseManager().removeUserListener();
-
-            if (!isGuide && !Controller.getInstance().getNearbyManager().isDiscovering()) {
-                initiateLeaderDiscovery();
-            }
-        }
-    }
 
     public void composeEmail(String[] addresses, String subject) {
         Intent intent = new Intent(Intent.ACTION_SENDTO);
@@ -2062,14 +1961,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             learnerWaitingText.setText(getResources().getString(R.string.enable_storage));
             Controller.getInstance().getPermissionsManager().checkStoragePermission();
         } else if (!NearbyPeersManager.isConnectedAsFollower()) {
-            if(sessionManual) {
-                initiateManualLeaderDiscovery();
-            }
-            else {
-                if (!Controller.getInstance().getNearbyManager().isDiscovering()) {
-                    initiateLeaderDiscovery();
-                }
-            }
+            initiateManualLeaderDiscovery();
 
             learnerWaitingText.setText(getResources().getString(R.string.waiting_for_leaders));
         }
@@ -2154,7 +2046,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     public void initiateLeaderDiscovery() {
         Log.d(TAG, "Initiating Leader Discovery");
         Controller.getInstance().getLeaderSelectAdapter().setLeaderList(new ArrayList<>());
-        isReadyToConnect = true;
         Controller.getInstance().getNearbyManager().discoverLeaders();
     }
 
@@ -2166,7 +2057,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     public void initiateManualLeaderDiscovery() {
         Log.d(TAG, "Initiating Manual Leader Discovery");
         Controller.getInstance().getLeaderSelectAdapter().setLeaderList(new ArrayList<>());
-        isReadyToConnect = true;
         Controller.getInstance().getFirebaseManager().retrieveLeaders();
     }
 
@@ -2264,11 +2154,8 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         isGuide = false;
     }
 
-    boolean loginAttemptInAction = false;
-
     public void loginAction(boolean isManual) {
         Log.w(TAG, "LOGGING IN " + NearbyPeersManager.getName());
-        loginAttemptInAction = true;
 
         //if all permissions are already granted, just continue
         if(isManual){
@@ -2276,7 +2163,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         }
         if (leaderLearnerSwitcher.getDisplayedChild() == SWITCH_LEADER_INDEX) {
             initiateLeaderAdvertising();
-            loginAttemptInAction = false;
 
         } else {
             //getPermissionsManager().checkOverlayPermissions(); //TODO Experimental - add flag
@@ -2331,23 +2217,19 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                 buildAndDisplayOnBoard(true);
             }
 
-            //if it is a manual connection session, create a firebase lookup entry
-            if(sessionManual) {
-                Controller.getInstance().getFirebaseManager().createManualConnection(localIpAddress);
-            }
+            Controller.getInstance().getFirebaseManager().createManualConnection(localIpAddress);
 
             DatabaseReference database = FirebaseDatabase.getInstance("https://leafy-rope-301003-default-rtdb.asia-southeast1.firebasedatabase.app/").getReference();
             database.child(LeadMeMain.publicIpAddress.replace(".", "_")).child("rooms").child(localIpAddress.replace(".", "_")).setValue("roomCreated");
             roomReference = database.child(LeadMeMain.publicIpAddress.replace(".", "_")).child("rooms").child(localIpAddress.replace(".", "_"));
             roomReference.child("learners").setValue("emptyLearners");
             roomReference.child("currentMessage").setValue("");
-            roomReference.child("leaderName").setValue(name);
+            roomReference.child("leaderName").setValue(name); // todo - one transactions
 
             ValueEventListener postListener = new ValueEventListener() {
                 @Override
                 public void onDataChange(DataSnapshot dataSnapshot) {
                     // Get Post object and use the values to update the UI
-                    Object messageObj = dataSnapshot.getValue();
                     Log.e("firebase", dataSnapshot.toString());
                     if (dataSnapshot.getChildrenCount() != ConnectedLearnersAdapter.mData.size()) {
                         for (DataSnapshot data:dataSnapshot.getChildren()) {
@@ -2364,8 +2246,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             };
             roomReference.child("learners").addValueEventListener(postListener);
 
-            //remove the Firebase listener if server discovery was enabled before logging in
-            Controller.getInstance().getFirebaseManager().removeUserListener();
             CuratedContentManager.hasDoneSetup = false;
             CuratedContentManager.getCuratedContent(this);
         } else {
@@ -2766,7 +2646,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     //UPDATE OPTIONS PAGE
     public void setUIDisconnected() {
         //reset state
-        isReadyToConnect = false; //need to press button first
         getLumiAccessibilityConnector().resetState();
 
         Controller.getInstance().getDialogManager().cleanUpDialogs();
@@ -2832,7 +2711,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
      * @param name A string representing the name of the current leader.
      */
     public void setLeaderName(String name) {
-        leaderName = name;
         ((TextView) mainLearner.findViewById(R.id.leader_name)).setText(name);
         mainLearner.findViewById(R.id.connected_icon).setVisibility(View.VISIBLE);
         mainLearner.findViewById(R.id.connected_txt).setVisibility(View.VISIBLE);
@@ -3203,12 +3081,11 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             setContentView(leadmeAnimator);
             OnBoardStudentInProgress = false;
             updateFollowerCurrentTaskToLeadMe();
-            loginAttemptInAction = false;
 
             //Check if LeadMe has focus, only try to connect if in the application
             scheduledCheck = scheduledExecutorService.scheduleAtFixedRate(() -> {
                 if (appHasFocus) {
-                    runOnUiThread(() -> connectOnReturn(page));
+                    runOnUiThread(() -> connectOnReturn());
                 }
             },750,1000,TimeUnit.MILLISECONDS);
         }
@@ -3217,32 +3094,23 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     /**
      * Called when overlay permission has been granted. Cancel any scheduled check and connect
      * to a guide, starting the screen sharing service in the background.
-     * @param page An integer representing which on boarding page the learner is currently on.
      */
-    public void connectOnReturn(int page) {
+    public void connectOnReturn() {
         if(scheduledCheck != null){
             scheduledCheck.cancel(true);
         }
 
         Controller.getInstance().getScreenSharingManager().startService(false);
 
-        if(page==2 && !sessionManual && !directConnection) {
-            NearbyPeersManager.connectToSelectedLeader();
-            Controller.getInstance().getDialogManager().showWaitingForConnectDialog();
-        } else if(sessionManual || directConnection) {
-            //If the serverIP address has not changed set it to the locally found guide
-            if(Controller.getInstance().getFirebaseManager().getServerIP().equals("")) {
-                Controller.getInstance().getFirebaseManager().setServerIP(NearbyPeersManager.selectedLeader.getID());
-            }
-
-            NearbyPeersManager.connectToManualLeader(NearbyPeersManager.selectedLeader.getDisplayName(),
-                    Controller.getInstance().getFirebaseManager().getServerIP());
-
-            directConnection = false;
+        //If the serverIP address has not changed set it to the locally found guide
+        if(Controller.getInstance().getFirebaseManager().getServerIP().equals("")) {
+            Controller.getInstance().getFirebaseManager().setServerIP(NearbyPeersManager.selectedLeader.getID());
         }
 
+        NearbyPeersManager.connectToManualLeader(NearbyPeersManager.selectedLeader.getDisplayName(),
+                Controller.getInstance().getFirebaseManager().getServerIP());
+
         toggleConnectionOptions(View.GONE); //Remove connection options
-        Controller.getInstance().getFirebaseManager().removeUserListener(); //remove the Firebase listener if connection was manual
 
         optionsScreen.findViewById(R.id.connected_only_view).setVisibility(View.VISIBLE);
     }

@@ -980,7 +980,6 @@ public class DialogManager {
                     LeadMeMain.isGuide = false;
 
                     NearbyPeersManager.myName = ManName.getText().toString();
-                    LeadMeMain.directConnection = true;
                     Controller.getInstance().getFirebaseManager().setServerIP(IpEnter.getText().toString());
                     LeadMeMain.getInstance().loginAction(true);
                 }

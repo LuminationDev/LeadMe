@@ -229,7 +229,6 @@ public class NetworkService extends Service {
         TcpClient tcpClient = new TcpClient(id, clientAddress);
         Learner learner = new Learner();
         learner.tcp = tcpClient;
-        learner.ID = id;
 
         clientSocketArray.put(id, id);
         studentThreadArray.put(id, learner);
@@ -284,8 +283,6 @@ public class NetworkService extends Service {
             disconnection();
             isGuide = false;
         }
-        //shutdown any scheduled ping messages
-        NetworkManager.scheduledExecutor.shutdown();
         endForeground();
         leaderIPAddress = null;
         super.onDestroy();
