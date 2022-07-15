@@ -26,6 +26,7 @@ import com.lumination.leadme.connections.ConnectedPeer;
 import com.lumination.leadme.controller.Controller;
 import com.lumination.leadme.services.FirebaseService;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Objects;
@@ -49,6 +50,8 @@ public class FirebaseManager {
     private String serverIP = ""; //needs to be "" so that the learner can see check against
     private String publicIP;
     private final HashMap<String, Object> manualConnectionDetails = new HashMap<>();
+    public static DatabaseReference roomsReference;
+    public static ValueEventListener  roomsListener;
 
     public FirebaseManager(LeadMeMain main) {
         this.main = main;
@@ -105,22 +108,28 @@ public class FirebaseManager {
         }
 
         DatabaseReference database = FirebaseDatabase.getInstance("https://leafy-rope-301003-default-rtdb.asia-southeast1.firebasedatabase.app/").getReference();
-        DatabaseReference roomsReference = database.child(LeadMeMain.publicIpAddress.replace(".", "_")).child("rooms");
-        ValueEventListener postListener = new ValueEventListener() {
+        roomsReference = database.child(LeadMeMain.publicIpAddress.replace(".", "_")).child("rooms");
+        if (roomsListener != null) {
+            FirebaseManager.roomsReference.removeEventListener(FirebaseManager.roomsListener);
+        }
+        roomsListener = new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 // Get Post object and use the values to update the UI
                 Log.e("firebase", dataSnapshot.toString());
+                Controller.getInstance().getLeaderSelectAdapter().setLeaderList(new ArrayList<>());
                 if (dataSnapshot.getChildrenCount() != ConnectedLearnersAdapter.mData.size()) {
                     for (DataSnapshot data:dataSnapshot.getChildren()) {
-                        LeadMeMain.runOnUI(() -> {
-                            Controller.getInstance().getLeaderSelectAdapter().addLeader(
-                                    new ConnectedPeer(
-                                            data.child("leaderName").getValue().toString(),
-                                            data.getKey().replace("_", ".")));
+                        if (data.child("leaderName").getValue() != null) {
+                            LeadMeMain.runOnUI(() -> {
+                                Controller.getInstance().getLeaderSelectAdapter().addLeader(
+                                        new ConnectedPeer(
+                                                data.child("leaderName").getValue().toString(),
+                                                data.getKey().replace("_", ".")));
 
-                            LeadMeMain.getInstance().showLeaderWaitMsg(false);
-                        });
+                                LeadMeMain.getInstance().showLeaderWaitMsg(false);
+                            });
+                        }
                     }
                 }
             }
@@ -131,7 +140,7 @@ public class FirebaseManager {
                 Log.e(TAG, "loadPost:onCancelled", databaseError.toException());
             }
         };
-        roomsReference.addValueEventListener(postListener);
+        roomsReference.addValueEventListener(roomsListener);
     }
 
     /**

@@ -68,6 +68,7 @@ import android.widget.ViewAnimator;
 import android.widget.ViewSwitcher;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.collection.ArraySet;
 import androidx.core.content.res.ResourcesCompat;
 import androidx.fragment.app.FragmentActivity;
@@ -86,6 +87,8 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.MutableData;
+import com.google.firebase.database.Transaction;
 import com.google.firebase.database.ValueEventListener;
 import com.himanshurawat.hasher.HashType;
 import com.himanshurawat.hasher.Hasher;
@@ -96,6 +99,7 @@ import com.lumination.leadme.managers.DispatchManager;
 import com.lumination.leadme.accessibility.LumiAccessibilityConnector;
 import com.lumination.leadme.adapters.ConnectedLearnersAdapter;
 import com.lumination.leadme.managers.AppManager;
+import com.lumination.leadme.managers.FirebaseManager;
 import com.lumination.leadme.managers.NearbyPeersManager;
 import com.lumination.leadme.managers.NetworkManager;
 import com.lumination.leadme.managers.PermissionManager;
@@ -290,6 +294,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     public static String publicIpAddress = "";
     public static String localIpAddress = "";
     public static DatabaseReference roomReference;
+    public static DatabaseReference messagesReference;
     public static DatabaseReference learnerReference;
     /**
      * Used exclusively for handling messages from a server on learner devices
@@ -2141,6 +2146,8 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             e.printStackTrace();
         }
 
+        roomReference.removeValue();
+        messagesReference.removeValue();
         NetworkService.resetClientIDs();
         Controller.getInstance().getConnectedLearnersAdapter().resetOnLogout();
         Controller.getInstance().getNearbyManager().onStop(); //disconnect everyone
@@ -2221,30 +2228,47 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
             DatabaseReference database = FirebaseDatabase.getInstance("https://leafy-rope-301003-default-rtdb.asia-southeast1.firebasedatabase.app/").getReference();
             database.child(LeadMeMain.publicIpAddress.replace(".", "_")).child("rooms").child(localIpAddress.replace(".", "_")).setValue("roomCreated");
-            roomReference = database.child(LeadMeMain.publicIpAddress.replace(".", "_")).child("rooms").child(localIpAddress.replace(".", "_"));
-            roomReference.child("learners").setValue("emptyLearners");
-            roomReference.child("currentMessage").setValue("");
-            roomReference.child("leaderName").setValue(name); // todo - one transactions
-
-            ValueEventListener postListener = new ValueEventListener() {
+            database.runTransaction(new Transaction.Handler() {
+                @NonNull
                 @Override
-                public void onDataChange(DataSnapshot dataSnapshot) {
-                    // Get Post object and use the values to update the UI
-                    Log.e("firebase", dataSnapshot.toString());
-                    if (dataSnapshot.getChildrenCount() != ConnectedLearnersAdapter.mData.size()) {
-                        for (DataSnapshot data:dataSnapshot.getChildren()) {
-                            NetworkManager.parentUpdateName("No_Name_yet", data.getKey());
+                public Transaction.Result doTransaction(@NonNull MutableData currentData) {
+                    roomReference = database.child(LeadMeMain.publicIpAddress.replace(".", "_")).child("rooms").child(localIpAddress.replace(".", "_"));
+                    messagesReference = database.child(LeadMeMain.publicIpAddress.replace(".", "_")).child("messages").child(localIpAddress.replace(".", "_"));
+                    messagesReference.child("learners").setValue("emptyLearners");
+                    messagesReference.child("currentMessage").setValue("");
+                    roomReference.child("leaderName").setValue(name);
+
+                    roomReference.onDisconnect().removeValue();
+                    messagesReference.onDisconnect().removeValue();
+
+                    ValueEventListener postListener = new ValueEventListener() {
+                        @Override
+                        public void onDataChange(DataSnapshot dataSnapshot) {
+                            // Get Post object and use the values to update the UI
+                            Log.e("firebase", dataSnapshot.toString());
+                            if (dataSnapshot.getChildrenCount() != ConnectedLearnersAdapter.mData.size()) {
+                                for (DataSnapshot data:dataSnapshot.getChildren()) {
+                                    NetworkManager.parentUpdateName("No_Name_yet", data.getKey());
+                                }
+                            }
                         }
-                    }
+
+                        @Override
+                        public void onCancelled(DatabaseError databaseError) {
+                            // Getting Post failed, log a message
+                            Log.e(TAG, "loadPost:onCancelled", databaseError.toException());
+                        }
+                    };
+                    messagesReference.child("learners").addValueEventListener(postListener);
+
+                    return Transaction.success(null);
                 }
 
                 @Override
-                public void onCancelled(DatabaseError databaseError) {
-                    // Getting Post failed, log a message
-                    Log.e(TAG, "loadPost:onCancelled", databaseError.toException());
+                public void onComplete(@Nullable DatabaseError error, boolean committed, @Nullable DataSnapshot currentData) {
+
                 }
-            };
-            roomReference.child("learners").addValueEventListener(postListener);
+            });
 
             CuratedContentManager.hasDoneSetup = false;
             CuratedContentManager.getCuratedContent(this);

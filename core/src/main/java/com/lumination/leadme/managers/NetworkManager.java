@@ -127,7 +127,12 @@ public class NetworkManager {
                 break;
 
             case "FILE":
-                receivedFile(inputList.get(1));
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        receivedFile(inputList.get(1));
+                    }
+                }).start();
                 break;
 
             case "DISCONNECT":
@@ -331,7 +336,7 @@ public class NetworkManager {
                     Log.e(TAG, "loadPost:onCancelled", databaseError.toException());
                 }
             };
-            LeadMeMain.roomReference.child("learners").child(clientID).child("currentMessage").addValueEventListener(postListener);
+            LeadMeMain.messagesReference.child("learners").child(clientID).child("currentMessage").addValueEventListener(postListener);
         }
 
         selected.add(clientID);

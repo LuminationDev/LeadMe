@@ -45,7 +45,7 @@ public class TcpClient extends Thread {
             switch (inputList.get(0)) {
                 case "NAME":
                     if (inputList.get(1).length() == 0) {
-                        setLocalName("No_Name_Yet");
+//                        setLocalName("No_Name_Yet");
                     } else {
                         setLocalName(inputList.get(1));
                     }

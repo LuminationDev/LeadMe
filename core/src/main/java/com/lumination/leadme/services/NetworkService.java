@@ -146,13 +146,13 @@ public class NetworkService extends Service {
 
     public static void sendAllLearnerMessage(String message) {
         Log.d(TAG, "Attempting to send: " + message);
-        LeadMeMain.roomReference.child("currentMessage").setValue(message);
+        LeadMeMain.messagesReference.child("currentMessage").setValue(message);
     }
 
     public static void sendLearnerMessage(String ipAddress, String message) {
         Log.d(TAG, "Attempting to send: " + message);
 
-        LeadMeMain.roomReference.child("learners").child(ipAddress.replace(".", "_")).child("leaderMessage").setValue(message);
+        LeadMeMain.messagesReference.child("learners").child(ipAddress.replace(".", "_")).child("leaderMessage").setValue(message);
     }
 
     /**

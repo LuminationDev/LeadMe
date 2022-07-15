@@ -97,6 +97,7 @@ public class NearbyPeersManager {
         LeadMeMain.getInstance().setLeaderName(Name);
         DatabaseReference database = FirebaseDatabase.getInstance("https://leafy-rope-301003-default-rtdb.asia-southeast1.firebasedatabase.app/").getReference();
         LeadMeMain.roomReference = database.child(LeadMeMain.publicIpAddress.replace(".", "_")).child("rooms").child(NetworkService.getLeaderIPAddress().getHostAddress().replace(".", "_"));
+        LeadMeMain.messagesReference = database.child(LeadMeMain.publicIpAddress.replace(".", "_")).child("messages").child(NetworkService.getLeaderIPAddress().getHostAddress().replace(".", "_"));
         ValueEventListener postListener = new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
@@ -113,15 +114,17 @@ public class NearbyPeersManager {
             }
         };
 
-        LeadMeMain.roomReference.child("learners").child(LeadMeMain.localIpAddress.replace(".", "_")).child("currentMessage").setValue("");
-        LeadMeMain.learnerReference = LeadMeMain.roomReference.child("learners").child(LeadMeMain.localIpAddress.replace(".", "_"));
-        LeadMeMain.learnerReference.child("leaderMessage").setValue("");
+        LeadMeMain.messagesReference.child("learners").child(LeadMeMain.localIpAddress.replace(".", "_")).child("currentMessage").setValue("");
+        LeadMeMain.learnerReference = LeadMeMain.messagesReference.child("learners").child(LeadMeMain.localIpAddress.replace(".", "_"));
+        LeadMeMain.messagesReference.child("leaderMessage").setValue("");
+// todo - on disconnect set value to disconnected
 
-
-        LeadMeMain.roomReference.child("currentMessage").addValueEventListener(postListener);
-        LeadMeMain.learnerReference.child("leaderMessage").addValueEventListener(postListener);
+        LeadMeMain.messagesReference.child("currentMessage").addValueEventListener(postListener);
+        LeadMeMain.messagesReference.child("leaderMessage").addValueEventListener(postListener);
 
         NetworkService.sendToServer(getName(), "NAME");
+
+        FirebaseManager.roomsReference.removeEventListener(FirebaseManager.roomsListener);
         return;
     }
 
