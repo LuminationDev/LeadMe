@@ -50,7 +50,7 @@ import java.util.concurrent.TimeUnit;
 public class NetworkManager {
     private static final String TAG = "NetworkManager";
 
-    private static WifiManager.MulticastLock multicastLock; // Acquire multicast lock
+    public static WifiManager.MulticastLock multicastLock; // Acquire multicast lock
     private static boolean init = false; //check if connection has been initialised
 
     public static ArrayList<Client> currentClients = new ArrayList<>();
@@ -113,6 +113,9 @@ public class NetworkManager {
     public static void messageReceivedFromServer(String input) {
         Log.d(TAG, "messageReceivedFromServer: " + input);
         List<String> inputList = Arrays.asList(input.split(","));
+        if (inputList.size() == 0) {
+            return;
+        }
         switch (inputList.get(0)) {
             case "COMMUNICATION":
                 receivedCommunication(inputList.get(1));
@@ -230,6 +233,9 @@ public class NetworkManager {
      */
     public static void receivedDisconnect() {
         Log.w(TAG, "Disconnect. Guide? " + LeadMeMain.isGuide);
+        LeadMeMain.messagesReference.child("currentMessage").removeEventListener(LeadMeMain.learnerReceiveMessageListener);
+        LeadMeMain.messagesReference.child("learners").child(LeadMeMain.localIpAddress.replace(".", "_")).child("leaderMessage").removeEventListener(LeadMeMain.learnerReceiveMessageListener);
+        LeadMeMain.roomReference = null;
         NearbyPeersManager.disconnectFromEndpoint("");
         stopService();
     }
@@ -269,50 +275,33 @@ public class NetworkManager {
         }
     }
 
-    /**
-     * Detect if the most recent connection is a reconnect or a new learner, handle any name changes
-     * or client creation appropriately.
-     *
-     * @param message  A string containing the name of the learner and the IP address of the device,
-     *                 separated by a ':'.
-     * @param clientID An integer representing the clients ID saved within the student class on a
-     *                 leaders device.
-     */
-    public static void parentUpdateName(String message, String clientID) {
+    public static void addLearnerIfNotExists(String clientId) {
         boolean exists = false;
         ArrayList<String> selected = new ArrayList<>();
-
         for (int i = 0; i < currentClients.size(); i++) {
-            if (currentClients.get(i).ID.equals(clientID)) {
-                if (!currentClients.get(i).name.equals(message)) {
-                    Log.d(TAG, "updateParent: " + currentClients.get(i).name + " has changed to " + message);
-                    currentClients.get(i).name = message;
-                    String[] spilt = message.split(":");
-                    ConnectedLearnersAdapter.getMatchingPeer(String.valueOf(clientID)).setName(spilt[0]);
-                }
+            if (currentClients.get(i).ID.equals(clientId)) {
                 exists = true;
-                currentClients.get(i).pingCycle = 1;
-                Log.d(TAG, "updateParent: ID:" + clientID + " name: " + message + " is active");
+                break;
             }
         }
-
         if (!exists) {
-            Log.d(TAG, "updateParent: creating new client: ID:" + clientID + " name is: " + message);
+            Log.d(TAG, "updateParent: creating new client: ID:" + clientId);
             Client temp = new Client();
-            temp.name = message;
-            temp.ID = clientID;
+            temp.name = "Connecting...";
+            temp.ID = clientId;
             temp.pingCycle = 1;
             currentClients.add(temp);
             Endpoint endpoint = new Endpoint();
-            endpoint.name = message + ":" + clientID;
-            endpoint.Id = String.valueOf(clientID);
+            endpoint.name = clientId;
+            endpoint.Id = String.valueOf(clientId);
             ConnectedPeer thisPeer = new ConnectedPeer(endpoint);
+            NetworkService.learnerManager(clientId);
             LeadMeMain.runOnUI(() -> {
                 Controller.getInstance().getConnectedLearnersAdapter().addStudent(thisPeer);
                 LeadMeMain.getInstance().showConnectedStudents(true);
             });
 
-            ValueEventListener postListener = new ValueEventListener() {
+            LeadMeMain.leaderReceivingLearnerMessageListener = new ValueEventListener() {
                 @Override
                 public void onDataChange(DataSnapshot dataSnapshot) {
                     // Get Post object and use the values to update the UI
@@ -323,7 +312,7 @@ public class NetworkManager {
                         Log.e("firebase", message);
                         Log.e("firebase", dataSnapshot.getKey());
                         if (message != null && message.length() > 0) {
-                            NetworkService.determineAction(clientID, message);
+                            NetworkService.determineAction(clientId, message);
                         }
                     }
 
@@ -336,11 +325,38 @@ public class NetworkManager {
                     Log.e(TAG, "loadPost:onCancelled", databaseError.toException());
                 }
             };
-            LeadMeMain.messagesReference.child("learners").child(clientID).child("currentMessage").addValueEventListener(postListener);
+            LeadMeMain.messagesReference.child("learners").child(clientId).child("currentMessage").addValueEventListener(LeadMeMain.leaderReceivingLearnerMessageListener);
         }
 
-        selected.add(clientID);
-        sendToSelectedClients("Thanks " + message, "COMMUNICATION", selected);//lets client know their name has been saved
+        selected.add(clientId);
+    }
+
+    /**
+     * Detect if the most recent connection is a reconnect or a new learner, handle any name changes
+     * or client creation appropriately.
+     *
+     * @param message  A string containing the name of the learner and the IP address of the device,
+     *                 separated by a ':'.
+     * @param clientID An integer representing the clients ID saved within the student class on a
+     *                 leaders device.
+     */
+    public static void parentUpdateName(String message, String clientID) {
+        for (int i = 0; i < currentClients.size(); i++) {
+            if (currentClients.get(i).ID.equals(clientID)) {
+                if (!currentClients.get(i).name.equals(message)) {
+                    Log.d(TAG, "updateParent: " + currentClients.get(i).name + " has changed to " + message);
+                    currentClients.get(i).name = message;
+                    String[] spilt = message.split(":");
+                    ConnectedLearnersAdapter.getMatchingPeer(clientID).setName(spilt[0]);
+                }
+                currentClients.get(i).pingCycle = 1;
+                Log.d(TAG, "updateParent: ID:" + clientID + " name: " + message + " is active");
+                LeadMeMain.runOnUI(() -> {
+                    Controller.getInstance().getConnectedLearnersAdapter().refresh();
+                });
+                break;
+            }
+        }
     }
 
     /**
@@ -350,7 +366,7 @@ public class NetworkManager {
      * @param clientID An integer representing the clients ID saved within the student class on a
      *                 leaders device.
      */
-    private static void parentUpdateDisconnect(String clientID) {
+    public static void parentUpdateDisconnect(String clientID) {
         for (int i = 0; i < currentClients.size(); i++) {
             if (currentClients.get(i).ID.equals(clientID)) {
                 Log.d(TAG, "updateParent: student has been disconnected: " + clientID);
@@ -382,7 +398,7 @@ public class NetworkManager {
         LeadMeMain.runOnUI(() -> {
             if (ConnectedLearnersAdapter.getMatchingPeer(String.valueOf(clientID)) != null) {
                 if (ConnectedLearnersAdapter.getMatchingPeer(String.valueOf(clientID)).getStatus() != ConnectedPeer.STATUS_ERROR) {
-                    LeadMeMain.getInstance().updatePeerStatus(String.valueOf(clientID), ConnectedPeer.STATUS_ERROR, null);
+                    LeadMeMain.updatePeerStatus(String.valueOf(clientID), ConnectedPeer.STATUS_ERROR, null);
                 }
             }
         });
@@ -420,7 +436,13 @@ public class NetworkManager {
             return;
         }
         if (currentClients.size() == selectedClientIDs.size()) {
+            if(type.equals("DISCONNECT")) {
+                currentClients.clear();
+                LeadMeMain.runOnUI(() -> LeadMeMain.getInstance().waitingForLearners.setVisibility(View.VISIBLE));
+                LeadMeMain.getInstance().showConnectedStudents(true);
+            }
             NetworkService.sendToAllClients(message, type);
+            NetworkService.sendToAllClients("", "");
             return;
         }
 

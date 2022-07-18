@@ -442,10 +442,12 @@ public class DialogManager {
         if(requestDialog.isShowing()) {
             //in case a guide switched on auto installer and transfer quickly
             requestDialogMessage.setText(LeadMeMain.fileRequests.size() + " learners do not have the video. " +
-                    "\nDo you want to transfer it?"); //update the text if there are more requests
+                    "\nDo you want to transfer it?" +
+                    "\nFile transfer is an experimental feature. You may experience some issues while using it."); //update the text if there are more requests
         } else {
             requestDialogMessage.setText(LeadMeMain.fileRequests.size() + " learner does not have the video. " +
-                    "\nDo you want to transfer it?");
+                    "\nDo you want to transfer it?" +
+                    "\nFile transfer is an experimental feature. You may experience some issues while using it.");
 
             waitForOthers(requestDialogView.findViewById(R.id.allow_btn), delay);
         }

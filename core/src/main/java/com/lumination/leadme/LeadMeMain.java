@@ -296,6 +296,8 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     public static DatabaseReference roomReference;
     public static DatabaseReference messagesReference;
     public static DatabaseReference learnerReference;
+    public static ValueEventListener learnerReceiveMessageListener;
+    public static ValueEventListener leaderReceivingLearnerMessageListener;
     /**
      * Used exclusively for handling messages from a server on learner devices
      */
@@ -777,11 +779,16 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         Log.d(TAG, "LeadMe: " + leadMePackageName + " Current package:" + currentTaskPackageName);
         appHasFocus = false;
         if (!PermissionManager.waitingForPermission
-                && currentTaskPackageName != null && currentTaskPackageName.equals(leadMePackageName)
+                && currentTaskPackageName != null
+                && currentTaskPackageName.equals(leadMePackageName)
                 && NearbyPeersManager.isConnectedAsFollower()) {
             if(!managingAutoInstaller) {
                 DispatchManager.alertGuideStudentOffTask();
-                recallToLeadMe();
+                PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
+                boolean screenIsOn = pm.isInteractive();
+                if (screenIsOn) {
+                    recallToLeadMe();
+                }
             }
         } else {
             manageFocus();
@@ -1357,7 +1364,19 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         mainLeader.findViewById(R.id.xray_core_btn).setOnTouchListener(touchListener);
         mainLeader.findViewById(R.id.xray_core_btn).setOnClickListener(v -> {
             if (Controller.getInstance().getConnectedLearnersAdapter().getCount() > 0) {
-                Controller.getInstance().getXrayManager().showXrayView("");
+                View confirmationView = View.inflate(LeadMeMain.getInstance(), R.layout.e__xray_experimental_confirmation, null);
+                AlertDialog confirmationDialog = new AlertDialog.Builder(LeadMeMain.getInstance())
+                        .setView(confirmationView)
+                        .show();
+                Button okButton = confirmationView.findViewById(R.id.ok_btn);
+                Button backButton = confirmationView.findViewById(R.id.back_btn);
+                okButton.setOnClickListener(w -> {
+                    Controller.getInstance().getXrayManager().showXrayView("");
+                    confirmationDialog.dismiss();
+                });
+                backButton.setOnClickListener(w -> {
+                    confirmationDialog.dismiss();
+                });
             } else {
                 Toast.makeText(getApplicationContext(), "No students connected.", Toast.LENGTH_SHORT).show();
             }
@@ -1374,11 +1393,24 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             }
 
             if (fileTransferEnabled) {
-                if (Controller.isMiUiV9()) {
-                    alternateFileChoice(TRANSFER_FILE_CHOICE);
-                } else {
-                    FileUtilities.browseFiles(this, TRANSFER_FILE_CHOICE);
-                }
+                View confirmationView = View.inflate(LeadMeMain.getInstance(), R.layout.e__file_transfer_experimental_confirmation, null);
+                AlertDialog confirmationDialog = new AlertDialog.Builder(LeadMeMain.getInstance())
+                        .setView(confirmationView)
+                        .show();
+                Button okButton = confirmationView.findViewById(R.id.ok_btn);
+                Button backButton = confirmationView.findViewById(R.id.back_btn);
+                okButton.setOnClickListener(w -> {
+                    if (Controller.isMiUiV9()) {
+                        alternateFileChoice(TRANSFER_FILE_CHOICE);
+                    } else {
+                        FileUtilities.browseFiles(this, TRANSFER_FILE_CHOICE);
+                    }
+                    confirmationDialog.dismiss();
+                });
+                backButton.setOnClickListener(w -> {
+                    confirmationDialog.dismiss();
+                });
+                
             } else {
                 Controller.getInstance().getDialogManager().showWarningDialog("File Transfer", "File transfer has not been enabled.");
             }
@@ -2147,6 +2179,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         }
 
         roomReference.removeValue();
+        roomReference = null;
         messagesReference.removeValue();
         NetworkService.resetClientIDs();
         Controller.getInstance().getConnectedLearnersAdapter().resetOnLogout();
@@ -2241,14 +2274,16 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                     roomReference.onDisconnect().removeValue();
                     messagesReference.onDisconnect().removeValue();
 
-                    ValueEventListener postListener = new ValueEventListener() {
+                    ValueEventListener addLearnerListener = new ValueEventListener() {
                         @Override
                         public void onDataChange(DataSnapshot dataSnapshot) {
                             // Get Post object and use the values to update the UI
                             Log.e("firebase", dataSnapshot.toString());
                             if (dataSnapshot.getChildrenCount() != ConnectedLearnersAdapter.mData.size()) {
                                 for (DataSnapshot data:dataSnapshot.getChildren()) {
-                                    NetworkManager.parentUpdateName("No_Name_yet", data.getKey());
+                                    if (data.child("leaderMessage").getValue() == null || !data.child("leaderMessage").getValue().toString().startsWith("DISCONNECT")) {
+                                        NetworkManager.addLearnerIfNotExists(data.getKey());
+                                    }
                                 }
                             }
                         }
@@ -2259,7 +2294,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                             Log.e(TAG, "loadPost:onCancelled", databaseError.toException());
                         }
                     };
-                    messagesReference.child("learners").addValueEventListener(postListener);
+                    messagesReference.child("learners").addValueEventListener(addLearnerListener);
 
                     return Transaction.success(null);
                 }
@@ -2700,9 +2735,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         prepLoginSwitcher();
         leadmeAnimator.setDisplayedChild(ANIM_START_SWITCH_INDEX);
 
-        if (!Controller.getInstance().getNearbyManager().isDiscovering()) {
-            initiateLeaderDiscovery();
-        }
+        initiateManualLeaderDiscovery();
     }
 
     public void collapseStatus() {

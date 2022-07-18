@@ -97,6 +97,9 @@ public class NetworkService extends Service {
     }
 
     public static void receiveMessage(String message) {
+        if (message.length() == 0) {
+            return;
+        }
         NetworkManager.messageReceivedFromServer(message);
     }
 
@@ -176,7 +179,6 @@ public class NetworkService extends Service {
             //Only create a new connecting if a Name is being sent through
             if(message.contains("NAME")) {
                 Log.d(TAG, "Adding new learner");
-                learnerManager(clientAddress);
                 determineAction(clientAddress, message);
             }
         }
@@ -191,10 +193,7 @@ public class NetworkService extends Service {
      * @return A boolean representing if the server socket is open.
      */
     public static boolean isServerRunning() {
-        if (mServerSocket != null) {
-            return !mServerSocket.isClosed();
-        }
-        return false;
+        return LeadMeMain.roomReference != null;
     }
 
     /**
@@ -264,6 +263,9 @@ public class NetworkService extends Service {
         }
 
         clientSocketArray.remove(clientID);
+
+        LeadMeMain.messagesReference.child("learners").child(clientID).child("currentMessage").removeEventListener(LeadMeMain.leaderReceivingLearnerMessageListener);
+        LeadMeMain.messagesReference.child("learners").child(clientID).removeValue();
     }
 
     @Override
