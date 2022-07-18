@@ -139,12 +139,6 @@ public class Controller {
     public Controller() {
         controllerInstance = this;
         LeadMeMain main = LeadMeMain.getInstance();
-
-        WifiManager wifi = (WifiManager) main.getSystemService(Context.WIFI_SERVICE);
-        NetworkManager.multicastLock = wifi.createMulticastLock("multicastLock");
-        NetworkManager.multicastLock.setReferenceCounted(true);
-        NetworkManager.multicastLock.acquire();
-
         screenSharingManager = new ScreenSharingManager(main);
         networkManager = new NetworkManager();
         permissionManager = new PermissionManager(main);

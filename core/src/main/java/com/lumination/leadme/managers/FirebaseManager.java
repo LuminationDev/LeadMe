@@ -1,8 +1,6 @@
 package com.lumination.leadme.managers;
 
-import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.os.Build;
 import android.util.Log;
 
 import com.google.common.net.InetAddresses;
@@ -11,15 +9,8 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
-import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
-import com.google.firebase.firestore.DocumentSnapshot;
-import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.ListenerRegistration;
-import com.google.firebase.firestore.Query;
-import com.google.firebase.firestore.QueryDocumentSnapshot;
-import com.google.firebase.firestore.SetOptions;
 import com.lumination.leadme.LeadMeMain;
 import com.lumination.leadme.adapters.ConnectedLearnersAdapter;
 import com.lumination.leadme.connections.ConnectedPeer;
@@ -31,14 +22,6 @@ import java.net.InetAddress;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Objects;
-import java.util.Timer;
-import java.util.TimerTask;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Class create specifically to interact with Firebase, not to handle authentication but to make
@@ -125,7 +108,7 @@ public class FirebaseManager {
         roomReference.onDisconnect().removeValue();
         messagesReference.onDisconnect().removeValue();
 
-        ValueEventListener addLearnerListener = new ValueEventListener() {
+        addLearnerListener = new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 // Get Post object and use the values to update the UI
@@ -266,7 +249,6 @@ public class FirebaseManager {
         }
         Thread getPublic = new Thread(() -> {
             publicIP = getPublicIP();
-            FirebaseService.setPublicIP(publicIP);
         });
 
         getPublic.start();

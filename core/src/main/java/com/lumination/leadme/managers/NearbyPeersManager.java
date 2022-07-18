@@ -1,7 +1,6 @@
 package com.lumination.leadme.managers;
 
 import static com.lumination.leadme.LeadMeMain.UIHandler;
-import static java.util.concurrent.TimeUnit.SECONDS;
 
 import android.net.nsd.NsdServiceInfo;
 import android.os.Build;
@@ -12,11 +11,6 @@ import android.view.View;
 import androidx.collection.ArraySet;
 
 import com.google.android.gms.nearby.connection.Payload;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
 import com.lumination.leadme.R;
 import com.lumination.leadme.adapters.ConnectedLearnersAdapter;
 import com.lumination.leadme.connections.ConnectedPeer;
@@ -27,15 +21,11 @@ import com.lumination.leadme.models.Client;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
 
 public class NearbyPeersManager {
     private static final String TAG = "NearbyPeersManager";
@@ -44,32 +34,11 @@ public class NearbyPeersManager {
     public static String myName;
 
     private static NsdServiceInfo manInfo = null;
-    private boolean discovering;
-    private static int tryConnect = 0;
 
     /**
      * Constructor which initiates the nsdManager class.
      */
-    public NearbyPeersManager() {
-        //In case the server was not closed down
-        NetworkManager.stopServer();
-    }
-
-    /**
-    * Resets the connection information for a manual connection, used when swapping from server discovery
-    * back to normal connection mode.
-     */
-    public void resetManualInfo() {
-        Log.d(TAG, "Resetting manual connection details");
-        manInfo = null;
-        if(!LeadMeMain.isGuide) { //do not want the guide to start searching for services
-            discoverLeaders();
-        }
-    }
-
-    public void discoverLeaders() {
-        discovering = true;
-    }
+    public NearbyPeersManager() { }
 
     public void setSelectedLeader(ConnectedPeer peer) {
         selectedLeader = peer;
@@ -77,11 +46,6 @@ public class NearbyPeersManager {
 
     public void cancelConnection() {
         NetworkManager.receivedDisconnect();
-    }
-
-    public void onStop() {
-        Log.d(TAG, "onStop: deprecated");
-        disconnectFromAllEndpoints();
     }
 
     public void onBackPressed() {
@@ -212,16 +176,6 @@ public class NearbyPeersManager {
                 LeadMeMain.getInstance().showLeaderWaitMsg(true);
                 LeadMeMain.getInstance().setUIDisconnected();
             });
-        }
-    }
-
-    public boolean isDiscovering() {
-        return discovering;
-    }
-
-    protected void disconnectFromAllEndpoints() {
-        if (LeadMeMain.isGuide) {
-            NetworkManager.stopServer();
         }
     }
 

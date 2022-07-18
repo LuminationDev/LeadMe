@@ -67,8 +67,6 @@ import android.widget.VideoView;
 import android.widget.ViewAnimator;
 import android.widget.ViewSwitcher;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.collection.ArraySet;
 import androidx.core.content.res.ResourcesCompat;
 import androidx.fragment.app.FragmentActivity;
@@ -77,19 +75,11 @@ import androidx.lifecycle.LifecycleObserver;
 import androidx.lifecycle.OnLifecycleEvent;
 
 import com.BoardiesITSolutions.FileDirectoryPicker.OpenFilePicker;
-import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthCredential;
 import com.google.firebase.auth.EmailAuthProvider;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.MutableData;
-import com.google.firebase.database.Transaction;
-import com.google.firebase.database.ValueEventListener;
 import com.himanshurawat.hasher.HashType;
 import com.himanshurawat.hasher.Hasher;
 import com.lumination.leadme.controller.Controller;
@@ -110,15 +100,6 @@ import com.lumination.leadme.services.NetworkService;
 import com.lumination.leadme.utilities.FileUtilities;
 import com.lumination.leadme.utilities.OnboardingGestureDetector;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.InetAddress;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.UnknownHostException;
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Objects;
@@ -129,7 +110,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
-import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -290,10 +270,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     boolean allowHide = false;
     private ScheduledExecutorService scheduledExecutorService = new ScheduledThreadPoolExecutor(1);
     public ExecutorService backgroundExecutor = Executors.newCachedThreadPool();
-    /**
-     * Used exclusively for handling messages from a server on learner devices
-     */
-    public ThreadPoolExecutor serverThreadPool = (ThreadPoolExecutor) Executors.newFixedThreadPool(2);
 
     public void stopShakeDetection() {
         if(mSensorManager != null) {
@@ -408,9 +384,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             Controller.getInstance().getPermissionsManager().checkNearbyPermissions();
             return;
 
-        } else if (!Controller.getInstance().getNearbyManager().isDiscovering()) {
-            Log.d(TAG, "Permission return - search for leaders");
-            initiateLeaderDiscovery();
         }
 
         if (!Controller.getInstance().getPermissionsManager().isStoragePermissionsGranted()) {
@@ -884,7 +857,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             logoutResetController();
         }
         backgroundExecutor.shutdownNow();
-        serverThreadPool.shutdownNow();
         //subscription.dispose();
         destroyAndReset();
         super.onDestroy();
@@ -906,7 +878,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
         //clean up nearby connections
         isGuide = false;
-        Controller.getInstance().getNearbyManager().onStop();
 
         //remove the overlay if necessary
         if (overlayView != null && overlayView.isAttachedToWindow()) {
@@ -2028,15 +1999,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         }
     }
 
-    /**
-     * Empty the current leader list and start discovery of leaders using the Nsd Manager.
-     */
-    public void initiateLeaderDiscovery() {
-        Log.d(TAG, "Initiating Leader Discovery");
-        Controller.getInstance().getLeaderSelectAdapter().setLeaderList(new ArrayList<>());
-        Controller.getInstance().getNearbyManager().discoverLeaders();
-    }
-
     //MANUAL CONNECTION FOR LEARNERS
     /**
      * Empty the current leader list and stop any Nsd discovery. Start the client socket listener
@@ -2132,7 +2094,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         FirebaseManager.handleDisconnect();
         NetworkService.resetClientIDs();
         Controller.getInstance().getConnectedLearnersAdapter().resetOnLogout();
-        Controller.getInstance().getNearbyManager().onStop(); //disconnect everyone
         Controller.getInstance().getLeaderSelectAdapter().setLeaderList(new ArrayList<>()); //empty the list
         setUIDisconnected();
         Controller.getInstance().getFileTransferManager().stopService();

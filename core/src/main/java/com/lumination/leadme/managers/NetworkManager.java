@@ -3,22 +3,13 @@ package com.lumination.leadme.managers;
 import static com.google.android.gms.nearby.connection.Payload.fromBytes;
 import static com.lumination.leadme.LeadMeMain.UIHandler;
 
-import android.app.Activity;
-import android.content.Context;
 import android.content.Intent;
-import android.net.nsd.NsdServiceInfo;
-import android.net.wifi.WifiManager;
 import android.os.Build;
 import android.os.Parcel;
 import android.util.Log;
 import android.view.View;
 
 import com.google.android.gms.nearby.connection.Payload;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
 import com.lumination.leadme.adapters.ConnectedLearnersAdapter;
 import com.lumination.leadme.connections.ConnectedPeer;
 import com.lumination.leadme.LeadMeMain;
@@ -29,21 +20,12 @@ import com.lumination.leadme.services.NetworkService;
 import com.lumination.leadme.models.Client;
 import com.lumination.leadme.models.Endpoint;
 
-import java.net.InetAddress;
-import java.net.UnknownHostException;
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
-
 /**
  * Responsible for starting and stopping the network service holding the leaders server.
  * Manages the learners connection to the server.
@@ -51,7 +33,6 @@ import java.util.concurrent.TimeUnit;
 public class NetworkManager {
     private static final String TAG = "NetworkManager";
 
-    public static WifiManager.MulticastLock multicastLock; // Acquire multicast lock
     private static boolean init = false; //check if connection has been initialised
 
     public static ArrayList<Client> currentClients = new ArrayList<>();
@@ -76,18 +57,6 @@ public class NetworkManager {
     public static void stopService() {
         Intent stop_network_intent = new Intent(LeadMeMain.getInstance().getApplicationContext(), NetworkService.class);
         LeadMeMain.getInstance().stopService(stop_network_intent);
-    }
-
-    /**
-     * Stop the leaders socket server. This will drop all currently connected clients.
-     */
-    public static void stopServer() {
-        NetworkService.stopServer();
-
-        if (multicastLock != null) {
-            multicastLock.release();
-            multicastLock = null;
-        }
     }
 
     /**

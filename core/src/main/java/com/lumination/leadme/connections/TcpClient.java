@@ -21,7 +21,6 @@ public class TcpClient extends Thread {
 
     private String Name;
     public String IpAddress;
-    public int port = 54320;
     public String ID;
 
     public TcpClient(String clientAddress, String clientID) {

@@ -13,37 +13,14 @@ import android.util.Log;
 
 import androidx.core.app.NotificationCompat;
 
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
-import com.lumination.leadme.LeadMeMain;
 import com.lumination.leadme.R;
 import com.lumination.leadme.connections.TcpClient;
 import com.lumination.leadme.managers.FirebaseManager;
 import com.lumination.leadme.models.Learner;
 import com.lumination.leadme.managers.NetworkManager;
 
-import java.io.ByteArrayOutputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.PrintWriter;
 import java.net.InetAddress;
-import java.net.InetSocketAddress;
-import java.net.ServerSocket;
-import java.net.Socket;
-import java.net.UnknownHostException;
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Responsible for handling network connection between a leader and a learner.
@@ -54,8 +31,6 @@ public class NetworkService extends Service {
     private static final String CHANNEL_ID = "network_service";
     private static final String CHANNEL_NAME = "Network_Service";
 
-    private static Future<?> server = null;
-    private static ServerSocket mServerSocket = null; //server socket for server
     private static InetAddress leaderIPAddress;
     public static boolean isGuide = false;
 
@@ -75,13 +50,6 @@ public class NetworkService extends Service {
      * when receiving a message from learners. Quickly able to get their ID by their address.
      */
     public static HashMap<String, String> addressSocketArray = new HashMap<>();
-
-    /**
-     * Specific executor just for the server, has not automatic cut off period like the
-     * CachedThreadPool.
-     */
-    private static ThreadPoolExecutor serverThreadPool = (ThreadPoolExecutor) Executors.newFixedThreadPool(2);
-    private static ScheduledExecutorService scheduledExecutor = new ScheduledThreadPoolExecutor(1);
 
     // Binder given to clients
     private final IBinder binder = new LocalBinder();
@@ -197,27 +165,6 @@ public class NetworkService extends Service {
     }
 
     /**
-     * Stop the server from running and cancel the future task related to the server.
-     */
-    public static void stopServer() {
-        if(server != null) {
-            Log.d(TAG, "Server cancel");
-            server.cancel(true);
-            server = null;
-        }
-
-        if(mServerSocket != null) {
-            try {
-                mServerSocket.close();
-                Log.d("CLOSING PORT", "Server closing is bound: " + mServerSocket.isBound());
-            } catch (IOException ioe) {
-                ioe.printStackTrace();
-                Log.e(TAG, "Error when closing server socket.");
-            }
-        }
-    }
-
-    /**
      * Manages what Client IDs are currently in use. Gets the first index equaling null and
      * assigned the a student thread to it.
      * @param clientAddress An InetAddress object of the newly connected user.
@@ -324,17 +271,7 @@ public class NetworkService extends Service {
      */
     private void stopAllFunction() {
         if(isGuide) {
-            shutdownScheduler();
             resetClientIDs();
         }
-        stopServer();
-        serverThreadPool.shutdown();
-    }
-
-    /**
-     * Shutdown the scheduler associated with the Pinging of learner devices.
-     */
-    public void shutdownScheduler() {
-        scheduledExecutor.shutdown();
     }
 }
