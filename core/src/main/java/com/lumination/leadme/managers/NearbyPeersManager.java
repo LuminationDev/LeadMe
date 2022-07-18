@@ -96,34 +96,8 @@ public class NearbyPeersManager {
         NetworkService.setLeaderIPAddress(manInfo.getHost());
         LeadMeMain.getInstance().findViewById(R.id.client_main).setVisibility(View.VISIBLE);
         LeadMeMain.getInstance().setLeaderName(Name);
-        DatabaseReference database = FirebaseDatabase.getInstance("https://leafy-rope-301003-default-rtdb.asia-southeast1.firebasedatabase.app/").getReference();
-        LeadMeMain.roomReference = database.child(LeadMeMain.publicIpAddress.replace(".", "_")).child("rooms").child(NetworkService.getLeaderIPAddress().getHostAddress().replace(".", "_"));
-        LeadMeMain.messagesReference = database.child(LeadMeMain.publicIpAddress.replace(".", "_")).child("messages").child(NetworkService.getLeaderIPAddress().getHostAddress().replace(".", "_"));
-        LeadMeMain.learnerReceiveMessageListener = new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                // Get Post object and use the values to update the UI
-                if (dataSnapshot.getValue() != null && dataSnapshot.getValue().toString().length() > 0) {
-                    NetworkService.receiveMessage(dataSnapshot.getValue().toString());
 
-                    Log.e("firebase", dataSnapshot.getValue().toString());
-                }
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-                // Getting Post failed, log a message
-                Log.e(TAG, "loadPost:onCancelled", databaseError.toException());
-            }
-        };
-
-        LeadMeMain.messagesReference.child("learners").child(LeadMeMain.localIpAddress.replace(".", "_")).child("currentMessage").setValue("");
-        LeadMeMain.learnerReference = LeadMeMain.messagesReference.child("learners").child(LeadMeMain.localIpAddress.replace(".", "_"));
-        LeadMeMain.messagesReference.child("learners").child(LeadMeMain.localIpAddress.replace(".", "_")).child("leaderMessage").setValue("");
-// todo - on disconnect set value to disconnected
-
-        LeadMeMain.messagesReference.child("currentMessage").addValueEventListener(LeadMeMain.learnerReceiveMessageListener);
-        LeadMeMain.messagesReference.child("learners").child(LeadMeMain.localIpAddress.replace(".", "_")).child("leaderMessage").addValueEventListener(LeadMeMain.learnerReceiveMessageListener);
+        FirebaseManager.connectToLeader();
 
         UIHandler.postDelayed(() ->
                 NetworkService.sendToServer(getName(), "NAME"),
@@ -196,7 +170,7 @@ public class NearbyPeersManager {
      * @return A string that represents the ID of the current user.
      */
     public static String getID() {
-        return LeadMeMain.localIpAddress.replace(".", "_");
+        return FirebaseManager.getLocalIpAddress().replace(".", "_");
     }
 
     /**

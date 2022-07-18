@@ -18,6 +18,7 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.lumination.leadme.LeadMeMain;
 import com.lumination.leadme.R;
 import com.lumination.leadme.connections.TcpClient;
+import com.lumination.leadme.managers.FirebaseManager;
 import com.lumination.leadme.models.Learner;
 import com.lumination.leadme.managers.NetworkManager;
 
@@ -131,7 +132,7 @@ public class NetworkService extends Service {
      */
     public static void sendLeaderMessage(String message) {
         Log.d(TAG, "Attempting to send: " + message);
-        LeadMeMain.learnerReference.child("currentMessage").setValue(message);
+        FirebaseManager.sendLeaderMessage(message);
     }
 
     //LEADER NETWORK FUNCTIONS
@@ -149,13 +150,12 @@ public class NetworkService extends Service {
 
     public static void sendAllLearnerMessage(String message) {
         Log.d(TAG, "Attempting to send: " + message);
-        LeadMeMain.messagesReference.child("currentMessage").setValue(message);
+        FirebaseManager.sendAllLearnerMessage(message);
     }
 
     public static void sendLearnerMessage(String ipAddress, String message) {
         Log.d(TAG, "Attempting to send: " + message);
-
-        LeadMeMain.messagesReference.child("learners").child(ipAddress.replace(".", "_")).child("leaderMessage").setValue(message);
+        FirebaseManager.sendLearnerMessage(ipAddress, message);
     }
 
     /**
@@ -193,7 +193,7 @@ public class NetworkService extends Service {
      * @return A boolean representing if the server socket is open.
      */
     public static boolean isServerRunning() {
-        return LeadMeMain.roomReference != null;
+        return FirebaseManager.roomReference != null;
     }
 
     /**
@@ -263,9 +263,7 @@ public class NetworkService extends Service {
         }
 
         clientSocketArray.remove(clientID);
-
-        LeadMeMain.messagesReference.child("learners").child(clientID).child("currentMessage").removeEventListener(LeadMeMain.leaderReceivingLearnerMessageListener);
-        LeadMeMain.messagesReference.child("learners").child(clientID).removeValue();
+        FirebaseManager.removeLearner(clientID);
     }
 
     @Override

@@ -1,6 +1,7 @@
 package com.lumination.leadme.managers;
 
 import static com.google.android.gms.nearby.connection.Payload.fromBytes;
+import static com.lumination.leadme.LeadMeMain.UIHandler;
 
 import android.app.Activity;
 import android.content.Context;
@@ -233,9 +234,7 @@ public class NetworkManager {
      */
     public static void receivedDisconnect() {
         Log.w(TAG, "Disconnect. Guide? " + LeadMeMain.isGuide);
-        LeadMeMain.messagesReference.child("currentMessage").removeEventListener(LeadMeMain.learnerReceiveMessageListener);
-        LeadMeMain.messagesReference.child("learners").child(LeadMeMain.localIpAddress.replace(".", "_")).child("leaderMessage").removeEventListener(LeadMeMain.learnerReceiveMessageListener);
-        LeadMeMain.roomReference = null;
+        FirebaseManager.handleDisconnect();
         NearbyPeersManager.disconnectFromEndpoint("");
         stopService();
     }
@@ -300,32 +299,7 @@ public class NetworkManager {
                 Controller.getInstance().getConnectedLearnersAdapter().addStudent(thisPeer);
                 LeadMeMain.getInstance().showConnectedStudents(true);
             });
-
-            LeadMeMain.leaderReceivingLearnerMessageListener = new ValueEventListener() {
-                @Override
-                public void onDataChange(DataSnapshot dataSnapshot) {
-                    // Get Post object and use the values to update the UI
-                    Object messageObj = dataSnapshot.getValue();
-                    Log.e("firebase", dataSnapshot.toString());
-                    if (messageObj != null) {
-                        String message = messageObj.toString();
-                        Log.e("firebase", message);
-                        Log.e("firebase", dataSnapshot.getKey());
-                        if (message != null && message.length() > 0) {
-                            NetworkService.determineAction(clientId, message);
-                        }
-                    }
-
-                    // ..
-                }
-
-                @Override
-                public void onCancelled(DatabaseError databaseError) {
-                    // Getting Post failed, log a message
-                    Log.e(TAG, "loadPost:onCancelled", databaseError.toException());
-                }
-            };
-            LeadMeMain.messagesReference.child("learners").child(clientId).child("currentMessage").addValueEventListener(LeadMeMain.leaderReceivingLearnerMessageListener);
+            FirebaseManager.handleLearnerConnectingToLeader(clientId);
         }
 
         selected.add(clientId);
@@ -442,7 +416,9 @@ public class NetworkManager {
                 LeadMeMain.getInstance().showConnectedStudents(true);
             }
             NetworkService.sendToAllClients(message, type);
-            NetworkService.sendToAllClients("", "");
+            UIHandler.postDelayed(() ->
+                            NetworkService.sendToAllClients("", ""),
+                    500);
             return;
         }
 

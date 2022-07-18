@@ -982,7 +982,7 @@ public class DialogManager {
                     LeadMeMain.isGuide = false;
 
                     NearbyPeersManager.myName = ManName.getText().toString();
-                    Controller.getInstance().getFirebaseManager().setServerIP(IpEnter.getText().toString());
+                    FirebaseManager.setServerIP(IpEnter.getText().toString());
                     LeadMeMain.getInstance().loginAction(true);
                 }
             });

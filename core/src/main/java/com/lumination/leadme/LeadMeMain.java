@@ -290,14 +290,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     boolean allowHide = false;
     private ScheduledExecutorService scheduledExecutorService = new ScheduledThreadPoolExecutor(1);
     public ExecutorService backgroundExecutor = Executors.newCachedThreadPool();
-
-    public static String publicIpAddress = "";
-    public static String localIpAddress = "";
-    public static DatabaseReference roomReference;
-    public static DatabaseReference messagesReference;
-    public static DatabaseReference learnerReference;
-    public static ValueEventListener learnerReceiveMessageListener;
-    public static ValueEventListener leaderReceivingLearnerMessageListener;
     /**
      * Used exclusively for handling messages from a server on learner devices
      */
@@ -694,7 +686,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             if (Controller.getInstance().getPermissionsManager().isAccessibilityGranted() && !Controller.getInstance().getPermissionsManager().isOverlayPermissionGranted()) {
                 setandDisplayStudentOnBoard(1);
             } else if (Controller.getInstance().getPermissionsManager().isAccessibilityGranted() && Controller.getInstance().getPermissionsManager().isOverlayPermissionGranted()) {
-                if(Controller.getInstance().getFirebaseManager().getServerIP().length() > 0){
+                if(FirebaseManager.getServerIP().length() > 0){
                     setandDisplayStudentOnBoard(3);
                 }else {
                     setandDisplayStudentOnBoard(2);
@@ -1003,47 +995,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         checkSharedPreferences();
         inflateViews();
         createManagers();
-
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    localIpAddress = InetAddress.getByAddress(
-                            ByteBuffer
-                                    .allocate(Integer.BYTES)
-                                    .order(ByteOrder.LITTLE_ENDIAN)
-                                    .putInt(wifiManager.getConnectionInfo().getIpAddress())
-                                    .array()
-                    ).getHostAddress();
-                } catch (UnknownHostException e) {
-                    e.printStackTrace();
-                }
-
-                URL ipify = null;
-                try {
-                    ipify = new URL("https://api.ipify.org/");
-                } catch (MalformedURLException e) {
-                    e.printStackTrace();
-                }
-                BufferedReader in = null;
-                try {
-                    in = new BufferedReader(new InputStreamReader(
-                            ipify.openStream()));
-                    publicIpAddress = in.readLine();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                } finally {
-                    if (in != null) {
-                        try {
-                            in.close();
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                }
-            }
-        }).start();
-
         setupReceiver();
         setupInitialDetails();
         UIListener();
@@ -1073,7 +1024,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
      * Check the firebase for the most current version number.
      */
     private void checkAppVersion() {
-        Controller.getInstance().getFirebaseManager().checkCurrentVersion();
+        FirebaseManager.checkCurrentVersion();
     }
 
     /**
@@ -1410,7 +1361,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                 backButton.setOnClickListener(w -> {
                     confirmationDialog.dismiss();
                 });
-                
+
             } else {
                 Controller.getInstance().getDialogManager().showWarningDialog("File Transfer", "File transfer has not been enabled.");
             }
@@ -1729,7 +1680,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         //direct ip input connection
         TextView manualConnect = optionsScreen.findViewById(R.id.manual_connect);
         manualConnect.setOnClickListener(view -> {
-            Controller.getInstance().getDialogManager().showManualDialog(isGuide, localIpAddress);
+            Controller.getInstance().getDialogManager().showManualDialog(isGuide, FirebaseManager.getLocalIpAddress());
         });
 
         optionsScreen.findViewById(R.id.logout_btn).setOnClickListener(view -> {
@@ -2094,7 +2045,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     public void initiateManualLeaderDiscovery() {
         Log.d(TAG, "Initiating Manual Leader Discovery");
         Controller.getInstance().getLeaderSelectAdapter().setLeaderList(new ArrayList<>());
-        Controller.getInstance().getFirebaseManager().retrieveLeaders();
+        FirebaseManager.retrieveLeaders();
     }
 
     public boolean checkLoginDetails() {
@@ -2178,15 +2129,12 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             e.printStackTrace();
         }
 
-        roomReference.removeValue();
-        roomReference = null;
-        messagesReference.removeValue();
+        FirebaseManager.handleDisconnect();
         NetworkService.resetClientIDs();
         Controller.getInstance().getConnectedLearnersAdapter().resetOnLogout();
         Controller.getInstance().getNearbyManager().onStop(); //disconnect everyone
         Controller.getInstance().getLeaderSelectAdapter().setLeaderList(new ArrayList<>()); //empty the list
         setUIDisconnected();
-        Controller.getInstance().getFirebaseManager().stopService();
         Controller.getInstance().getFileTransferManager().stopService();
         NetworkManager.stopService();
         showSplashScreen();
@@ -2233,8 +2181,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         Controller.getInstance().getNetworkManager().startService();
 
         if (isGuide) {
-            Controller.getInstance().getFirebaseManager().startService();
-
             //display main guide view
             leadmeAnimator.setDisplayedChild(ANIM_LEADER_INDEX);
 
@@ -2257,53 +2203,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                 buildAndDisplayOnBoard(true);
             }
 
-            Controller.getInstance().getFirebaseManager().createManualConnection(localIpAddress);
-
-            DatabaseReference database = FirebaseDatabase.getInstance("https://leafy-rope-301003-default-rtdb.asia-southeast1.firebasedatabase.app/").getReference();
-            database.child(LeadMeMain.publicIpAddress.replace(".", "_")).child("rooms").child(localIpAddress.replace(".", "_")).setValue("roomCreated");
-            database.runTransaction(new Transaction.Handler() {
-                @NonNull
-                @Override
-                public Transaction.Result doTransaction(@NonNull MutableData currentData) {
-                    roomReference = database.child(LeadMeMain.publicIpAddress.replace(".", "_")).child("rooms").child(localIpAddress.replace(".", "_"));
-                    messagesReference = database.child(LeadMeMain.publicIpAddress.replace(".", "_")).child("messages").child(localIpAddress.replace(".", "_"));
-                    messagesReference.child("learners").setValue("emptyLearners");
-                    messagesReference.child("currentMessage").setValue("");
-                    roomReference.child("leaderName").setValue(name);
-
-                    roomReference.onDisconnect().removeValue();
-                    messagesReference.onDisconnect().removeValue();
-
-                    ValueEventListener addLearnerListener = new ValueEventListener() {
-                        @Override
-                        public void onDataChange(DataSnapshot dataSnapshot) {
-                            // Get Post object and use the values to update the UI
-                            Log.e("firebase", dataSnapshot.toString());
-                            if (dataSnapshot.getChildrenCount() != ConnectedLearnersAdapter.mData.size()) {
-                                for (DataSnapshot data:dataSnapshot.getChildren()) {
-                                    if (data.child("leaderMessage").getValue() == null || !data.child("leaderMessage").getValue().toString().startsWith("DISCONNECT")) {
-                                        NetworkManager.addLearnerIfNotExists(data.getKey());
-                                    }
-                                }
-                            }
-                        }
-
-                        @Override
-                        public void onCancelled(DatabaseError databaseError) {
-                            // Getting Post failed, log a message
-                            Log.e(TAG, "loadPost:onCancelled", databaseError.toException());
-                        }
-                    };
-                    messagesReference.child("learners").addValueEventListener(addLearnerListener);
-
-                    return Transaction.success(null);
-                }
-
-                @Override
-                public void onComplete(@Nullable DatabaseError error, boolean committed, @Nullable DataSnapshot currentData) {
-
-                }
-            });
+            FirebaseManager.connectAsLeader(name);
 
             CuratedContentManager.hasDoneSetup = false;
             CuratedContentManager.getCuratedContent(this);
@@ -3110,7 +3010,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                 scheduledCheck = scheduledExecutorService.scheduleAtFixedRate(() -> {
                     if (Controller.getInstance().getPermissionsManager().isOverlayPermissionGranted()) {
                         runOnUiThread(() -> {
-                            if(Controller.getInstance().getFirebaseManager().getServerIP().length()>0){
+                            if(FirebaseManager.getServerIP().length()>0){
                                 setandDisplayStudentOnBoard(3);
                             }else{
                                 setandDisplayStudentOnBoard(2);
@@ -3160,12 +3060,12 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         Controller.getInstance().getScreenSharingManager().startService(false);
 
         //If the serverIP address has not changed set it to the locally found guide
-        if(Controller.getInstance().getFirebaseManager().getServerIP().equals("")) {
-            Controller.getInstance().getFirebaseManager().setServerIP(NearbyPeersManager.selectedLeader.getID());
+        if(FirebaseManager.getServerIP().equals("")) {
+            FirebaseManager.setServerIP(NearbyPeersManager.selectedLeader.getID());
         }
 
         NearbyPeersManager.connectToManualLeader(NearbyPeersManager.selectedLeader.getDisplayName(),
-                Controller.getInstance().getFirebaseManager().getServerIP());
+                FirebaseManager.getServerIP());
 
         toggleConnectionOptions(View.GONE); //Remove connection options
 

@@ -117,7 +117,6 @@ public class Controller {
     private final VREmbedVideoPlayer vrEmbedVideoPlayer;
     private final VRAccessibilityManager vrAccessibilityManager;
 
-    private final FirebaseManager firebaseManager;
     private final NetworkManager networkManager;
     private AppUpdateManager appUpdateManager;
     private final FileTransferManager fileTransferManager;
@@ -147,7 +146,6 @@ public class Controller {
         NetworkManager.multicastLock.acquire();
 
         screenSharingManager = new ScreenSharingManager(main);
-        firebaseManager = new FirebaseManager(main);
         networkManager = new NetworkManager();
         permissionManager = new PermissionManager(main);
         authenticationManager = new AuthenticationManager(main);
@@ -177,7 +175,7 @@ public class Controller {
         Log.d(TAG, "Returning from OVERLAY ON with " + resultCode);
 
         if (getPermissionsManager().isOverlayPermissionGranted()) {
-            if(getFirebaseManager().getServerIP().length()>0){
+            if(FirebaseManager.getServerIP().length()>0){
                 LeadMeMain.getInstance().setandDisplayStudentOnBoard(3);
             } else {
                 LeadMeMain.getInstance().setandDisplayStudentOnBoard(2);
@@ -346,7 +344,6 @@ public class Controller {
     public PermissionManager getPermissionsManager() {
         return permissionManager;
     }
-    public FirebaseManager getFirebaseManager() { return firebaseManager; }
     public NetworkManager getNetworkManager() { return networkManager; }
     public AuthenticationManager getAuthenticationManager() {
         return authenticationManager;
