@@ -14,7 +14,6 @@ import android.util.Log;
 import androidx.core.app.NotificationCompat;
 
 import com.lumination.leadme.R;
-import com.lumination.leadme.connections.TcpClient;
 import com.lumination.leadme.managers.FirebaseManager;
 import com.lumination.leadme.models.Learner;
 import com.lumination.leadme.managers.NetworkManager;
@@ -37,19 +36,7 @@ public class NetworkService extends Service {
     /**
      * Keep track of the student threads that are currently being managed by the leader device.
      */
-    public static HashMap<String, Learner> studentThreadArray = new HashMap<>();
-
-    /**
-     * Keep Track of the Client ID as the key and student socket as the value. It can then be used
-     * to determine if a student is reconnecting or is a new user.
-     */
-    public static HashMap<String, String> clientSocketArray = new HashMap<>();
-
-    /**
-     * Only purpose is to provide a reverse look up in comparison to the clientSocketArray for
-     * when receiving a message from learners. Quickly able to get their ID by their address.
-     */
-    public static HashMap<String, String> addressSocketArray = new HashMap<>();
+    public static HashMap<String, Learner> learnerHashMap = new HashMap<>();
 
     // Binder given to clients
     private final IBinder binder = new LocalBinder();
@@ -135,11 +122,10 @@ public class NetworkService extends Service {
      */
     public static void determineAction(String clientAddress, String message) {
         clientAddress = clientAddress.replace(".", "_");
-        String tempID = addressSocketArray.get(clientAddress);
-        Learner learner = studentThreadArray.get(tempID);
+        Learner learner = learnerHashMap.get(clientAddress);
 
         if(learner != null) {
-            learner.tcp.inputReceived(message);
+            learner.inputReceived(message);
         } else {
             Log.d(TAG, "Learner not found: " + clientAddress +
                     " Message:" + message);
@@ -151,7 +137,7 @@ public class NetworkService extends Service {
             }
         }
 
-        if(message.equals("DISCONNECT,No connection") && tempID != null) {
+        if(message.equals("DISCONNECT,No connection")) {
             removeStudent(clientAddress);
         }
     }
@@ -171,14 +157,8 @@ public class NetworkService extends Service {
      */
     public static void learnerManager(String clientAddress) {
         String id = clientAddress.replace(".", "_");
-
-        TcpClient tcpClient = new TcpClient(id, clientAddress);
-        Learner learner = new Learner();
-        learner.tcp = tcpClient;
-
-        clientSocketArray.put(id, id);
-        studentThreadArray.put(id, learner);
-        addressSocketArray.put(id, id);
+        Learner learner = new Learner(id, clientAddress);
+        learnerHashMap.put(id, learner);
     }
 
     /**
@@ -189,13 +169,11 @@ public class NetworkService extends Service {
      * consecutively grows
      */
     public static void resetClientIDs() {
-        studentThreadArray.clear();
-        clientSocketArray.clear();
-        addressSocketArray.clear();
+        learnerHashMap.clear();
     }
 
     private static void disconnection() {
-        clientSocketArray.forEach((key, value) -> sendLearnerMessage(value, "DISCONNECT" + ","));
+        learnerHashMap.forEach((key, value) -> sendLearnerMessage(key, "DISCONNECT" + ","));
     }
 
     /**
@@ -204,12 +182,8 @@ public class NetworkService extends Service {
      * @param clientID An integer representing the ID of the learner to remove.
      */
     public static void removeStudent(String clientID) {
-        if(studentThreadArray.get(clientID) != null) {
-            //Objects.requireNonNull(studentThreadArray.get(clientID)).tcp.shutdownTCP();
-            studentThreadArray.remove(clientID);
-        }
+        learnerHashMap.remove(clientID);
 
-        clientSocketArray.remove(clientID);
         FirebaseManager.removeLearner(clientID);
     }
 
