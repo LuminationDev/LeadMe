@@ -36,7 +36,7 @@
             android:layout_marginBottom="30dp"
             android:ellipsize="end"
             android:fontFamily="@font/poppins_semibold"
-            android:text="Experimental Feature"
+            android:text="Warning, we're experimenting!"
             android:textColor="@color/leadme_black"
             android:textSize="18sp" />
 
@@ -46,7 +46,7 @@
             android:layout_height="wrap_content"
             android:fontFamily="@font/poppins_regular"
             android:gravity="center_horizontal"
-            android:text="X-Ray is an experimental feature. You can continue to use it, but may experience some issues."
+            android:text="You may experience issues such as failure to connect or disconnection with X-Ray"
             android:textColor="@color/leadme_black"
             android:textSize="14sp" />
 
