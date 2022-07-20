@@ -51,7 +51,6 @@
                     tools:ignore="SpeakableTextPresentCheck" />
             </RelativeLayout>
 
-
             <LinearLayout
                 android:id="@+id/search_info"
                 android:layout_width="match_parent"
@@ -75,7 +74,7 @@
                 <TextView
                     android:id="@+id/search_heading"
                     android:fontFamily="@font/poppins_semibold"
-                    android:textSize="24dp"
+                    android:textSize="24sp"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:gravity="center"
@@ -86,7 +85,7 @@
                 <TextView
                     android:id="@+id/search_subheading"
                     android:fontFamily="@font/poppins_regular"
-                    android:textSize="14dp"
+                    android:textSize="14sp"
                     android:textColor="@color/leadme_darkest_grey"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"

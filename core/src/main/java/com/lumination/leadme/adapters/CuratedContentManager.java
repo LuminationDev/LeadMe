@@ -336,13 +336,19 @@ public class CuratedContentManager {
         final BottomSheetDialog searchSheetDialog = new BottomSheetDialog(main, R.style.BottomSheetDialogTransparentBackground);
         searchSheetDialog.setContentView(R.layout.search_sheet_layout);
         EditText searchInput = searchSheetDialog.findViewById(R.id.search_input);
+        TextView searchHeading = searchSheetDialog.findViewById(R.id.search_heading);
+        TextView searchSubheading = searchSheetDialog.findViewById(R.id.search_subheading);
         ImageButton searchClear = searchSheetDialog.findViewById(R.id.search_clear);
-
+        LinearLayout searchInfo = searchSheetDialog.findViewById(R.id.search_info);
+        ListView curatedContentListSearch = searchSheetDialog.findViewById(R.id.curated_content_list);
         searchClear.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 searchInput.setText("");
-                Log.e("fghjk", "res");
+                searchInfo.setVisibility(View.VISIBLE);
+                searchHeading.setText("What are you searching for?");
+                searchSubheading.setText("Search through our curated content for classrooms!");
+                curatedContentListSearch.setVisibility(View.GONE);
             };
 
         });
@@ -355,13 +361,9 @@ public class CuratedContentManager {
                 if (i == EditorInfo.IME_ACTION_DONE) {
                     ArrayList<CuratedContentItem> curatedContent = (ArrayList<CuratedContentItem>) curatedContentList.clone();
                     CuratedContentManager.filterCuratedContentBySearch(curatedContent, searchInput.getText().toString());
-                    ListView curatedContentListSearch = searchSheetDialog.findViewById(R.id.curated_content_list);
                     curatedContentListSearch.setAdapter(curatedContentAdapterSearch);
                     curatedContentAdapterSearch.curatedContentList = curatedContent;
                     curatedContentAdapterSearch.notifyDataSetChanged();
-                    LinearLayout searchInfo = searchSheetDialog.findViewById(R.id.search_info);
-                    TextView searchHeading = searchSheetDialog.findViewById(R.id.search_heading);
-                    TextView searchSubheading = searchSheetDialog.findViewById(R.id.search_subheading);
                     if (textView.getText().length() > 0 && curatedContent.size() > 0) {
                         searchInfo.setVisibility(View.GONE);
                         searchHeading.setText("What are you searching for?");
@@ -382,7 +384,7 @@ public class CuratedContentManager {
                         searchSubheading.setText("Search through our curated content for classrooms!");
                         curatedContentListSearch.setVisibility(View.GONE);
                     }
-                    //not sure if this is required now but will leave here in case
+
                     else{
                         curatedContentListSearch.setVisibility(View.VISIBLE);
                     }
