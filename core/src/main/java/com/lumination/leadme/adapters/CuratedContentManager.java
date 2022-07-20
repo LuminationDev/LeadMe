@@ -10,6 +10,7 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
@@ -335,6 +336,16 @@ public class CuratedContentManager {
         final BottomSheetDialog searchSheetDialog = new BottomSheetDialog(main, R.style.BottomSheetDialogTransparentBackground);
         searchSheetDialog.setContentView(R.layout.search_sheet_layout);
         EditText searchInput = searchSheetDialog.findViewById(R.id.search_input);
+        ImageButton searchClear = searchSheetDialog.findViewById(R.id.search_clear);
+
+        searchClear.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                searchInput.setText("");
+                Log.e("fghjk", "res");
+            };
+
+        });
 
         CuratedContentManager.curatedContentAdapterSearch = new CuratedContentAdapter(main, searchSheetDialog.findViewById(R.id.curated_content_list));
 

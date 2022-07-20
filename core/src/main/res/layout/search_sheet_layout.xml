@@ -21,21 +21,36 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:orientation="vertical">
-            <EditText
-                android:id="@+id/search_input"
-                android:layout_width="match_parent"
+            <RelativeLayout
+                android:layout_width="fill_parent"
                 android:layout_height="wrap_content"
-                android:inputType="text"
-                android:textColor="@color/leadme_dark_grey"
-                android:background="@drawable/bg_white_rounded"
-                android:hint="Search for topics or titles"
-                android:textColorHint="@color/leadme_medium_grey"
-                android:drawableLeft="@drawable/search_icon_simple_small"
-                android:drawablePadding="10dp"
-                android:layout_margin="20dp"
-                android:padding="15dp"
-                android:imeOptions="actionDone">
-            </EditText>
+                android:layout_margin="20dp">
+
+                <EditText
+                    android:id="@+id/search_input"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/bg_white_rounded"
+                    android:drawableLeft="@drawable/search_icon_simple_small"
+                    android:drawablePadding="10dp"
+                    android:hint="Search for topics or titles"
+                    android:imeOptions="actionDone"
+                    android:inputType="text"
+                    android:padding="15dp"
+                    android:textColor="@color/leadme_dark_grey"
+                    android:textColorHint="@color/leadme_medium_grey"></EditText>
+
+                <ImageButton
+                    android:id="@+id/search_clear"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:layout_alignParentRight="true"
+                    android:layout_margin="2.5dp"
+                    android:background="@drawable/circle_btn"
+                    android:src="@drawable/search_icon_delete_small"
+                    tools:ignore="SpeakableTextPresentCheck" />
+            </RelativeLayout>
+
 
             <LinearLayout
                 android:id="@+id/search_info"
@@ -66,7 +81,7 @@
                     android:gravity="center"
                     android:textColor="@color/black"
                     android:paddingVertical="10dp"
-                    android:text="What are\nyou searching for?">
+                    android:text="What are you searching for?">
                 </TextView>
                 <TextView
                     android:id="@+id/search_subheading"
