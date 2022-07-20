@@ -38,6 +38,7 @@ import com.koushikdutta.urlimageviewhelper.UrlImageViewHelper;
 import com.lumination.leadme.LeadMeMain;
 import com.lumination.leadme.R;
 import com.lumination.leadme.adapters.LumiSpinnerAdapter;
+import com.lumination.leadme.controller.Controller;
 import com.lumination.leadme.linkpreview.LinkPreviewCallback;
 import com.lumination.leadme.linkpreview.SourceContent;
 import com.lumination.leadme.linkpreview.TextCrawler;
@@ -93,7 +94,7 @@ public class WebManager {
     public WebManager(LeadMeMain main) {
         Log.d(TAG, "WebManager: ");
         this.main = main;
-        this.dialogManager = main.getDialogManager();
+        this.dialogManager = Controller.getInstance().getDialogManager();
         thread = Thread.currentThread();
 
         websiteLaunchDialogView = View.inflate(main, R.layout.d__enter_url, null);
@@ -356,7 +357,7 @@ public class WebManager {
         previewProgress = previewDialogView.findViewById(R.id.preview_progress);
 
         final CheckBox saveWebToFav = previewDialogView.findViewById(R.id.fav_checkbox);
-        main.getDialogManager().setupPushToggle(previewDialogView, false);
+        Controller.getInstance().getDialogManager().setupPushToggle(previewDialogView, false);
 
         previewPushBtn.setOnClickListener(v -> {
             //save to favourites if needed
@@ -377,7 +378,7 @@ public class WebManager {
             //clean up dialogs
             hideSearchDialog();
             hidePreviewDialog();
-            main.getDialogManager().showConfirmPushDialog(false, adding_to_fav);
+            Controller.getInstance().getDialogManager().showConfirmPushDialog(false, adding_to_fav);
 
             //reset
             pushURL = "";
@@ -449,25 +450,25 @@ public class WebManager {
         //update lock status
         if (locked) {
             if(selectedOnly) {
-                DispatchManager.sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.LOCK_TAG, NearbyPeersManager.getSelectedPeerIDsOrAll());
+                DispatchManager.sendActionToSelected(Controller.ACTION_TAG, Controller.LOCK_TAG, NearbyPeersManager.getSelectedPeerIDsOrAll());
             }else{
-                DispatchManager.sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.LOCK_TAG, NearbyPeersManager.getAllPeerIDs());
+                DispatchManager.sendActionToSelected(Controller.ACTION_TAG, Controller.LOCK_TAG, NearbyPeersManager.getAllPeerIDs());
             }
         } else {
             //unlocked if selected
             if(selectedOnly) {
-                DispatchManager.sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.UNLOCK_TAG, NearbyPeersManager.getSelectedPeerIDsOrAll());
+                DispatchManager.sendActionToSelected(Controller.ACTION_TAG, Controller.UNLOCK_TAG, NearbyPeersManager.getSelectedPeerIDsOrAll());
             }else{
-                DispatchManager.sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.UNLOCK_TAG, NearbyPeersManager.getAllPeerIDs());
+                DispatchManager.sendActionToSelected(Controller.ACTION_TAG, Controller.UNLOCK_TAG, NearbyPeersManager.getAllPeerIDs());
             }
         }
 
         //push the right instruction to the receivers
         if(selectedOnly) {
-            DispatchManager.sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.LAUNCH_YT + url + "&start=" + startFrom + ":::" + urlTitle + ":::" + vrOn,
+            DispatchManager.sendActionToSelected(Controller.ACTION_TAG, Controller.LAUNCH_YT + url + "&start=" + startFrom + ":::" + urlTitle + ":::" + vrOn,
                     NearbyPeersManager.getSelectedPeerIDsOrAll());
         }else{
-            DispatchManager.sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.LAUNCH_YT + url + "&start=" + startFrom + ":::" + urlTitle + ":::" + vrOn,
+            DispatchManager.sendActionToSelected(Controller.ACTION_TAG, Controller.LAUNCH_YT + url + "&start=" + startFrom + ":::" + urlTitle + ":::" + vrOn,
                     NearbyPeersManager.getAllPeerIDs());
         }
     }
@@ -478,25 +479,25 @@ public class WebManager {
         //update lock status
         if (lockSpinner.getSelectedItem().toString().startsWith("View")) {
             //locked by default
-            if(main.getSelectedOnly()) {
-                DispatchManager.sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.LOCK_TAG, NearbyPeersManager.getSelectedPeerIDsOrAll());
+            if(LeadMeMain.selectedOnly) {
+                DispatchManager.sendActionToSelected(Controller.ACTION_TAG, Controller.LOCK_TAG, NearbyPeersManager.getSelectedPeerIDsOrAll());
             }else{
-                DispatchManager.sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.LOCK_TAG, NearbyPeersManager.getAllPeerIDs());
+                DispatchManager.sendActionToSelected(Controller.ACTION_TAG, Controller.LOCK_TAG, NearbyPeersManager.getAllPeerIDs());
             }
         } else {
             //unlocked if selected
-            if(main.getSelectedOnly()) {
-                DispatchManager.sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.UNLOCK_TAG, NearbyPeersManager.getSelectedPeerIDsOrAll());
+            if(LeadMeMain.selectedOnly) {
+                DispatchManager.sendActionToSelected(Controller.ACTION_TAG, Controller.UNLOCK_TAG, NearbyPeersManager.getSelectedPeerIDsOrAll());
             }else{
-                DispatchManager.sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.UNLOCK_TAG, NearbyPeersManager.getAllPeerIDs());
+                DispatchManager.sendActionToSelected(Controller.ACTION_TAG, Controller.UNLOCK_TAG, NearbyPeersManager.getAllPeerIDs());
             }
         }
 
         //push the right instruction to the receivers
-        if(main.getSelectedOnly()) {
-            DispatchManager.sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.LAUNCH_URL + url + ":::" + urlTitle, NearbyPeersManager.getSelectedPeerIDsOrAll());
+        if(LeadMeMain.selectedOnly) {
+            DispatchManager.sendActionToSelected(Controller.ACTION_TAG, Controller.LAUNCH_URL + url + ":::" + urlTitle, NearbyPeersManager.getSelectedPeerIDsOrAll());
         }else{
-            DispatchManager.sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.LAUNCH_URL + url + ":::" + urlTitle, NearbyPeersManager.getAllPeerIDs());
+            DispatchManager.sendActionToSelected(Controller.ACTION_TAG, Controller.LAUNCH_URL + url + ":::" + urlTitle, NearbyPeersManager.getAllPeerIDs());
         }
     }
 
@@ -531,25 +532,27 @@ public class WebManager {
         main.getLumiAccessibilityConnector().resetState();
 
         main.backgroundExecutor.submit(() -> {
-            if (!main.getPermissionsManager().isInternetConnectionAvailable()) {
+            if (!Controller.getInstance().getPermissionsManager().isInternetConnectionAvailable()) {
                 Log.w(TAG, "No internet connection in LaunchWebsite");
 
                 LeadMeMain.UIHandler.post(() -> {
                     dialogManager.showWarningDialog("No Internet Connection",
                             "Internet based functions are unavailable at this time. " +
                                     "Please check your WiFi connection and try again.");
-                    DispatchManager.alertGuidePermissionGranted(LeadMeMain.STUDENT_NO_INTERNET, false);
+                    DispatchManager.alertGuidePermissionGranted(Controller.STUDENT_NO_INTERNET, false);
                     hideWebsiteLaunchDialog();
                 });
             }
         });
 
-        DispatchManager.alertGuidePermissionGranted(LeadMeMain.STUDENT_NO_INTERNET, true); //reset it
+        DispatchManager.alertGuidePermissionGranted(Controller.STUDENT_NO_INTERNET, true); //reset it
 
         //check it's a minimally sensible url
         if (url == null || url.length() < 3 || !url.contains(".")) {
             LeadMeMain.runOnUI(() -> Toast.makeText(main.getApplicationContext(), "Invalid URL", Toast.LENGTH_SHORT).show());
-            DispatchManager.sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.AUTO_INSTALL_FAILED + "Invalid URL:" + NearbyPeersManager.getID(), NearbyPeersManager.getSelectedPeerIDsOrAll());
+            DispatchManager.sendActionToSelected(Controller.ACTION_TAG,
+                    Controller.AUTO_INSTALL_FAILED + "Invalid URL:" + NearbyPeersManager.getID(),
+                    NearbyPeersManager.getSelectedPeerIDsOrAll());
             return;
         }
 
@@ -588,8 +591,8 @@ public class WebManager {
                 Log.w(TAG, "Selecting browser:  " + ai + " for " + uri.getHost() + ", " + ai.name + ", " + name);
 
                 scheduleActivityLaunch(intent, updateCurrentTask, ai.packageName, name, "Website", url, urlTitle);
-                DispatchManager.sendActionToSelected(LeadMeMain.ACTION_TAG,
-                        LeadMeMain.LAUNCH_SUCCESS + uri.getHost() + ":" + NearbyPeersManager.getID() + ":" + ai.packageName, NearbyPeersManager.getSelectedPeerIDsOrAll());
+                DispatchManager.sendActionToSelected(Controller.ACTION_TAG,
+                        Controller.LAUNCH_SUCCESS + uri.getHost() + ":" + NearbyPeersManager.getID() + ":" + ai.packageName, NearbyPeersManager.getSelectedPeerIDsOrAll());
                 //success!
                 return;
             }
@@ -600,14 +603,14 @@ public class WebManager {
 
         if (browserIntent != null) {
             scheduleActivityLaunch(browserIntent, updateCurrentTask, browserIntent.getStringExtra("packageName"), "Default Browser", "Website", url, urlTitle);
-            DispatchManager.sendActionToSelected(LeadMeMain.ACTION_TAG,
-                    LeadMeMain.LAUNCH_SUCCESS + uri.getHost() + ":" + NearbyPeersManager.getID() + ":" + browserIntent.getStringExtra("packageName"), NearbyPeersManager.getSelectedPeerIDsOrAll());
+            DispatchManager.sendActionToSelected(Controller.ACTION_TAG,
+                    Controller.LAUNCH_SUCCESS + uri.getHost() + ":" + NearbyPeersManager.getID() + ":" + browserIntent.getStringExtra("packageName"), NearbyPeersManager.getSelectedPeerIDsOrAll());
             //success!
 
         } else {
             LeadMeMain.runOnUI(() -> Toast.makeText(main.getApplicationContext(), "No browser available", Toast.LENGTH_SHORT).show());
-            DispatchManager.sendActionToSelected(LeadMeMain.ACTION_TAG,
-                    LeadMeMain.AUTO_INSTALL_FAILED + "No browser:" + NearbyPeersManager.getID(), NearbyPeersManager.getSelectedPeerIDsOrAll());
+            DispatchManager.sendActionToSelected(Controller.ACTION_TAG,
+                    Controller.AUTO_INSTALL_FAILED + "No browser:" + NearbyPeersManager.getID(), NearbyPeersManager.getSelectedPeerIDsOrAll());
             //no browser, failure
         }
     }
@@ -703,7 +706,7 @@ public class WebManager {
             pushTitle = previewTitle.getText().toString();
         }
 
-        main.getDialogManager().toggleSelectedView(previewDialogView);
+        Controller.getInstance().getDialogManager().toggleSelectedView(previewDialogView);
 
         //set up preview to appear correctly
         if (adding_to_fav) {
@@ -813,7 +816,7 @@ public class WebManager {
         main.hideSystemUI();
 
         main.backgroundExecutor.submit(() -> {
-            if (!main.getPermissionsManager().isInternetConnectionAvailable()) {
+            if (!Controller.getInstance().getPermissionsManager().isInternetConnectionAvailable()) {
                 Log.w(TAG, "No internet connection in showPreview");
                 LeadMeMain.UIHandler.post(() ->
                     dialogManager.showWarningDialog("No Internet Connection",
@@ -849,7 +852,7 @@ public class WebManager {
 
         if (url.contains("with.in/watch/")) {
             Log.w(TAG, "This is a Within VR video!");
-            main.getAppManager().getWithinPlayer().showController(url);
+            Controller.getInstance().getAppManager().getWithinPlayer().showController(url);
             return;
         }
 
@@ -999,13 +1002,13 @@ public class WebManager {
         main.getLumiAccessibilityConnector().resetState();
 
         main.backgroundExecutor.submit(() -> {
-            if (!main.getPermissionsManager().isInternetConnectionAvailable()) {
+            if (!Controller.getInstance().getPermissionsManager().isInternetConnectionAvailable()) {
                 Log.w(TAG, "No internet connection in launchYouTube");
                 LeadMeMain.UIHandler.post(() -> {
                     dialogManager.showWarningDialog("No Internet Connection",
                             "Internet based functions are unavailable at this time. " +
                                     "Please check your WiFi connection and try again.");
-                    DispatchManager.alertGuidePermissionGranted(LeadMeMain.STUDENT_NO_INTERNET, false);
+                    DispatchManager.alertGuidePermissionGranted(Controller.STUDENT_NO_INTERNET, false);
                     hideWebsiteLaunchDialog();
                 });
             }
@@ -1013,7 +1016,7 @@ public class WebManager {
 
         launchingVR = vrOn; //activate auto-VR mode
         enteredVR = false;
-        final String youTubePackageName = main.getAppManager().youtubePackage;
+        final String youTubePackageName = AppManager.youtubePackage;
 
         Log.w(TAG, "CLEAN YOUTUBE: " + pushURL + " || " + launchingVR);
 
@@ -1039,7 +1042,7 @@ public class WebManager {
             youTubeExists = false;
             //if installing, try that first.
             if (LeadMeMain.autoInstallApps) {
-                main.getLumiAppInstaller().autoInstall(youTubePackageName, "YouTube", "false", null);
+                Controller.getInstance().getLumiAppInstaller().autoInstall(youTubePackageName, "YouTube", "false", null);
             }
         }
 
@@ -1051,12 +1054,12 @@ public class WebManager {
 
         try {
             //schedule this to run as soon as remote brings this to the front
-            main.activityManager.killBackgroundProcesses(main.getAppManager().youtubePackage);
+            main.activityManager.killBackgroundProcesses(AppManager.youtubePackage);
             scheduleActivityLaunch(appIntent, updateTask, youTubePackageName, "YouTube", "VR Video", pushURL, urlTitle);
 
             //alert other peers as needed
-            DispatchManager.sendActionToSelected(LeadMeMain.ACTION_TAG,
-                    LeadMeMain.LAUNCH_SUCCESS + "YT id=" + getYouTubeID(url) + ":" + NearbyPeersManager.getID() + ":" + youTubePackageName, NearbyPeersManager.getSelectedPeerIDsOrAll());
+            DispatchManager.sendActionToSelected(Controller.ACTION_TAG,
+                    Controller.LAUNCH_SUCCESS + "YT id=" + getYouTubeID(url) + ":" + NearbyPeersManager.getID() + ":" + youTubePackageName, NearbyPeersManager.getSelectedPeerIDsOrAll());
 
 
         } catch (Exception ex) {
@@ -1074,7 +1077,7 @@ public class WebManager {
         } else {
             main.verifyOverlay();
             Log.w(TAG, "Has focus! Run it now. " + appIntent + ", " + main + ", " + main.getLifecycle().getCurrentState());
-            main.getAppManager().lastApp = appIntent.getPackage();
+            AppManager.lastApp = appIntent.getPackage();
             main.startActivity(appIntent);
         }
     }
@@ -1128,7 +1131,7 @@ public class WebManager {
         searchDialogView.findViewById(R.id.url_error_layout).setVisibility(View.GONE);
 
         main.backgroundExecutor.submit(() -> {
-            if (!main.getPermissionsManager().isInternetConnectionAvailable()) {
+            if (!Controller.getInstance().getPermissionsManager().isInternetConnectionAvailable()) {
                 Log.w(TAG, "No internet connection in buildAndShowSearch");
                 LeadMeMain.UIHandler.post(() -> {
                     dialogManager.showWarningDialog("No Internet Connection",
@@ -1278,7 +1281,7 @@ public class WebManager {
             //web.loadUrl("https://www.youtube.com/results?search_query="+newText);
 
         } else if (searchType == SEARCH_WITHIN) {
-            searchWebView.loadUrl("https://www.google.com/search?q=" + newText + "&tbm=vid&as_sitesearch=with.in");
+            searchWebView.loadUrl("https://www.google.com/search?q=" + newText + "&as_sitesearch=with.in");
 
         } else {
             searchWebView.loadUrl("https://www.google.com/search?q=" + newText);

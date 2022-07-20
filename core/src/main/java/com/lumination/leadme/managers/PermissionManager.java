@@ -18,6 +18,7 @@ import com.gun0912.tedpermission.PermissionListener;
 import com.gun0912.tedpermission.TedPermission;
 import com.lumination.leadme.LeadMeMain;
 import com.lumination.leadme.R;
+import com.lumination.leadme.controller.Controller;
 import com.lumination.leadme.services.LumiAccessibilityService;
 
 import java.net.InetAddress;
@@ -35,8 +36,8 @@ public class PermissionManager {
 
     private final String app_title;
     private boolean overlayPermissionGranted = false, nearbyPermissionsGranted = false, storagePermissionsGranted = false;
-    public boolean waitingForPermission = false;
-    public boolean needsRecall = false;
+    public static boolean waitingForPermission = false;
+    public static boolean needsRecall = false;
 
     public PermissionManager(LeadMeMain main) {
         super();
@@ -138,10 +139,10 @@ public class PermissionManager {
         if (!overlayPermissionGranted && NearbyPeersManager.isConnectedAsFollower()) {
             //alert the teacher that the student may not be lockable
             Log.e(TAG, "WARNING! I may be off task - overlay can't be shown. " + NearbyPeersManager.getID());
-            DispatchManager.alertGuidePermissionGranted(LeadMeMain.STUDENT_NO_OVERLAY, false);
+            DispatchManager.alertGuidePermissionGranted(Controller.STUDENT_NO_OVERLAY, false);
 
         } else if (overlayPermissionGranted && NearbyPeersManager.isConnectedAsFollower()) {
-            DispatchManager.alertGuidePermissionGranted(LeadMeMain.STUDENT_NO_OVERLAY, true);
+            DispatchManager.alertGuidePermissionGranted(Controller.STUDENT_NO_OVERLAY, true);
             if(!main.overlayInitialised){
                 main.initialiseOverlayView();
             }
@@ -183,7 +184,7 @@ public class PermissionManager {
             Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION);
             intent.setData(Uri.parse("package:" + main.getPackageName()));
             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_NO_HISTORY | Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS);
-            main.startActivityForResult(intent, main.OVERLAY_ON);
+            main.startActivityForResult(intent, LeadMeMain.OVERLAY_ON);
         }
         else if (!isAccessibilityGranted()) {
             requestAccessibilitySettingsOn();
@@ -244,7 +245,7 @@ public class PermissionManager {
 
         Intent intent = new Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_NO_HISTORY | Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS);
-        main.startActivityForResult(intent, main.ACCESSIBILITY_ON);
+        main.startActivityForResult(intent, LeadMeMain.ACCESSIBILITY_ON);
 
         pingForAccess();
     }
@@ -282,20 +283,8 @@ public class PermissionManager {
 
     public boolean isAccessibilityGranted() {
 
-//        Skipping the accessibility option for previously enabled?
-//        ComponentName expectedComponentName = new ComponentName(main, LumiAccessibilityService.class);
-//
-//        String enabledServicesSetting = Settings.Secure.getString(main.getContentResolver(), Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES);
-//        Log.d(TAG, enabledServicesSetting);
-//
-//        //TODO add a flag to bypass if on miraki profile
-//        if(true) {
-//            Log.i(TAG, "***ACCESSIBILITY IS ENABLED, IS IT RUNNING? (" + isMyServiceRunning(LumiAccessibilityService.class) + ") ***");
-//            needsRecall = true;
-//            waitingForPermission = false;
-//            return true;
-//        }
-
+        //TODO if this could be set by Meraki then it should be possible
+        //Settings.Secure.putString(main.getContentResolver(), Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES, "com.lumination.leadme/com.lumination.leadme.services.LumiAccessibilityService");
 
         ComponentName expectedComponentName = new ComponentName(main, LumiAccessibilityService.class);
 
@@ -305,8 +294,6 @@ public class PermissionManager {
         }
 
         String[] services = enabledServicesSetting.split(":");
-        // main.getLumiAccessibilityService(); //initialise this
-
 
         //Log.d(TAG, "Searching for: " + expectedComponentName);
         for (String componentNameString : services) {
@@ -315,19 +302,14 @@ public class PermissionManager {
 
             if (enabledService != null && enabledService.equals(expectedComponentName)) {
                 Log.i(TAG, "***ACCESSIBILITY IS ENABLED, IS IT RUNNING? (" + isMyServiceRunning(LumiAccessibilityService.class) + ") ***");
-//                if(!isMyServiceRunning(LumiAccessibilityService.class)){
-//                    Intent mailAccessabilityIntent = new Intent(main, LumiAccessibilityService.class);
-//                    main.startService(mailAccessabilityIntent);
-//                    main.setAccessibilityService(mailAccessabilityIntent.);
-//                }
                 needsRecall = true;
                 waitingForPermission = false;
-                DispatchManager.alertGuidePermissionGranted(LeadMeMain.STUDENT_NO_ACCESSIBILITY, true);
+                DispatchManager.alertGuidePermissionGranted(Controller.STUDENT_NO_ACCESSIBILITY, true);
                 return true;
             }
         }
 
-        DispatchManager.alertGuidePermissionGranted(LeadMeMain.STUDENT_NO_ACCESSIBILITY, false);
+        DispatchManager.alertGuidePermissionGranted(Controller.STUDENT_NO_ACCESSIBILITY, false);
 
         Log.i(TAG, "***ACCESSIBILITY IS DISABLED***");
         waitingForPermission = false;

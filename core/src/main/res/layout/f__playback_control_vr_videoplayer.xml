@@ -187,20 +187,6 @@
                             android:textColor="@color/leadme_white"
                             android:textSize="12sp"
                             android:contentDescription="@string/unmute_button" />
-
-                        <ImageView
-                            android:id="@+id/change_projection_btn"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_gravity="center"
-                            android:layout_marginStart="35dp"
-                            android:fontFamily="@font/poppins_semibold"
-                            android:gravity="center_horizontal"
-                            android:includeFontPadding="false"
-                            android:src="@drawable/dropdown_indicator"
-                            android:textColor="@color/leadme_white"
-                            android:textSize="12sp"
-                            android:contentDescription="@string/change_projection_button" />
                     </LinearLayout>
 
 <!--                    KEEP FOR LATER - might add flat screen mode for viewing-->
@@ -242,7 +228,35 @@
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
-                        android:layout_marginTop="10dp"
+                        android:gravity="center"
+                        android:layout_marginBottom="25dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/projection_type"
+                            android:fontFamily="@font/poppins_semibold"
+                            android:textColor="@color/leadme_white"
+                            android:textSize="16sp"/>
+
+                        <ImageView
+                            android:id="@+id/change_projection_btn"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center"
+                            android:layout_marginStart="35dp"
+                            android:fontFamily="@font/poppins_semibold"
+                            android:gravity="center_horizontal"
+                            android:includeFontPadding="false"
+                            android:src="@drawable/dropdown_indicator"
+                            android:textColor="@color/leadme_white"
+                            android:textSize="12sp"
+                            android:contentDescription="@string/change_projection_button" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
                         android:orientation="horizontal">
 
                         <ImageView

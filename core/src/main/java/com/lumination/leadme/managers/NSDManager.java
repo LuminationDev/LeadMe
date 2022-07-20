@@ -7,6 +7,7 @@ import android.util.Log;
 
 import com.lumination.leadme.connections.ConnectedPeer;
 import com.lumination.leadme.LeadMeMain;
+import com.lumination.leadme.controller.Controller;
 import com.lumination.leadme.services.NetworkService;
 
 import java.net.InetAddress;
@@ -59,7 +60,7 @@ public class NSDManager {
                     Log.d(TAG, "Service discovery started");
                     LeadMeMain.runOnUI(() -> {
                         ArrayList<ConnectedPeer> temp = new ArrayList<>();
-                        LeadMeMain.getInstance().getLeaderSelectAdapter().setLeaderList(temp);
+                        Controller.getInstance().getLeaderSelectAdapter().setLeaderList(temp);
                         LeadMeMain.getInstance().showLeaderWaitMsg(true);
                     });
                 }
@@ -95,7 +96,7 @@ public class NSDManager {
                     //clear the list and then scan again
                     LeadMeMain.runOnUI(() -> {
                         ArrayList<ConnectedPeer> temp = new ArrayList<>();
-                        LeadMeMain.getInstance().getLeaderSelectAdapter().setLeaderList(temp);
+                        Controller.getInstance().getLeaderSelectAdapter().setLeaderList(temp);
                         LeadMeMain.getInstance().showLeaderWaitMsg(true);
                     });
                     startDiscovery();
@@ -185,9 +186,9 @@ public class NSDManager {
     private static void addToLeaderList(NsdServiceInfo serviceInfo) {
         List<String> leader = Arrays.asList(serviceInfo.getServiceName().split("#"));
 
-        if (!LeadMeMain.getInstance().sessionManual && !LeadMeMain.getInstance().directConnection) {
+        if (!LeadMeMain.sessionManual && !LeadMeMain.directConnection) {
             LeadMeMain.runOnUI(() -> {
-                LeadMeMain.getInstance().getLeaderSelectAdapter().addLeader(new ConnectedPeer(leader.get(0), serviceInfo.getHost().toString()));
+                Controller.getInstance().getLeaderSelectAdapter().addLeader(new ConnectedPeer(leader.get(0), serviceInfo.getHost().toString()));
                 LeadMeMain.getInstance().showLeaderWaitMsg(false);
             });
         }

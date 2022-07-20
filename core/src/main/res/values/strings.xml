@@ -209,5 +209,6 @@
     <string name="install_youtube">Please install Youtube.</string>
     <string name="unselect">Unselect</string>
     <string name="unselected">Unselected</string>
+    <string name="projection_type">Projection Type</string>
 
 </resources>

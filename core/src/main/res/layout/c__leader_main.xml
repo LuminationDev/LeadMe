@@ -253,28 +253,32 @@
                 </LinearLayout>
             </LinearLayout>
 
+            <!--            Move to a better position when implemented-->
             <LinearLayout
                 android:id="@+id/end_core_btn"
                 style="@style/LeaderButton"
                 android:orientation="vertical">
-                <LinearLayout
-                    style="@style/LeaderButton__IconWrapper">
+
+                <LinearLayout style="@style/LeaderButton__IconWrapper">
+
                     <LinearLayout
                         style="@style/LeaderButton__Icon"
-                        android:background="@drawable/alert_error"/>
+                        android:background="@drawable/alert_error" />
                 </LinearLayout>
-                <LinearLayout
-                    style="@style/LeaderButton__Text">
+
+                <LinearLayout style="@style/LeaderButton__Text">
+
                     <TextView
                         style="@style/LeaderButton__Text__Eyebrow"
-                        android:text="FINISH"/>
+                        android:text="FINISH"
+                        android:visibility="invisible"/>
+
                     <TextView
                         style="@style/LeaderButton__Text__Lead"
-                        android:text="End Session"/>
+                        android:text="End Session" />
                 </LinearLayout>
             </LinearLayout>
 
-<!--            Move to a better position when implemented-->
             <LinearLayout
                 android:id="@+id/lock_core_btn"
                 style="@style/LeaderButton"

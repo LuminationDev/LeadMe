@@ -21,12 +21,14 @@ import androidx.core.content.res.ResourcesCompat;
 import com.koushikdutta.urlimageviewhelper.UrlImageViewHelper;
 import com.lumination.leadme.LeadMeMain;
 import com.lumination.leadme.R;
+import com.lumination.leadme.controller.Controller;
 import com.lumination.leadme.linkpreview.LinkPreviewCallback;
 import com.lumination.leadme.linkpreview.SourceContent;
 import com.lumination.leadme.linkpreview.TextCrawler;
 
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
@@ -143,7 +145,13 @@ public class FavouritesManager extends BaseAdapter {
                 String[] tmp = o.toString().split(breaker);
                 actualItems.add(tmp[0]);
                 contentList.add(tmp[0]);
-                titleList.add(tmp[1]);
+
+                if(tmp.length > 1) {
+                    titleList.add(tmp[1]);
+                } else {
+                    titleList.add(tmp[0]);
+                }
+
                 iconList.add(null);
             }
         }
@@ -693,7 +701,7 @@ public class FavouritesManager extends BaseAdapter {
             convertView.setClickable(true);
             convertView.setOnClickListener(v -> {
                 favAdding = false;
-                main.getDialogManager().showAppPushDialog(appName, appIcon, favPackage);
+                Controller.getInstance().getDialogManager().showAppPushDialog(appName, appIcon, favPackage);
             });
 
             convertView.setLongClickable(true);

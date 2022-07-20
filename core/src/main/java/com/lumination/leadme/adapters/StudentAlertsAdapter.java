@@ -12,6 +12,7 @@ import android.widget.TextView;
 import com.lumination.leadme.connections.ConnectedPeer;
 import com.lumination.leadme.LeadMeMain;
 import com.lumination.leadme.R;
+import com.lumination.leadme.controller.Controller;
 import com.lumination.leadme.managers.DispatchManager;
 
 import java.util.ArrayList;
@@ -75,11 +76,11 @@ public class StudentAlertsAdapter extends BaseAdapter {
             }
 
             if (peer.getStatus() == ConnectedPeer.STATUS_ERROR) {
-                main.getConnectedLearnersAdapter().removeStudent(lastClickedID);
+                Controller.getInstance().getConnectedLearnersAdapter().removeStudent(lastClickedID);
             }
         }
         //refresh main student list to reflect changes to warnings
-        main.getConnectedLearnersAdapter().refresh();
+        Controller.getInstance().getConnectedLearnersAdapter().refresh();
 
         //refresh alerts list for same reason
         refresh();
@@ -286,7 +287,7 @@ public class StudentAlertsAdapter extends BaseAdapter {
                     alertType.setText(Types[i]+" ("+numStud+")");
 
                     if(i == 1) {
-                        alertDesc.setText(Desc[i] + "\nApplication: " + main.getDispatcher().appNameRepush + "\n");
+                        alertDesc.setText(Desc[i] + "\nApplication: " + DispatchManager.appNameRepush + "\n");
                     } else {
                         alertDesc.setText(Desc[i]);
                     }
@@ -319,19 +320,19 @@ public class StudentAlertsAdapter extends BaseAdapter {
                         AlertsByCategories.get(position).get(i).hideAlerts(true);
                     }
                 } else if(alertBtn.getText().equals("Recall")){
-                    main.getConnectedLearnersAdapter().selectAllPeers(false);
+                    Controller.getInstance().getConnectedLearnersAdapter().selectAllPeers(false);
                     for(int i=0; i<AlertsByCategories.get(position).size();i++){
-                        main.getConnectedLearnersAdapter().selectPeer(AlertsByCategories.get(position).get(i).getID(),true);
+                        Controller.getInstance().getConnectedLearnersAdapter().selectPeer(AlertsByCategories.get(position).get(i).getID(),true);
                     }
                     main.returnToAppFromMainAction(false);
-                    main.getConnectedLearnersAdapter().selectAllPeers(false);
+                    Controller.getInstance().getConnectedLearnersAdapter().selectAllPeers(false);
                 } else if(alertBtn.getText().equals("Block")){
-                    main.getConnectedLearnersAdapter().selectAllPeers(false);
+                    Controller.getInstance().getConnectedLearnersAdapter().selectAllPeers(false);
                     for(int i=0; i<AlertsByCategories.get(position).size();i++){
-                        main.getConnectedLearnersAdapter().selectPeer(AlertsByCategories.get(position).get(i).getID(),true);
+                        Controller.getInstance().getConnectedLearnersAdapter().selectPeer(AlertsByCategories.get(position).get(i).getID(),true);
                     }
                     main.blackoutFromMainAction();
-                    main.getConnectedLearnersAdapter().selectAllPeers(false);
+                    Controller.getInstance().getConnectedLearnersAdapter().selectAllPeers(false);
                 }
                 else if(alertBtn.getText().equals("Clear")){
                     hideCurrentAlerts();
@@ -346,7 +347,7 @@ public class StudentAlertsAdapter extends BaseAdapter {
                     }
                     if (ids.size() > 0) {
                         Set<String> selectedPeerIDs = new HashSet<>(ids);
-                        DispatchManager.sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.XRAY_REQUEST, selectedPeerIDs);
+                        DispatchManager.sendActionToSelected(Controller.ACTION_TAG, Controller.XRAY_REQUEST, selectedPeerIDs);
                     }
                 } else if(alertBtn.getText().equals("Launch")) {
                     ArrayList<String> ids = new ArrayList<>();
@@ -355,7 +356,7 @@ public class StudentAlertsAdapter extends BaseAdapter {
                     }
                     if (ids.size() > 0) {
                         Set<String> selectedPeerIDs = new HashSet<>(ids);
-                        DispatchManager.sendActionToSelected(LeadMeMain.ACTION_TAG,LeadMeMain.LAUNCH_ACCESS,selectedPeerIDs);
+                        DispatchManager.sendActionToSelected(Controller.ACTION_TAG, Controller.LAUNCH_ACCESS,selectedPeerIDs);
                     }
                 } else if(alertBtn.getText().equals("Enable Transfer")) {
                     ArrayList<String> ids = new ArrayList<>();
@@ -365,7 +366,7 @@ public class StudentAlertsAdapter extends BaseAdapter {
 
                     if (ids.size() > 0) {
                         Set<String> selectedPeerIDs = new HashSet<>(ids);
-                        DispatchManager.sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.FILE_TRANSFER + ":"
+                        DispatchManager.sendActionToSelected(Controller.ACTION_TAG, Controller.FILE_TRANSFER + ":"
                                 + true, selectedPeerIDs);
                     }
                 } else if(alertBtn.getText().equals("Enable Installer")) {
@@ -376,7 +377,7 @@ public class StudentAlertsAdapter extends BaseAdapter {
 
                     if (ids.size() > 0) {
                         Set<String> selectedPeerIDs = new HashSet<>(ids);
-                        DispatchManager.sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.AUTO_INSTALL + ":"
+                        DispatchManager.sendActionToSelected(Controller.ACTION_TAG, Controller.AUTO_INSTALL + ":"
                                 + true, selectedPeerIDs);
                     }
                 }

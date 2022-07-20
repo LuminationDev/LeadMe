@@ -19,7 +19,8 @@ import java.util.ArrayList;
  * A runnable used by the clientProcessingPool to receive information from the client sockets
  * and send the selected file to the client.
  */
-public class ClientTransferTask implements Runnable {
+public class
+ClientTransferTask implements Runnable {
     private static final String TAG = "ClientTransferTask";
 
     private final Socket clientSocket;

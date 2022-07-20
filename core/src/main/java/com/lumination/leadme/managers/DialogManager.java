@@ -28,6 +28,7 @@ import com.lumination.leadme.LeadMeMain;
 import com.lumination.leadme.R;
 import com.lumination.leadme.adapters.ConnectedLearnersAdapter;
 import com.lumination.leadme.adapters.StudentAlertsAdapter;
+import com.lumination.leadme.controller.Controller;
 import com.lumination.leadme.utilities.FileUtilities;
 
 import java.util.ArrayList;
@@ -41,7 +42,7 @@ import static java.util.concurrent.TimeUnit.SECONDS;
  * A single class to manage and create dialog pop ups for information or errors.
  * */
 public class DialogManager {
-    private final String TAG = "DialogManager";
+    private static final String TAG = "DialogManager";
     private final LeadMeMain main;
     private final Resources resources;
 
@@ -143,7 +144,7 @@ public class DialogManager {
         Button backBtn = waitingDialogView.findViewById(R.id.back_btn);
         backBtn.setOnClickListener(v -> {
             dialogShowing = false;
-            main.getNearbyManager().cancelConnection();
+            Controller.getInstance().getNearbyManager().cancelConnection();
             waitingDialog.dismiss();
         });
 
@@ -153,7 +154,7 @@ public class DialogManager {
 
         waitingDialog.setCancelable(false);
 
-        waitingDialog.setOnDismissListener(dialog -> hideSystemUI());
+        waitingDialog.setOnDismissListener(dialog -> LeadMeMain.getInstance().hideSystemUI());
     }
 
     private void setupAppPushDialog() {
@@ -161,12 +162,12 @@ public class DialogManager {
 
         appPushDialogView.findViewById(R.id.push_btn).setOnClickListener(v -> {
             Set<String> peerSet;
-            if(main.getSelectedOnly()) {
+            if(LeadMeMain.selectedOnly) {
                 peerSet = NearbyPeersManager.getSelectedPeerIDsOrAll();
             } else {
                 peerSet = NearbyPeersManager.getAllPeerIDs();
             }
-            main.getAppManager().launchApp(appPushPackageName, appPushTitle, false, "false", false, peerSet);
+            Controller.getInstance().getAppManager().launchApp(appPushPackageName, appPushTitle, false, "false", false, peerSet);
             Log.d(TAG, "LAUNCHING! " + appPushPackageName);
             hideAppPushDialogView();
             showConfirmPushDialog(true, false);
@@ -230,16 +231,16 @@ public class DialogManager {
         videoBtn.setOnClickListener(v -> {
             vrContentTypeDialog.dismiss();
             dialogShowing = false;
-            main.defaultVideo = true;
-            main.getVrEmbedVideoPlayer().showPlaybackPreview();
+            LeadMeMain.defaultVideo = true;
+            Controller.getInstance().getVrEmbedVideoPlayer().showPlaybackPreview();
         });
 
         Button photoBtn = vrContentType.findViewById(R.id.select_photo_source_btn);
         photoBtn.setOnClickListener(v -> {
             vrContentTypeDialog.dismiss();
             dialogShowing = false;
-            main.defaultVideo = false;
-            main.getVrEmbedPhotoPlayer().showPlaybackPreview();
+            LeadMeMain.defaultVideo = false;
+            Controller.getInstance().getVrEmbedPhotoPlayer().showPlaybackPreview();
         });
 
         Button cancelBtn = vrContentType.findViewById(R.id.cancel_btn);
@@ -361,7 +362,7 @@ public class DialogManager {
         allowBtn.setOnClickListener(v -> {
             fileTypeDialog.dismiss();
 
-            if(LeadMeMain.isMiUiV9()) {
+            if(Controller.isMiUiV9()) {
                 main.alternateFileChoice(LeadMeMain.VR_FILE_CHOICE);
             } else {
                 FileUtilities.browseFiles(main, LeadMeMain.VR_FILE_CHOICE);
@@ -388,10 +389,10 @@ public class DialogManager {
         Button blockBtn = requestDialogView.findViewById(R.id.block_btn);
 
         allowBtn.setOnClickListener(v -> {
-            if(LeadMeMain.isMiUiV9()) {
-                main.getFileTransferManager().startFileServer(LeadMeMain.vrPath, true);
+            if(Controller.isMiUiV9()) {
+                Controller.getInstance().getFileTransferManager().startFileServer(LeadMeMain.vrPath, true);
             } else {
-                main.getFileTransferManager().startFileServer(LeadMeMain.vrURI, true);
+                Controller.getInstance().getFileTransferManager().startFileServer(LeadMeMain.vrURI, true);
             }
 
             Set<String> peerSet = new HashSet<>();
@@ -399,7 +400,7 @@ public class DialogManager {
                 peerSet.add(String.valueOf(ID));
             }
 
-            DispatchManager.sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.RETURN_TAG, peerSet);
+            DispatchManager.sendActionToSelected(Controller.ACTION_TAG, Controller.RETURN_TAG, peerSet);
             requestDialog.dismiss();
         });
 
@@ -506,7 +507,7 @@ public class DialogManager {
         //Add permissions if the messages stack
         allowBtn.setOnClickListener(view -> {
             for ( String pm : permissions) {
-                main.permissionAllowed(pm, true);
+                DispatchManager.permissionAllowed(pm, true);
             }
             permissionDialog.dismiss();
             permissions = null;
@@ -514,7 +515,7 @@ public class DialogManager {
 
         blockBtn.setOnClickListener(view -> {
             for ( String pm : permissions) {
-                main.permissionAllowed(pm, false);
+                DispatchManager.permissionAllowed(pm, false);
             }
             permissions = null;
             permissionDialog.dismiss();
@@ -672,7 +673,7 @@ public class DialogManager {
         if (isSavedOnly) {
             LeadMeMain.UIHandler.postDelayed(() -> {
                 hideConfirmPushDialog();
-                main.getWebManager().launchUrlYtFavourites();
+                Controller.getInstance().getWebManager().launchUrlYtFavourites();
             }, 1500);
         } else {
             LeadMeMain.UIHandler.postDelayed(this::hideConfirmPushDialog, 1500);
@@ -787,7 +788,7 @@ public class DialogManager {
 
         hideSystemUI();
         dialogShowing = true;
-        main.getConnectedLearnersAdapter().refreshAlertsView();
+        Controller.getInstance().getConnectedLearnersAdapter().refreshAlertsView();
         studentAlertsDialog.show();
     }
 
@@ -810,7 +811,7 @@ public class DialogManager {
         toggleBtnView = recallView.findViewById(R.id.toggleBtnView);
 
         recallView.findViewById(R.id.ok_btn).setOnClickListener(v -> {
-            main.returnToAppFromMainAction(main.getSelectedOnly());
+            main.returnToAppFromMainAction(LeadMeMain.selectedOnly);
             dialogShowing = false;
             recallPrompt.dismiss();
         });
@@ -863,7 +864,7 @@ public class DialogManager {
         Button pushBtn = recall ? null : preview.findViewById(R.id.push_btn);
 
         selectedBtn.setOnClickListener(v -> {
-            main.setSelectedOnly(true);
+            LeadMeMain.selectedOnly = true;
             makeSelectedBtnActive(selectedBtn, everyoneBtn);
             if (pushBtn != null) {
                 pushBtn.setText(main.getResources().getString(R.string.push_this_to_selected));
@@ -871,7 +872,7 @@ public class DialogManager {
         });
 
         everyoneBtn.setOnClickListener(v -> {
-            main.setSelectedOnly(false);
+            LeadMeMain.selectedOnly = false;
             makeEveryoneBtnActive(selectedBtn, everyoneBtn);
             if (pushBtn != null) {
                 pushBtn.setText(main.getResources().getString(R.string.push_this_to_everyone));
@@ -912,7 +913,7 @@ public class DialogManager {
      * Displays an AlertDialog whilst a peer is connecting to a guide.
      */
     public void showWaitingForConnectDialog() {
-        this.loginDialog.dismiss();
+        loginDialog.dismiss();
         showWaitingDialog();
         dialogShowing = true;
     }
@@ -977,7 +978,11 @@ public class DialogManager {
 
                     manualDialog.dismiss();
                     LeadMeMain.isGuide = false;
-                    main.directIpConnection(ManName, IpEnter);
+
+                    NearbyPeersManager.myName = ManName.getText().toString();
+                    LeadMeMain.directConnection = true;
+                    Controller.getInstance().getFirebaseManager().setServerIP(IpEnter.getText().toString());
+                    LeadMeMain.getInstance().loginAction(true);
                 }
             });
         }
@@ -1077,13 +1082,19 @@ public class DialogManager {
             }
         });
 
-        forgotPassword.setOnClickListener(view -> main.forgotPasswordController(loginDialog));
+        forgotPassword.setOnClickListener(view -> Controller.getInstance().getAuthenticationManager().showForgottenPassword(loginDialog));
 
         googleSignin.setOnClickListener(view -> main.googleSignIn());
 
         signup.setOnClickListener(view -> {
             loginDialog.dismiss();
-            main.buildLoginSignupController(1);
+
+            if(!PermissionManager.isInternetAvailable(LeadMeMain.getInstance().getApplicationContext())) {
+                Controller.getInstance().getDialogManager().showWarningDialog("Currently Offline", "No internet access detected. Please connect to continue.");
+                return;
+            }
+
+            Controller.getInstance().getAuthenticationManager().buildloginsignup(1);
         });
 
         backBtn.setOnClickListener(v -> loginDialog.dismiss());
@@ -1117,7 +1128,7 @@ public class DialogManager {
      * @return An AlertDialog instance of the loginDialog.
      */
     public AlertDialog getLoginDialog() {
-        return this.loginDialog;
+        return loginDialog;
     }
 
     /**
@@ -1235,23 +1246,29 @@ public class DialogManager {
      * Dismiss any dialogs that are currently open.
      */
     public void cleanUpDialogs() {
-        if (loginDialog != null)
+        if (loginDialog != null) {
             loginDialog.dismiss();
-        if (waitingDialog != null)
-            waitingDialog.dismiss();
-        if (warningDialog != null)
-            warningDialog.dismiss();
-        if (appPushDialog != null)
-            appPushDialog.dismiss();
-        if (confirmPushDialog != null)
-            confirmPushDialog.dismiss();
-        if (recallPrompt != null)
-            recallPrompt.dismiss();
-        if  (main.getLumiAppInstaller().installDialog != null) {
-            main.getLumiAppInstaller().installDialog.dismiss();
         }
-        if (main.getWebManager() != null) {
-            main.getWebManager().cleanUp();
+        if (waitingDialog != null) {
+            waitingDialog.dismiss();
+        }
+        if (warningDialog != null) {
+            warningDialog.dismiss();
+        }
+        if (appPushDialog != null) {
+            appPushDialog.dismiss();
+        }
+        if (confirmPushDialog != null) {
+            confirmPushDialog.dismiss();
+        }
+        if (recallPrompt != null) {
+            recallPrompt.dismiss();
+        }
+        if  (Controller.getInstance().getLumiAppInstaller().installDialog != null) {
+            Controller.getInstance().getLumiAppInstaller().installDialog.dismiss();
+        }
+        if (Controller.getInstance().getWebManager() != null) {
+            Controller.getInstance().getWebManager().cleanUp();
         }
     }
 }

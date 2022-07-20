@@ -28,6 +28,7 @@ import androidx.core.widget.ImageViewCompat;
 
 import com.lumination.leadme.connections.ConnectedPeer;
 import com.lumination.leadme.LeadMeMain;
+import com.lumination.leadme.controller.Controller;
 import com.lumination.leadme.managers.DispatchManager;
 import com.lumination.leadme.managers.NetworkManager;
 import com.lumination.leadme.R;
@@ -152,9 +153,9 @@ public class ConnectedLearnersAdapter extends BaseAdapter {
         final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 
         final Runnable runnable = () -> {
-            DispatchManager.sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.AUTO_INSTALL + ":"
+            DispatchManager.sendActionToSelected(Controller.ACTION_TAG, Controller.AUTO_INSTALL + ":"
                     + LeadMeMain.autoInstallApps, newPeer);
-            DispatchManager.sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.FILE_TRANSFER + ":"
+            DispatchManager.sendActionToSelected(Controller.ACTION_TAG, Controller.FILE_TRANSFER + ":"
                     + LeadMeMain.fileTransferEnabled, newPeer);
 
             scheduler.shutdown();
@@ -204,7 +205,7 @@ public class ConnectedLearnersAdapter extends BaseAdapter {
     public void appLaunchFail(String id, String lastApp) {
         ConnectedPeer thisPeer = getMatchingPeer(id);
         thisPeer.setLastLaunchedApp(lastApp);
-        thisPeer.setWarning(LeadMeMain.APP_TAG, false);
+        thisPeer.setWarning(Controller.APP_TAG, false);
         refresh();
     }
 
@@ -212,7 +213,7 @@ public class ConnectedLearnersAdapter extends BaseAdapter {
         ConnectedPeer thisPeer = getMatchingPeer(id);
         if (thisPeer != null) {
             thisPeer.setLastLaunchedApp(lastApp);
-            thisPeer.setWarning(LeadMeMain.APP_TAG, true);
+            thisPeer.setWarning(Controller.APP_TAG, true);
             refresh();
         }
     }
@@ -232,29 +233,29 @@ public class ConnectedLearnersAdapter extends BaseAdapter {
 
         if (status == ConnectedPeer.STATUS_WARNING) {
             switch (msg) {
-                case LeadMeMain.AUTO_INSTALL_FAILED:
-                case LeadMeMain.AUTO_INSTALL:
+                case Controller.AUTO_INSTALL_FAILED:
+                case Controller.AUTO_INSTALL:
                     warningMessage = "could not install requested app.";
                     break;
-                case LeadMeMain.STUDENT_NO_OVERLAY:
+                case Controller.STUDENT_NO_OVERLAY:
                     warningMessage = "could not display blocking overlay";
                     break;
-                case LeadMeMain.STUDENT_NO_INTERNET:
+                case Controller.STUDENT_NO_INTERNET:
                     warningMessage = "is not connected to the Internet";
                     break;
-                case LeadMeMain.STUDENT_NO_ACCESSIBILITY:
+                case Controller.STUDENT_NO_ACCESSIBILITY:
                     warningMessage = "is not restricted to LeadMe";
                     break;
-                case LeadMeMain.STUDENT_OFF_TASK_ALERT:
+                case Controller.STUDENT_OFF_TASK_ALERT:
                     warningMessage = "could be off task";
                     break;
-                case LeadMeMain.STUDENT_NO_XRAY:
+                case Controller.STUDENT_NO_XRAY:
                     warningMessage = "xray popup was denied";
                     break;
-                case LeadMeMain.PERMISSION_TRANSFER_DENIED:
+                case Controller.PERMISSION_TRANSFER_DENIED:
                     warningMessage = "file transfer permission was denied";
                     break;
-                case LeadMeMain.PERMISSION_AUTOINSTALL_DENIED:
+                case Controller.PERMISSION_AUTOINSTALL_DENIED:
                     warningMessage = "auto installer permission was denied";
                     break;
             }
@@ -266,7 +267,7 @@ public class ConnectedLearnersAdapter extends BaseAdapter {
         }
 
         notifyDataSetChanged();
-        main.getConnectedLearnersAdapter().refreshAlertsView();
+        Controller.getInstance().getConnectedLearnersAdapter().refreshAlertsView();
     }
 
     //standard status update
@@ -344,8 +345,8 @@ public class ConnectedLearnersAdapter extends BaseAdapter {
 
                 removeStudent(lastPromptedID);
                 refresh();
-                main.getNetworkManager().stopMonitoring(Integer.parseInt(lastPromptedID));
-                main.getNetworkManager().removeClient(Integer.parseInt(lastPromptedID));
+                Controller.getInstance().getNetworkManager().stopMonitoring(Integer.parseInt(lastPromptedID));
+                Controller.getInstance().getNetworkManager().removeClient(Integer.parseInt(lastPromptedID));
 
                 logoutPrompt.dismiss();
                 if (mData.size() <= 0) {
@@ -433,7 +434,7 @@ public class ConnectedLearnersAdapter extends BaseAdapter {
 
             Drawable icon = peer.getIcon();
             if (icon == null) {
-                icon = main.leadmeIcon;
+                icon = main.leadMeIcon;
             }
 
             //draw the student icon and status icon
@@ -462,7 +463,7 @@ public class ConnectedLearnersAdapter extends BaseAdapter {
                 popupWindow.showAsDropDown(v,200,-100);
                 disconnect.setOnClickListener(v2 -> {
                     Log.d(TAG, "[adapter] Removing student: " + lastClickedID);
-                    main.getXrayManager().resetClientMaps(lastClickedID); //remove the peer from the HashMaps
+                    Controller.getInstance().getXrayManager().resetClientMaps(lastClickedID); //remove the peer from the HashMaps
                     ArrayList<Integer> selected = new ArrayList<>();
                     selected.add(Integer.valueOf(lastClickedID));
                     NetworkManager.sendToSelectedClients("", "DISCONNECT", selected);
@@ -553,7 +554,7 @@ public class ConnectedLearnersAdapter extends BaseAdapter {
                     Set<String> student = new ArraySet<>();
                     student.add(peer.getID());
                     if(!BlockToggle.isChecked()){
-                        DispatchManager.sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.LOCK_TAG, student);
+                        DispatchManager.sendActionToSelected(Controller.ACTION_TAG, Controller.LOCK_TAG, student);
                     }
 
 //                    stream=false;
@@ -564,9 +565,9 @@ public class ConnectedLearnersAdapter extends BaseAdapter {
                     Set<String> student = new ArraySet<>();
                     student.add(peer.getID());
                     if(!BlockToggle.isChecked()) {
-                        DispatchManager.sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.UNLOCK_TAG, student);
+                        DispatchManager.sendActionToSelected(Controller.ACTION_TAG, Controller.UNLOCK_TAG, student);
                     }else {
-                        DispatchManager.sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.BLACKOUT_TAG, student);
+                        DispatchManager.sendActionToSelected(Controller.ACTION_TAG, Controller.BLACKOUT_TAG, student);
                     }
 //                    stream=true;
                 }
@@ -582,7 +583,7 @@ public class ConnectedLearnersAdapter extends BaseAdapter {
                     ((TextView) Settings.findViewById(R.id.student_set_block_text)).setText("*Full access disabled");
                     Set<String> student = new ArraySet<>();
                     student.add(peer.getID());
-                    DispatchManager.sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.BLACKOUT_TAG, student);
+                    DispatchManager.sendActionToSelected(Controller.ACTION_TAG, Controller.BLACKOUT_TAG, student);
 //                    stream=false;
                 }else{
                     ImageViewCompat.setImageTintList(Settings.findViewById(R.id.student_set_block_icon), ColorStateList.valueOf(ContextCompat.getColor(main, R.color.leadme_medium_grey)));
@@ -591,9 +592,9 @@ public class ConnectedLearnersAdapter extends BaseAdapter {
                     Set<String> student = new ArraySet<>();
                     student.add(peer.getID());
                     if(ViewToggle.isChecked()){
-                        DispatchManager.sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.LOCK_TAG, student);
+                        DispatchManager.sendActionToSelected(Controller.ACTION_TAG, Controller.LOCK_TAG, student);
                     }else {
-                        DispatchManager.sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.UNLOCK_TAG, student);
+                        DispatchManager.sendActionToSelected(Controller.ACTION_TAG, Controller.UNLOCK_TAG, student);
                     }
                 }
             }
@@ -651,7 +652,7 @@ public class ConnectedLearnersAdapter extends BaseAdapter {
                 studentNameChange.dismiss();
                 Set<String> student = new ArraySet<>();
                 student.add(peer.getID());
-                DispatchManager.sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.NAME_CHANGE+newName, student);
+                DispatchManager.sendActionToSelected(Controller.ACTION_TAG, Controller.NAME_CHANGE+newName, student);
                 peer.setName(newName);
                 BuildAndDisplayNameConfirm(OldName.getText().toString(),newName,false);
                 OldName.setText(newName);
@@ -663,7 +664,7 @@ public class ConnectedLearnersAdapter extends BaseAdapter {
         Request.setOnClickListener(v -> {
             Set<String> student = new ArraySet<>();
             student.add(peer.getID());
-            DispatchManager.sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.NAME_REQUEST, student);
+            DispatchManager.sendActionToSelected(Controller.ACTION_TAG, Controller.NAME_REQUEST, student);
             studentNameChange.dismiss();
             BuildAndDisplayNameConfirm(OldName.getText().toString(),"",true);
         });

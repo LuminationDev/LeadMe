@@ -276,12 +276,11 @@ public class NetworkService extends Service {
 
         InetAddress ipAddress = clientSocketArray.get(learnerID);
         if (ipAddress != null) {
-            //InetAddress ipAddress = entry.getKey();
-            backgroundExecutor.submit(() -> sendLearnerMessage(learnerID, ipAddress, type + "," + message));
+            backgroundExecutor.submit(() -> sendLearnerMessage(ipAddress, type + "," + message));
         }
     }
 
-    public static void sendLearnerMessage(int learnerID, InetAddress ipAddress, String message) {
+    public static void sendLearnerMessage(InetAddress ipAddress, String message) {
         Log.d(TAG, "Attempting to send: " + message);
 
         try {
@@ -289,7 +288,6 @@ public class NetworkService extends Service {
             Log.d(TAG, "Message sent closing socket");
         } catch (IOException e) {
             backgroundExecutor.submit(() -> determineAction(ipAddress, "DISCONNECT,No connection"));
-            removeStudent(learnerID);
             e.printStackTrace();
         }
     }
@@ -317,6 +315,10 @@ public class NetworkService extends Service {
                 learnerManager(clientAddress);
                 determineAction(clientAddress, message);
             }
+        }
+
+        if(message.equals("DISCONNECT,No connection") && tempID != null) {
+            removeStudent(tempID);
         }
     }
 
@@ -426,7 +428,7 @@ public class NetworkService extends Service {
 
     private static void disconnection() {
         clientSocketArray.forEach((key, value) -> backgroundExecutor.submit(() ->
-                sendLearnerMessage(key, value, "DISCONNECT" + ","))
+                sendLearnerMessage(value, "DISCONNECT" + ","))
         );
     }
 

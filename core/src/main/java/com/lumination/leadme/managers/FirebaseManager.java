@@ -16,6 +16,8 @@ import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.SetOptions;
 import com.lumination.leadme.LeadMeMain;
+import com.lumination.leadme.connections.ConnectedPeer;
+import com.lumination.leadme.controller.Controller;
 import com.lumination.leadme.services.FirebaseService;
 
 import java.util.Date;
@@ -85,13 +87,13 @@ public class FirebaseManager {
 
         if (publicIP == null || publicIP.length() == 0) {
             Log.d(TAG, "PublicIP address not found");
-            main.getDialogManager().showWarningDialog("Public IP", "Public IP address not found" +
+            Controller.getInstance().getDialogManager().showWarningDialog("Public IP", "Public IP address not found" +
                     "\n firewall may be blocking the query.");
             return;
         } else if (!InetAddresses.isInetAddress(publicIP)) {
             Log.d(TAG, "PublicIP address not valid");
             publicIP = null;
-            main.getDialogManager().showWarningDialog("Public IP", "Public IP address not valid" +
+            Controller.getInstance().getDialogManager().showWarningDialog("Public IP", "Public IP address not valid" +
                     "\n firewall may be blocking the query.");
             return;
         }
@@ -109,7 +111,7 @@ public class FirebaseManager {
                 try {
                     if (Objects.requireNonNull(task.getResult()).size() == 0) {
                         //In case the user switches back to auto
-                        if (main.sessionManual && !main.directConnection) {
+                        if (LeadMeMain.sessionManual && !LeadMeMain.directConnection) {
                             scheduledExecutorService.schedule(this::retrieveLeaders, waitForGuide, TimeUnit.MILLISECONDS);
                         }
                     } else {
@@ -150,7 +152,14 @@ public class FirebaseManager {
                         }
 
                         if (document.get("Username") != null) {
-                            main.manuallyAddLeader(document.get("Username").toString(), document.get("ServerIP").toString());
+                            LeadMeMain.runOnUI(() -> {
+                                Controller.getInstance().getLeaderSelectAdapter().addLeader(
+                                        new ConnectedPeer(
+                                                document.get("Username").toString(),
+                                                document.get("ServerIP").toString()));
+
+                                LeadMeMain.getInstance().showLeaderWaitMsg(false);
+                            });
                         }
                     }
                 } else {
@@ -200,8 +209,8 @@ public class FirebaseManager {
 
         serverIP = ipAddress;
         FirebaseService.setServerIP(serverIP);
-        manualConnectionDetails.put("Email", main.getAuthenticationManager().getCurrentAuthEmail());
-        manualConnectionDetails.put("Username", main.getAuthenticationManager().getCurrentAuthUserName());
+        manualConnectionDetails.put("Email", Controller.getInstance().getAuthenticationManager().getCurrentAuthEmail());
+        manualConnectionDetails.put("Username", Controller.getInstance().getAuthenticationManager().getCurrentAuthUserName());
         manualConnectionDetails.put("ServerIP", serverIP);
         manualConnectionDetails.put("TimeStamp", FieldValue.serverTimestamp());
 
@@ -364,7 +373,7 @@ public class FirebaseManager {
             Log.d(TAG, "Running version: " + runningVersion);
 
             if(!runningVersion.equals(productionVersion)) {
-                main.getDialogManager().showUpdateDialog();
+                Controller.getInstance().getDialogManager().showUpdateDialog();
             }
         }
     }
