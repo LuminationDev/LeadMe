@@ -2090,7 +2090,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             e.printStackTrace();
         }
 
-        FirebaseManager.handleDisconnect();
+        FirebaseManager.handleDisconnect(isGuide);
         NetworkService.resetClientIDs();
         Controller.getInstance().getConnectedLearnersAdapter().resetOnLogout();
         Controller.getInstance().getLeaderSelectAdapter().setLeaderList(new ArrayList<>()); //empty the list

@@ -51,16 +51,25 @@ public class FirebaseManager {
 
     public static void sendAllLearnerMessage(String message)
     {
+        if (messagesReference == null) {
+            return;
+        }
         messagesReference.child("currentMessage").setValue(message);
     }
 
     public static void sendLearnerMessage(String ipAddress, String message)
     {
+        if (messagesReference == null) {
+            return;
+        }
         messagesReference.child("learners").child(ipAddress.replace(".", "_")).child("leaderMessage").setValue(message);
     }
 
     public static void sendLeaderMessage(String message)
     {
+        if (learnerReference == null) {
+            return;
+        }
         learnerReference.child("currentMessage").setValue(message);
     }
 
@@ -98,15 +107,15 @@ public class FirebaseManager {
     public static void connectAsLeader(String name)
     {
         DatabaseReference database = getDatabase();
-        database.child(waitForPublic().replace(".", "_")).child("rooms").child(getLocalIpAddress().replace(".", "_")).setValue("roomCreated");
+        database.child(waitForPublic().replace(".", "_")).child("rooms").child(getLocalIpAddress().replace(".", "_")).child("id").setValue(getLocalIpAddress());
         roomReference = database.child(waitForPublic().replace(".", "_")).child("rooms").child(getLocalIpAddress().replace(".", "_"));
         messagesReference = database.child(waitForPublic().replace(".", "_")).child("messages").child(getLocalIpAddress().replace(".", "_"));
-        messagesReference.child("learners").setValue("emptyLearners");
+        messagesReference.child("learners").child("id").setValue(getLocalIpAddress());
         messagesReference.child("currentMessage").setValue("");
         roomReference.child("leaderName").setValue(name);
 
         roomReference.onDisconnect().removeValue();
-        messagesReference.onDisconnect().removeValue();
+        messagesReference.child("currentMessage").onDisconnect().setValue("DISCONNECT,DISCONNECT");
 
         addLearnerListener = new ValueEventListener() {
             @Override
@@ -115,7 +124,8 @@ public class FirebaseManager {
                 Log.e("firebase", dataSnapshot.toString());
                 if (dataSnapshot.getChildrenCount() != ConnectedLearnersAdapter.mData.size()) {
                     for (DataSnapshot data:dataSnapshot.getChildren()) {
-                        if (data.child("leaderMessage").getValue() == null || !data.child("leaderMessage").getValue().toString().startsWith("DISCONNECT")) {
+                        if (!data.getKey().equals("id") &&
+                                (data.child("leaderMessage").getValue() == null || !data.child("leaderMessage").getValue().toString().startsWith("DISCONNECT"))) {
                             NetworkManager.addLearnerIfNotExists(data.getKey());
                         }
                     }
@@ -156,8 +166,12 @@ public class FirebaseManager {
         messagesReference.child("learners").child(clientId).removeValue();
     }
 
-    public static void handleDisconnect() {
+    public static void handleDisconnect(boolean isGuide) {
         if (messagesReference != null) {
+            if (!isGuide) {
+                messagesReference.child("learners").child(getLocalIpAddress().replace(".", "_")).child("currentMessage").onDisconnect().cancel();
+                messagesReference.child("learners").child(getLocalIpAddress().replace(".", "_")).removeValue();
+            }
             if (learnerReceiveMessageListener != null) {
                 messagesReference.child("currentMessage").removeEventListener(learnerReceiveMessageListener);
                 messagesReference.child("learners").child(getLocalIpAddress().replace(".", "_")).child("leaderMessage").removeEventListener(learnerReceiveMessageListener);
@@ -165,11 +179,15 @@ public class FirebaseManager {
             if (addLearnerListener != null) {
                 messagesReference.child("learners").removeEventListener(addLearnerListener);
             }
-            messagesReference.removeValue();
+            if (isGuide) {
+                messagesReference.removeValue();
+            }
             messagesReference = null;
         }
         if (roomReference != null) {
-            roomReference.removeValue();
+            if (isGuide) {
+                roomReference.removeValue();
+            }
             roomReference = null;
         }
     }

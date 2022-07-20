@@ -203,7 +203,7 @@ public class NetworkManager {
      */
     public static void receivedDisconnect() {
         Log.w(TAG, "Disconnect. Guide? " + LeadMeMain.isGuide);
-        FirebaseManager.handleDisconnect();
+        FirebaseManager.handleDisconnect(LeadMeMain.isGuide);
         NearbyPeersManager.disconnectFromEndpoint("");
         stopService();
     }
