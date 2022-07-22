@@ -87,7 +87,7 @@ public class FirebaseManager {
                 if (dataSnapshot.getValue() != null && dataSnapshot.getValue().toString().length() > 0) {
                     NetworkService.receiveMessage(dataSnapshot.getValue().toString());
 
-                    Log.e("firebase", dataSnapshot.getValue().toString());
+                    Log.e(TAG, dataSnapshot.getValue().toString());
                 }
             }
 
@@ -122,7 +122,7 @@ public class FirebaseManager {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 // Get Post object and use the values to update the UI
-                Log.e("firebase", dataSnapshot.toString());
+                Log.e(TAG, dataSnapshot.toString());
                 if (dataSnapshot.getChildrenCount() != ConnectedLearnersAdapter.mData.size()) {
                     for (DataSnapshot data:dataSnapshot.getChildren()) {
                         if (!data.getKey().equals("id") &&
@@ -232,7 +232,7 @@ public class FirebaseManager {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 // Get Post object and use the values to update the UI
-                Log.e("firebase", dataSnapshot.toString());
+                Log.e(TAG, dataSnapshot.toString());
                 Controller.getInstance().getLeaderSelectAdapter().setLeaderList(new ArrayList<>());
                 if (dataSnapshot.getChildrenCount() != ConnectedLearnersAdapter.mData.size()) {
                     for (DataSnapshot data:dataSnapshot.getChildren()) {
