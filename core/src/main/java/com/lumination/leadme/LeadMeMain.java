@@ -101,6 +101,7 @@ import com.lumination.leadme.utilities.OnboardingGestureDetector;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
@@ -247,7 +248,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     //File transfer
     public static Boolean fileTransferEnabled = false; //hard coded so have to enable each session
     public Switch transferToggle = null;
-    public static ArrayList<String> fileRequests = new ArrayList<>(); //array to hold learner ID's that are requesting a file
+    public static HashSet<String> fileRequests = new HashSet<>(); //array to hold learner ID's that are requesting a file
 
     //Auto app installer
     public static Boolean autoInstallApps = false; //if true, missing apps on student devices get installed automatically
@@ -849,8 +850,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
     @Override
     public void onDestroy() {
-        if (Controller.getInstance().getAppManager().getWithinPlayer().controllerWebView != null)
-            Controller.getInstance().getAppManager().getWithinPlayer().controllerWebView.destroy();
         Log.w(TAG, "In onDestroy");
         if(isGuide) {
             logoutResetController();

@@ -75,6 +75,7 @@ public class FirebaseManager {
 
     public static void connectToLeader()
     {
+        NearbyPeersManager.setID(getLocalIpAddress().replace(".", "_"));
         DatabaseReference database = getDatabase();
         roomReference = database.child(waitForPublic().replace(".", "_")).child("rooms").child(NetworkService.getLeaderIPAddress().getHostAddress().replace(".", "_"));
         messagesReference = database.child(waitForPublic().replace(".", "_")).child("messages").child(NetworkService.getLeaderIPAddress().getHostAddress().replace(".", "_"));

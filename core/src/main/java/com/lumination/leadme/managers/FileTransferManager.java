@@ -621,7 +621,7 @@ public class FileTransferManager {
 
         Log.d(TAG, "Message: " + error + " " + "Peer: " + name);
 
-        int peerID = Integer.parseInt(ID);
+        String peerID = ID;
 
         LeadMeMain.runOnUI(() -> main.updatePeerStatus(ID, ConnectedPeer.STATUS_INSTALLED, null));
 

@@ -405,7 +405,7 @@ public class DialogManager {
         });
 
         blockBtn.setOnClickListener(v -> {
-            LeadMeMain.fileRequests = new ArrayList<>();
+            LeadMeMain.fileRequests = new HashSet<>();
             requestDialog.dismiss();
         });
     }

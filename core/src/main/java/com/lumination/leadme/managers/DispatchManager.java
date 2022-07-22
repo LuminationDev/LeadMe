@@ -253,7 +253,7 @@ public class DispatchManager {
 
                 default:
                     if (action.startsWith(Controller.YOUR_ID_IS)) {
-                        dispatchAction.setPeerID(action);
+//                        dispatchAction.setPeerID(action); todo - unneeded now, but don't want to break things by removing this if statement right now
 
                     } else if(action.startsWith(Controller.NAME_CHANGE)) {
                         dispatchAction.nameChange(action);
@@ -630,22 +630,6 @@ public class DispatchManager {
                     studentNameChangeRequest.dismiss();
                 }
             });
-        }
-
-        /**
-         * Sets the ID of a connected peer as assigned by a guide.
-         * @param action A string of the incoming action, it contains the new ID for the peer.
-         */
-        private void setPeerID(String action) {
-            String[] split = action.split(":");
-            if (split.length == 3) {
-                //Now I know my ID! Store it.
-                Log.d(TAG, ">>> INCOMING: " + action + " vs " + NearbyPeersManager.getName() + " // " + NearbyPeersManager.getID());
-                if (split[2].equals(main.getUUID())) {
-                    Log.d(TAG, "My peer tells me my ID is " + split[1] + " -- " + action + ", " + NearbyPeersManager.getName() + "/" + main.getUUID());
-                    NearbyPeersManager.setID(split[1]);
-                }
-            }
         }
 
         /**

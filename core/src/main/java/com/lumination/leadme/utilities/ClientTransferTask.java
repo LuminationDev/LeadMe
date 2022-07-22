@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.HashSet;
 
 /**
  * A runnable used by the clientProcessingPool to receive information from the client sockets
@@ -142,7 +143,7 @@ ClientTransferTask implements Runnable {
             e.printStackTrace();
             Log.d(TAG, "SocketClosure: socket closing issue");
         } finally {
-            LeadMeMain.fileRequests = new ArrayList<>();
+            LeadMeMain.fileRequests = new HashSet<>();
 
             //reset for next time
             FileTransferManager.transfer_progress = -1;

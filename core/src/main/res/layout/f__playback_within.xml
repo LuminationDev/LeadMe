@@ -111,14 +111,13 @@
 
         </LinearLayout>
 
-        <WebView
-            android:id="@+id/within_webview"
+        <ImageView
+            android:id="@+id/within_imageview"
             android:layout_width="match_parent"
-            android:layout_height="250dp"
+            android:layout_height="300dp"
             android:background="@color/leadme_black"
             android:tag="playback_webview">
-
-        </WebView>
+        </ImageView>
 
         <TextView
             android:id="@+id/no_internet"
