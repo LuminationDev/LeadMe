@@ -117,6 +117,7 @@ public class FirebaseManager {
 
         roomReference.onDisconnect().removeValue();
         messagesReference.child("currentMessage").onDisconnect().setValue("DISCONNECT,DISCONNECT");
+        messagesReference.child("learners").removeValue();
 
         addLearnerListener = new ValueEventListener() {
             @Override
