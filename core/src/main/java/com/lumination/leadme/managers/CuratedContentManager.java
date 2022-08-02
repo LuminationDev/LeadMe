@@ -359,7 +359,7 @@ public class CuratedContentManager {
             public boolean onEditorAction(TextView textView, int i, KeyEvent keyEvent) {
                 if (i == EditorInfo.IME_ACTION_DONE) {
                     ArrayList<CuratedContentItem> curatedContent = (ArrayList<CuratedContentItem>) curatedContentList.clone();
-                    CuratedContentManager.filterCuratedContentBySearch(curatedContent, searchInput.getText().toString());
+                    CuratedContentManager.filterCuratedContentBySearch(curatedContent, searchInput.getText().toString().toLowerCase(Locale.ROOT));
                     curatedContentListSearch.setAdapter(curatedContentAdapterSearch);
                     curatedContentAdapterSearch.curatedContentList = curatedContent;
                     curatedContentAdapterSearch.notifyDataSetChanged();

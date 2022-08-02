@@ -1646,12 +1646,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                     + fileTransferEnabled, NearbyPeersManager.getSelectedPeerIDsOrAll());
         });
 
-        //direct ip input connection
-        TextView manualConnect = optionsScreen.findViewById(R.id.manual_connect);
-        manualConnect.setOnClickListener(view -> {
-            Controller.getInstance().getDialogManager().showManualDialog(isGuide, FirebaseManager.getLocalIpAddress());
-        });
-
         optionsScreen.findViewById(R.id.logout_btn).setOnClickListener(view -> {
             if (isGuide || !NearbyPeersManager.isConnectedAsFollower()) {
                 Controller.getInstance().getAuthenticationManager().logoutAction();
@@ -2090,6 +2084,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         }
 
         FirebaseManager.handleDisconnect(isGuide);
+        FirebaseManager.setServerIP("");
         NetworkService.resetClientIDs();
         Controller.getInstance().getConnectedLearnersAdapter().resetOnLogout();
         Controller.getInstance().getLeaderSelectAdapter().setLeaderList(new ArrayList<>()); //empty the list

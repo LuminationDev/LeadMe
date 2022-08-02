@@ -206,6 +206,7 @@ public class NetworkManager {
         FirebaseManager.handleDisconnect(LeadMeMain.isGuide);
         NearbyPeersManager.disconnectFromEndpoint("");
         stopService();
+        FirebaseManager.setServerIP("");
     }
 
     /**

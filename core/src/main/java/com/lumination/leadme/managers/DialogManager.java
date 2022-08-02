@@ -131,7 +131,6 @@ public class DialogManager {
         setupAlertsViewDialog();
         setupLoginDialogView();
         setupLoginDialog();
-        setupManualDialog();
         setupRecallDialog();
         setupVRFirstTime();
         setupFileTypes();
@@ -928,67 +927,6 @@ public class DialogManager {
         changeLoginViewOptions(-1, View.GONE, -1);
         closeKeyboard();
         hideSystemUI();
-    }
-
-    /**
-     *
-     */
-    private void setupManualDialog() {
-        manView = View.inflate(main, R.layout.e__manual_popup, null);
-        manualDialog = new AlertDialog.Builder(main)
-                .setView(manView)
-                .create();
-
-        Button back = manView.findViewById(R.id.manual_back);
-        back.setOnClickListener(v1 -> manualDialog.dismiss());
-    }
-
-    /**
-     * Displays the AlertDialog to connect to a Guide by manually entering the ipAddress to connect to.
-     * Sets up the display depending on if the user is a peer or a guide. A guide is shown their ipAddress
-     * for a peer to see and copy and the peer sees inputs for their name and the guides ipAddress.
-     * @param isGuide A boolean determining if the user is a guide.
-     * @param ipAddress A String representing the Guide's ipAddress.
-     */
-    public void showManualDialog(boolean isGuide, String ipAddress) {
-        if(isGuide) {
-            manView.findViewById(R.id.manual_leader_view).setVisibility(View.VISIBLE);
-            manView.findViewById(R.id.manual_learner_view).setVisibility(View.GONE);
-            manView.findViewById(R.id.manual_ok).setVisibility(View.GONE);
-            TextView IpAddress = manView.findViewById(R.id.manual_ip);
-            IpAddress.setText(ipAddress);
-        } else {
-            if(NearbyPeersManager.isConnectedAsFollower()){
-                manualDialog.dismiss();
-                Toast.makeText(main, "You are already connected to a leader", Toast.LENGTH_SHORT).show();
-                return;
-            }
-            manView.findViewById(R.id.manual_learner_view).setVisibility(View.VISIBLE);
-            manView.findViewById(R.id.manual_ok).setVisibility(View.VISIBLE);
-            manView.findViewById(R.id.manual_leader_view).setVisibility(View.GONE);
-            EditText IpEnter = manView.findViewById(R.id.manual_enterIP);
-            EditText ManName = manView.findViewById(R.id.manual_name);
-            Button connect = manView.findViewById(R.id.manual_ok);
-            IpEnter.setText(ipAddress.substring(0, ipAddress .lastIndexOf(".")+1)   );
-            IpEnter.setSelection(IpEnter.getText().length());
-            //add to the leaders list
-
-            connect.setOnClickListener(v -> {
-                if(IpEnter!=null && ManName!=null &&ManName.getText().toString().length()>0 && IpEnter.getText().toString().length()>0) {
-                    Log.d(TAG, "onClick: "+IpEnter.getText().toString());
-                    nameView.setText(ManName.getText().toString());
-
-                    manualDialog.dismiss();
-                    LeadMeMain.isGuide = false;
-
-                    NearbyPeersManager.myName = ManName.getText().toString();
-                    FirebaseManager.setServerIP(IpEnter.getText().toString());
-                    LeadMeMain.getInstance().loginAction(true);
-                }
-            });
-        }
-
-        manualDialog.show();
     }
 
     /**

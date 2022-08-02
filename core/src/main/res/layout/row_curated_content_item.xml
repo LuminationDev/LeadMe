@@ -136,7 +136,7 @@
                     android:breakStrategy="simple"
                     android:ellipsize="end"
                     android:hyphenationFrequency="none"
-                    android:text="@{curatedContentItem != null ? curatedContentItem.topics : ``, default=`building, construction, entertainment, another, a third, a fourth, five, six, seven, eight` }"
+                    android:text="@{curatedContentItem != null ? curatedContentItem.topicsPlainText : ``}"
                     android:textAlignment="textStart"
                     android:textColor="@color/leadme_black"
                     android:textSize="13sp"/>
