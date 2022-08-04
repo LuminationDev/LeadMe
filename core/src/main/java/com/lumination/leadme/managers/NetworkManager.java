@@ -396,6 +396,9 @@ public class NetworkManager {
             for (String selected : selectedClientIDs) {
                 if (selected.equals(currentClients.get(i).ID)) {
                     NetworkService.sendToClient(selected, message, type);
+                    UIHandler.postDelayed(() ->
+                            NetworkService.sendToClient(selected, "", ""),
+                            500);
 
                     if(type.equals("DISCONNECT")) {
                         currentClients.remove(i);
