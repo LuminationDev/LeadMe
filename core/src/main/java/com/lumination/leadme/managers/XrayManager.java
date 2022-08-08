@@ -218,7 +218,7 @@ public class XrayManager {
         selectedXrayStudents.addAll(NearbyPeersManager.getSelectedPeerIDsOrAll());
 
         if (selectedXrayStudents.size() > 0) {
-            setXrayStudent(peer);
+            setXrayStudent(peer.equals("") ? selectedXrayStudents.get(0) : peer);
             if (xrayScreen.getVisibility() != VISIBLE) {
                 main.displayXrayView();
             }
@@ -436,7 +436,9 @@ public class XrayManager {
         monitorInProgress = true;
         imageSocketThread = new Thread(() -> imageRunnableFunction(peer));
         imageSocketThread.start();
-        DispatchManager.sendActionToSelected(Controller.ACTION_TAG, Controller.XRAY_ON, NearbyPeersManager.getSelectedPeerIDs());
+        Set<String> selected = new HashSet<>();
+        selected.add(peer);
+        DispatchManager.sendActionToSelected(Controller.ACTION_TAG, Controller.XRAY_ON, selected);
         Log.d(TAG, "Socket thread created");
     }
 
