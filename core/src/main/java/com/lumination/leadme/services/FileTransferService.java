@@ -112,9 +112,9 @@ public class FileTransferService extends Service {
      * Remove the peer from the fileRequests. Internally uses Integer.valueOf() so
      * that it is does not remove the index value instead.
      */
-    public static void removeRequest(int ID) {
+    public static void removeRequest(String ID) {
         if(LeadMeMain.fileRequests.size() > 0) {
-            LeadMeMain.fileRequests.remove(Integer.valueOf(ID));
+            LeadMeMain.fileRequests.remove(ID);
         }
     }
 

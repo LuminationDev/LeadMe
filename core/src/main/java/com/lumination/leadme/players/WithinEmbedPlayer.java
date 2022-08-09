@@ -25,6 +25,8 @@ import android.widget.Spinner;
 import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.Scanner;
 
@@ -34,6 +36,7 @@ import androidx.core.widget.ImageViewCompat;
 import androidx.databinding.DataBindingUtil;
 import androidx.databinding.ViewDataBinding;
 
+import com.bumptech.glide.Glide;
 import com.lumination.leadme.BR;
 import com.lumination.leadme.LeadMeMain;
 import com.lumination.leadme.R;
@@ -42,6 +45,9 @@ import com.lumination.leadme.controller.Controller;
 import com.lumination.leadme.managers.AppManager;
 import com.lumination.leadme.managers.DispatchManager;
 import com.lumination.leadme.managers.NearbyPeersManager;
+
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
 
 public class WithinEmbedPlayer {
 
@@ -60,7 +66,7 @@ public class WithinEmbedPlayer {
     private final CheckBox favCheck;
     private final View withinControllerDialogView, withinSearchDialogView;
     private final TextView internetUnavailableMsg, searchUnavailableMsg, downModeText;
-    public WebView controllerWebView, searchWebView;
+    public WebView searchWebView;
     private final Switch vrModeBtn, downModeBtn;
     private final ImageView vrIcon;
     private final Spinner lockSpinner;
@@ -82,7 +88,7 @@ public class WithinEmbedPlayer {
      * https://developers.google.com/youtube/iframe_api_reference
      */
 
-    private final ViewGroup.LayoutParams searchBackupParams, controllerBackupParams;
+    private final ViewGroup.LayoutParams searchBackupParams;
 
     public WithinEmbedPlayer(LeadMeMain main) {
         this.main = main;
@@ -107,12 +113,8 @@ public class WithinEmbedPlayer {
         pushBtn = withinControllerDialogView.findViewById(R.id.push_btn);
         repushBtn = withinControllerDialogView.findViewById(R.id.push_again_btn);
         vrIcon = withinControllerDialogView.findViewById(R.id.vr_mode_icon);
-        controllerWebView = withinControllerDialogView.findViewById(R.id.within_webview);
-        controllerBackupParams = controllerWebView.getLayoutParams();
         internetUnavailableMsg = withinControllerDialogView.findViewById(R.id.no_internet);
         internetUnavailableMsg.setOnClickListener(v -> loadVideoGuideURL(foundURL));
-        setupWebView(controllerWebView);
-        setupWebClient(controllerWebView, false);
         setupGuideVideoControllerButtons();
         Controller.getInstance().getDialogManager().setupPushToggle(withinControllerDialogView, false);
 
@@ -275,16 +277,6 @@ public class WithinEmbedPlayer {
 
                     //controller view
                     ViewGroup webViewContainer = (ViewGroup) withinControllerDialogView.findViewById(R.id.preview_view);
-                    webViewContainer.removeView(controllerWebView);
-                    controllerWebView.destroy();
-                    controllerWebView = null;
-
-                    //build it again
-                    controllerWebView = new WebView(main);
-                    controllerWebView.setLayoutParams(controllerBackupParams);
-                    setupWebView(controllerWebView);
-                    setupWebClient(controllerWebView, false);
-                    webViewContainer.addView(controllerWebView, 0);
 
                     //search view
                     webViewContainer = (ViewGroup) withinSearchDialogView.findViewById(R.id.preview_view);
@@ -314,6 +306,7 @@ public class WithinEmbedPlayer {
                     foundTitle = url.replace(foundPrefix, "").replace(foundSuffix, "");
                     setFoundURL(urlPrefix + foundTitle);
                     Log.w(TAG, "EXTRACTED! " + foundURL + ", " + Controller.getInstance().getAppManager().getFavouritesManager().isInFavourites(foundURL));
+
 
                 } else if (url.startsWith("https://cms.with.in/v1/category/all?page=")) {
                     view.stopLoading();
@@ -414,13 +407,7 @@ public class WithinEmbedPlayer {
     }
 
     private void setupGuideVideoControllerButtons() {
-        //set up standard dialog buttons
-        withinControllerDialogView.findViewById(R.id.web_back_btn).setOnClickListener(v ->
-                controllerWebView.goBack()
-        );
-
         withinControllerDialogView.findViewById(R.id.new_video).setOnClickListener(v -> {
-            controllerWebView.loadUrl("about:blank");
             resetControllerState();
             videoControlDialog.dismiss();
             showWithinSearch();
@@ -576,18 +563,24 @@ public class WithinEmbedPlayer {
     private void loadVideoGuideURL(String url) {
         if (Controller.getInstance().getPermissionsManager().isInternetConnectionAvailable()) {
             internetUnavailableMsg.setVisibility(View.GONE);
-            controllerWebView.setVisibility(View.VISIBLE);
             Log.d(TAG, "Attempting to load " + url + " on controller");
 
-            controllerWebView.loadDataWithBaseURL(null, getiFrameData(url), "text/html", "UTF-8", null);
-
+            new Thread(() -> {
+                Document doc = null;
+                try {
+                    doc = Jsoup.connect(url).get();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                String previewImageUrl = doc.select("meta[name=image]").first().attr("content");
+                LeadMeMain.runOnUI(() -> Glide.with(withinControllerDialogView).load(previewImageUrl).into((ImageView) withinControllerDialogView.findViewById(R.id.within_imageview)));
+            }).start();
             //update check if appropriate
             favCheck.setEnabled(true);
             favCheck.setChecked(Controller.getInstance().getWebManager().getYouTubeFavouritesManager().isInFavourites(foundURL));
 
         } else {
             internetUnavailableMsg.setVisibility(View.VISIBLE);
-            controllerWebView.setVisibility(View.GONE);
         }
     }
 
@@ -623,16 +616,6 @@ public class WithinEmbedPlayer {
     }
 
     public void onDestroy() {
-        controllerWebView.clearHistory();
-        controllerWebView.clearCache(true);
-        controllerWebView.loadUrl("about:blank");
-        controllerWebView.onPause();
-        controllerWebView.removeAllViews();
-        controllerWebView.destroyDrawingCache();
-        controllerWebView.pauseTimers();
-        controllerWebView.destroy();
-        controllerWebView = null;
-
         searchWebView.clearHistory();
         searchWebView.clearCache(true);
         searchWebView.loadUrl("about:blank");

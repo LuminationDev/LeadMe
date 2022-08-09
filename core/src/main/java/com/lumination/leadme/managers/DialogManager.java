@@ -131,7 +131,6 @@ public class DialogManager {
         setupAlertsViewDialog();
         setupLoginDialogView();
         setupLoginDialog();
-        setupManualDialog();
         setupRecallDialog();
         setupVRFirstTime();
         setupFileTypes();
@@ -396,7 +395,7 @@ public class DialogManager {
             }
 
             Set<String> peerSet = new HashSet<>();
-            for(int ID : LeadMeMain.fileRequests) {
+            for(String ID : LeadMeMain.fileRequests) {
                 peerSet.add(String.valueOf(ID));
             }
 
@@ -405,7 +404,7 @@ public class DialogManager {
         });
 
         blockBtn.setOnClickListener(v -> {
-            LeadMeMain.fileRequests = new ArrayList<>();
+            LeadMeMain.fileRequests = new HashSet<>();
             requestDialog.dismiss();
         });
     }
@@ -442,10 +441,12 @@ public class DialogManager {
         if(requestDialog.isShowing()) {
             //in case a guide switched on auto installer and transfer quickly
             requestDialogMessage.setText(LeadMeMain.fileRequests.size() + " learners do not have the video. " +
-                    "\nDo you want to transfer it?"); //update the text if there are more requests
+                    "\nDo you want to transfer it?" +
+                    "\nFile transfer is an experimental feature. You may experience some issues while using it."); //update the text if there are more requests
         } else {
             requestDialogMessage.setText(LeadMeMain.fileRequests.size() + " learner does not have the video. " +
-                    "\nDo you want to transfer it?");
+                    "\nDo you want to transfer it?" +
+                    "\nFile transfer is an experimental feature. You may experience some issues while using it.");
 
             waitForOthers(requestDialogView.findViewById(R.id.allow_btn), delay);
         }
@@ -929,68 +930,6 @@ public class DialogManager {
     }
 
     /**
-     *
-     */
-    private void setupManualDialog() {
-        manView = View.inflate(main, R.layout.e__manual_popup, null);
-        manualDialog = new AlertDialog.Builder(main)
-                .setView(manView)
-                .create();
-
-        Button back = manView.findViewById(R.id.manual_back);
-        back.setOnClickListener(v1 -> manualDialog.dismiss());
-    }
-
-    /**
-     * Displays the AlertDialog to connect to a Guide by manually entering the ipAddress to connect to.
-     * Sets up the display depending on if the user is a peer or a guide. A guide is shown their ipAddress
-     * for a peer to see and copy and the peer sees inputs for their name and the guides ipAddress.
-     * @param isGuide A boolean determining if the user is a guide.
-     * @param ipAddress A String representing the Guide's ipAddress.
-     */
-    public void showManualDialog(boolean isGuide, String ipAddress) {
-        if(isGuide) {
-            manView.findViewById(R.id.manual_leader_view).setVisibility(View.VISIBLE);
-            manView.findViewById(R.id.manual_learner_view).setVisibility(View.GONE);
-            manView.findViewById(R.id.manual_ok).setVisibility(View.GONE);
-            TextView IpAddress = manView.findViewById(R.id.manual_ip);
-            IpAddress.setText(ipAddress);
-        } else {
-            if(NearbyPeersManager.isConnectedAsFollower()){
-                manualDialog.dismiss();
-                Toast.makeText(main, "You are already connected to a leader", Toast.LENGTH_SHORT).show();
-                return;
-            }
-            manView.findViewById(R.id.manual_learner_view).setVisibility(View.VISIBLE);
-            manView.findViewById(R.id.manual_ok).setVisibility(View.VISIBLE);
-            manView.findViewById(R.id.manual_leader_view).setVisibility(View.GONE);
-            EditText IpEnter = manView.findViewById(R.id.manual_enterIP);
-            EditText ManName = manView.findViewById(R.id.manual_name);
-            Button connect = manView.findViewById(R.id.manual_ok);
-            IpEnter.setText(ipAddress.substring(0, ipAddress .lastIndexOf(".")+1)   );
-            IpEnter.setSelection(IpEnter.getText().length());
-            //add to the leaders list
-
-            connect.setOnClickListener(v -> {
-                if(IpEnter!=null && ManName!=null &&ManName.getText().toString().length()>0 && IpEnter.getText().toString().length()>0) {
-                    Log.d(TAG, "onClick: "+IpEnter.getText().toString());
-                    nameView.setText(ManName.getText().toString());
-
-                    manualDialog.dismiss();
-                    LeadMeMain.isGuide = false;
-
-                    NearbyPeersManager.myName = ManName.getText().toString();
-                    LeadMeMain.directConnection = true;
-                    Controller.getInstance().getFirebaseManager().setServerIP(IpEnter.getText().toString());
-                    LeadMeMain.getInstance().loginAction(true);
-                }
-            });
-        }
-
-        manualDialog.show();
-    }
-
-    /**
      * Close the waiting dialog and login dialog if they are showing.
      * @param success A boolean representing if the action was successful.
      */
@@ -1114,11 +1053,6 @@ public class DialogManager {
             loginDialog.dismiss();
             if (cancelled) {
                 main.startShakeDetection();
-
-                //Only start discovery again if trying to login as a learner
-                if(main.loginActor.equals("learner")) {
-                    NSDManager.startDiscovery();
-                }
             }
         }
     }

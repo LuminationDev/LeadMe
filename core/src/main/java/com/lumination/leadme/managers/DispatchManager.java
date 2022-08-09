@@ -90,11 +90,12 @@ public class DispatchManager {
     }
 
     private static void writeMessageToSelected(byte[] bytes, Set<String> selectedPeerIDs) {
-        if (NearbyPeersManager.isConnectedAsGuide()) {
+//        if (NearbyPeersManager.isConnectedAsGuide()) {
+        Log.d(TAG, "writeMessageToSelected");
             NearbyPeersManager.sendToSelected(Payload.fromBytes(bytes), selectedPeerIDs);
-        } else {
-            Log.i(TAG, "Sorry, you can't send messages!");
-        }
+//        } else {
+//            Log.i(TAG, "Sorry, you can't send messages!");
+//        }
     }
 
     /**
@@ -171,14 +172,15 @@ public class DispatchManager {
     }
 
     public synchronized void alertLogout() {
-        ArrayList<Integer> selected = new ArrayList<>();
+        ArrayList<String> selected = new ArrayList<>();
         for (String peer : NearbyPeersManager.getAllPeerIDs()) {
-            selected.add(Integer.parseInt(peer));
+            selected.add(peer);
         }
         NetworkManager.sendToSelectedClients("DISCONNECT", "DISCONNECT", selected);
     }
 
     public static synchronized void sendActionToSelected(String actionTag, String action, Set<String> selectedPeerIDs) {
+        Log.d(TAG, "sendActionToSelected: " + actionTag + " " + action);
         LeadMeMain.getInstance().setProgressTimer(2000);
         if(action.contains(Controller.LAUNCH_URL) || action.contains(Controller.LAUNCH_YT)) {
             lastEvent = 3;
@@ -193,29 +195,7 @@ public class DispatchManager {
         p.recycle();
 
         //auto-install, request, notification tags and success tag are exempt so students can alert teacher to their status
-        if (NearbyPeersManager.isConnectedAsGuide() ||
-                action.startsWith(Controller.YOUR_ID_IS) ||
-                action.startsWith(Controller.RETURN_TAG) ||
-                action.startsWith(Controller.PERMISSION_DENIED) ||
-                action.startsWith(Controller.TRANSFER_ERROR) ||
-                action.startsWith(Controller.FILE_REQUEST_TAG) ||
-                action.startsWith(Controller.APP_NOT_INSTALLED) ||
-                action.startsWith(Controller.AUTO_INSTALL_ATTEMPT) ||
-                action.startsWith(Controller.AUTO_INSTALL_FAILED) ||
-                action.startsWith(Controller.STUDENT_NO_OVERLAY) ||
-                action.startsWith(Controller.STUDENT_NO_INTERNET) ||
-                action.startsWith(Controller.STUDENT_NO_ACCESSIBILITY) ||
-                action.startsWith(Controller.STUDENT_OFF_TASK_ALERT) ||
-                action.startsWith(Controller.STUDENT_FINISH_ADS) ||
-                action.startsWith(Controller.PING_TAG) ||
-                action.startsWith(Controller.LAUNCH_SUCCESS) ||
-                action.startsWith(Controller.STUDENT_NO_XRAY) ||
-                action.startsWith(Controller.DISCONNECTION) ||
-                action.startsWith(Controller.NAME_REQUEST)) {
-            NearbyPeersManager.sendToSelected(Payload.fromBytes(bytes), selectedPeerIDs);
-        } else {
-            Log.i(TAG, "Sorry, you can't send actions!");
-        }
+        NearbyPeersManager.sendToSelected(Payload.fromBytes(bytes), selectedPeerIDs);
     }
 
     public synchronized boolean readAction(byte[] bytes) {
@@ -273,7 +253,7 @@ public class DispatchManager {
 
                 default:
                     if (action.startsWith(Controller.YOUR_ID_IS)) {
-                        dispatchAction.setPeerID(action);
+//                        dispatchAction.setPeerID(action); todo - unneeded now, but don't want to break things by removing this if statement right now
 
                     } else if(action.startsWith(Controller.NAME_CHANGE)) {
                         dispatchAction.nameChange(action);
@@ -653,22 +633,6 @@ public class DispatchManager {
         }
 
         /**
-         * Sets the ID of a connected peer as assigned by a guide.
-         * @param action A string of the incoming action, it contains the new ID for the peer.
-         */
-        private void setPeerID(String action) {
-            String[] split = action.split(":");
-            if (split.length == 3) {
-                //Now I know my ID! Store it.
-                Log.d(TAG, ">>> INCOMING: " + action + " vs " + NearbyPeersManager.getName() + " // " + NearbyPeersManager.getID());
-                if (split[2].equals(main.getUUID())) {
-                    Log.d(TAG, "My peer tells me my ID is " + split[1] + " -- " + action + ", " + NearbyPeersManager.getName() + "/" + main.getUUID());
-                    NearbyPeersManager.setID(split[1]);
-                }
-            }
-        }
-
-        /**
          * Change the name on a learner's device header.
          * @param action A string of the incoming action, it contains the new name for the selected peer.
          */
@@ -771,7 +735,7 @@ public class DispatchManager {
 
             //If false, then the learner needs the file, otherwise the transfer is complete - relaunch the app
             if(split[2].equals("false")) {
-                LeadMeMain.fileRequests.add(Integer.parseInt(ID));
+                LeadMeMain.fileRequests.add(ID);
                 Controller.getInstance().getDialogManager().showRequestDialog(5);
             } else {
                 Set<String> peer = new HashSet<>();
@@ -960,7 +924,7 @@ public class DispatchManager {
             String[] split = action.split(":"); //get the peer ID
 
             Log.e(TAG, split[1] + " has just disconnected");
-            NetworkManager.updateParent(split[1] + " has disconnected", Integer.parseInt(split[1]), "LOST");
+            NetworkManager.updateParent(split[1] + " has disconnected", split[1], "LOST");
         }
 
         /**

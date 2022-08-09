@@ -1,15 +1,17 @@
 package com.lumination.leadme.managers;
 
-import static java.util.concurrent.TimeUnit.SECONDS;
+import static com.lumination.leadme.LeadMeMain.UIHandler;
 
 import android.net.nsd.NsdServiceInfo;
 import android.os.Build;
 import android.os.Parcel;
 import android.util.Log;
+import android.view.View;
 
 import androidx.collection.ArraySet;
 
 import com.google.android.gms.nearby.connection.Payload;
+import com.lumination.leadme.R;
 import com.lumination.leadme.adapters.ConnectedLearnersAdapter;
 import com.lumination.leadme.connections.ConnectedPeer;
 import com.lumination.leadme.LeadMeMain;
@@ -24,8 +26,6 @@ import java.util.Base64;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
 
 public class NearbyPeersManager {
     private static final String TAG = "NearbyPeersManager";
@@ -34,34 +34,11 @@ public class NearbyPeersManager {
     public static String myName;
 
     private static NsdServiceInfo manInfo = null;
-    private boolean discovering;
-    private static int tryConnect = 0;
 
     /**
      * Constructor which initiates the nsdManager class.
      */
-    public NearbyPeersManager() {
-        //In case the server was not closed down
-        NetworkManager.stopServer();
-    }
-
-    /**
-    * Resets the connection information for a manual connection, used when swapping from server discovery
-    * back to normal connection mode.
-     */
-    public void resetManualInfo() {
-        Log.d(TAG, "Resetting manual connection details");
-        manInfo = null;
-        if(!LeadMeMain.isGuide) { //do not want the guide to start searching for services
-            discoverLeaders();
-        }
-    }
-
-    public void discoverLeaders() {
-        discovering = true;
-        NSDManager.stopAdvertising();
-        NSDManager.startDiscovery();
-    }
+    public NearbyPeersManager() { }
 
     public void setSelectedLeader(ConnectedPeer peer) {
         selectedLeader = peer;
@@ -69,12 +46,6 @@ public class NearbyPeersManager {
 
     public void cancelConnection() {
         NetworkManager.receivedDisconnect();
-    }
-
-    public void onStop() {
-        Log.d(TAG, "onStop: deprecated");
-        stopAdvertising();
-        disconnectFromAllEndpoints();
     }
 
     public void onBackPressed() {
@@ -86,36 +57,18 @@ public class NearbyPeersManager {
 
         Log.e(TAG, "Teacher: " + Name);
 
-        if(manInfo == null) {
-            ArrayList<NsdServiceInfo> discoveredLeaders = NSDManager.discoveredLeaders;
-            Log.d(TAG, "Leaders array: " + discoveredLeaders.size());
-            for (NsdServiceInfo info : discoveredLeaders) {
-                Log.d(TAG, "connectToSelectedLeader: " + info.getServiceName());
-                if (info.getServiceName().equals(Name + "#Teacher")) {
-                    LeadMeMain.getInstance().manageServerConnection(info);
-                    return;
-                }
-            }
-        } else {
-            LeadMeMain.getInstance().manageServerConnection(manInfo);
-            return;
-        }
-        Log.d(TAG, "connectToSelectedLeader: no leader found with the name " + Name + ". Trying" +
-                "again.");
+        NetworkService.setLeaderIPAddress(manInfo.getHost());
+        LeadMeMain.getInstance().findViewById(R.id.client_main).setVisibility(View.VISIBLE);
+        LeadMeMain.getInstance().setLeaderName(Name);
 
-        //In case the device is trying to connect manually when not in manual mode
-        if((!LeadMeMain.sessionManual || !LeadMeMain.directConnection) && manInfo != null) {
-            manInfo = null;
-        }
+        FirebaseManager.connectToLeader();
 
-        //Try connection again after a set time
-        if(tryConnect < 10) {
-            tryConnect++;
-            connectToSelectedLeader();
-        } else {
-            tryConnect = 0;
-            Log.d(TAG, "connectToSelectedLeader: unable to find leader.");
-        }
+        UIHandler.postDelayed(() ->
+                NetworkService.sendToServer(getName(), "NAME"),
+            500);
+
+        FirebaseManager.roomsReference.removeEventListener(FirebaseManager.roomsListener);
+        return;
     }
 
     public static void connectToManualLeader(String leaderName, String IpAddress) {
@@ -135,7 +88,6 @@ public class NearbyPeersManager {
             info.setServiceType("_http._tcp.");
             Log.d(TAG, "run: "+info);
             manInfo = info;
-            NSDManager.discoveredLeaders.add(info);
             selectedLeader = new ConnectedPeer(leaderName, IpAddress);
             LeadMeMain.runOnUI(NearbyPeersManager::connectToSelectedLeader);
         });
@@ -148,18 +100,6 @@ public class NearbyPeersManager {
     public void setAsGuide() {
         Log.e(TAG, "Server starting for leader");
         LeadMeMain.isGuide = true;
-        LeadMeMain.getInstance().startServer();
-
-        //Wait a little bit for the server to start before making the guide discoverable.
-        final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
-
-        final Runnable runnable = () -> {
-            NSDManager.stopDiscovery();
-            NSDManager.startAdvertising();
-
-            scheduler.shutdown();
-        };
-        scheduler.scheduleAtFixedRate(runnable, 2, 1, SECONDS);
     }
 
     /**
@@ -194,7 +134,7 @@ public class NearbyPeersManager {
      * @return A string that represents the ID of the current user.
      */
     public static String getID() {
-        return myID;
+        return FirebaseManager.getLocalIpAddress().replace(".", "_");
     }
 
     /**
@@ -215,7 +155,7 @@ public class NearbyPeersManager {
      * @param endpointId A string representing a students device.
      */
     public static void disconnectStudent(String endpointId) {
-        Controller.getInstance().getNetworkManager().removeClient(Integer.parseInt(endpointId));
+        Controller.getInstance().getNetworkManager().removeClient(endpointId);
     }
 
     /**
@@ -234,26 +174,8 @@ public class NearbyPeersManager {
                 ArrayList<ConnectedPeer> temp = new ArrayList<>();
                 Controller.getInstance().getLeaderSelectAdapter().setLeaderList(temp);
                 LeadMeMain.getInstance().showLeaderWaitMsg(true);
-                NSDManager.startDiscovery();
                 LeadMeMain.getInstance().setUIDisconnected();
             });
-        }
-    }
-
-    /**
-     * Stops advertising.
-     */
-    protected void stopAdvertising() {
-        NSDManager.stopAdvertising();
-    }
-
-    public boolean isDiscovering() {
-        return discovering;
-    }
-
-    protected void disconnectFromAllEndpoints() {
-        if (LeadMeMain.isGuide) {
-            NetworkManager.stopServer();
         }
     }
 
@@ -288,17 +210,11 @@ public class NearbyPeersManager {
     public static Set<String> getSelectedPeerIDs() {
         Set<String> endpoints = new ArraySet<>();
         //if connected as guide, send message to specific peers
-        if (isConnectedAsGuide()) {
-            for (ConnectedPeer thisPeer : ConnectedLearnersAdapter.mData) {
-                if (thisPeer.isSelected()) {
-                    Log.d(TAG, "Adding " + thisPeer.getDisplayName());
-                    endpoints.add(thisPeer.getID());
-                }
+        for (ConnectedPeer thisPeer : ConnectedLearnersAdapter.mData) {
+            if (thisPeer.isSelected()) {
+                Log.d(TAG, "Adding " + thisPeer.getDisplayName());
+                endpoints.add(thisPeer.getID());
             }
-            return endpoints;
-        //if connected as follower, send message back to guide
-        } else {
-            endpoints.add("-1");
         }
         return endpoints;
     }
@@ -338,10 +254,10 @@ public class NearbyPeersManager {
                 NetworkService.sendToServer(encoded, "ACTION");
             }
         } else {
-            ArrayList<Integer> selected = new ArrayList<>();
+            ArrayList<String> selected = new ArrayList<>();
             for (String peer : selectedString) {
                 Log.d(TAG, "sendToSelected: " + peer);
-                selected.add(Integer.parseInt(peer));
+                selected.add(peer);
             }
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 String encoded = Base64.getEncoder().encodeToString(b);

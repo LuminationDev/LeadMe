@@ -55,15 +55,12 @@ public class ConnectedPeer {
         this.id = id;
     }
 
-    //CORRECT CONSTRUCTOR
+    //CORRECT CONSTRUCTOR/
     public ConnectedPeer(Endpoint endpoint) {
         if (endpoint != null) {
             myEndpoint = endpoint;
             String[] name = endpoint.getName().split(":");
-            buddyName = name[0];// endpoint.getName();
-            if (name.length == 2) {
-                uuid = name[1];
-            }
+            uuid = name[0];
             id = endpoint.getId();
         }
     }

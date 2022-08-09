@@ -345,8 +345,8 @@ public class ConnectedLearnersAdapter extends BaseAdapter {
 
                 removeStudent(lastPromptedID);
                 refresh();
-                Controller.getInstance().getNetworkManager().stopMonitoring(Integer.parseInt(lastPromptedID));
-                Controller.getInstance().getNetworkManager().removeClient(Integer.parseInt(lastPromptedID));
+                Controller.getInstance().getNetworkManager().stopMonitoring(lastPromptedID);
+                Controller.getInstance().getNetworkManager().removeClient(lastPromptedID);
 
                 logoutPrompt.dismiss();
                 if (mData.size() <= 0) {
@@ -381,34 +381,6 @@ public class ConnectedLearnersAdapter extends BaseAdapter {
     AlertDialog disconnectPrompt;
     AlertDialog logoutPrompt;
     private String lastClickedID = "";
-    protected void forceWrapContent(View v) {
-        // Start with the provided view
-        View current = v;
-
-        // Travel up the tree until fail, modifying the LayoutParams
-        do {
-            // Get the parent
-            ViewParent parent = current.getParent();
-
-            // Check if the parent exists
-            if (parent != null) {
-                // Get the view
-                try {
-                    current = (View) parent;
-                } catch (ClassCastException e) {
-                    // This will happen when at the top view, it cannot be cast to a View
-                    break;
-                }
-
-                // Modify the layout
-                current.getLayoutParams().width = ViewGroup.LayoutParams.WRAP_CONTENT;
-            }
-        } while (current.getParent() != null);
-
-        // Request a layout to be re-done
-        current.requestLayout();
-    }
-
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
@@ -464,10 +436,10 @@ public class ConnectedLearnersAdapter extends BaseAdapter {
                 disconnect.setOnClickListener(v2 -> {
                     Log.d(TAG, "[adapter] Removing student: " + lastClickedID);
                     Controller.getInstance().getXrayManager().resetClientMaps(lastClickedID); //remove the peer from the HashMaps
-                    ArrayList<Integer> selected = new ArrayList<>();
-                    selected.add(Integer.valueOf(lastClickedID));
+                    ArrayList<String> selected = new ArrayList<>();
+                    selected.add(lastClickedID);
                     NetworkManager.sendToSelectedClients("", "DISCONNECT", selected);
-                    NetworkService.removeStudent(Integer.parseInt(lastClickedID));
+                    NetworkService.removeStudent(lastClickedID);
                     removeStudent(lastClickedID);
                     refresh();
                     finalConvertView.setVisibility(View.GONE);
@@ -494,8 +466,8 @@ public class ConnectedLearnersAdapter extends BaseAdapter {
 
                         ok_btn.setOnClickListener(v12 -> {
                             Log.d(TAG, "[adapter] Removing student: " + lastClickedID);
-                            ArrayList<Integer> selected = new ArrayList<>();
-                            selected.add(Integer.valueOf(lastClickedID));
+                            ArrayList<String> selected = new ArrayList<>();
+                            selected.add(lastClickedID);
                             NetworkManager.sendToSelectedClients("", "DISCONNECT", selected);
                             removeStudent(lastClickedID);
                             refresh();
@@ -610,8 +582,8 @@ public class ConnectedLearnersAdapter extends BaseAdapter {
 
         Disconnect.setOnClickListener(v -> {
             Log.d(TAG, "[adapter] Removing student: " + lastClickedID);
-            ArrayList<Integer> selected = new ArrayList<>();
-            selected.add(Integer.valueOf(lastClickedID));
+            ArrayList<String> selected = new ArrayList<>();
+            selected.add(lastClickedID);
             NetworkManager.sendToSelectedClients("", "DISCONNECT", selected);
             removeStudent(lastClickedID);
             refresh();

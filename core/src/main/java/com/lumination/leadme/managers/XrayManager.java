@@ -174,7 +174,16 @@ public class XrayManager {
         ImageView closeButton = xrayScreen.findViewById(R.id.back_btn);
         closeButton.setOnClickListener(v -> {
             hideXrayView();
+            try {
+                Log.e(TAG, "CLOSING SERVER SOCKET");
+                serverSocket.close();
+                serverSocket = null;
+                monitorInProgress = false;
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
             DispatchManager.sendActionToSelected(Controller.ACTION_TAG, Controller.XRAY_OFF, NearbyPeersManager.getAllPeerIDs());
+            DispatchManager.sendActionToSelected(Controller.ACTION_TAG, Controller.XRAY_OFF, NearbyPeersManager.getSelectedPeerIDs());
             //remove last
             if (xrayDropdown.getVisibility() == VISIBLE) {
                 xrayButton.callOnClick(); //hide it
@@ -209,7 +218,7 @@ public class XrayManager {
         selectedXrayStudents.addAll(NearbyPeersManager.getSelectedPeerIDsOrAll());
 
         if (selectedXrayStudents.size() > 0) {
-            setXrayStudent(peer);
+            setXrayStudent(peer.equals("") ? selectedXrayStudents.get(0) : peer);
             if (xrayScreen.getVisibility() != VISIBLE) {
                 main.displayXrayView();
             }
@@ -308,7 +317,6 @@ public class XrayManager {
         //let student know we're watching so they send screenshots
         Set<String> selected = new HashSet<>();
         selected.add(xrayStudent.getID());
-        DispatchManager.sendActionToSelected(Controller.ACTION_TAG, Controller.XRAY_ON, selected);
 
         Log.e(TAG, "Peers: SEL:" + selected + ", NOT:" + notSelected);
 
@@ -323,11 +331,20 @@ public class XrayManager {
 
     private void imageRunnableFunction(String imgPeer) {
         Log.e(TAG, "Starting imageRunnable: " + serverSocket.isClosed() + ", " + serverSocket.isBound());
-        Socket socket;
+        Socket socket = null;
         try {
             socket = serverSocket.accept();
             Log.w(TAG, "Accepting SERVER socket from " + serverSocket.getInetAddress() + ", I'm " + socket.getLocalAddress() + " / " + imgPeer);
         } catch (IOException e) {
+            Log.e(TAG, "Failed to start server socket");
+            if (socket != null) {
+                try {
+                    Log.e(TAG, "Closing server socket after failure");
+                    socket.close();
+                } catch (IOException ioException) {
+                    ioException.printStackTrace();
+                }
+            }
             e.printStackTrace();
             monitorInProgress = false;
             return;
@@ -394,6 +411,15 @@ public class XrayManager {
     //client socket for monitoring
     public void startImageClient(String peer) {
         Log.d(TAG, "Starting image client for " + peer);
+        if (serverSocket != null) {
+            try {
+                Log.e(TAG, "Closing SERVER socket");
+                serverSocket.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            serverSocket = null;
+        }
         while (serverSocket == null) {
             try {
                 serverSocket = new ServerSocket(54322);
@@ -410,6 +436,10 @@ public class XrayManager {
         monitorInProgress = true;
         imageSocketThread = new Thread(() -> imageRunnableFunction(peer));
         imageSocketThread.start();
+        Set<String> selected = new HashSet<>();
+        selected.add(peer);
+        DispatchManager.sendActionToSelected(Controller.ACTION_TAG, Controller.XRAY_ON, selected);
+        Log.d(TAG, "Socket thread created");
     }
 
     public void removePeerFromMap(String peer) {

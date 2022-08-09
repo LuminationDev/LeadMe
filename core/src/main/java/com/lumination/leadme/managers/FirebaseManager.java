@@ -1,33 +1,27 @@
 package com.lumination.leadme.managers;
 
-import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.os.Build;
 import android.util.Log;
 
 import com.google.common.net.InetAddresses;
-import com.google.firebase.firestore.CollectionReference;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.firestore.DocumentReference;
-import com.google.firebase.firestore.DocumentSnapshot;
-import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.ListenerRegistration;
-import com.google.firebase.firestore.Query;
-import com.google.firebase.firestore.QueryDocumentSnapshot;
-import com.google.firebase.firestore.SetOptions;
 import com.lumination.leadme.LeadMeMain;
+import com.lumination.leadme.adapters.ConnectedLearnersAdapter;
 import com.lumination.leadme.connections.ConnectedPeer;
 import com.lumination.leadme.controller.Controller;
 import com.lumination.leadme.services.FirebaseService;
+import com.lumination.leadme.services.NetworkService;
 
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Objects;
-import java.util.Timer;
-import java.util.TimerTask;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
+import java.net.InetAddress;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+import java.util.ArrayList;
 
 /**
  * Class create specifically to interact with Firebase, not to handle authentication but to make
@@ -36,39 +30,168 @@ import java.util.concurrent.TimeUnit;
 public class FirebaseManager {
     private static final String TAG = "FirebaseManager";
 
-    private final LeadMeMain main;
-    private final FirebaseFirestore db = FirebaseFirestore.getInstance();
-    private CollectionReference collRef = null;
-    private ListenerRegistration manualUserListener;
+    private static final FirebaseFirestore db = FirebaseFirestore.getInstance();
 
-    private Timer timestampUpdater;
-    private final int inactiveUser = 30; //cut off for hiding inactive leaders (mins)
-    private final int waitForGuide = 10000; //how long to wait before peer re-query's firestore
-    private String serverIP = ""; //needs to be "" so that the learner can see check against
-    private String publicIP;
-    private final HashMap<String, Object> manualConnectionDetails = new HashMap<>();
-    private final ScheduledExecutorService scheduledExecutorService = new ScheduledThreadPoolExecutor(1);
+    private static String serverIP = ""; //needs to be "" so that the learner can see check against
+    private static String publicIP;
+    private static String localIpAddress;
+    public static DatabaseReference roomsReference;
+    public static DatabaseReference roomReference;
+    public static DatabaseReference learnerReference;
+    public static DatabaseReference messagesReference;
+    public static ValueEventListener roomsListener;
+    public static ValueEventListener learnerReceiveMessageListener;
+    public static ValueEventListener leaderReceivingLearnerMessageListener;
+    public static ValueEventListener addLearnerListener;
 
-    public FirebaseManager(LeadMeMain main) {
-        this.main = main;
+    private static DatabaseReference getDatabase()
+    {
+        return FirebaseDatabase.getInstance("https://leafy-rope-301003-default-rtdb.asia-southeast1.firebasedatabase.app/").getReference();
     }
 
-    public void startService() {
-        Log.d(TAG, "startService: ");
-        Intent firebase_intent = new Intent(main.getApplicationContext(), FirebaseService.class);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            main.startForegroundService(firebase_intent);
-        } else {
-            main.startService(firebase_intent);
+    public static void sendAllLearnerMessage(String message)
+    {
+        if (messagesReference == null) {
+            return;
         }
+        messagesReference.child("currentMessage").setValue(message);
     }
 
-    public void stopService() {
-        if(timestampUpdater != null) {
-            timestampUpdater.cancel();
+    public static void sendLearnerMessage(String ipAddress, String message)
+    {
+        if (messagesReference == null) {
+            return;
         }
-        Intent stop_firebase_intent = new Intent(main.getApplicationContext(), FirebaseService.class);
-        main.stopService(stop_firebase_intent);
+        messagesReference.child("learners").child(ipAddress.replace(".", "_")).child("leaderMessage").setValue(message);
+    }
+
+    public static void sendLeaderMessage(String message)
+    {
+        if (learnerReference == null) {
+            return;
+        }
+        learnerReference.child("currentMessage").setValue(message);
+    }
+
+    public static void connectToLeader()
+    {
+        NearbyPeersManager.setID(getLocalIpAddress().replace(".", "_"));
+        DatabaseReference database = getDatabase();
+        roomReference = database.child(waitForPublic().replace(".", "_")).child("rooms").child(NetworkService.getLeaderIPAddress().getHostAddress().replace(".", "_"));
+        messagesReference = database.child(waitForPublic().replace(".", "_")).child("messages").child(NetworkService.getLeaderIPAddress().getHostAddress().replace(".", "_"));
+
+        learnerReceiveMessageListener = new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                // Get Post object and use the values to update the UI
+                if (dataSnapshot.getValue() != null && dataSnapshot.getValue().toString().length() > 0) {
+                    NetworkService.receiveMessage(dataSnapshot.getValue().toString());
+
+                    Log.e(TAG, dataSnapshot.getValue().toString());
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+            }
+        };
+
+        messagesReference.child("learners").child(getLocalIpAddress().replace(".", "_")).child("currentMessage").setValue("");
+        messagesReference.child("learners").child(getLocalIpAddress().replace(".", "_")).child("currentMessage").onDisconnect().setValue("DISCONNECT," + getLocalIpAddress().replace(".", "_"));
+        learnerReference = messagesReference.child("learners").child(getLocalIpAddress().replace(".", "_"));
+        messagesReference.child("learners").child(getLocalIpAddress().replace(".", "_")).child("leaderMessage").setValue("");
+
+        messagesReference.child("currentMessage").addValueEventListener(learnerReceiveMessageListener);
+        messagesReference.child("learners").child(getLocalIpAddress().replace(".", "_")).child("leaderMessage").addValueEventListener(learnerReceiveMessageListener);
+    }
+
+    public static void connectAsLeader(String name)
+    {
+        DatabaseReference database = getDatabase();
+        database.child(waitForPublic().replace(".", "_")).child("rooms").child(getLocalIpAddress().replace(".", "_")).child("id").setValue(getLocalIpAddress());
+        roomReference = database.child(waitForPublic().replace(".", "_")).child("rooms").child(getLocalIpAddress().replace(".", "_"));
+        messagesReference = database.child(waitForPublic().replace(".", "_")).child("messages").child(getLocalIpAddress().replace(".", "_"));
+        messagesReference.child("learners").child("id").setValue(getLocalIpAddress());
+        messagesReference.child("currentMessage").setValue("");
+        roomReference.child("leaderName").setValue(name);
+
+        roomReference.onDisconnect().removeValue();
+        messagesReference.child("currentMessage").onDisconnect().setValue("DISCONNECT,DISCONNECT");
+        messagesReference.child("learners").removeValue();
+
+        addLearnerListener = new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                // Get Post object and use the values to update the UI
+                Log.e(TAG, dataSnapshot.toString());
+                if (dataSnapshot.getChildrenCount() != ConnectedLearnersAdapter.mData.size()) {
+                    for (DataSnapshot data:dataSnapshot.getChildren()) {
+                        if (!data.getKey().equals("id") &&
+                                (data.child("leaderMessage").getValue() == null || !data.child("leaderMessage").getValue().toString().startsWith("DISCONNECT"))) {
+                            NetworkManager.addLearnerIfNotExists(data.getKey());
+                        }
+                    }
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+            }
+        };
+        messagesReference.child("learners").addValueEventListener(addLearnerListener);
+    }
+
+    public static void handleLearnerConnectingToLeader(String clientId)
+    {
+        leaderReceivingLearnerMessageListener = new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                Log.e(TAG, "message received:" + dataSnapshot.toString());
+                Object messageObj = dataSnapshot.getValue();
+                if (messageObj != null) {
+                    String message = messageObj.toString();
+                    if (message.length() > 0) {
+                        NetworkService.determineAction(clientId, message);
+                    }
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+            }
+        };
+        messagesReference.child("learners").child(clientId).child("currentMessage").addValueEventListener(leaderReceivingLearnerMessageListener);
+    }
+
+    public static void removeLearner(String clientId) {
+        messagesReference.child("learners").child(clientId).child("currentMessage").removeEventListener(leaderReceivingLearnerMessageListener);
+        messagesReference.child("learners").child(clientId).removeValue();
+    }
+
+    public static void handleDisconnect(boolean isGuide) {
+        if (messagesReference != null) {
+            if (!isGuide) {
+                messagesReference.child("learners").child(getLocalIpAddress().replace(".", "_")).child("currentMessage").onDisconnect().cancel();
+                messagesReference.child("learners").child(getLocalIpAddress().replace(".", "_")).removeValue();
+            }
+            if (learnerReceiveMessageListener != null) {
+                messagesReference.child("currentMessage").removeEventListener(learnerReceiveMessageListener);
+                messagesReference.child("learners").child(getLocalIpAddress().replace(".", "_")).child("leaderMessage").removeEventListener(learnerReceiveMessageListener);
+            }
+            if (addLearnerListener != null) {
+                messagesReference.child("learners").removeEventListener(addLearnerListener);
+            }
+            if (isGuide) {
+                messagesReference.removeValue();
+            }
+            messagesReference = null;
+        }
+        if (roomReference != null) {
+            if (isGuide) {
+                roomReference.removeValue();
+            }
+            roomReference = null;
+        }
     }
 
     /**
@@ -78,10 +201,8 @@ public class FirebaseManager {
      * If the public IP address is present but the certain leader hasn't logged on yet, a listener is
      * attached to wait for any chances in the firebase.
      * */
-    public void retrieveLeaders() {
-        if(publicIP == null) {
-            waitForPublic();
-        }
+    public static void retrieveLeaders() {
+        waitForPublic();
 
         Log.d(TAG, "retrieveLeaders: " + publicIP);
 
@@ -103,188 +224,51 @@ public class FirebaseManager {
             return;
         }
 
-        collRef = db.collection("addresses").document(publicIP).collection("Leaders");
-
-        collRef.get().addOnCompleteListener(task -> {
-            if (task.isSuccessful()) {
-                //if no one has registered on the public IP yet, wait sometime and try again.
-                try {
-                    if (Objects.requireNonNull(task.getResult()).size() == 0) {
-                        //In case the user switches back to auto
-                        if (LeadMeMain.sessionManual && !LeadMeMain.directConnection) {
-                            scheduledExecutorService.schedule(this::retrieveLeaders, waitForGuide, TimeUnit.MILLISECONDS);
-                        }
-                    } else {
-                        //add listeners to track if leader hasn't logged in but publicIP exists (multiple leaders on network)
-                        trackCollection(collRef);
-                    }
-                } catch (NullPointerException e) {
-                    Log.d(TAG, "onComplete: " + e);
-                }
-            } else {
-                Log.d(TAG, "Error getting documents: ", task.getException());
-            }
-        });
-    }
-
-    //add a listener to the Leader collection to wait for log in
-    private void trackCollection(CollectionReference collRef) {
-        if(manualUserListener != null){
-            manualUserListener.remove();
+        DatabaseReference database = FirebaseDatabase.getInstance("https://leafy-rope-301003-default-rtdb.asia-southeast1.firebasedatabase.app/").getReference();
+        roomsReference = database.child(waitForPublic().replace(".", "_")).child("rooms");
+        if (roomsListener != null) {
+            FirebaseManager.roomsReference.removeEventListener(FirebaseManager.roomsListener);
         }
-
-        if(!NearbyPeersManager.isConnectedAsFollower()) {
-            Log.d(TAG, "trackCollection: listener added");
-
-            manualUserListener = collRef.addSnapshotListener((value, error) -> {
-                Log.d(TAG, "onEvent: ip listener fired");
-                if (error != null) {
-                    Log.w(TAG, "Listen failed.", error);
-                    return;
-                }
-
-                if (value != null) {
-                    for (QueryDocumentSnapshot document : value) {
-                        Date leaderTimeStamp = Objects.requireNonNull(document.getTimestamp("TimeStamp")).toDate();
-
-                        if (checkTimeDifference(leaderTimeStamp) >= inactiveUser) {
-                            return;
-                        }
-
-                        if (document.get("Username") != null) {
+        roomsListener = new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                // Get Post object and use the values to update the UI
+                Log.e(TAG, dataSnapshot.toString());
+                Controller.getInstance().getLeaderSelectAdapter().setLeaderList(new ArrayList<>());
+                if (dataSnapshot.getChildrenCount() != ConnectedLearnersAdapter.mData.size()) {
+                    for (DataSnapshot data:dataSnapshot.getChildren()) {
+                        if (data.child("leaderName").getValue() != null) {
                             LeadMeMain.runOnUI(() -> {
                                 Controller.getInstance().getLeaderSelectAdapter().addLeader(
                                         new ConnectedPeer(
-                                                document.get("Username").toString(),
-                                                document.get("ServerIP").toString()));
+                                                data.child("leaderName").getValue().toString(),
+                                                data.getKey().replace("_", ".")));
 
                                 LeadMeMain.getInstance().showLeaderWaitMsg(false);
                             });
                         }
                     }
-                } else {
-                    Log.d(TAG, "Current data: null");
                 }
-            });
-        }
-    }
+            }
 
-    /**
-     * Removes the user entry listener attached to the firebase collection that looks for new
-     * leaders signing in.
-     */
-    public void removeUserListener() {
-        if (manualUserListener != null) {
-            Log.d(TAG, "loginAction: listener removed");
-            manualUserListener.remove();
-            manualUserListener = null;
-        }
-    }
-
-    /**
-     * calculate the difference between the firebase timestamp and the current time
-     * return the minutes, can also work out other units if necessary.
-     */
-    private int checkTimeDifference(Date leaderTimeStamp) {
-        Date now = new Date();
-
-        long difference_In_Time = now.getTime() - leaderTimeStamp.getTime();
-        long difference_In_Minutes = (difference_In_Time / (1000 * 60)) % 60;
-        long difference_In_Hours = (difference_In_Time / (1000 * 60 * 60)) % 24;
-
-        /*max difference can be 24 * 60 (mins), server clears firestore once or twice a day
-        so anything more is not necessary at this point.*/
-        return (int) (difference_In_Hours * 60) + (int) difference_In_Minutes;
-    }
-
-    /**
-     * Create a new entry in firebase for a Guide, allowing peers to connect manually instead of
-     * by discovery. Updates the timestamp every set period while leader is logged in, separate
-     * code clears the database every few hours.
-     * @param ipAddress A String representing the local IPAddress of the Guide's device.
-     */
-    public void createManualConnection(String ipAddress) {
-        //initiate public ip track and firebase
-        waitForPublic();
-
-        serverIP = ipAddress;
-        FirebaseService.setServerIP(serverIP);
-        manualConnectionDetails.put("Email", Controller.getInstance().getAuthenticationManager().getCurrentAuthEmail());
-        manualConnectionDetails.put("Username", Controller.getInstance().getAuthenticationManager().getCurrentAuthUserName());
-        manualConnectionDetails.put("ServerIP", serverIP);
-        manualConnectionDetails.put("TimeStamp", FieldValue.serverTimestamp());
-
-        //update firebase and start a continuous timer for updating the timestamp
-        timestampUpdater = new Timer();
-        TimerTask updateTimestamp = new TimerTask() {
             @Override
-            public void run() {
-                updateAddress();
+            public void onCancelled(DatabaseError databaseError) {
+                // Getting Post failed, log a message
+                Log.e(TAG, "loadPost:onCancelled", databaseError.toException());
             }
         };
-
-        //update the leaders timestamp on firebase (mins)
-        int leaderTimestampUpdate = 15;
-        timestampUpdater.scheduleAtFixedRate(updateTimestamp, 0L, leaderTimestampUpdate * (60 * 1000));
-    }
-
-    /**
-     * If the public IP is not null check for duplicate entries in the database.
-     */
-    private void updateAddress() {
-        if(publicIP.length() == 0) {
-            return;
-        }
-
-        //Check the database for any duplicate usernames and delete them.
-        deleteDuplicates();
-    }
-
-    /**
-     * Collect any previous data entries for the same email and delete to avoid duplicate discovered leaders.
-     */
-    private void deleteDuplicates() {
-        Query query = db.collection("addresses").document(publicIP)
-                .collection("Leaders").whereEqualTo("Email", manualConnectionDetails.get("Email"));
-
-        query.get().addOnCompleteListener(task -> {
-            if (task.isSuccessful()) {
-                Log.d(TAG, "Documents found.");
-
-                for (DocumentSnapshot document : task.getResult()) {
-                    db.collection("addresses").document(publicIP)
-                            .collection("Leaders").document(document.getId()).delete();
-                }
-
-                //Register the new address.
-                setNewAddress();
-            } else {
-                Log.d(TAG, "Error getting documents: ", task.getException());
-            }
-        });
-    }
-
-    /**
-     * Register the login details with PublicIP address as the documentID
-     * create a new document of the publicIP address if does not exist
-     * create a new collection, Leaders if it does not exist in case multiple Leaders are online
-     * create a new document of the ServerIP address with username, ServerIP, PublicIP and timestamp fields
-     */
-    private void setNewAddress() {
-        db.collection("addresses").document(publicIP)
-                .collection("Leaders").document(serverIP).set(manualConnectionDetails, SetOptions.merge())
-                .addOnSuccessListener(aVoid -> Log.d(TAG, "DocumentSnapshot successfully written!"))
-                .addOnFailureListener(e -> Log.w(TAG, "Error writing document", e));
+        roomsReference.addValueEventListener(roomsListener);
     }
 
     /**
      * Attempt to get the public IP address of the current device (router address)
      */
-    private void waitForPublic() {
+    private static String waitForPublic() {
+        if (publicIP != null) {
+            return  publicIP;
+        }
         Thread getPublic = new Thread(() -> {
             publicIP = getPublicIP();
-            FirebaseService.setPublicIP(publicIP);
-            manualConnectionDetails.put("PublicIP", publicIP); //store as reference for the clean up server
         });
 
         getPublic.start();
@@ -294,47 +278,67 @@ public class FirebaseManager {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+        return publicIP;
+    }
+
+    public static String getLocalIpAddress() {
+        if (localIpAddress != null && localIpAddress.length() > 0) {
+            return localIpAddress;
+        }
+        try  {
+            localIpAddress = InetAddress.getByAddress(
+                    ByteBuffer
+                            .allocate(Integer.BYTES)
+                            .order(ByteOrder.LITTLE_ENDIAN)
+                            .putInt(LeadMeMain.wifiManager.getConnectionInfo().getIpAddress())
+                            .array()
+            ).getHostAddress();
+        } catch (java.io.IOException e) {
+            e.printStackTrace();
+        }
+
+        return localIpAddress;
     }
 
     //Call https://api.ipify.org to simply get the public IP address
-    private String getPublicIP() {
-        String publicIPlocal = "";
+    private static String getPublicIP() {
+        String internalPublicIp = "";
         try  {
             java.util.Scanner s = new java.util.Scanner(
                     new java.net.URL(
                             "https://api.ipify.org")
                             .openStream(), "UTF-8")
                     .useDelimiter("\\A");
-            publicIPlocal = s.next();
+            internalPublicIp = s.next();
             Log.d(TAG, "getPublicIP: got public");
         } catch (java.io.IOException e) {
             e.printStackTrace();
             Log.d(TAG, "getPublicIP: didn't get public");
         }
 
-        return publicIPlocal;
+        return internalPublicIp;
     }
 
     /**
      * Set the server IP
      * @param ip A String representing the public IP address the guide is connected to.
      */
-    public void setServerIP(String ip) {
-        this.serverIP = ip;
+    public static void setServerIP(String ip) {
+        serverIP = ip;
     }
 
     /**
      * Get the current server IP.
      * @return A String representing the public IP address the guide is connected to.
      */
-    public String getServerIP() {
-        return this.serverIP;
+    public static String getServerIP() {
+        return serverIP;
     }
 
     /**
      * Call the firebase to get the current version of the application that is on the play store.
      */
-    public void checkCurrentVersion() {
+    public static void checkCurrentVersion() {
         DocumentReference docRef = db.collection("version").document("production");
 
         docRef.get().addOnCompleteListener(task -> {
@@ -356,15 +360,15 @@ public class FirebaseManager {
      * @param productionVersion A string representing the latest version as detailed by the
      *                          Firestore entry.
      */
-    private void compareVersions(String productionVersion) {
+    private static void compareVersions(String productionVersion) {
         String runningVersion = "";
 
         Log.d(TAG, "Production version: " + productionVersion);
 
         if (!productionVersion.equals("")) {
             try {
-                runningVersion = main.context.getPackageManager()
-                        .getPackageInfo(main.context.getPackageName(), 0)
+                runningVersion = LeadMeMain.getInstance().context.getPackageManager()
+                        .getPackageInfo(LeadMeMain.getInstance().context.getPackageName(), 0)
                         .versionName;
             } catch (PackageManager.NameNotFoundException e) {
                 e.printStackTrace();
