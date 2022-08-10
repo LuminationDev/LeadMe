@@ -1302,6 +1302,13 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             }
         });
 
+        mainLeader.findViewById(R.id.favourites_core_btn).setOnTouchListener(touchListener);
+        mainLeader.findViewById(R.id.favourites_core_btn).setOnClickListener(view -> {
+            this.closeKeyboard();
+            this.hideSystemUI();
+            Controller.getInstance().getWebManager().launchUrlYtFavourites();
+        });
+
         checkAddtionalPreferences();
 
         //file transfer button

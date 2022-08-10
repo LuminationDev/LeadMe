@@ -253,6 +253,31 @@
                 </LinearLayout>
             </LinearLayout>
 
+            <LinearLayout
+                android:id="@+id/favourites_core_btn"
+                style="@style/LeaderButton"
+                android:orientation="vertical">
+
+                <LinearLayout style="@style/LeaderButton__IconWrapper">
+
+                    <LinearLayout
+                        style="@style/LeaderButton__Icon"
+                        android:background="@drawable/ic_favourites_core" />
+                </LinearLayout>
+
+                <LinearLayout style="@style/LeaderButton__Text">
+
+                    <TextView
+                        style="@style/LeaderButton__Text__Eyebrow"
+                        android:text="PUSH"
+                        android:visibility="invisible"/>
+
+                    <TextView
+                        style="@style/LeaderButton__Text__Lead"
+                        android:text="Favourites" />
+                </LinearLayout>
+            </LinearLayout>
+
             <!--            Move to a better position when implemented-->
             <LinearLayout
                 android:id="@+id/end_core_btn"
