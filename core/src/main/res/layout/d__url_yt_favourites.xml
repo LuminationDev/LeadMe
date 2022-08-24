@@ -317,6 +317,37 @@
             </LinearLayout>
         </HorizontalScrollView>
 
+        <HorizontalScrollView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:fillViewport="true">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical">
+
+                <GridView
+                    android:id="@+id/app_favourites"
+                    android:layout_width="1500dp"
+                    android:layout_height="150dp"
+                    android:layout_gravity="start"
+                    android:background="@color/leadme_light_grey"
+                    android:gravity="start"
+                    android:isScrollContainer="false"
+                    android:numColumns="10"
+                    android:orientation="horizontal"
+                    android:paddingTop="10dp"
+                    android:scrollIndicators="end"
+                    android:scrollbarAlwaysDrawHorizontalTrack="true"
+                    android:scrollbarAlwaysDrawVerticalTrack="false"
+                    android:scrollbarStyle="outsideInset"
+                    android:scrollbars="horizontal"
+                    android:visibility="visible"
+                    tools:listitem="@layout/row_fav_url" />
+            </LinearLayout>
+        </HorizontalScrollView>
+
     </LinearLayout>
 
 </LinearLayout>

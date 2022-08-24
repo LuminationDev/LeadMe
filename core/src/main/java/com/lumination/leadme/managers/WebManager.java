@@ -140,6 +140,7 @@ public class WebManager {
 
         ((GridView) webYouTubeFavView.findViewById(R.id.yt_favourites)).setAdapter(getYouTubeFavouritesManager());
         ((GridView) webYouTubeFavView.findViewById(R.id.url_favourites)).setAdapter(getUrlFavouritesManager());
+        ((GridView) webYouTubeFavView.findViewById(R.id.app_favourites)).setAdapter(Controller.getInstance().getAppManager().getFavouritesManager());
 
         webYouTubeFavView.findViewById(R.id.clear_fav_btn).setOnClickListener(v -> {
             showClearWebFavDialog(CLEAR_ALL);

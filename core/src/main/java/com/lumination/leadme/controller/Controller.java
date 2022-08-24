@@ -146,12 +146,12 @@ public class Controller {
         dialogManager = new DialogManager(main);
         nearbyManager = new NearbyPeersManager();
         dispatcher = new DispatchManager(main);
+        appLaunchAdapter = new AppManager(main);
         webManager = new WebManager(main);
         leaderSelectAdapter = new LeaderSelectAdapter(main);
         vrAccessibilityManager = new VRAccessibilityManager(main);
         vrEmbedPhotoPlayer = new VREmbedPhotoPlayer(main);
         vrEmbedVideoPlayer = new VREmbedVideoPlayer(main);
-        appLaunchAdapter = new AppManager(main);
         xrayManager = new XrayManager(main, LeadMeMain.getInstance().xrayScreen);
         fileTransferManager = new FileTransferManager(main);
         lumiAppInstaller = new AppInstaller(main);
