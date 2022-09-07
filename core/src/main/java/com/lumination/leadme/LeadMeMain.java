@@ -97,6 +97,7 @@ import com.lumination.leadme.adapters.LeaderSelectAdapter;
 import com.lumination.leadme.managers.AppManager;
 import com.lumination.leadme.managers.AuthenticationManager;
 import com.lumination.leadme.managers.DialogManager;
+import com.lumination.leadme.managers.FavouritesManager;
 import com.lumination.leadme.managers.FileTransferManager;
 import com.lumination.leadme.managers.FirebaseManager;
 import com.lumination.leadme.managers.NearbyPeersManager;
@@ -313,6 +314,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     protected final int ANIM_MULTI_INDEX = 7;
     public final int ANIM_CURATED_CONTENT_LAUNCH_INDEX = 8;
     private final int ANIM_CURATED_CONTENT_SINGLE_LAUNCH_INDEX = 9;
+    private final int ANIM_FAVOURITES_LAUNCH_INDEX = 10;
 
     public View waitingForLearners, appLauncherScreen;
     public View splashscreen, startLearner, mainLearner, startLeader, mainLeader, optionsScreen, switcherView, xrayScreen;
@@ -1404,6 +1406,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         multiAppManager = View.inflate(context, R.layout.d__app_manager_list, null);
         CuratedContentManager.curatedContentScreen = View.inflate(context, R.layout.d__curated_content_list, null);
         CuratedContentManager.curatedContentScreenSingle = View.inflate(context, R.layout.curated_content_single, null);
+        FavouritesManager.FavouritesScreen = View.inflate(context, R.layout.d__url_yt_favourites, null);
     }
 
     /**
@@ -1426,13 +1429,13 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         dialogManager = new DialogManager(this);
         nearbyManager = new NearbyPeersManager(this);
         dispatcher = new DispatchManager(this);
+        appLaunchAdapter = new AppManager(this);
         webManager = new WebManager(this);
         leaderSelectAdapter = new LeaderSelectAdapter(this);
         lumiAccessibilityConnector = new LumiAccessibilityConnector(this);
         vrAccessibilityManager = new VRAccessibilityManager(this);
         vrEmbedPhotoPlayer = new VREmbedPhotoPlayer(this);
         vrEmbedVideoPlayer = new VREmbedVideoPlayer(this); //VR PLAYER
-        appLaunchAdapter = new AppManager(this);
         xrayManager = new XrayManager(this, xrayScreen);
         fileTransferManager = new FileTransferManager(this);
         lumiAppInstaller = new AppInstaller(this);
@@ -1568,6 +1571,12 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             CuratedContentManager.setupCuratedContent(this);
             showCuratedContentScreen();
             appLauncherScreen.findViewById(R.id.app_scroll_view).scrollTo(0, 0);
+        });
+
+        mainLeader.findViewById(R.id.fav_btn_core).setOnClickListener(view -> {
+            this.closeKeyboard();
+            this.hideSystemUI();
+            this.getWebManager().launchUrlYtFavourites();
         });
 
         mainLeader.findViewById(R.id.xray_core_btn).setOnClickListener(v -> {
@@ -1716,6 +1725,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         leadmeAnimator.addView(multiAppManager);
         leadmeAnimator.addView(CuratedContentManager.curatedContentScreen);
         leadmeAnimator.addView(CuratedContentManager.curatedContentScreenSingle);
+        leadmeAnimator.addView(FavouritesManager.FavouritesScreen);
     }
 
     /**
@@ -1764,6 +1774,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         //set up back buttons
         appLauncherScreen.findViewById(R.id.back_btn).setOnClickListener(view -> leadmeAnimator.setDisplayedChild(ANIM_LEADER_INDEX));
         CuratedContentManager.curatedContentScreen.findViewById(R.id.back_btn).setOnClickListener(view -> leadmeAnimator.setDisplayedChild(ANIM_LEADER_INDEX));
+        FavouritesManager.FavouritesScreen.findViewById(R.id.back_btn).setOnClickListener(view -> leadmeAnimator.setDisplayedChild(ANIM_LEADER_INDEX));
 
         //multi installer screen back button
         multiAppManager.findViewById(R.id.back_btn).setOnClickListener(view -> {
@@ -2107,6 +2118,10 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
     public void showCuratedContentSingleScreen() {
         leadmeAnimator.setDisplayedChild(ANIM_CURATED_CONTENT_SINGLE_LAUNCH_INDEX);
+    }
+
+    private void showFavouritesScreen() {
+        leadmeAnimator.setDisplayedChild(ANIM_FAVOURITES_LAUNCH_INDEX);
     }
 
     public void showMultiAppInstallerScreen() {

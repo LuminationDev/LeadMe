@@ -46,7 +46,7 @@ public class AppManager extends BaseAdapter {
 
     public AppManager(LeadMeMain main) {
         this.main = main;
-        favouritesManager = new FavouritesManager(main, null, FavouritesManager.FAVTYPE_APP, 4);
+        favouritesManager = new FavouritesManager(main, main.getWebManager(), FavouritesManager.FAVTYPE_APP, 4);
         withinPlayer = new WithinEmbedPlayer(main);
         app_placeholder = main.getDrawable(R.drawable.icon_unknown_browser);
         defaultBrowserUrl = main.getResources().getString(R.string.default_browser_url);

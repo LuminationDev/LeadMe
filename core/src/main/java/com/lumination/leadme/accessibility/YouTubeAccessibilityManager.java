@@ -124,7 +124,6 @@ public class YouTubeAccessibilityManager {
             //tapVideoScreen();
             pushTitle = main.getWebManager().getLaunchTitle().trim();
             pushURL = main.getWebManager().getPushURL();
-
             adNodes = connector.collectChildren(rootInActiveWindow, "Ad", 0);
 
             adNodes.addAll(connector.collectChildren(rootInActiveWindow, "title", 0));

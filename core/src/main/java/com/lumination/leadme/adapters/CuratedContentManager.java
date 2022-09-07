@@ -76,6 +76,7 @@ public class CuratedContentManager {
 
     public static View curatedContentScreen;
     public static View curatedContentScreenSingle;
+    public static View FavouritesScreen;
     public static boolean hasDoneSetup = false;
 
     public static void showCuratedContentSingle (LeadMeMain main, CuratedContentItem curatedContentItem, View listItem) {
@@ -311,7 +312,6 @@ public class CuratedContentManager {
         final BottomSheetDialog searchSheetDialog = new BottomSheetDialog(main, R.style.BottomSheetDialogTransparentBackground);
         searchSheetDialog.setContentView(R.layout.search_sheet_layout);
         EditText searchInput = searchSheetDialog.findViewById(R.id.search_input);
-
         CuratedContentManager.curatedContentAdapterSearch = new CuratedContentAdapter(main, searchSheetDialog.findViewById(R.id.curated_content_list));
 
         searchInput.setOnEditorActionListener(new TextView.OnEditorActionListener() {

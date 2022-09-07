@@ -149,6 +149,27 @@
             </LinearLayout>
 
             <LinearLayout
+                android:id="@+id/fav_btn_core"
+                style="@style/LeaderButton"
+                android:orientation="vertical">
+                <LinearLayout
+                    style="@style/LeaderButton__IconWrapper">
+                    <LinearLayout
+                        style="@style/LeaderButton__Icon"
+                        android:background="@drawable/core_fav_icon"/>
+                </LinearLayout>
+                <LinearLayout
+                    style="@style/LeaderButton__Text">
+                    <TextView
+                        style="@style/LeaderButton__Text__Eyebrow"
+                        android:text="PUSH"/>
+                    <TextView
+                        style="@style/LeaderButton__Text__Lead"
+                        android:text="Favourites"/>
+                </LinearLayout>
+            </LinearLayout>
+
+            <LinearLayout
                 android:id="@+id/url_core_btn"
                 style="@style/LeaderButton"
                 android:orientation="vertical">

@@ -36,9 +36,9 @@ public class FavouritesManager extends BaseAdapter {
 
     private final String TAG = "FavManager";
 
-    public static final int FAVTYPE_APP = 0;
-    public static final int FAVTYPE_URL = 1;
-    public static final int FAVTYPE_YT = 2;
+    public static final int FAVTYPE_URL = 0;
+    public static final int FAVTYPE_YT = 1;
+    public static final int FAVTYPE_APP = 2;
 
     private TextView favMsgView, favTitleView;
     private ImageView favImgView;
@@ -69,6 +69,8 @@ public class FavouritesManager extends BaseAdapter {
 
     private final LeadMeMain main;
     private final WebManager webManager;
+
+    public static View FavouritesScreen;
 
     public FavouritesManager(LeadMeMain main, WebManager webManager, int favType, int maxLimit) {
         this.main = main;
@@ -271,20 +273,34 @@ public class FavouritesManager extends BaseAdapter {
                 view.setVisibility(View.VISIBLE);
                 updateSizes(itemCount, view);
 
-            } else if (favType == FAVTYPE_URL) {
+            }
+           if (favType == FAVTYPE_URL) {
                 webManager.getWebYouTubeFavView().findViewById(R.id.url_no_favs).setVisibility(View.GONE);
                 GridView view = webManager.getWebYouTubeFavView().findViewById(R.id.url_favourites);
                 view.setVisibility(View.VISIBLE);
                 updateSizes(itemCount, view);
             }
-        } else {
+           if (favType == FAVTYPE_APP) {
+                webManager.getWebYouTubeFavView().findViewById(R.id.app_no_favs).setVisibility(View.GONE);
+                GridView view = webManager.getWebYouTubeFavView().findViewById(R.id.app_favourites);
+                view.setVisibility(View.VISIBLE);
+                updateSizes(itemCount, view);
+            }
+        }
+
+        else {
             if (favType == FAVTYPE_YT) {
                 webManager.getWebYouTubeFavView().findViewById(R.id.yt_no_favs).setVisibility(View.VISIBLE);
                 webManager.getWebYouTubeFavView().findViewById(R.id.yt_favourites).setVisibility(View.GONE);
 
-            } else if (favType == FAVTYPE_URL) {
+            }
+            if (favType == FAVTYPE_URL) {
                 webManager.getWebYouTubeFavView().findViewById(R.id.url_no_favs).setVisibility(View.VISIBLE);
                 webManager.getWebYouTubeFavView().findViewById(R.id.url_favourites).setVisibility(View.GONE);
+            }
+            if (favType == FAVTYPE_APP) {
+                webManager.getWebYouTubeFavView().findViewById(R.id.app_no_favs).setVisibility(View.VISIBLE);
+                webManager.getWebYouTubeFavView().findViewById(R.id.app_favourites).setVisibility(View.GONE);
             }
         }
     }

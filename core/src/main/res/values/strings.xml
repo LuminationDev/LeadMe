@@ -88,9 +88,10 @@
     <string name="recall_comment_selected">Which learners should return to LeadMe?</string>
     <string name="recall_comment_all">Return all learners to LeadMe?</string>
 
-    <string name="delete_videos_and_websites_confirm">This will delete all of your saved videos and websites. Are you sure?</string>
+    <string name="delete_videos_and_websites_confirm">This will delete all of your saved videos, websites and apps. Are you sure?</string>
     <string name="delete_videos_confirm">This will delete all of your saved videos. Are you sure?</string>
     <string name="delete_websites_confirm">This will delete all of your saved websites. Are you sure?</string>
+    <string name="delete_apps_confirm">This will delete all of your saved apps. Are you sure?</string>
     <string name="yes_delete_them">Yes, delete them</string>
     <string name="delete_favourites">Delete Favourites</string>
     <string name="websites">Websites</string>

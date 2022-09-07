@@ -72,14 +72,15 @@ public class WebManager {
     private ProgressBar previewProgress;
     private boolean isYouTube = false;
     private String pushURL = "";
+    private String controllerURL ="";
     private String pushTitle = "";
-    String controllerURL = "";
 
     private final Button previewPushBtn;
 
     private final View webYouTubeFavView;
     private final FavouritesManager urlFavouritesManager;
     private final FavouritesManager youTubeFavouritesManager;
+    private final FavouritesManager appFavouritesManager;
 
     private final LeadMeMain main;
     private final DialogManager dialogManager;
@@ -93,15 +94,16 @@ public class WebManager {
 
     //this entire thing is in progress
     public WebManager(LeadMeMain main) {
-        Log.d(TAG, "WebManager: ");
-        this.main = main;
+        Log.d(TAG, "WebManager: "); //shows log in logcat
+        this.main = main; //bringing leadmemain into here
         this.dialogManager = main.getDialogManager();
         thread = Thread.currentThread();
 
+        //this part opens up pages which are used in the webmanager
         websiteLaunchDialogView = View.inflate(main, R.layout.d__enter_url, null);
         previewDialogView = View.inflate(main, R.layout.e__preview_url_push, null);
         searchDialogView = View.inflate(main, R.layout.e__preview_url_search, null);
-        previewPushBtn = previewDialogView.findViewById(R.id.push_btn);
+        previewPushBtn = previewDialogView.findViewById(R.id.push_btn); //this links the button to opening page view.
 
         youTubeEmbedPlayer = new YouTubeEmbedPlayer(main, this);
 
@@ -116,7 +118,7 @@ public class WebManager {
         lockSpinner.setSelection(0); //default to locked
 
         //set up search spinner
-        //TODO add Vimeo search
+        // TODO add Vimeo search
         searchSpinner = (Spinner) searchDialogView.findViewById(R.id.search_spinner);
         searchSpinnerItems = new String[3];
         searchSpinnerItems[0] = "Google search";
@@ -131,21 +133,28 @@ public class WebManager {
         favCheckbox = previewDialogView.findViewById(R.id.fav_checkbox);
         setupWarningDialog();
 
+        //this sets up the search button
         websiteLaunchDialogView.findViewById(R.id.url_search_btn).setOnClickListener(v -> {
             hidePreviewDialog();
             buildAndShowSearchDialog();
         });
 
+        //this sets up the managers for each area seen in the Favourites manager
         urlFavouritesManager = new FavouritesManager(main, this, FavouritesManager.FAVTYPE_URL, 10);
         youTubeFavouritesManager = new FavouritesManager(main, this, FavouritesManager.FAVTYPE_YT, 10);
+        appFavouritesManager = new FavouritesManager(main, this, FavouritesManager.FAVTYPE_APP, 10);
 
+        //this brings up the grid views
         ((GridView) webYouTubeFavView.findViewById(R.id.yt_favourites)).setAdapter(getYouTubeFavouritesManager());
         ((GridView) webYouTubeFavView.findViewById(R.id.url_favourites)).setAdapter(getUrlFavouritesManager());
+        ((GridView) webYouTubeFavView.findViewById(R.id.app_favourites)).setAdapter(getAppFavouritesManager());
 
+        //this sets uo the clear button
         webYouTubeFavView.findViewById(R.id.clear_fav_btn).setOnClickListener(v -> {
             showClearWebFavDialog(CLEAR_ALL);
             getYouTubeFavouritesManager().clearFavourites();
             getUrlFavouritesManager().clearFavourites();
+            getAppFavouritesManager().clearFavourites();
         });
 
         setupViews();
@@ -153,6 +162,7 @@ public class WebManager {
         setupWebLaunchDialog();
     }
 
+    //if error occurs
     private void setErrorPreview(String searchTerm) {
         Log.d(TAG, "setErrorPreview: ");
         final SearchView searchView = searchDialogView.findViewById(R.id.url_search_bar);
@@ -258,14 +268,22 @@ public class WebManager {
         add(new ComponentName("com.android.browser", "com.android.browser.BrowserActivity"));
     }};
 
+    //retrieves urls favourites
     public FavouritesManager getUrlFavouritesManager() {
         return urlFavouritesManager;
     }
 
+    //retrieves youtube favourites
     public FavouritesManager getYouTubeFavouritesManager() {
         return youTubeFavouritesManager;
     }
 
+    //retrieves app favourites
+    public FavouritesManager getAppFavouritesManager() {
+        return appFavouritesManager;
+    }
+
+    //
     private void setupViews() {
         Log.d(TAG, "setupViews: ");
         webYouTubeFavView.findViewById(R.id.yt_add_btn).setOnClickListener(v -> {
@@ -282,17 +300,27 @@ public class WebManager {
             urlYtFavDialog.dismiss();
         });
 
+        webYouTubeFavView.findViewById(R.id.app_add_btn).setOnClickListener(v -> {
+            isYouTube = false;
+            Log.w(TAG, "APP add! " + isYouTube);
+            showWebLaunchDialog(true);
+            urlYtFavDialog.dismiss();
+        });
+
         webYouTubeFavView.findViewById(R.id.yt_del_btn).setOnClickListener(v -> showClearWebFavDialog(CLEAR_VID));
         webYouTubeFavView.findViewById(R.id.url_del_btn).setOnClickListener(v -> showClearWebFavDialog(CLEAR_URL));
+        webYouTubeFavView.findViewById(R.id.app_del_btn).setOnClickListener(v -> showClearWebFavDialog(CLEAR_APP));
     }
 
     final private static int CLEAR_ALL = 0;
     final private static int CLEAR_VID = 1;
     final private static int CLEAR_URL = 2;
+    final private static int CLEAR_APP = 3;
     private int whatToClear = -1;
 
     private TextView warningTextView;
     private AlertDialog warningDialog;
+
 
     private void setupWarningDialog() {
         Log.d(TAG, "setupWarningDialog: ");
@@ -311,6 +339,10 @@ public class WebManager {
                     break;
 
                 case CLEAR_URL:
+                    getUrlFavouritesManager().clearFavourites();
+                    break;
+
+                case CLEAR_APP:
                     getUrlFavouritesManager().clearFavourites();
                     break;
             }
@@ -343,6 +375,10 @@ public class WebManager {
 
             case CLEAR_URL:
                 message = main.getResources().getString(R.string.delete_websites_confirm);
+                break;
+
+            case CLEAR_APP:
+                message = main.getResources().getString(R.string.delete_apps_confirm);
                 break;
         }
 
@@ -414,6 +450,9 @@ public class WebManager {
     public String getPushURL() {
         return pushURL;
     }
+    public String getControllerURL() {
+        return controllerURL;
+    }
 
     public void reset() {
         pushURL = "";
@@ -438,6 +477,7 @@ public class WebManager {
         }
     }
 
+    //push content
     public void pushYouTube(String url, String urlTitle, int startFrom, boolean locked, boolean vrOn, boolean selectedOnly) {
         Log.d(TAG, "pushYouTube: ");
         pushURL = url;
@@ -474,7 +514,6 @@ public class WebManager {
         }
     }
 
-
     public void pushURL(String url, String urlTitle) {
         Log.d(TAG, "pushURL: ");
         //update lock status
@@ -502,6 +541,7 @@ public class WebManager {
         }
     }
 
+    //hide dialogs
     private void hidePreviewDialog() {
         Log.d(TAG, "hidePreviewDialog: ");
         main.closeKeyboard();
@@ -524,6 +564,7 @@ public class WebManager {
         }
     }
 
+    //launch website
     public void launchWebsite(String url, String urlTitle, boolean updateCurrentTask) {
         Log.d(TAG, "launchWebsite: ");
         pushTitle = urlTitle;
