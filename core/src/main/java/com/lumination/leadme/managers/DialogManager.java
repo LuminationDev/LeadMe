@@ -26,7 +26,9 @@ import androidx.core.content.res.ResourcesCompat;
 import com.alimuzaffar.lib.pin.PinEntryEditText;
 import com.lumination.leadme.LeadMeMain;
 import com.lumination.leadme.R;
+import com.lumination.leadme.adapters.ConnectedLearnersAdapter;
 import com.lumination.leadme.adapters.StudentAlertsAdapter;
+import com.lumination.leadme.controller.Controller;
 import com.lumination.leadme.utilities.FileUtilities;
 
 import java.util.ArrayList;
@@ -40,7 +42,7 @@ import static java.util.concurrent.TimeUnit.SECONDS;
  * A single class to manage and create dialog pop ups for information or errors.
  * */
 public class DialogManager {
-    private final String TAG = "DialogManager";
+    private static final String TAG = "DialogManager";
     private final LeadMeMain main;
     private final Resources resources;
 
@@ -129,7 +131,6 @@ public class DialogManager {
         setupAlertsViewDialog();
         setupLoginDialogView();
         setupLoginDialog();
-        setupManualDialog();
         setupRecallDialog();
         setupVRFirstTime();
         setupFileTypes();
@@ -142,7 +143,7 @@ public class DialogManager {
         Button backBtn = waitingDialogView.findViewById(R.id.back_btn);
         backBtn.setOnClickListener(v -> {
             dialogShowing = false;
-            main.getNearbyManager().cancelConnection();
+            Controller.getInstance().getNearbyManager().cancelConnection();
             waitingDialog.dismiss();
         });
 
@@ -152,7 +153,7 @@ public class DialogManager {
 
         waitingDialog.setCancelable(false);
 
-        waitingDialog.setOnDismissListener(dialog -> hideSystemUI());
+        waitingDialog.setOnDismissListener(dialog -> LeadMeMain.getInstance().hideSystemUI());
     }
 
     private void setupAppPushDialog() {
@@ -160,12 +161,12 @@ public class DialogManager {
 
         appPushDialogView.findViewById(R.id.push_btn).setOnClickListener(v -> {
             Set<String> peerSet;
-            if(main.getSelectedOnly()) {
-                peerSet = main.getNearbyManager().getSelectedPeerIDsOrAll();
+            if(LeadMeMain.selectedOnly) {
+                peerSet = NearbyPeersManager.getSelectedPeerIDsOrAll();
             } else {
-                peerSet = main.getNearbyManager().getAllPeerIDs();
+                peerSet = NearbyPeersManager.getAllPeerIDs();
             }
-            main.getAppManager().launchApp(appPushPackageName, appPushTitle, false, "false", false, peerSet);
+            Controller.getInstance().getAppManager().launchApp(appPushPackageName, appPushTitle, false, "false", false, peerSet);
             Log.d(TAG, "LAUNCHING! " + appPushPackageName);
             hideAppPushDialogView();
             showConfirmPushDialog(true, false);
@@ -229,16 +230,16 @@ public class DialogManager {
         videoBtn.setOnClickListener(v -> {
             vrContentTypeDialog.dismiss();
             dialogShowing = false;
-            main.defaultVideo = true;
-            main.getVrEmbedVideoPlayer().showPlaybackPreview();
+            LeadMeMain.defaultVideo = true;
+            Controller.getInstance().getVrEmbedVideoPlayer().showPlaybackPreview();
         });
 
         Button photoBtn = vrContentType.findViewById(R.id.select_photo_source_btn);
         photoBtn.setOnClickListener(v -> {
             vrContentTypeDialog.dismiss();
             dialogShowing = false;
-            main.defaultVideo = false;
-            main.getVrEmbedPhotoPlayer().showPlaybackPreview();
+            LeadMeMain.defaultVideo = false;
+            Controller.getInstance().getVrEmbedPhotoPlayer().showPlaybackPreview();
         });
 
         Button cancelBtn = vrContentType.findViewById(R.id.cancel_btn);
@@ -338,9 +339,9 @@ public class DialogManager {
             showFileTypeDialog();
         });
 
-        cancelBtn.setOnClickListener(v -> {
-            firstTimeVRDialog.dismiss();
-        });
+        cancelBtn.setOnClickListener(v ->
+                firstTimeVRDialog.dismiss()
+        );
     }
 
     //Dialog to describe what sort of files can be chosen
@@ -360,7 +361,7 @@ public class DialogManager {
         allowBtn.setOnClickListener(v -> {
             fileTypeDialog.dismiss();
 
-            if(LeadMeMain.isMiUiV9()) {
+            if(Controller.isMiUiV9()) {
                 main.alternateFileChoice(LeadMeMain.VR_FILE_CHOICE);
             } else {
                 FileUtilities.browseFiles(main, LeadMeMain.VR_FILE_CHOICE);
@@ -387,23 +388,23 @@ public class DialogManager {
         Button blockBtn = requestDialogView.findViewById(R.id.block_btn);
 
         allowBtn.setOnClickListener(v -> {
-            if(LeadMeMain.isMiUiV9()) {
-                main.getFileTransferManager().startFileServer(main.vrPath, true);
+            if(Controller.isMiUiV9()) {
+                Controller.getInstance().getFileTransferManager().startFileServer(LeadMeMain.vrPath, true);
             } else {
-                main.getFileTransferManager().startFileServer(main.vrURI, true);
+                Controller.getInstance().getFileTransferManager().startFileServer(LeadMeMain.vrURI, true);
             }
 
             Set<String> peerSet = new HashSet<>();
-            for(int ID : LeadMeMain.fileRequests) {
+            for(String ID : LeadMeMain.fileRequests) {
                 peerSet.add(String.valueOf(ID));
             }
 
-            main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.RETURN_TAG, peerSet);
+            DispatchManager.sendActionToSelected(Controller.ACTION_TAG, Controller.RETURN_TAG, peerSet);
             requestDialog.dismiss();
         });
 
         blockBtn.setOnClickListener(v -> {
-            LeadMeMain.fileRequests = new ArrayList<>();
+            LeadMeMain.fileRequests = new HashSet<>();
             requestDialog.dismiss();
         });
     }
@@ -440,10 +441,12 @@ public class DialogManager {
         if(requestDialog.isShowing()) {
             //in case a guide switched on auto installer and transfer quickly
             requestDialogMessage.setText(LeadMeMain.fileRequests.size() + " learners do not have the video. " +
-                    "\nDo you want to transfer it?"); //update the text if there are more requests
+                    "\nDo you want to transfer it?" +
+                    "\nFile transfer is an experimental feature. You may experience some issues while using it."); //update the text if there are more requests
         } else {
             requestDialogMessage.setText(LeadMeMain.fileRequests.size() + " learner does not have the video. " +
-                    "\nDo you want to transfer it?");
+                    "\nDo you want to transfer it?" +
+                    "\nFile transfer is an experimental feature. You may experience some issues while using it.");
 
             waitForOthers(requestDialogView.findViewById(R.id.allow_btn), delay);
         }
@@ -505,7 +508,7 @@ public class DialogManager {
         //Add permissions if the messages stack
         allowBtn.setOnClickListener(view -> {
             for ( String pm : permissions) {
-                main.permissionAllowed(pm, true);
+                DispatchManager.permissionAllowed(pm, true);
             }
             permissionDialog.dismiss();
             permissions = null;
@@ -513,7 +516,7 @@ public class DialogManager {
 
         blockBtn.setOnClickListener(view -> {
             for ( String pm : permissions) {
-                main.permissionAllowed(pm, false);
+                DispatchManager.permissionAllowed(pm, false);
             }
             permissions = null;
             permissionDialog.dismiss();
@@ -669,12 +672,12 @@ public class DialogManager {
 
         //auto close after 1.5 seconds
         if (isSavedOnly) {
-            main.getHandler().postDelayed(() -> {
+            LeadMeMain.UIHandler.postDelayed(() -> {
                 hideConfirmPushDialog();
-                main.getWebManager().launchUrlYtFavourites();
+                Controller.getInstance().getWebManager().launchUrlYtFavourites();
             }, 1500);
         } else {
-            main.getHandler().postDelayed(this::hideConfirmPushDialog, 1500);
+            LeadMeMain.UIHandler.postDelayed(this::hideConfirmPushDialog, 1500);
         }
     }
 
@@ -786,7 +789,7 @@ public class DialogManager {
 
         hideSystemUI();
         dialogShowing = true;
-        main.getConnectedLearnersAdapter().refreshAlertsView();
+        Controller.getInstance().getConnectedLearnersAdapter().refreshAlertsView();
         studentAlertsDialog.show();
     }
 
@@ -809,7 +812,7 @@ public class DialogManager {
         toggleBtnView = recallView.findViewById(R.id.toggleBtnView);
 
         recallView.findViewById(R.id.ok_btn).setOnClickListener(v -> {
-            main.returnToAppFromMainAction(main.getSelectedOnly());
+            main.returnToAppFromMainAction(LeadMeMain.selectedOnly);
             dialogShowing = false;
             recallPrompt.dismiss();
         });
@@ -838,7 +841,7 @@ public class DialogManager {
             setupRecallDialog();
         }
 
-        if (main.getConnectedLearnersAdapter().someoneIsSelected() && (main.getNearbyManager().getSelectedPeerIDs().size() < main.getNearbyManager().getAllPeerIDs().size())) {
+        if (ConnectedLearnersAdapter.someoneIsSelected() && (NearbyPeersManager.getSelectedPeerIDs().size() < NearbyPeersManager.getAllPeerIDs().size())) {
             recallMessage.setText(resources.getString(R.string.recall_comment_selected));
             toggleBtnView.setVisibility(View.VISIBLE);
         } else {
@@ -862,7 +865,7 @@ public class DialogManager {
         Button pushBtn = recall ? null : preview.findViewById(R.id.push_btn);
 
         selectedBtn.setOnClickListener(v -> {
-            main.setSelectedOnly(true);
+            LeadMeMain.selectedOnly = true;
             makeSelectedBtnActive(selectedBtn, everyoneBtn);
             if (pushBtn != null) {
                 pushBtn.setText(main.getResources().getString(R.string.push_this_to_selected));
@@ -870,7 +873,7 @@ public class DialogManager {
         });
 
         everyoneBtn.setOnClickListener(v -> {
-            main.setSelectedOnly(false);
+            LeadMeMain.selectedOnly = false;
             makeEveryoneBtnActive(selectedBtn, everyoneBtn);
             if (pushBtn != null) {
                 pushBtn.setText(main.getResources().getString(R.string.push_this_to_everyone));
@@ -902,8 +905,8 @@ public class DialogManager {
      */
     public void toggleSelectedView(View preview) {
         View toggleSelectedBtn = preview.findViewById(R.id.toggleBtnView);
-        toggleSelectedBtn.setVisibility(main.getConnectedLearnersAdapter().someoneIsSelected()
-                && (main.getNearbyManager().getSelectedPeerIDs().size() < main.getNearbyManager().getAllPeerIDs().size())
+        toggleSelectedBtn.setVisibility(ConnectedLearnersAdapter.someoneIsSelected()
+                && (NearbyPeersManager.getSelectedPeerIDs().size() < NearbyPeersManager.getAllPeerIDs().size())
                 ? View.VISIBLE : View.GONE);
     }
 
@@ -911,7 +914,7 @@ public class DialogManager {
      * Displays an AlertDialog whilst a peer is connecting to a guide.
      */
     public void showWaitingForConnectDialog() {
-        this.loginDialog.dismiss();
+        loginDialog.dismiss();
         showWaitingDialog();
         dialogShowing = true;
     }
@@ -924,64 +927,6 @@ public class DialogManager {
         changeLoginViewOptions(-1, View.GONE, -1);
         closeKeyboard();
         hideSystemUI();
-    }
-
-    /**
-     *
-     */
-    private void setupManualDialog() {
-        manView = View.inflate(main, R.layout.e__manual_popup, null);
-        manualDialog = new AlertDialog.Builder(main)
-                .setView(manView)
-                .create();
-
-        Button back = manView.findViewById(R.id.manual_back);
-        back.setOnClickListener(v1 -> manualDialog.dismiss());
-    }
-
-    /**
-     * Displays the AlertDialog to connect to a Guide by manually entering the ipAddress to connect to.
-     * Sets up the display depending on if the user is a peer or a guide. A guide is shown their ipAddress
-     * for a peer to see and copy and the peer sees inputs for their name and the guides ipAddress.
-     * @param isGuide A boolean determining if the user is a guide.
-     * @param ipAddress A String representing the Guide's ipAddress.
-     */
-    public void showManualDialog(boolean isGuide, String ipAddress) {
-        if(isGuide) {
-            manView.findViewById(R.id.manual_leader_view).setVisibility(View.VISIBLE);
-            manView.findViewById(R.id.manual_learner_view).setVisibility(View.GONE);
-            manView.findViewById(R.id.manual_ok).setVisibility(View.GONE);
-            TextView IpAddress = manView.findViewById(R.id.manual_ip);
-            IpAddress.setText(ipAddress);
-        } else {
-            if(main.getNearbyManager().isConnectedAsFollower()){
-                manualDialog.dismiss();
-                Toast.makeText(main, "You are already connected to a leader", Toast.LENGTH_SHORT).show();
-                return;
-            }
-            manView.findViewById(R.id.manual_learner_view).setVisibility(View.VISIBLE);
-            manView.findViewById(R.id.manual_ok).setVisibility(View.VISIBLE);
-            manView.findViewById(R.id.manual_leader_view).setVisibility(View.GONE);
-            EditText IpEnter = manView.findViewById(R.id.manual_enterIP);
-            EditText ManName = manView.findViewById(R.id.manual_name);
-            Button connect = manView.findViewById(R.id.manual_ok);
-            IpEnter.setText(ipAddress.substring(0, ipAddress .lastIndexOf(".")+1)   );
-            IpEnter.setSelection(IpEnter.getText().length());
-            //add to the leaders list
-
-            connect.setOnClickListener(v -> {
-                if(IpEnter!=null && ManName!=null &&ManName.getText().toString().length()>0 && IpEnter.getText().toString().length()>0) {
-                    Log.d(TAG, "onClick: "+IpEnter.getText().toString());
-                    nameView.setText(ManName.getText().toString());
-
-                    manualDialog.dismiss();
-                    LeadMeMain.isGuide = false;
-                    main.directIpConnection(ManName, IpEnter);
-                }
-            });
-        }
-
-        manualDialog.show();
     }
 
     /**
@@ -1076,13 +1021,19 @@ public class DialogManager {
             }
         });
 
-        forgotPassword.setOnClickListener(view -> main.forgotPasswordController(loginDialog));
+        forgotPassword.setOnClickListener(view -> Controller.getInstance().getAuthenticationManager().showForgottenPassword(loginDialog));
 
         googleSignin.setOnClickListener(view -> main.googleSignIn());
 
         signup.setOnClickListener(view -> {
             loginDialog.dismiss();
-            main.buildLoginSignupController(0);
+
+            if(!PermissionManager.isInternetAvailable(LeadMeMain.getInstance().getApplicationContext())) {
+                Controller.getInstance().getDialogManager().showWarningDialog("Currently Offline", "No internet access detected. Please connect to continue.");
+                return;
+            }
+
+            Controller.getInstance().getAuthenticationManager().buildloginsignup(1);
         });
 
         backBtn.setOnClickListener(v -> loginDialog.dismiss());
@@ -1102,11 +1053,6 @@ public class DialogManager {
             loginDialog.dismiss();
             if (cancelled) {
                 main.startShakeDetection();
-
-                //Only start discovery again if trying to login as a learner
-                if(main.loginActor.equals("learner")) {
-                    main.getNearbyManager().nsdManager.startDiscovery();
-                }
             }
         }
     }
@@ -1116,7 +1062,7 @@ public class DialogManager {
      * @return An AlertDialog instance of the loginDialog.
      */
     public AlertDialog getLoginDialog() {
-        return this.loginDialog;
+        return loginDialog;
     }
 
     /**
@@ -1234,23 +1180,29 @@ public class DialogManager {
      * Dismiss any dialogs that are currently open.
      */
     public void cleanUpDialogs() {
-        if (loginDialog != null)
+        if (loginDialog != null) {
             loginDialog.dismiss();
-        if (waitingDialog != null)
-            waitingDialog.dismiss();
-        if (warningDialog != null)
-            warningDialog.dismiss();
-        if (appPushDialog != null)
-            appPushDialog.dismiss();
-        if (confirmPushDialog != null)
-            confirmPushDialog.dismiss();
-        if (recallPrompt != null)
-            recallPrompt.dismiss();
-        if  (main.getLumiAppInstaller().installDialog != null) {
-            main.getLumiAppInstaller().installDialog.dismiss();
         }
-        if (main.getWebManager() != null) {
-            main.getWebManager().cleanUp();
+        if (waitingDialog != null) {
+            waitingDialog.dismiss();
+        }
+        if (warningDialog != null) {
+            warningDialog.dismiss();
+        }
+        if (appPushDialog != null) {
+            appPushDialog.dismiss();
+        }
+        if (confirmPushDialog != null) {
+            confirmPushDialog.dismiss();
+        }
+        if (recallPrompt != null) {
+            recallPrompt.dismiss();
+        }
+        if  (Controller.getInstance().getLumiAppInstaller().installDialog != null) {
+            Controller.getInstance().getLumiAppInstaller().installDialog.dismiss();
+        }
+        if (Controller.getInstance().getWebManager() != null) {
+            Controller.getInstance().getWebManager().cleanUp();
         }
     }
 }

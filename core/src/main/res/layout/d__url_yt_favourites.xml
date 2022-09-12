@@ -107,25 +107,25 @@
                     android:textColor="@color/leadme_darkest_grey"
                     android:textSize="14sp" />
 
-                <Button
-                    android:id="@+id/yt_del_btn"
-                    android:layout_width="70dp"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center_vertical|end"
-                    android:layout_marginStart="20dp"
-                    android:layout_marginEnd="15dp"
-                    android:layout_weight="0"
-                    android:background="@color/transparent"
-                    android:drawableStart="@drawable/icon_fav_remove"
-                    android:drawablePadding="10dp"
-                    android:fontFamily="@font/poppins_semibold"
-                    android:gravity="start|center_vertical"
-                    android:includeFontPadding="false"
-                    android:text="@string/clear"
-                    android:textAlignment="viewStart"
-                    android:textAllCaps="false"
-                    android:textColor="@color/leadme_darkest_grey"
-                    android:textSize="14sp" />
+            <Button
+                android:id="@+id/yt_del_btn"
+                android:layout_width="70dp"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical|end"
+                android:layout_marginStart="20dp"
+                android:layout_marginEnd="15dp"
+                android:layout_weight="0"
+                android:background="@color/transparent"
+                android:drawableStart="@drawable/icon_fav_remove"
+                android:drawablePadding="10dp"
+                android:fontFamily="@font/poppins_semibold"
+                android:gravity="start|center_vertical"
+                android:includeFontPadding="false"
+                android:text="@string/clear"
+                android:textAlignment="viewStart"
+                android:textAllCaps="false"
+                android:textColor="@color/leadme_darkest_grey"
+                android:textSize="14sp" />
 
             </LinearLayout>
 
@@ -220,25 +220,25 @@
                     android:textColor="@color/leadme_darkest_grey"
                     android:textSize="14sp" />
 
-                <Button
-                    android:id="@+id/url_del_btn"
-                    android:layout_width="70dp"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center_vertical|end"
-                    android:layout_marginStart="20dp"
-                    android:layout_marginEnd="15dp"
-                    android:layout_weight="0"
-                    android:background="@color/transparent"
-                    android:drawableStart="@drawable/icon_fav_remove"
-                    android:drawablePadding="10dp"
-                    android:fontFamily="@font/poppins_semibold"
-                    android:gravity="start|center_vertical"
-                    android:includeFontPadding="false"
-                    android:text="@string/clear"
-                    android:textAlignment="viewStart"
-                    android:textAllCaps="false"
-                    android:textColor="@color/leadme_darkest_grey"
-                    android:textSize="14sp" />
+            <Button
+                android:id="@+id/url_del_btn"
+                android:layout_width="70dp"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical|end"
+                android:layout_marginStart="20dp"
+                android:layout_marginEnd="15dp"
+                android:layout_weight="0"
+                android:background="@color/transparent"
+                android:drawableStart="@drawable/icon_fav_remove"
+                android:drawablePadding="10dp"
+                android:fontFamily="@font/poppins_semibold"
+                android:gravity="start|center_vertical"
+                android:includeFontPadding="false"
+                android:text="@string/clear"
+                android:textAlignment="viewStart"
+                android:textAllCaps="false"
+                android:textColor="@color/leadme_darkest_grey"
+                android:textSize="14sp" />
 
             </LinearLayout>
 

@@ -17,9 +17,11 @@ import android.widget.Toast;
 
 import androidx.core.app.NotificationCompat;
 
+import com.lumination.leadme.adapters.ConnectedLearnersAdapter;
 import com.lumination.leadme.connections.ConnectedPeer;
 import com.lumination.leadme.LeadMeMain;
 import com.lumination.leadme.R;
+import com.lumination.leadme.controller.Controller;
 import com.lumination.leadme.services.FileTransferService;
 import com.lumination.leadme.utilities.FileUtilities;
 
@@ -66,8 +68,8 @@ public class FileTransferManager {
     private boolean request = false; //if a learner is requesting a file
 
     public static int selectedCounter = 0;
-    public static ArrayList<Integer> selected;
-    public static HashMap<Integer, Double> transfers;
+    public static ArrayList<String> selected;
+    public static HashMap<String, Double> transfers;
     public static double transfer_progress = -1;
     public static File file;
 
@@ -293,16 +295,15 @@ public class FileTransferManager {
             selected.addAll(LeadMeMain.fileRequests);
         } else {
             //cycle through the selected peers adding them to the selected array
-            for (ConnectedPeer peer : main.getConnectedLearnersAdapter().mData) {
+            for (ConnectedPeer peer : ConnectedLearnersAdapter.mData) {
                 if (peer.isSelected()) {
-                    int ID = Integer.parseInt(peer.getID());
-                    selected.add(ID);
+                    selected.add(peer.getID());
                 }
             }
         }
 
         if (selected.size() < 1) {
-            main.runOnUiThread(() -> Toast.makeText(
+            LeadMeMain.runOnUI(() -> Toast.makeText(
                     main.context,
                     "Peers need to be selected.", Toast.LENGTH_LONG).show());
 
@@ -322,11 +323,12 @@ public class FileTransferManager {
         Set<String> peerSet = new HashSet<>();
 
         //Add the peer to the set for message updates
-        for (int ID: selected) {
-            peerSet.add(String.valueOf(ID));
+        for (String ID: selected) {
+            peerSet.add(ID);
         }
 
-        main.sendDeviceMessage(R.string.waiting_for_transfer, peerSet);
+        DispatchManager.sendActionToSelected(Controller.ACTION_TAG,
+                Controller.UPDATE_DEVICE_MESSAGE + ":" + R.string.waiting_for_transfer, peerSet);
     }
 
     /**
@@ -339,7 +341,7 @@ public class FileTransferManager {
 
         for (int x = 0; x < selected.size(); x++) {
             int finalX = x;
-            main.runOnUiThread(() -> main.updatePeerStatus(
+            LeadMeMain.runOnUI(() -> main.updatePeerStatus(
                     String.valueOf(selected.get(finalX)),
                     ConnectedPeer.STATUS_FILE_TRANSFER, null));
 
@@ -404,7 +406,7 @@ public class FileTransferManager {
         Log.d(TAG, "Sending ID to the ServerSocket");
 
         // write the message we want to send
-        dataOutputStream.writeUTF(main.getNearbyManager().getID());
+        dataOutputStream.writeUTF(NearbyPeersManager.getID());
         dataOutputStream.flush(); // send the message
 
         //ID has been sent, nothing else is going to be sent so close just the out streams
@@ -437,14 +439,18 @@ public class FileTransferManager {
 
                 //Send message to guide that it already has the video
                 if(fileURI != null || fileExists != null) {
-                    main.transferError(fileOnDevice, main.getNearbyManager().myID);
+                    DispatchManager.sendActionToSelected(Controller.ACTION_TAG,
+                            Controller.TRANSFER_ERROR
+                                    + ":" + NearbyPeersManager.myID
+                                    + ":" + fileOnDevice,
+                            NearbyPeersManager.getSelectedPeerIDsOrAll());
                     return;
                 }
 
                 main.setDeviceStatusMessage(R.string.transfer_in_progress);
 
                 if(testBar) {
-                    main.runOnUiThread(() -> transferBar.setVisibility(View.VISIBLE));
+                    LeadMeMain.runOnUI(() -> transferBar.setVisibility(View.VISIBLE));
                 }
 
                 builder.setProgress(100, 0, false)
@@ -482,8 +488,8 @@ public class FileTransferManager {
                 Log.d(TAG, "File saved");
 
                 //Send confirmation that the transfer is complete - guide can then handle it however necessary
-                main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.FILE_REQUEST_TAG + ":" + main.getNearbyManager().getID()
-                                + ":" + "true" + ":" + fileType, main.getNearbyManager().getSelectedPeerIDs());
+                DispatchManager.sendActionToSelected(Controller.ACTION_TAG, Controller.FILE_REQUEST_TAG + ":" + NearbyPeersManager.getID()
+                                + ":" + "true" + ":" + fileType, NearbyPeersManager.getSelectedPeerIDs());
             } catch (IOException e) {
                 try {
                     fileSocket.close();
@@ -492,7 +498,11 @@ public class FileTransferManager {
                 }
                 e.printStackTrace();
                 transferComplete = false;
-                main.transferError(transferNotSaved, main.getNearbyManager().myID);
+                DispatchManager.sendActionToSelected(Controller.ACTION_TAG,
+                        Controller.TRANSFER_ERROR
+                                + ":" + NearbyPeersManager.myID
+                                + ":" + transferNotSaved,
+                        NearbyPeersManager.getSelectedPeerIDsOrAll());
             } finally {
                 finishTransfer();
             }
@@ -513,7 +523,6 @@ public class FileTransferManager {
         OutputStream fos = null;
 
         try {
-            //TODO determine file type - extend this in the future
             boolean isMovie = fileName.toLowerCase().contains(".mp4")
                     || fileName.toLowerCase().contains(".avi")
                     || fileName.toLowerCase().contains(".mkv")
@@ -590,7 +599,7 @@ public class FileTransferManager {
         }
 
         if(testBar) {
-            main.runOnUiThread(() -> transferBar.setVisibility(View.GONE));
+            LeadMeMain.runOnUI(() -> transferBar.setVisibility(View.GONE));
         }
 
         transfer_progress = -1;
@@ -605,16 +614,16 @@ public class FileTransferManager {
      * @param error The error that has occurred.
      */
     public void removePeer(String ID, String error) {
-        String name = main.getConnectedLearnersAdapter().getMatchingPeer(ID).getDisplayName();
+        String name = ConnectedLearnersAdapter.getMatchingPeer(ID).getDisplayName();
 
-        main.runOnUiThread(() -> Toast.makeText(main,
+        LeadMeMain.runOnUI(() -> Toast.makeText(main,
                         "Message: " + error + " " + "Peer: " + name, Toast.LENGTH_LONG).show());
 
         Log.d(TAG, "Message: " + error + " " + "Peer: " + name);
 
-        int peerID = Integer.parseInt(ID);
+        String peerID = ID;
 
-        main.runOnUiThread(() -> main.updatePeerStatus(ID, ConnectedPeer.STATUS_INSTALLED, null));
+        LeadMeMain.runOnUI(() -> main.updatePeerStatus(ID, ConnectedPeer.STATUS_INSTALLED, null));
 
         //remove from transfers
         transfers.remove(peerID);
@@ -637,7 +646,7 @@ public class FileTransferManager {
      * @param index An integer representing a Peer ID within the transfers hashmap for which the
      *              specific progress is being updated.
      */
-    public static void updateGuideProgress(long total, int current, int index) {
+    public static void updateGuideProgress(long total, int current, String index) {
         double overallPercent = 0;
         double percent = (((double) current / (double) total) * 100);
 
@@ -647,7 +656,7 @@ public class FileTransferManager {
         }
 
         //get the average of array of percentages
-        for(Map.Entry<Integer, Double> entry : transfers.entrySet()) {
+        for(Map.Entry<String, Double> entry : transfers.entrySet()) {
             overallPercent += entry.getValue();
         }
 
@@ -691,7 +700,7 @@ public class FileTransferManager {
             checkProgress();
 
             if (testBar && !LeadMeMain.isGuide) {
-                main.runOnUiThread(() -> transferBar.setProgress((int) transfer_progress));
+                LeadMeMain.runOnUI(() -> transferBar.setProgress((int) transfer_progress));
             }
         } else {
             checkProgress();
@@ -706,12 +715,12 @@ public class FileTransferManager {
      */
     private void checkProgress() {
         if(LeadMeMain.isGuide) {
-            for (Map.Entry<Integer, Double> entry : transfers.entrySet()) {
-                Integer key = entry.getKey();
+            for (Map.Entry<String, Double> entry : transfers.entrySet()) {
+                String key = entry.getKey();
                 Double value = entry.getValue();
 
                 if (value == 100.0) {
-                    main.runOnUiThread(() -> main.updatePeerStatus(String.valueOf(key), ConnectedPeer.STATUS_INSTALLED, null));
+                    LeadMeMain.runOnUI(() -> main.updatePeerStatus(String.valueOf(key), ConnectedPeer.STATUS_INSTALLED, null));
                     //Reset the position as to not constantly call update
                     transfers.put(key, -1.0);
                 }

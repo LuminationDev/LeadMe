@@ -150,7 +150,6 @@
     <string name="onboard_title_4">Manage Alerts</string>
     <string name="onboard_title_5">View our Lab in VR</string>
     <string name="onboard_title_6">Lead the Way</string>
-    <string name="manual_connect">Manual connect</string>
     <string name="help">Help</string>
     <string name="display_onboarding">Display Onboarding</string>
     <string name="begin">Begin</string>
@@ -207,5 +206,9 @@
     <string name="photos">Photos</string>
     <string name="local_photo_content">Local photo content</string>
     <string name="new_photo">New Photo</string>
+    <string name="install_youtube">Please install Youtube.</string>
+    <string name="unselect">Unselect</string>
+    <string name="unselected">Unselected</string>
+    <string name="projection_type">Projection Type</string>
 
 </resources>

@@ -2,7 +2,6 @@ package com.lumination.leadme.players;
 
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
-import android.content.DialogInterface;
 import android.content.res.ColorStateList;
 import android.net.http.SslError;
 import android.text.format.DateUtils;
@@ -19,7 +18,6 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.Button;
 import android.widget.CheckBox;
-import android.widget.CompoundButton;
 import android.widget.ImageView;
 import android.widget.SeekBar;
 import android.widget.Spinner;
@@ -28,10 +26,15 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.core.content.ContextCompat;
+import androidx.core.content.res.ResourcesCompat;
 import androidx.core.widget.ImageViewCompat;
 
 import com.lumination.leadme.LeadMeMain;
 import com.lumination.leadme.R;
+import com.lumination.leadme.adapters.ConnectedLearnersAdapter;
+import com.lumination.leadme.controller.Controller;
+import com.lumination.leadme.managers.DispatchManager;
+import com.lumination.leadme.managers.NearbyPeersManager;
 import com.lumination.leadme.managers.WebManager;
 import com.lumination.leadme.accessibility.YouTubeAccessibilityManager;
 import com.lumination.leadme.adapters.LumiSpinnerAdapter;
@@ -42,7 +45,6 @@ import java.util.Scanner;
 public class YouTubeEmbedPlayer {
 
     private final static String TAG = "embedPlayerYT";
-
 
     //static variables
     private static final int UNSTARTED = -1;
@@ -76,6 +78,7 @@ public class YouTubeEmbedPlayer {
     //track the peers for ad control
     int peersAdControl = 0;
 
+    private final TextView internetUnavailableMsg;
     private TextView youtubePreviewTitle;
     private Button youtubePreviewPushBtn;
     private TextView repushBtn;
@@ -96,8 +99,8 @@ public class YouTubeEmbedPlayer {
     private TextView totalTimeText, elapsedTimeText;
     private SeekBar progressBar;
 
-    private WebManager webManager;
-    private LeadMeMain main;
+    private final WebManager webManager;
+    private final LeadMeMain main;
     Switch viewModeToggle;
 
     /**
@@ -164,14 +167,14 @@ public class YouTubeEmbedPlayer {
                 buttonHighlights(PLAYING);
             }
 
-            main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG,
-                    LeadMeMain.VID_ACTION_TAG + YouTubeAccessibilityManager.CUE_PLAY,
-                    main.getNearbyManager().getSelectedPeerIDsOrAll());
+            DispatchManager.sendActionToSelected(Controller.ACTION_TAG,
+                    Controller.VID_ACTION_TAG + YouTubeAccessibilityManager.CUE_PLAY,
+                    NearbyPeersManager.getSelectedPeerIDsOrAll());
 
         } else if (state == PAUSED) {
-            main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG,
-                    LeadMeMain.VID_ACTION_TAG + YouTubeAccessibilityManager.CUE_PAUSE,
-                    main.getNearbyManager().getSelectedPeerIDsOrAll());
+            DispatchManager.sendActionToSelected(Controller.ACTION_TAG,
+                    Controller.VID_ACTION_TAG + YouTubeAccessibilityManager.CUE_PAUSE,
+                    NearbyPeersManager.getSelectedPeerIDsOrAll());
         }
     }
 
@@ -268,7 +271,7 @@ public class YouTubeEmbedPlayer {
 
     public void addPeerReady() {
         peersAdControl += 1;
-        if(peersAdControl == main.getConnectedLearnersAdapter().mData.size()) {
+        if(peersAdControl == ConnectedLearnersAdapter.mData.size()) {
             adsFinished = true;
             showToast("Ads finished, all peers ready.");
         }
@@ -280,18 +283,18 @@ public class YouTubeEmbedPlayer {
         videoControllerDialogView.findViewById(R.id.push_btn).setOnClickListener(v -> {
             //clean any launch on focus items
             LeadMeMain.appIntentOnFocus = null;
-            main.getDispatcher().launchAppOnFocus = null;
+            DispatchManager.launchAppOnFocus = null;
 
-            main.getWebManager().reset();
+            Controller.getInstance().getWebManager().reset();
             webManager.lastWasGuideView = false; //reset
             videoControlDialog.dismiss();
             webManager.showWebLaunchDialog(false);
-            main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.RETURN_TAG, main.getNearbyManager().getSelectedPeerIDsOrAll());
+            DispatchManager.sendActionToSelected(Controller.ACTION_TAG, Controller.RETURN_TAG, NearbyPeersManager.getSelectedPeerIDsOrAll());
         });
 
         repushBtn = videoControllerDialogView.findViewById(R.id.push_again_btn);
         repushBtn.setOnClickListener(v -> {
-            webManager.pushYouTube(attemptedURL, controllerTitle, lastStartFrom, lastLockState, isVROn(), main.getSelectedOnly());
+            webManager.pushYouTube(attemptedURL, controllerTitle, lastStartFrom, lastLockState, isVROn(), LeadMeMain.selectedOnly);
             syncNewStudentsWithCurrentState();
         });
 
@@ -306,71 +309,67 @@ public class YouTubeEmbedPlayer {
         ImageView vrIcon = videoControllerDialogView.findViewById(R.id.vr_mode_icon);
         vrModeBtn = (Switch) videoControllerDialogView.findViewById(R.id.vr_mode_toggle);
         vrModeBtn.setChecked(false);
-        ((Switch) videoControllerDialogView.findViewById(R.id.vr_mode_toggle)).setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                if(!adsFinished) {
-                    showToast("Cannot enable VR until peers are ready.");
-                    vrModeBtn.setChecked(false);
-                    return;
-                }
-
-                if (isChecked) {
-                    videoCurrentDisplayMode = VR_MODE;
-                    vrModeBtn.setText("VR Mode ON");
-                    vrModeBtn.setChecked(true);
-
-                    vrIcon.setImageDrawable(main.getResources().getDrawable(R.drawable.task_vr_icon, null));
-                    playVideo(); //entering VR mode automatically plays the video for students, so replicate that here
-
-                    main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG,
-                            LeadMeMain.VID_ACTION_TAG + YouTubeAccessibilityManager.CUE_VR_ON,
-                            main.getNearbyManager().getSelectedPeerIDsOrAll());
-                } else {
-                    videoCurrentDisplayMode = FULLSCRN_MODE;
-                    vrModeBtn.setText("VR Mode OFF");
-                    vrModeBtn.setChecked(false);
-
-                    vrIcon.setImageDrawable(main.getResources().getDrawable(R.drawable.task_vr_icon_disabled, null));
-
-                    main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG,
-                            LeadMeMain.VID_ACTION_TAG + YouTubeAccessibilityManager.CUE_VR_OFF,
-                            main.getNearbyManager().getSelectedPeerIDsOrAll());
-                }
-
-                //keep the guide synced with the students
-                buttonHighlights(PLAYING);
-                activeWebView.loadUrl("javascript:player.playVideo();");
+        ((Switch) videoControllerDialogView.findViewById(R.id.vr_mode_toggle)).setOnCheckedChangeListener((buttonView, isChecked) -> {
+            if(!adsFinished) {
+                showToast("Cannot enable VR until peers are ready.");
+                vrModeBtn.setChecked(false);
+                return;
             }
+
+            if (isChecked) {
+                videoCurrentDisplayMode = VR_MODE;
+                vrModeBtn.setText("VR Mode ON");
+                vrModeBtn.setChecked(true);
+
+                vrIcon.setImageDrawable(ResourcesCompat.getDrawable(main.getResources(), R.drawable.task_vr_icon, null));
+                playVideo(); //entering VR mode automatically plays the video for students, so replicate that here
+
+                DispatchManager.sendActionToSelected(Controller.ACTION_TAG,
+                        Controller.VID_ACTION_TAG + YouTubeAccessibilityManager.CUE_VR_ON,
+                        NearbyPeersManager.getSelectedPeerIDsOrAll());
+            } else {
+                videoCurrentDisplayMode = FULLSCRN_MODE;
+                vrModeBtn.setText("VR Mode OFF");
+                vrModeBtn.setChecked(false);
+
+                vrIcon.setImageDrawable(ResourcesCompat.getDrawable(main.getResources(), R.drawable.task_vr_icon_disabled, null));
+
+                DispatchManager.sendActionToSelected(Controller.ACTION_TAG,
+                        Controller.VID_ACTION_TAG + YouTubeAccessibilityManager.CUE_VR_OFF,
+                        NearbyPeersManager.getSelectedPeerIDsOrAll());
+            }
+
+            //keep the guide synced with the students
+            buttonHighlights(PLAYING);
+            activeWebView.loadUrl("javascript:player.playVideo();");
         });
         viewModeToggle = videoControllerDialogView.findViewById(R.id.view_mode_toggle);
         viewModeToggle.setChecked(true);
-        viewModeToggle.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                if(isChecked){
-                    viewModeToggle.setText("View Mode ON");
-                    ImageViewCompat.setImageTintList(videoControllerDialogView.findViewById(R.id.view_mode_icon), ColorStateList.valueOf(ContextCompat.getColor(main, R.color.leadme_blue)));
-                    main.lockFromMainAction();
+        viewModeToggle.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            if(isChecked){
+                viewModeToggle.setText("View Mode ON");
+                ImageViewCompat.setImageTintList(videoControllerDialogView.findViewById(R.id.view_mode_icon), ColorStateList.valueOf(ContextCompat.getColor(main, R.color.leadme_blue)));
+                main.lockFromMainAction();
 //                    stream=false;
-                }else{
-                    ImageViewCompat.setImageTintList(videoControllerDialogView.findViewById(R.id.view_mode_icon), ColorStateList.valueOf(ContextCompat.getColor(main, R.color.leadme_medium_grey)));
-                    viewModeToggle.setText("View Mode OFF");
-                    main.unlockFromMainAction();
+            }else{
+                ImageViewCompat.setImageTintList(videoControllerDialogView.findViewById(R.id.view_mode_icon), ColorStateList.valueOf(ContextCompat.getColor(main, R.color.leadme_medium_grey)));
+                viewModeToggle.setText("View Mode OFF");
+                main.unlockFromMainAction();
 //                    stream=true;
-                }
             }
         });
         //viewModeToggle.setChecked(true);
 
         videoControllerDialogView.findViewById(R.id.mute_btn).setOnClickListener(v -> {
             main.muteAudio(); //this is managed by the main activity
-            main.muteLeaners();
+            DispatchManager.sendActionToSelected(Controller.ACTION_TAG, Controller.VID_MUTE_TAG,
+                    NearbyPeersManager.getSelectedPeerIDsOrAll());
         });
 
         videoControllerDialogView.findViewById(R.id.unmute_btn).setOnClickListener(v -> {
             main.unMuteAudio(); //this is managed by the main activity
-            main.unmuteLearners();
+            DispatchManager.sendActionToSelected(Controller.ACTION_TAG, Controller.VID_UNMUTE_TAG,
+                    NearbyPeersManager.getSelectedPeerIDsOrAll());
         });
 
         videoControllerDialogView.findViewById(R.id.play_btn).setOnClickListener(v -> {
@@ -383,9 +382,9 @@ public class YouTubeEmbedPlayer {
             activeWebView.loadUrl("javascript:player.playVideo();");
 
             playVideo();
-            main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG,
-                    LeadMeMain.VID_ACTION_TAG + YouTubeAccessibilityManager.CUE_PLAY,
-                    main.getNearbyManager().getSelectedPeerIDsOrAll());
+            DispatchManager.sendActionToSelected(Controller.ACTION_TAG,
+                    Controller.VID_ACTION_TAG + YouTubeAccessibilityManager.CUE_PLAY,
+                    NearbyPeersManager.getSelectedPeerIDsOrAll());
         });
 
         videoControllerDialogView.findViewById(R.id.pause_btn).setOnClickListener(v -> {
@@ -397,9 +396,9 @@ public class YouTubeEmbedPlayer {
             activeWebView.loadUrl("javascript:player.pauseVideo();");
 
             pauseVideo();
-            main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG,
-                    LeadMeMain.VID_ACTION_TAG + YouTubeAccessibilityManager.CUE_PAUSE,
-                    main.getNearbyManager().getSelectedPeerIDsOrAll());
+            DispatchManager.sendActionToSelected(Controller.ACTION_TAG,
+                    Controller.VID_ACTION_TAG + YouTubeAccessibilityManager.CUE_PAUSE,
+                    NearbyPeersManager.getSelectedPeerIDsOrAll());
         });
 
     }
@@ -437,31 +436,31 @@ public class YouTubeEmbedPlayer {
         Log.w(TAG, "Syncing new! " + videoCurrentPlayState + ", " + videoCurrentDisplayMode + ", " + main.isMuted);
         //update on play/pause
         if (videoCurrentPlayState == PLAYING) {
-            main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG,
-                    LeadMeMain.VID_ACTION_TAG + YouTubeAccessibilityManager.CUE_PLAY,
-                    main.getNearbyManager().getSelectedPeerIDsOrAll());
+            DispatchManager.sendActionToSelected(Controller.ACTION_TAG,
+                    Controller.VID_ACTION_TAG + YouTubeAccessibilityManager.CUE_PLAY,
+                    NearbyPeersManager.getSelectedPeerIDsOrAll());
         } else {
-            main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG,
-                    LeadMeMain.VID_ACTION_TAG + YouTubeAccessibilityManager.CUE_PAUSE,
-                    main.getNearbyManager().getSelectedPeerIDsOrAll());
+            DispatchManager.sendActionToSelected(Controller.ACTION_TAG,
+                    Controller.VID_ACTION_TAG + YouTubeAccessibilityManager.CUE_PAUSE,
+                    NearbyPeersManager.getSelectedPeerIDsOrAll());
         }
 
         //update on VR on/off
         if (videoCurrentDisplayMode == VR_MODE) {
-            main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG,
-                    LeadMeMain.VID_ACTION_TAG + YouTubeAccessibilityManager.CUE_VR_ON,
-                    main.getNearbyManager().getSelectedPeerIDsOrAll());
+            DispatchManager.sendActionToSelected(Controller.ACTION_TAG,
+                    Controller.VID_ACTION_TAG + YouTubeAccessibilityManager.CUE_VR_ON,
+                    NearbyPeersManager.getSelectedPeerIDsOrAll());
         } else {
-            main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG,
-                    LeadMeMain.VID_ACTION_TAG + YouTubeAccessibilityManager.CUE_VR_OFF,
-                    main.getNearbyManager().getSelectedPeerIDsOrAll());
+            DispatchManager.sendActionToSelected(Controller.ACTION_TAG,
+                    Controller.VID_ACTION_TAG + YouTubeAccessibilityManager.CUE_VR_OFF,
+                    NearbyPeersManager.getSelectedPeerIDsOrAll());
         }
 
         //update on mute on/off
         if (main.isMuted) {
-            main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.VID_MUTE_TAG, main.getNearbyManager().getSelectedPeerIDsOrAll());
+            DispatchManager.sendActionToSelected(Controller.ACTION_TAG, Controller.VID_MUTE_TAG, NearbyPeersManager.getSelectedPeerIDsOrAll());
         } else {
-            main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.VID_UNMUTE_TAG, main.getNearbyManager().getSelectedPeerIDsOrAll());
+            DispatchManager.sendActionToSelected(Controller.ACTION_TAG, Controller.VID_UNMUTE_TAG, NearbyPeersManager.getSelectedPeerIDsOrAll());
         }
     }
 
@@ -480,9 +479,10 @@ public class YouTubeEmbedPlayer {
         final int finalData = newTime;
 
         //update player and local view
-        main.runOnUiThread(() -> {
-            activeWebView.loadUrl("javascript:seekTo(\"" + attemptedURL + "\", " + finalData + ")");
-        });
+        LeadMeMain.runOnUI(() ->
+                activeWebView.loadUrl("javascript:seekTo(\"" + attemptedURL + "\", " + finalData + ")")
+        );
+
         setCurrentTime("" + newTime);
     }
 
@@ -492,9 +492,9 @@ public class YouTubeEmbedPlayer {
         if (firstPlay) {
             firstPlay = false;
         }
-        main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG,
-                LeadMeMain.VID_ACTION_TAG + YouTubeAccessibilityManager.CUE_PLAY,
-                main.getNearbyManager().getSelectedPeerIDsOrAll());
+        DispatchManager.sendActionToSelected(Controller.ACTION_TAG,
+                Controller.VID_ACTION_TAG + YouTubeAccessibilityManager.CUE_PLAY,
+                NearbyPeersManager.getSelectedPeerIDsOrAll());
 
 //        if (firstPlay) {
 //            firstPlay = false;
@@ -510,9 +510,9 @@ public class YouTubeEmbedPlayer {
 
     @JavascriptInterface
     public void pauseVideo() {
-        main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG,
-                LeadMeMain.VID_ACTION_TAG + YouTubeAccessibilityManager.CUE_PAUSE,
-                main.getNearbyManager().getSelectedPeerIDsOrAll());
+        DispatchManager.sendActionToSelected(Controller.ACTION_TAG,
+                Controller.VID_ACTION_TAG + YouTubeAccessibilityManager.CUE_PAUSE,
+                NearbyPeersManager.getSelectedPeerIDsOrAll());
 
         //activeWebView.loadUrl("javascript:pauseVideo()");
     }
@@ -522,7 +522,7 @@ public class YouTubeEmbedPlayer {
     }
 
     public String getiFrameForURL(String url) {
-        String embedID = webManager.getYouTubeID(url);
+        String embedID = WebManager.getYouTubeID(url);
 
         InputStream htmlTemplate = main.getResources().openRawResource(R.raw.embed_yt_player);
         Scanner scanner = new Scanner(htmlTemplate);
@@ -542,7 +542,7 @@ public class YouTubeEmbedPlayer {
     }
 
     public void showVideoController() {
-        main.runOnUiThread(() -> {
+        LeadMeMain.runOnUI(() -> {
             main.closeKeyboard();
             main.hideSystemUI();
         });
@@ -552,13 +552,10 @@ public class YouTubeEmbedPlayer {
             videoControlDialog = new AlertDialog.Builder(main)
                     .setView(videoControllerDialogView)
                     .create();
-            videoControlDialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
-                @Override
-                public void onDismiss(DialogInterface dialog) {
-                    main.hideSystemUI();
-                }
-            });
+
+            videoControlDialog.setOnDismissListener(dialog -> main.hideSystemUI());
         }
+
         viewModeToggle.setChecked(true);
         //vrModeBtn.setChecked(false);
         pageLoaded = false; //reset flag
@@ -569,8 +566,6 @@ public class YouTubeEmbedPlayer {
         webManager.lastWasGuideView = true;
     }
 
-    private TextView internetUnavailableMsg;
-
     private void loadVideoGuideURL(String url) {
         Log.d(TAG, "loadVideoGuideURL: 1");
         init = false;
@@ -578,7 +573,7 @@ public class YouTubeEmbedPlayer {
         if (!webManager.lastWasGuideView) {
             resetControllerState(); //this needs to happen after extracting the URL, to retain playfrom time
         }
-        if (main.getPermissionsManager().isInternetConnectionAvailable()) {
+        if (Controller.getInstance().getPermissionsManager().isInternetConnectionAvailable()) {
             internetUnavailableMsg.setVisibility(View.GONE);
             videoControls.setVisibility(View.VISIBLE);
             Log.w(TAG, "Loading webview for: " + attemptedURL + ", " + activeWebView.getTag());
@@ -609,7 +604,7 @@ public class YouTubeEmbedPlayer {
     }
 
     public void dismissDialogs() {
-        main.runOnUiThread(() -> {
+        LeadMeMain.runOnUI(() -> {
             main.closeKeyboard();
             main.hideSystemUI();
         });
@@ -624,7 +619,7 @@ public class YouTubeEmbedPlayer {
     }
 
     private void hideVideoController() {
-        main.runOnUiThread(() -> {
+        LeadMeMain.runOnUI(() -> {
             main.closeKeyboard();
             main.hideSystemUI();
         });
@@ -650,12 +645,12 @@ public class YouTubeEmbedPlayer {
     }
 
     public String embedYouTubeURL(String url) {
-        String id = webManager.getYouTubeID(url);
+        String id = WebManager.getYouTubeID(url);
         //Log.w(TAG, "YouTube ID = " + id + " from " + url);
         if (id.isEmpty()) {
             return "";
         }
-        String startSubstring = "";
+        String startSubstring;
         if (url.contains("&start=")) {
             String val = extractTime(url);
             startSubstring = "?start=" + val + "&t=" + val;
@@ -666,9 +661,9 @@ public class YouTubeEmbedPlayer {
         } else {
             startSubstring = "?t=1";
         }
-        String finalURL = "https://www.youtube.com/embed/" + id + startSubstring;
+
         //Log.d(TAG, "Final URL: " + finalURL + "(from " + url + ", " + currentTime + ")");
-        return finalURL;
+        return "https://www.youtube.com/embed/" + id + startSubstring;
     }
 
 
@@ -683,7 +678,7 @@ public class YouTubeEmbedPlayer {
         if (tmpCurr > -1) {
             currentTime = tmpCurr;
         }
-        main.runOnUiThread(() -> {
+        LeadMeMain.runOnUI(() -> {
             elapsedTimeText.setText(intToTime((int) currentTime));
             int progress = Math.round((currentTime / totalTime) * 100);
             progressBar.setProgress(progress);
@@ -702,9 +697,7 @@ public class YouTubeEmbedPlayer {
         if (tmpTotal > 0) {
             //Log.d(TAG, "[GUIDE] TOTAL time is now: " + value + " // " + attemptedURL);// + ", " + extractedTime);
             totalTime = tmpTotal;
-            main.runOnUiThread(() -> {
-                totalTimeText.setText(intToTime(totalTime));
-            });
+            LeadMeMain.runOnUI(() -> totalTimeText.setText(intToTime(totalTime)));
         }
     }
 
@@ -724,7 +717,7 @@ public class YouTubeEmbedPlayer {
         favCheck = youtubeSettingsDialogView.findViewById(R.id.fav_checkbox);
         youtubePreviewWebView = youtubeSettingsDialogView.findViewById(R.id.video_stream_webview);
         youtubePreviewWebView.setTag("PREVIEW/PLAYBACK SETTINGS");
-        main.getDialogManager().setupPushToggle(youtubeSettingsDialogView, false);
+        Controller.getInstance().getDialogManager().setupPushToggle(youtubeSettingsDialogView, false);
         youtubeSettingsDialogView.findViewById(R.id.video_back_btn).setOnClickListener(v ->
                 playbackSettingsDialog.dismiss()
         );
@@ -751,12 +744,12 @@ public class YouTubeEmbedPlayer {
             }
         });
 
-        youtubePreviewPushBtn.setOnClickListener(v -> main.getHandler().post(() -> {
+        youtubePreviewPushBtn.setOnClickListener(v -> LeadMeMain.UIHandler.post(() -> {
 
             playbackSettingsDialog.dismiss();
             int durationCalc = (int) ((progressBar.getProgress() / 100.0) * totalTime);
             lastLockState = lockSpinner.getSelectedItem().toString().startsWith("View");
-            webManager.pushYouTube(attemptedURL, controllerTitle, durationCalc, lastLockState, isVROn(), main.getSelectedOnly());
+            webManager.pushYouTube(attemptedURL, controllerTitle, durationCalc, lastLockState, isVROn(), LeadMeMain.selectedOnly);
             if (favCheck.isChecked()) {
                 webManager.getYouTubeFavouritesManager().addCurrentPreviewToFavourites();
             }
@@ -788,16 +781,14 @@ public class YouTubeEmbedPlayer {
                 .setView(confirmPushDialogView)
                 .show();
         ((TextView)confirmPushDialogView.findViewById(R.id.push_success_comment)).setText("Your video was successfully launched.");
-        Button ok = confirmPushDialogView.findViewById(R.id.ok_btn);
-        ok.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                confirmPopup.dismiss();
-                showVideoController();
-            }
-        });
 
+        Button ok = confirmPushDialogView.findViewById(R.id.ok_btn);
+        ok.setOnClickListener(v -> {
+            confirmPopup.dismiss();
+            showVideoController();
+        });
     }
+
     public void updateTitle(String title) {
         youtubePreviewTitle.setText(title);
     }
@@ -811,12 +802,12 @@ public class YouTubeEmbedPlayer {
 
     public void showPlaybackPreview(String url, String title) {
         Log.d(TAG, "showPlaybackPreview: 1");
-        main.runOnUiThread(() -> {
+        LeadMeMain.runOnUI(() -> {
             main.closeKeyboard();
             main.hideSystemUI();
         });
 
-        main.getDialogManager().toggleSelectedView(youtubeSettingsDialogView);
+        Controller.getInstance().getDialogManager().toggleSelectedView(youtubeSettingsDialogView);
 
         init = false;
         activeWebView = youtubePreviewWebView;
@@ -827,7 +818,7 @@ public class YouTubeEmbedPlayer {
             playVideo();
         }
         youtubePreviewTitle.setText(title);
-        if (main.getPermissionsManager().isInternetConnectionAvailable()) {
+        if (Controller.getInstance().getPermissionsManager().isInternetConnectionAvailable()) {
             youtubeInternetUnavailableMsg.setVisibility(View.GONE);
             youtubeVideoControls.setVisibility(View.VISIBLE);
             Log.w(TAG, "Loading preview playback controls for: " + attemptedURL + ", " + activeWebView.getTag());
@@ -837,18 +828,14 @@ public class YouTubeEmbedPlayer {
             youtubeVideoControls.setVisibility(View.GONE);
         }
 
-        favCheck.setChecked(main.getWebManager().getYouTubeFavouritesManager().isInFavourites(url));
+        favCheck.setChecked(Controller.getInstance().getWebManager().getYouTubeFavouritesManager().isInFavourites(url));
 
         if (playbackSettingsDialog == null) {
             playbackSettingsDialog = new AlertDialog.Builder(main)
                     .setView(youtubeSettingsDialogView)
                     .show();
-            playbackSettingsDialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
-                @Override
-                public void onDismiss(DialogInterface dialog) {
-                    main.hideSystemUI();
-                }
-            });
+
+            playbackSettingsDialog.setOnDismissListener(dialog -> main.hideSystemUI());
         } else {
             playbackSettingsDialog.show();
         }

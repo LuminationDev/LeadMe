@@ -16,7 +16,7 @@ import android.util.DisplayMetrics;
 import android.util.Log;
 
 import com.lumination.leadme.LeadMeMain;
-import com.lumination.leadme.generated.callback.OnCheckedChangeListener;
+import com.lumination.leadme.controller.Controller;
 import com.lumination.leadme.services.NetworkService;
 import com.lumination.leadme.services.ScreensharingService;
 
@@ -38,8 +38,8 @@ public class ScreenSharingManager {
     private ImageReader mImageReader;
 
     private final ExecutorService screenshotSender = Executors.newFixedThreadPool(1);
-    public boolean permissionGranted = false;
-    public boolean sendImages = false;
+    public static boolean permissionGranted = false;
+    public static boolean sendImages = false;
     public Socket clientToServerSocket = null;
 
     public ScreenSharingManager(LeadMeMain main){
@@ -78,7 +78,6 @@ public class ScreenSharingManager {
         try {
             if(clientToServerSocket != null) {
                 clientToServerSocket.close();
-                //mImageReader.close();
             }
             sendImages = false;
         } catch (IOException e) {
@@ -117,10 +116,12 @@ public class ScreenSharingManager {
     public void handleResultReturn(int resultCode, Intent data){
         Log.d(TAG, "handleResultReturn: "+ resultCode);
         if(resultCode == -1){
-            main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG,LeadMeMain.STUDENT_NO_XRAY+"OK:"+main.getNearbyManager().myID,main.getNearbyManager().getAllPeerIDs());
+            DispatchManager.sendActionToSelected(Controller.ACTION_TAG,
+                    Controller.STUDENT_NO_XRAY + "OK:" + NearbyPeersManager.myID, NearbyPeersManager.getAllPeerIDs());
             permissionGranted=true;
         }else{
-            main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG,LeadMeMain.STUDENT_NO_XRAY+"BAD:"+main.getNearbyManager().myID,main.getNearbyManager().getAllPeerIDs());
+            DispatchManager.sendActionToSelected(Controller.ACTION_TAG,
+                    Controller.STUDENT_NO_XRAY + "BAD:" + NearbyPeersManager.myID, NearbyPeersManager.getAllPeerIDs());
             return;
         }
 
@@ -164,7 +165,7 @@ public class ScreenSharingManager {
      * this stopped it in the past if memory was running low.
      */
     public void getBitmapsFromScreen() {
-       mImageReader.setOnImageAvailableListener(reader, main.getHandler());
+       mImageReader.setOnImageAvailableListener(reader, LeadMeMain.UIHandler);
     }
 
     ImageReader.OnImageAvailableListener reader = new ImageReader.OnImageAvailableListener() {

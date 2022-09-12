@@ -175,13 +175,13 @@ public class WithinAccessibilityManager {
                     + event + "\n " + rootInActiveWindow);
         }
 
-        if (main.getAppManager().getIsWithinStreaming()) {
+        if (AppManager.getIsWithinStreaming()) {
             currentMode = MODE_STREAM;
         } else {
             currentMode = MODE_DOWNLOAD;
         }
 
-        if (main.getAppManager().getIsWithinVRMode()) {
+        if (AppManager.getIsWithinVRMode()) {
             currentView = VIEW_VR;
         } else {
             currentView = VIEW_PHONE;
@@ -329,7 +329,7 @@ public class WithinAccessibilityManager {
         }
 
         String[] targetPhrases2 = {"VIEW IN VR"};
-        if (main.getAppManager().videoInit && screenContainsPhrases(rootInActiveWindow, targetPhrases2, exclusionPhrasesEmpty)) {
+        if (AppManager.videoInit && screenContainsPhrases(rootInActiveWindow, targetPhrases2, exclusionPhrasesEmpty)) {
             Log.w(TAG, "[MODE] Phrases are present! " + currentView);
             if (currentView == VIEW_PHONE) {
                 main.tapBounds(rightRect.centerX(), rightRect.centerY());
@@ -398,7 +398,7 @@ public class WithinAccessibilityManager {
     private void endOfVideo() {
         Log.w(TAG, "The video is done!");
         cleanUpVideo();
-        main.runOnUiThread(main::updateFollowerCurrentTaskToLeadMe);
+        LeadMeMain.runOnUI(main::updateFollowerCurrentTaskToLeadMe);
         connector.bringMainToFront();
     }
 

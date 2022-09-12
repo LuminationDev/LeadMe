@@ -18,10 +18,12 @@ import android.widget.ListView;
 import android.widget.ScrollView;
 import android.widget.TextView;
 
+import com.lumination.leadme.controller.Controller;
 import com.lumination.leadme.managers.AppManager;
 import com.lumination.leadme.LeadMeMain;
 import com.lumination.leadme.R;
 import com.lumination.leadme.managers.DispatchManager;
+import com.lumination.leadme.managers.NearbyPeersManager;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -31,8 +33,6 @@ public class AppInstaller {
     private static final String TAG = "LumiAppInstaller";
 
     private final LeadMeMain main;
-    private final DispatchManager dispatcher;
-    private final AppManager appManager;
 
     private final View multiAppManager;
     private View installDialogView;
@@ -62,8 +62,6 @@ public class AppInstaller {
         Log.d(TAG, "LumiAccessibilityConnector: ");
         this.main = main;
         this.multiAppManager = main.multiAppManager;
-        this.dispatcher = main.getDispatcher();
-        this.appManager = main.getAppManager();
         this.upTo = 0;
 
         //set the button to clear and manage the selected apps
@@ -112,7 +110,7 @@ public class AppInstaller {
     // Called from AppManager determines if multi installing or singular install
     public void autoInstall(String packageName, String appName, String install, String[] multipleInstall) {
         if(install.equals("false") && multipleInstall == null) { //send back that the app is not installed, wait for confirmation
-            main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.APP_NOT_INSTALLED + ":" + appName + ":" + packageName + ":" + main.getNearbyManager().getID(), main.getNearbyManager().getSelectedPeerIDsOrAll());
+            DispatchManager.sendActionToSelected(Controller.ACTION_TAG, Controller.APP_NOT_INSTALLED + ":" + appName + ":" + packageName + ":" + NearbyPeersManager.getID(), NearbyPeersManager.getSelectedPeerIDsOrAll());
             return;
         }
 
@@ -129,16 +127,16 @@ public class AppInstaller {
             addToAppQue(packageName, appsToManage);
         }
 
-        main.installingApps = true; //true for installing, false for uninstalling
+        LeadMeMain.installingApps = true; //true for installing, false for uninstalling
         //start installing the first app
-        main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.AUTO_INSTALL_ATTEMPT + appName + ":" + main.getNearbyManager().getID(), main.getNearbyManager().getSelectedPeerIDsOrAll());
+        DispatchManager.sendActionToSelected(Controller.ACTION_TAG, Controller.AUTO_INSTALL_ATTEMPT + appName + ":" + NearbyPeersManager.getID(), NearbyPeersManager.getSelectedPeerIDsOrAll());
         main.startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("https://play.google.com/store/apps/details?id=" + appsToManage.get(0))));
     }
 
     public void prepareToInstall(String packageName, String appName) {
         lastAppName = appName;
         lastPackageName = packageName;
-        main.managingAutoInstaller = true;
+        LeadMeMain.managingAutoInstaller = true;
         Log.d(TAG, "PREPARING TO INSTALL: " + lastAppName);
     }
 
@@ -155,7 +153,7 @@ public class AppInstaller {
 
         //add icons to multilaunch - do it here so we can populate with peers apps for the uninstaller
         GridView multiAppGrid = ((GridView) multiAppManager.findViewById(R.id.app_list_grid));
-        multiAppGrid.setAdapter(this.appManager);
+        multiAppGrid.setAdapter(Controller.getInstance().getAppManager());
         multiAppGrid.setLayoutParams(layoutParams);
 
         //set the action for the process
@@ -208,7 +206,7 @@ public class AppInstaller {
         if (uninstallNodes.size()>0 || ErrorNodes.size()>0) {
             upTo++; //add to begin with as the first is used as the trigger event
 
-            if (main.installingApps && upTo < appsToManage.size()) {
+            if (LeadMeMain.installingApps && upTo < appsToManage.size()) {
                 Log.d(TAG, "Launch new page dammit: "+ upTo);
                 Intent AppL = new Intent(Intent.ACTION_VIEW, Uri.parse("https://play.google.com/store/apps/details?id=" + appsToManage.get(upTo)));
                 AppL.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
@@ -218,7 +216,7 @@ public class AppInstaller {
             if(upTo >= appsToManage.size()) {
                 //if installing multiple apps return to leadme after completion
                 if (multiInstalling) { //TODO change this as you can install 1 app using the multi app installer
-                    main.managingAutoInstaller = false; //reset before going back so it doesn't launch the last app
+                    LeadMeMain.managingAutoInstaller = false; //reset before going back so it doesn't launch the last app
                 } //if not open the newly installed application
 
                 //app have been installed, reset for next time
@@ -227,14 +225,14 @@ public class AppInstaller {
                 upTo = 0;
 
                 //refresh the application list
-                main.getAppManager().refreshAppList();
+                Controller.getInstance().getAppManager().refreshAppList();
 
                 //relaunches the app or recalls to leadme if multiple installed
-                if (main.managingAutoInstaller) {
-                    main.getAppManager().launchLocalApp(lastPackageName, "INSTALLED", true, true, "false", null);
+                if (LeadMeMain.managingAutoInstaller) {
+                    Controller.getInstance().getAppManager().launchLocalApp(lastPackageName, "INSTALLED", true, true, "false", null);
                 } else {
                     //just need to refresh the downloading icon
-                    dispatcher.sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.LAUNCH_SUCCESS + "INSTALLED" + ":" + main.getNearbyManager().getID() + ":" + "LeadMe", main.getNearbyManager().getAllPeerIDs());
+                    DispatchManager.sendActionToSelected(Controller.ACTION_TAG, Controller.LAUNCH_SUCCESS + "INSTALLED" + ":" + NearbyPeersManager.getID() + ":" + "LeadMe", NearbyPeersManager.getAllPeerIDs());
                     multiInstalling = false;
                     main.recallToLeadMe();
                 }
@@ -269,7 +267,7 @@ public class AppInstaller {
             manageInstallBtn.setVisibility(View.VISIBLE);
 
             //if installing multiple apps and the auto installer toggle is on
-            if(multi && main.autoInstallApps) {
+            if(multi && LeadMeMain.autoInstallApps) {
                 //if no applications have been selected to install
                 if(appsToManage.size() == 0) {
                     manageInstallText.setText("No applications have been selected.");
@@ -279,8 +277,8 @@ public class AppInstaller {
                     manageInstallText.setText("Are you sure you want to install these applications on all devices.");
                     manageInstallBtn.setText(R.string.confirm);
                     manageInstallBtn.setOnClickListener(v -> {
-                        dispatcher.sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.MULTI_INSTALL + ":"
-                                + main.autoInstallApps + ":" + appsToManage, main.getNearbyManager().getSelectedPeerIDsOrAll());
+                        DispatchManager.sendActionToSelected(Controller.ACTION_TAG, Controller.MULTI_INSTALL + ":"
+                                + LeadMeMain.autoInstallApps + ":" + appsToManage, NearbyPeersManager.getSelectedPeerIDsOrAll());
 
                         installDialog.dismiss();
                         installDialogShowing = false;
@@ -292,7 +290,7 @@ public class AppInstaller {
                     });
                 }
 
-            } else if (main.autoInstallApps) { //check if the option has been enabled and install a singular app
+            } else if (LeadMeMain.autoInstallApps) { //check if the option has been enabled and install a singular app
                 //set the action for the process
                 action = main.getResources().getString(R.string.install);
 
@@ -330,7 +328,7 @@ public class AppInstaller {
             installDialog.dismiss();
             installDialogShowing = false;
             //push application again this time with install set to true and only to the peersToInstall list
-            appManager.launchApp(packageToInstallName, appToInstallName, false, "true", false, new HashSet<>(peersToInstall));
+            Controller.getInstance().getAppManager().launchApp(packageToInstallName, appToInstallName, false, "true", false, new HashSet<>(peersToInstall));
             resetAppSelection();
         });
 
@@ -472,7 +470,7 @@ public class AppInstaller {
     }
 
     public void applicationsToUninstallWarning() {
-        if(!main.autoInstallApps) {
+        if(!LeadMeMain.autoInstallApps) {
             turnOnAutoInstaller(null, null, true, false);
         } else {
             //if no applications have been selected to install
@@ -486,8 +484,8 @@ public class AppInstaller {
                 manageInstallBtn.setVisibility(View.VISIBLE);
                 manageInstallBtn.setOnClickListener(v -> {
                     //send action to install everything within appsToInstall
-                    dispatcher.sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.AUTO_UNINSTALL + ":"
-                            + main.autoInstallApps + ":" + appsToManage, main.getNearbyManager().getSelectedPeerIDsOrAll());
+                    DispatchManager.sendActionToSelected(Controller.ACTION_TAG, Controller.AUTO_UNINSTALL + ":"
+                            + LeadMeMain.autoInstallApps + ":" + appsToManage, NearbyPeersManager.getSelectedPeerIDsOrAll());
 
                     installDialog.dismiss();
                     installDialogShowing = false;
@@ -496,7 +494,7 @@ public class AppInstaller {
                     main.exitCurrentView();
 
                     //reset for next time
-                    peerApplications = new ArrayList<String>();
+                    peerApplications = new ArrayList<>();
                     resetAppSelection();
                 });
             }

@@ -14,16 +14,18 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.HashSet;
 
 /**
  * A runnable used by the clientProcessingPool to receive information from the client sockets
  * and send the selected file to the client.
  */
-public class ClientTransferTask implements Runnable {
+public class
+ClientTransferTask implements Runnable {
     private static final String TAG = "ClientTransferTask";
 
     private final Socket clientSocket;
-    private int ID;
+    private String ID;
 
     public ClientTransferTask(Socket clientSocket) {
         this.clientSocket = clientSocket;
@@ -55,7 +57,7 @@ public class ClientTransferTask implements Runnable {
             String message = dataInputStream.readUTF();
             Log.d(TAG, "Peer number: " + message + " has just connected.");
 
-            this.ID = Integer.parseInt(message);
+            this.ID = message;
 
             //ID has been received, nothing else is sent so close just the input streams
             this.clientSocket.shutdownInput();
@@ -141,7 +143,7 @@ public class ClientTransferTask implements Runnable {
             e.printStackTrace();
             Log.d(TAG, "SocketClosure: socket closing issue");
         } finally {
-            LeadMeMain.fileRequests = new ArrayList<>();
+            LeadMeMain.fileRequests = new HashSet<>();
 
             //reset for next time
             FileTransferManager.transfer_progress = -1;

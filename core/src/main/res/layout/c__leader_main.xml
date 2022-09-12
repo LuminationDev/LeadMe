@@ -108,7 +108,7 @@
             <LinearLayout
                 android:id="@+id/app_core_btn"
                 style="@style/LeaderButton"
-                android:layout_marginLeft="0dp"
+                android:layout_marginStart="0dp"
                 android:orientation="vertical">
                 <LinearLayout
                     style="@style/LeaderButton__IconWrapper">
@@ -271,6 +271,54 @@
                     <TextView
                         style="@style/LeaderButton__Text__Lead"
                         android:text="File Transfer"/>
+                </LinearLayout>
+            </LinearLayout>
+
+            <!--            Move to a better position when implemented-->
+            <LinearLayout
+                android:id="@+id/end_core_btn"
+                style="@style/LeaderButton"
+                android:orientation="vertical">
+
+                <LinearLayout style="@style/LeaderButton__IconWrapper">
+
+                    <LinearLayout
+                        style="@style/LeaderButton__Icon"
+                        android:background="@drawable/alert_error" />
+                </LinearLayout>
+
+                <LinearLayout style="@style/LeaderButton__Text">
+
+                    <TextView
+                        style="@style/LeaderButton__Text__Eyebrow"
+                        android:text="FINISH"
+                        android:visibility="invisible"/>
+
+                    <TextView
+                        style="@style/LeaderButton__Text__Lead"
+                        android:text="End Session" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/lock_core_btn"
+                style="@style/LeaderButton"
+                android:orientation="vertical">
+                <LinearLayout
+                    style="@style/LeaderButton__IconWrapper">
+                    <LinearLayout
+                        style="@style/LeaderButton__Icon"
+                        android:background="@drawable/core_lock_view"/>
+                </LinearLayout>
+                <LinearLayout
+                    style="@style/LeaderButton__Text">
+                    <TextView
+                        style="@style/LeaderButton__Text__Eyebrow"
+                        android:text="CONTROL"/>
+                    <TextView
+                        android:id="@+id/lock_core_text"
+                        style="@style/LeaderButton__Text__Lead"
+                        android:text="Lock"/>
                 </LinearLayout>
             </LinearLayout>
 

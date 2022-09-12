@@ -202,56 +202,48 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal"
+            android:layout_marginTop="10dp"
             android:layout_marginBottom="10dp"
             android:orientation="horizontal"
             android:visibility="gone">
 
-
             <Button
                 android:id="@+id/selected_btn"
-                android:layout_width="140dp"
+                android:layout_width="@dimen/half_standard_btn_width"
                 android:layout_height="wrap_content"
-                android:layout_marginLeft="10dp"
+                android:layout_marginStart="10dp"
                 android:layout_marginTop="10dp"
                 android:layout_marginBottom="10dp"
                 android:layout_weight="1"
-                android:background="@drawable/bg_passive_right_white"
+                android:background="@drawable/bg_passive_right"
                 android:elevation="5dp"
                 android:fontFamily="@font/poppins_semibold"
-                android:includeFontPadding="false"
-                android:paddingStart="10dp"
-                android:paddingTop="10dp"
-                android:paddingEnd="10dp"
-                android:paddingBottom="10dp"
-                android:text="Selected"
+                android:padding="10dp"
+                android:text="@string/selected"
                 android:textAlignment="center"
                 android:textAllCaps="false"
-                android:textColor="@color/leadme_black"
-                android:textSize="16sp" />
+                android:textColor="@color/light"
+                android:textSize="14sp"
+                style="?android:attr/buttonBarButtonStyle" />
 
             <Button
                 android:id="@+id/everyone_btn"
-                android:layout_width="140dp"
+                android:layout_width="@dimen/half_standard_btn_width"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="1dp"
                 android:layout_marginTop="10dp"
                 android:layout_marginEnd="10dp"
                 android:layout_marginBottom="10dp"
                 android:layout_weight="1"
                 android:background="@drawable/bg_passive_left"
-                android:drawableLeft="@drawable/icon_fav_star_check"
                 android:elevation="5dp"
                 android:fontFamily="@font/poppins_semibold"
-                android:includeFontPadding="false"
-                android:paddingStart="10dp"
-                android:paddingTop="10dp"
-                android:paddingEnd="10dp"
-                android:paddingBottom="10dp"
-                android:text="Everyone"
+                android:padding="10dp"
+                android:text="@string/everyone"
                 android:textAlignment="center"
                 android:textAllCaps="false"
-                android:textColor="@color/leadme_black"
-                android:textSize="16sp" />
+                android:textColor="@color/light"
+                android:textSize="14sp"
+                style="?android:attr/buttonBarButtonStyle" />
         </LinearLayout>
 
         <LinearLayout

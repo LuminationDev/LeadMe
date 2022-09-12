@@ -22,6 +22,7 @@ import android.widget.Toast;
 import android.widget.VideoView;
 
 import androidx.annotation.NonNull;
+import androidx.core.content.res.ResourcesCompat;
 
 import com.alimuzaffar.lib.pin.PinEntryEditText;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
@@ -41,6 +42,7 @@ import com.himanshurawat.hasher.HashType;
 import com.himanshurawat.hasher.Hasher;
 import com.lumination.leadme.LeadMeMain;
 import com.lumination.leadme.R;
+import com.lumination.leadme.controller.Controller;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -219,13 +221,14 @@ public class AuthenticationManager {
         });
 
         //page 0
-        EditText loginCode = loginView.findViewById(R.id.rego_code_box);
-        TextView regoLost = loginView.findViewById(R.id.rego_lost_code);
-        regoLost.setOnClickListener(v -> {
-            String[] email = {"dev@lumination.com.au"};
-            main.composeEmail(email,"LeadMe Support: Signup Code Request");
-        });
-        TextView regoError = loginView.findViewById(R.id.rego_code_error);
+//        EditText loginCode = loginView.findViewById(R.id.rego_code_box);
+//        TextView regoLost = loginView.findViewById(R.id.rego_lost_code);
+//        regoLost.setOnClickListener(v -> {
+//            String[] email = {"dev@lumination.com.au"};
+//            main.composeEmail(email,"LeadMe Support: Signup Code Request");
+//        });
+        //TextView regoError = loginView.findViewById(R.id.rego_code_error);
+
         //page 2
         TextView signupError = loginView.findViewById(R.id.signup_error);
         EditText signupName = loginView.findViewById(R.id.signup_name);
@@ -259,74 +262,75 @@ public class AuthenticationManager {
 
         main.setContentView(loginView);
 
-        loginView.setOnClickListener(v -> main.getDialogManager().hideSoftKeyboard(v));
+        loginView.setOnClickListener(v -> Controller.getInstance().getDialogManager().hideSoftKeyboard(v));
 
         switch (page) {
-            case 0:
-                showSystemUI();
-                regoError.setVisibility(View.GONE);
-                //loginCode.requestFocus();
-                loginCode.setOnFocusChangeListener((v, hasFocus) -> {
-                    if (hasFocus) {
-                        showSystemUI();
-                    }
-                });
-                loginCode.addTextChangedListener(new TextWatcher() {
-                    @Override
-                    public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-                        showSystemUI();
-                    }
-
-                    @Override
-                    public void onTextChanged(CharSequence s, int start, int before, int count) {
-                        Log.d(TAG, "onTextChanged: " + count);
-                        if (s.length() == 6) {
-                            closeKeyboard();
-                        }
-                    }
-
-                    @Override
-                    public void afterTextChanged(Editable s) {
-
-                    }
-                });
-
-                next.setOnClickListener(v -> {
-                    if (loginCode.getText().length() == 6) {
-                        main.setProgressSpinner(3000, progressBar);
-                        db.collection("signin_codes").document(loginCode.getText().toString())
-                                .get().addOnCompleteListener(task -> {
-                            if (task.isSuccessful()) {
-                                Log.d(TAG, "buildloginsignup: database accessed");
-                                if (task.getResult().exists()) {
-                                    //todo add email under signup code
-//                                        if(task.getResult().get)
-                                    regoCode = loginCode.getText().toString();
-                                    buildloginsignup(1);
-                                } else {
-                                    progressBar.setVisibility(View.GONE);
-                                    regoError.setText("I'm sorry that code doesn't exist.");
-                                    regoError.setVisibility(View.VISIBLE);
-                                }
-                            } else {
-                                Log.d(TAG, "buildloginsignup: unable to access database");
-                            }
-                        });
-                    } else {
-                        regoError.setVisibility(View.VISIBLE);
-                        regoError.setText("Please check you have entered the code correctly.");
-                    }
-                });
-
-                back.setOnClickListener(v -> {
-                    main.animatorAsContentView();
-                    hideSystemUI();
-                });
-                break;
+            //TODO kept in case of reuse in the future
+//            case 0:
+//                showSystemUI();
+//                regoError.setVisibility(View.GONE);
+//
+//                loginCode.setOnFocusChangeListener((v, hasFocus) -> {
+//                    if (hasFocus) {
+//                        showSystemUI();
+//                    }
+//                });
+//
+//                loginCode.addTextChangedListener(new TextWatcher() {
+//                    @Override
+//                    public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+//                        showSystemUI();
+//                    }
+//
+//                    @Override
+//                    public void onTextChanged(CharSequence s, int start, int before, int count) {
+//                        Log.d(TAG, "onTextChanged: " + count);
+//                        if (s.length() == 6) {
+//                            closeKeyboard();
+//                        }
+//                    }
+//
+//                    @Override
+//                    public void afterTextChanged(Editable s) {
+//
+//                    }
+//                });
+//
+//                next.setOnClickListener(v -> {
+//                    if (loginCode.getText().length() == 6) {
+//                        main.setProgressSpinner(3000, progressBar);
+//                        db.collection("signin_codes").document(loginCode.getText().toString())
+//                                .get().addOnCompleteListener(task -> {
+//                            if (task.isSuccessful()) {
+//                                Log.d(TAG, "buildloginsignup: database accessed");
+//                                if (task.getResult().exists()) {
+////                                        if(task.getResult().get)
+//                                    regoCode = loginCode.getText().toString();
+//                                    buildloginsignup(1);
+//                                } else {
+//                                    progressBar.setVisibility(View.GONE);
+//                                    regoError.setText("I'm sorry that code doesn't exist.");
+//                                    regoError.setVisibility(View.VISIBLE);
+//                                }
+//                            } else {
+//                                Log.d(TAG, "buildloginsignup: unable to access database");
+//                            }
+//                        });
+//                    } else {
+//                        regoError.setVisibility(View.VISIBLE);
+//                        regoError.setText("Please check you have entered the code correctly.");
+//                    }
+//                });
+//
+//                back.setOnClickListener(v -> {
+//                    main.animatorAsContentView();
+//                    hideSystemUI();
+//                });
+//                break;
 
             case 1:
                 hideSystemUI();
-                main.getHandler().postDelayed(this::hideSystemUI, 500);
+                LeadMeMain.UIHandler.postDelayed(this::hideSystemUI, 500);
                 errorText.setVisibility(View.GONE);
                 hasScrolled = true;
                 WebView TOF = loginView.findViewById(R.id.tof_webview);
@@ -334,11 +338,22 @@ public class AuthenticationManager {
                 String pdf = "https://github.com/LuminationDev/public/raw/main/LeadMeEdu-TermsAndConditions.pdf";
                 TOF.loadUrl("https://drive.google.com/viewerng/viewer?embedded=true&url=" + pdf);
 
+                next.setBackground(ResourcesCompat.getDrawable(main.getResources(), R.drawable.bg_passive, null));
+                next.setEnabled(false);
+
                 touAgree.setOnCheckedChangeListener((buttonView, isChecked) -> {
                     if (isChecked && !hasScrolled) {
                         touAgree.setChecked(false);
                         errorText.setVisibility(View.VISIBLE);
                         errorText.setText("Please read all of the terms of use");
+                    }
+
+                    if(isChecked) {
+                        next.setBackground(ResourcesCompat.getDrawable(main.getResources(), R.drawable.bg_active, null));
+                        next.setEnabled(isChecked);
+                    } else {
+                        next.setBackground(ResourcesCompat.getDrawable(main.getResources(), R.drawable.bg_passive, null));
+                        next.setEnabled(isChecked);
                     }
                 });
 
@@ -350,7 +365,11 @@ public class AuthenticationManager {
                     }
                 });
 
-                back.setOnClickListener(v -> buildloginsignup(0));
+                back.setOnClickListener(v -> {
+                    main.animatorAsContentView();
+                    hideSystemUI();
+                });
+                //back.setOnClickListener(v -> buildloginsignup(0));
                 break;
 
             case 2:
@@ -372,8 +391,8 @@ public class AuthenticationManager {
                         return;
                     }
 
-                    if (signupPass.getText().toString().length() == 0) {
-                        signupError.setText("Please enter a password");
+                    if (signupPass.getText().toString().length() < 8) {
+                        signupError.setText("Please enter a password with 8 or more characters");
                         signupError.setVisibility(View.VISIBLE);
                         progressBar.setVisibility(View.GONE);
                         return;
@@ -396,25 +415,24 @@ public class AuthenticationManager {
                 });
 
                 back.setOnClickListener(v -> {
-                    buildloginsignup(0);
+                    buildloginsignup(1);
                     hideSystemUI();
                 });
                 break;
 
             case 3:
-                main.getHandler().postDelayed(this::hideSystemUI, 500);
+                LeadMeMain.UIHandler.postDelayed(this::hideSystemUI, 500);
 
                 next.setVisibility(View.GONE);
 
                 Uri uri = Uri.parse("android.resource://" + main.getPackageName() + "/" + R.raw.email_sent);
                 animation.setVideoURI(uri);
                 animation.setBackgroundColor(Color.WHITE);
-                Log.d(TAG, "buildloginsignup: here");
 
                 animation.setOnPreparedListener(mp -> {
                     mp.setLooping(true);
                     animation.start();
-                    main.getHandler().postDelayed(() -> animation.setBackgroundColor(Color.TRANSPARENT), 100);
+                    LeadMeMain.UIHandler.postDelayed(() -> animation.setBackgroundColor(Color.TRANSPARENT), 100);
                 });
 
                 FirebaseAuth.AuthStateListener mAuthListener = firebaseAuth -> {
@@ -424,27 +442,23 @@ public class AuthenticationManager {
                         return;
                     }
 
-                    //TODO crash occurs here - getCurrentUser() or mAuth or isEmailVerified is null?
-                    if (!Objects.requireNonNull(mAuth.getCurrentUser()).isEmailVerified()) {
-                        Log.d(TAG, "buildloginsignup: email verification sent");
-                        mAuth.getCurrentUser().sendEmailVerification().addOnSuccessListener(aVoid ->
-                                scheduledExecutorService.scheduleAtFixedRate(() -> mAuth.addAuthStateListener(firebaseAuth1 -> {
-                                    Log.d(TAG, "run: checking user verification");
-                                    if (!mAuth.getCurrentUser().isEmailVerified()) {
-                                        mAuth.getCurrentUser().reload();
-                                    } else {
-                                        currentUser = mAuth.getCurrentUser();
-                                        scheduledExecutorService.shutdown();
-                                        main.runOnUiThread(() -> buildloginsignup(4));
-                                    }
-                                }), 100, 100, TimeUnit.MILLISECONDS));
-                    } else {
-                        Log.d(TAG, "buildloginsignup: user is already verified");
+                    try {
+                        if (!Objects.requireNonNull(mAuth.getCurrentUser()).isEmailVerified()) {
+                            Log.d(TAG, "buildloginsignup: email verification sent");
+
+                            mAuth.getCurrentUser().sendEmailVerification().addOnSuccessListener(aVoid ->
+                                    scheduledExecutorService.scheduleAtFixedRate(this::authCheck
+                                    , 100, 1000, TimeUnit.MILLISECONDS));
+                        } else {
+                            Log.d(TAG, "buildloginsignup: user is already verified");
+                        }
+                    }
+                    catch (Exception e) {
+                        e.printStackTrace();
                     }
                 };
 
                 mAuth.addAuthStateListener(mAuthListener);
-                Log.d(TAG, "buildloginsignup: and here");
 
                 /*If not they can exit the app and verify whenever they want. Otherwise open to here
                 *until the verify.
@@ -452,7 +466,9 @@ public class AuthenticationManager {
                 back.setOnClickListener(v -> {
                     scheduledExecutorService.shutdown();
                     mAuth.removeAuthStateListener(mAuthListener);
-                    buildloginsignup(2);
+                    mAuth.signOut();
+                    main.animatorAsContentView();
+                    hideSystemUI();
                 });
                 break;
 
@@ -469,7 +485,7 @@ public class AuthenticationManager {
                         if (task.getResult().exists()) {
                             if (task.getResult().getString("pin").length() > 0) {
                                 progressBar.setVisibility(View.GONE);
-                                main.setUserName(currentUser.getDisplayName(), false);
+                                //setUserName(currentUser.getDisplayName(), false);
                                 main.animatorAsContentView();
                             }
                         }
@@ -498,7 +514,7 @@ public class AuthenticationManager {
                             db.collection("users").document(mAuth.getCurrentUser().getUid()).get().addOnCompleteListener(task -> {
                                 if (task.isSuccessful()) {
                                     progressBar.setVisibility(View.GONE);
-                                    main.setUserName(task.getResult().getString("name"), false);
+                                    setUserName(task.getResult().getString("name"), false);
                                     main.animatorAsContentView();
                                     loginPassword="";
                                     Name="";
@@ -531,12 +547,27 @@ public class AuthenticationManager {
     }
 
     private void firebaseRemoveUser(FirebaseUser currentUser) {
-        db.collection("users").document(currentUser.getUid()).delete().addOnCompleteListener(new OnCompleteListener<Void>() {
-            @Override
-            public void onComplete(@NonNull Task<Void> task) {
-                if(task.isSuccessful()){
-                    currentUser.delete();
-                }
+        db.collection("users").document(currentUser.getUid()).delete().addOnCompleteListener(task -> {
+            if(task.isSuccessful()){
+                currentUser.delete();
+            }
+        });
+    }
+
+    private void authCheck() {
+        if(mAuth.getCurrentUser() == null) {
+            scheduledExecutorService.shutdown();
+            return;
+        }
+
+        mAuth.addAuthStateListener(firebaseAuth1 -> {
+            Log.d(TAG, "run: checking user verification");
+            if (!mAuth.getCurrentUser().isEmailVerified()) {
+                mAuth.getCurrentUser().reload();
+            } else {
+                currentUser = mAuth.getCurrentUser();
+                scheduledExecutorService.shutdown();
+                LeadMeMain.runOnUI(() -> buildloginsignup(4));
             }
         });
     }
@@ -558,7 +589,7 @@ public class AuthenticationManager {
                             if (task1.isSuccessful()) {
                                 if (task1.getResult().exists()) {
                                     Log.d(TAG, "handleSignInResult: user found");
-                                    main.setUserName(account.getGivenName(), false);
+                                    setUserName(account.getGivenName(), false);
 
                                 } else {
                                     Log.d(TAG, "handleSignInResult: new user");
@@ -569,7 +600,7 @@ public class AuthenticationManager {
                                     db.collection("users").document(currentUser.getUid()).set(userDet)
                                             .addOnSuccessListener(aVoid -> {
                                                 Log.d(TAG, "handleSignInResult: new user created");
-                                                main.setUserName(account.getGivenName(), false);
+                                                setUserName(account.getGivenName(), false);
                                                 hideSystemUI();
                                             })
                                             .addOnFailureListener(e -> Log.d(TAG, "handleSignInResult: failed to create new user please check internet"));
@@ -579,7 +610,7 @@ public class AuthenticationManager {
                         });
                     } else {
                         Intent signInIntent = mGoogleSignInClient.getSignInIntent();
-                        main.startActivityForResult(signInIntent, main.RC_SIGN_IN);
+                        main.startActivityForResult(signInIntent, LeadMeMain.RC_SIGN_IN);
                     }
                 });
             } else {
@@ -608,7 +639,7 @@ public class AuthenticationManager {
                         userDet.put("name", name);
                         userDet.put("email", email);
                         userDet.put("marketing", marketing);
-                        userDet.put("rego_code", regoCode);
+                        //userDet.put("rego_code", regoCode);
 
                         db.collection("users").document(mAuth.getCurrentUser().getUid()).get().addOnCompleteListener(task1 -> {
                             if (task1.getResult().exists()) {
@@ -657,23 +688,23 @@ public class AuthenticationManager {
 
                         if (!currentUser.isEmailVerified()) {
                             //not clearing
-                            main.cleanDialogs();
+                            Controller.getInstance().getDialogManager().cleanUpDialogs();
                             buildloginsignup(3, false);
                         } else {
                             db.collection("users").document(mAuth.getCurrentUser().getUid()).get()
                                     .addOnCompleteListener((OnCompleteListener<DocumentSnapshot>) task1 -> {
                                 Log.d(TAG, "onComplete: ");
-                                main.setIndeterminateBar(View.GONE);
+                                Controller.getInstance().getDialogManager().setIndeterminateBar(View.GONE);
 
                                 if (task1.isSuccessful()) {
-                                    main.setIndeterminateBar(View.GONE);
+                                    Controller.getInstance().getDialogManager().setIndeterminateBar(View.GONE);
                                     if (task1.getResult().get("pin") == null ) {
-                                        main.cleanDialogs();
+                                        Controller.getInstance().getDialogManager().cleanUpDialogs();
                                         buildloginsignup(4, false);
                                         return;
                                     }
 
-                                    main.setUserName((String) task1.getResult().get("name"), false);
+                                    setUserName((String) task1.getResult().get("name"), false);
                                     Log.d(TAG, "onComplete: name found: " + task1.getResult().get("name"));
                                     main.animatorAsContentView();
                                 }
@@ -683,7 +714,7 @@ public class AuthenticationManager {
                     } else {
                         // If sign in fails, display a message to the user.
                         Log.w(TAG, "signInWithEmail:failure", task.getException());
-                        main.setIndeterminateBar(View.GONE);
+                        Controller.getInstance().getDialogManager().setIndeterminateBar(View.GONE);
                         errorText.setVisibility(View.VISIBLE);
                         errorText.setText(task.getException().getMessage());
                     }
@@ -693,6 +724,17 @@ public class AuthenticationManager {
     }
 
     //HELPER FUNCTIONS
+    /**
+     * Sets the name of the current user and calls the loginAction.
+     * @param name A string representing the name of the user that is connecting.
+     * @param manualLogin A boolean representing if the user is manually finding guides.
+     */
+    public void setUserName(String name, Boolean manualLogin) {
+        NearbyPeersManager.myName = name;
+        LeadMeMain.getInstance().getNameViewController().setText(name);
+        LeadMeMain.getInstance().loginAction(manualLogin);
+    }
+
     /**
      * Make a call to firebase to set the pin of a new account.
      * @param pin A string representing the chosen pin.

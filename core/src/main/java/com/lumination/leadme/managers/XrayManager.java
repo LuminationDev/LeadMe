@@ -25,9 +25,11 @@ import eu.bolt.screenshotty.ScreenshotManager;
 import static android.view.View.GONE;
 import static android.view.View.VISIBLE;
 
+import com.lumination.leadme.adapters.ConnectedLearnersAdapter;
 import com.lumination.leadme.connections.ConnectedPeer;
 import com.lumination.leadme.LeadMeMain;
 import com.lumination.leadme.R;
+import com.lumination.leadme.controller.Controller;
 
 public class XrayManager {
     private final String TAG = "XrayManager";
@@ -82,11 +84,11 @@ public class XrayManager {
                 //make sure UI is appropriate for displayed peer
                 if (currentlySelected) {
                     selectToggleBtn.setCompoundDrawablesWithIntrinsicBounds(R.drawable.icon_unselect_peer, 0, 0, 0);
-                    selectToggleBtn.setText("Unselect");
+                    selectToggleBtn.setText(R.string.unselect);
 
                 } else {
                     selectToggleBtn.setCompoundDrawablesWithIntrinsicBounds(R.drawable.icon_select_peer, 0, 0, 0);
-                    selectToggleBtn.setText("Select");
+                    selectToggleBtn.setText(R.string.select);
                 }
 
                 xrayDropdown.setVisibility(View.VISIBLE);
@@ -110,7 +112,7 @@ public class XrayManager {
         xrayDropdown.findViewById(R.id.disconnect_text).setOnClickListener(view -> {
             ConnectedPeer thisPeer = getCurrentlyDisplayedStudent();
             Log.w(TAG, "Removing student: " + thisPeer.getID() + ", " + thisPeer.getDisplayName());
-            main.getConnectedLearnersAdapter().showLogoutPrompt(thisPeer.getID());
+            Controller.getInstance().getConnectedLearnersAdapter().showLogoutPrompt(thisPeer.getID());
             xrayButton.callOnClick();
         });
 
@@ -122,20 +124,20 @@ public class XrayManager {
 
             if (displayedText.equals("Select") && !currentlySelected) {
                 Log.e(TAG, "Setting SELECTED!");
-                main.getConnectedLearnersAdapter().selectPeer(thisPeer.getID(), true);
+                Controller.getInstance().getConnectedLearnersAdapter().selectPeer(thisPeer.getID(), true);
                 updateXrayForSelection(thisPeer);
 
                 selectToggleBtn.setCompoundDrawablesWithIntrinsicBounds(R.drawable.icon_unselect_peer, 0, 0, 0);
-                selectToggleBtn.setText("Unselect");
+                selectToggleBtn.setText(R.string.unselect);
                 xrayButton.callOnClick();
 
             } else if (displayedText.equals("Unselect") && currentlySelected) {
                 Log.e(TAG, "Setting UNSELECTED!");
-                main.getConnectedLearnersAdapter().selectPeer(thisPeer.getID(), false);
+                Controller.getInstance().getConnectedLearnersAdapter().selectPeer(thisPeer.getID(), false);
                 updateXrayForSelection(thisPeer);
 
                 selectToggleBtn.setCompoundDrawablesWithIntrinsicBounds(R.drawable.icon_select_peer, 0, 0, 0);
-                selectToggleBtn.setText("Select");
+                selectToggleBtn.setText(R.string.select);
                 xrayButton.callOnClick();
             }
         });
@@ -172,7 +174,16 @@ public class XrayManager {
         ImageView closeButton = xrayScreen.findViewById(R.id.back_btn);
         closeButton.setOnClickListener(v -> {
             hideXrayView();
-            main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.XRAY_OFF, main.getNearbyManager().getAllPeerIDs());
+            try {
+                Log.e(TAG, "CLOSING SERVER SOCKET");
+                serverSocket.close();
+                serverSocket = null;
+                monitorInProgress = false;
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            DispatchManager.sendActionToSelected(Controller.ACTION_TAG, Controller.XRAY_OFF, NearbyPeersManager.getAllPeerIDs());
+            DispatchManager.sendActionToSelected(Controller.ACTION_TAG, Controller.XRAY_OFF, NearbyPeersManager.getSelectedPeerIDs());
             //remove last
             if (xrayDropdown.getVisibility() == VISIBLE) {
                 xrayButton.callOnClick(); //hide it
@@ -187,7 +198,7 @@ public class XrayManager {
 
     public ConnectedPeer getCurrentlyDisplayedStudent() {
         Log.w(TAG, "Getting matching peer: " + currentXrayStudentIndex + ", " + selectedXrayStudents.get(currentXrayStudentIndex));
-        return main.getConnectedLearnersAdapter().getMatchingPeer(selectedXrayStudents.get(currentXrayStudentIndex));
+        return ConnectedLearnersAdapter.getMatchingPeer(selectedXrayStudents.get(currentXrayStudentIndex));
     }
 
     private ArrayList<String> selectedXrayStudents = new ArrayList<>();
@@ -204,10 +215,10 @@ public class XrayManager {
 
         //populate list with selected students (or all if none selected)
         selectedXrayStudents = new ArrayList<>();
-        selectedXrayStudents.addAll(main.getNearbyManager().getSelectedPeerIDsOrAll());
+        selectedXrayStudents.addAll(NearbyPeersManager.getSelectedPeerIDsOrAll());
 
         if (selectedXrayStudents.size() > 0) {
-            setXrayStudent(peer);
+            setXrayStudent(peer.equals("") ? selectedXrayStudents.get(0) : peer);
             if (xrayScreen.getVisibility() != VISIBLE) {
                 main.displayXrayView();
             }
@@ -241,7 +252,7 @@ public class XrayManager {
             monitoredPeer = selectedXrayStudents.get(currentXrayStudentIndex);
         }
 
-        ConnectedPeer xrayStudent = main.getConnectedLearnersAdapter().getMatchingPeer(monitoredPeer);
+        ConnectedPeer xrayStudent = ConnectedLearnersAdapter.getMatchingPeer(monitoredPeer);
 
         Log.w(TAG, "Setting arrows! " + monitoredPeer + ", " + currentXrayStudentIndex + ", " + selectedXrayStudents.size() + ", " + xrayStudent);
 
@@ -249,8 +260,8 @@ public class XrayManager {
             //this student must have disconnected, refresh the UI
             hideXrayView();
             //Check if a learner is connected AND if the xray list is filling properly
-            if (main.getConnectedLearnersAdapter().mData.size() > 0) {
-                Log.w(TAG, "Got connected learners! Showing xray again! " + main.getConnectedLearnersAdapter().mData.size());
+            if (ConnectedLearnersAdapter.mData.size() > 0) {
+                Log.w(TAG, "Got connected learners! Showing xray again! " + ConnectedLearnersAdapter.mData.size());
                 showXrayView("");
             }
             return;
@@ -281,7 +292,7 @@ public class XrayManager {
 
             Drawable icon = xrayStudent.getIcon();
             if (icon == null) {
-                icon = main.leadmeIcon;
+                icon = main.leadMeIcon;
             }
             //update app icon
             xrayStudentIcon.setImageDrawable(icon);
@@ -299,33 +310,41 @@ public class XrayManager {
         Log.w(TAG, "Updating UI for " + xrayStudent.getDisplayName() + "!");
 
         //let everyone else know we're NOT watching so they reduce computational load
-        Set<String> notSelected = main.getNearbyManager().getAllPeerIDs();
+        Set<String> notSelected = NearbyPeersManager.getAllPeerIDs();
         notSelected.remove(xrayStudent.getID());
-        main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.XRAY_OFF, notSelected);
+        DispatchManager.sendActionToSelected(Controller.ACTION_TAG, Controller.XRAY_OFF, notSelected);
 
         //let student know we're watching so they send screenshots
         Set<String> selected = new HashSet<>();
         selected.add(xrayStudent.getID());
-        main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.XRAY_ON, selected);
 
         Log.e(TAG, "Peers: SEL:" + selected + ", NOT:" + notSelected);
 
         if (xrayStudent.isSelected()) {
-            xrayStudentSelectedView.setText("Selected");
+            xrayStudentSelectedView.setText(R.string.selected);
             xrayStudentSelectedView.setTextColor(main.getResources().getColor(R.color.light, null));
         } else {
-            xrayStudentSelectedView.setText("Unselected");
+            xrayStudentSelectedView.setText(R.string.unselected);
             xrayStudentSelectedView.setTextColor(main.getResources().getColor(R.color.leadme_dark_grey, null));
         }
     }
 
     private void imageRunnableFunction(String imgPeer) {
         Log.e(TAG, "Starting imageRunnable: " + serverSocket.isClosed() + ", " + serverSocket.isBound());
-        Socket socket;
+        Socket socket = null;
         try {
             socket = serverSocket.accept();
             Log.w(TAG, "Accepting SERVER socket from " + serverSocket.getInetAddress() + ", I'm " + socket.getLocalAddress() + " / " + imgPeer);
         } catch (IOException e) {
+            Log.e(TAG, "Failed to start server socket");
+            if (socket != null) {
+                try {
+                    Log.e(TAG, "Closing server socket after failure");
+                    socket.close();
+                } catch (IOException ioException) {
+                    ioException.printStackTrace();
+                }
+            }
             e.printStackTrace();
             monitorInProgress = false;
             return;
@@ -364,7 +383,7 @@ public class XrayManager {
                 Bitmap tmpBmp = BitmapFactory.decodeByteArray(buffer, 0, buffer.length);
                 response = tmpBmp;
 
-                main.runOnUiThread(() -> {
+                LeadMeMain.runOnUI(() -> {
                     //remove the loading spinner
                     isAwaitingImage(false);
                     //check if we are receiving images from the correct peer
@@ -392,6 +411,15 @@ public class XrayManager {
     //client socket for monitoring
     public void startImageClient(String peer) {
         Log.d(TAG, "Starting image client for " + peer);
+        if (serverSocket != null) {
+            try {
+                Log.e(TAG, "Closing SERVER socket");
+                serverSocket.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            serverSocket = null;
+        }
         while (serverSocket == null) {
             try {
                 serverSocket = new ServerSocket(54322);
@@ -408,6 +436,10 @@ public class XrayManager {
         monitorInProgress = true;
         imageSocketThread = new Thread(() -> imageRunnableFunction(peer));
         imageSocketThread.start();
+        Set<String> selected = new HashSet<>();
+        selected.add(peer);
+        DispatchManager.sendActionToSelected(Controller.ACTION_TAG, Controller.XRAY_ON, selected);
+        Log.d(TAG, "Socket thread created");
     }
 
     public void removePeerFromMap(String peer) {

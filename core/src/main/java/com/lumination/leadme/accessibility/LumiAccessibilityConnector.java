@@ -9,10 +9,11 @@ import android.view.accessibility.AccessibilityEvent;
 import android.view.accessibility.AccessibilityNodeInfo;
 import android.widget.Button;
 
-import androidx.annotation.RequiresApi;
-
 import com.lumination.leadme.LeadMeMain;
+import com.lumination.leadme.controller.Controller;
+import com.lumination.leadme.managers.AppManager;
 import com.lumination.leadme.managers.DispatchManager;
+import com.lumination.leadme.managers.NearbyPeersManager;
 import com.lumination.leadme.services.LumiAccessibilityService;
 
 import java.util.ArrayList;
@@ -32,7 +33,6 @@ public class LumiAccessibilityConnector {
     private final LeadMeMain main;
 
     //handler for executing on the main thread
-    private final DispatchManager dispatcher;
     private static boolean waitingForStateChange = false;
 
     public boolean gestureInProgress = false;
@@ -43,7 +43,6 @@ public class LumiAccessibilityConnector {
     public LumiAccessibilityConnector(LeadMeMain main) {
         Log.d(TAG, "LumiAccessibilityConnector: ");
         this.main = main;
-        dispatcher = main.getDispatcher();
         ytManager = new YouTubeAccessibilityManager(main, this);
         withinManager = new WithinAccessibilityManager(main, this);
     }
@@ -51,14 +50,11 @@ public class LumiAccessibilityConnector {
     public void resetState() {
         ytManager.adFinished = false;
         withinManager.resetTapInit();
-//        Log.d(TAG, "resetState: ");
-//        ytManager.resetState();
-//        withinManager.cleanUpVideo();
     }
 
     public void cueYouTubeAction(String actionStr) {
         Log.d(TAG, "cueYouTubeAction: ");
-        if (main.getNearbyManager().isConnectedAsGuide()) {
+        if (NearbyPeersManager.isConnectedAsGuide()) {
             return; //guides manage YT their own way
         }
         //delegate to the right manager
@@ -194,7 +190,7 @@ public class LumiAccessibilityConnector {
 
     public void bringMainToFront() {
         Log.d(TAG, "bringMainToFront: ");
-        main.getHandler().post(() -> {
+        LeadMeMain.UIHandler.post(() -> {
             if (main != null && !main.isAppVisibleInForeground()) {
                 main.recallToLeadMe();
             }
@@ -211,7 +207,7 @@ public class LumiAccessibilityConnector {
         //TODO I believe this does the random tap, in here somewhere
         //Log.d(TAG, "manageAccessibilityEvent: ");
         boolean appInForeground = main.isAppVisibleInForeground();
-        if (main == null || !main.getNearbyManager().isConnectedAsFollower()) {
+        if (main == null || !NearbyPeersManager.isConnectedAsFollower()) {
             return false;
         }
 
@@ -255,20 +251,20 @@ public class LumiAccessibilityConnector {
             AccessibilityEvent finalEvent = event;
             AccessibilityNodeInfo finalRootInActiveWindow = rootInActiveWindow;
 
-            if (!appInForeground && event.getSource() != null && event.getSource().getPackageName().toString().contains(main.getAppManager().withinPackage)) {
+            if (!appInForeground && event.getSource() != null && event.getSource().getPackageName().toString().contains(AppManager.withinPackage)) {
                 Log.e(TAG, "SOMETHING!");
                 executor.execute(() -> {
                     withinManager.manageWithinAccess(finalEvent, finalRootInActiveWindow);
                 });
 
-            } else if (!appInForeground && event.getSource() != null && event.getSource().getPackageName().toString().contains(main.getAppManager().youtubePackage)) {
+            } else if (!appInForeground && event.getSource() != null && event.getSource().getPackageName().toString().contains(AppManager.youtubePackage)) {
                 executor.execute(() -> {
                     Log.e(TAG, "Youtube: " + finalEvent);
                     //non-UI work here
                     ytManager.manageYouTubeAccess(finalEvent, finalRootInActiveWindow);
                 });
 
-            } else if (appInForeground && dispatcher.launchAppOnFocus == null
+            } else if (appInForeground && DispatchManager.launchAppOnFocus == null
                     && (event.getEventType() == AccessibilityEvent.TYPE_VIEW_FOCUSED && event.getPackageName().toString().equals("com.android.systemui")
                     /* || event.getEventType() == AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED && event.getPackageName().toString().equals("com.android.systemui")*/)) {
                 //likely pulled down notifications while in main app
@@ -279,7 +275,7 @@ public class LumiAccessibilityConnector {
                 //if (showDebugMsg)
                 Log.i(TAG, "User RETURNED TO LEADME! [" + appInForeground + "] " + event.toString());
                 //don't need to do anything really, perhaps alert guide?
-                dispatcher.alertGuideStudentOffTask();
+                DispatchManager.alertGuideStudentOffTask();
                 waitingForStateChange = false; //reset
 
             } else if ((waitingForStateChange && event.getEventType() == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) ||
@@ -292,7 +288,7 @@ public class LumiAccessibilityConnector {
                 //either pulled down or clicked notification, setting or nav while in launched 3rd party app
                 // if (showDebugMsg)
                 Log.i(TAG, "User clicked some kind of SYSTEM button! " + event.toString());
-                dispatcher.alertGuideStudentOffTask();
+                DispatchManager.alertGuideStudentOffTask();
 //                if (!main.studentLockOn) {
 //                    if (showDebugMsg) Log.i(TAG, "It's OK, user is in free play mode");
 //                    return true;
@@ -300,18 +296,18 @@ public class LumiAccessibilityConnector {
 
                 waitingForStateChange = false;
                 if (!appInForeground) {//!main.getAppLaunchAdapter().lastApp.equals(packageName)) {
-                    dispatcher.launchAppOnFocus = new String[2];
-                    dispatcher.launchAppOnFocus[0] = LeadMeMain.currentTaskPackageName;
-                    dispatcher.launchAppOnFocus[1] = LeadMeMain.currentTaskName;
+                    DispatchManager.launchAppOnFocus = new String[2];
+                    DispatchManager.launchAppOnFocus[0] = LeadMeMain.currentTaskPackageName;
+                    DispatchManager.launchAppOnFocus[1] = LeadMeMain.currentTaskName;
                     // if (showDebugMsg)
-                    Log.d(TAG, "NEED FOCUS! " + Arrays.toString(dispatcher.launchAppOnFocus));
+                    Log.d(TAG, "NEED FOCUS! " + Arrays.toString(DispatchManager.launchAppOnFocus));
                     bringMainToFront();
 
                 } else {
                     //if (showDebugMsg)
                     Log.d(TAG, "HAVE FOCUS!");
-                    dispatcher.launchAppOnFocus = null; //reset
-                    main.getAppManager().relaunchLast();
+                    DispatchManager.launchAppOnFocus = null; //reset
+                    Controller.getInstance().getAppManager().relaunchLast();
                 }
 
             } else if (event.getPackageName().toString().equals("com.android.systemui")
@@ -321,7 +317,7 @@ public class LumiAccessibilityConnector {
                 Log.i(TAG, "User clicked SYSTEM WINDOW! " + event.toString());
                 //don't need to do anything unless window state changes
                 waitingForStateChange = true;
-                dispatcher.alertGuideStudentOffTask();
+                DispatchManager.alertGuideStudentOffTask();
                 main.collapseStatus();
 
 
@@ -340,7 +336,9 @@ public class LumiAccessibilityConnector {
             if ((AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED == event.getEventType()
                     || (AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED == event.getEventType()))) {
                 //run the install event
-                main.autoInstall(event);
+                if(LeadMeMain.managingAutoInstaller) {
+                    Controller.getInstance().getLumiAppInstaller().install(event);
+                }
             }
 
         } catch (Exception e) {
@@ -372,8 +370,8 @@ public class LumiAccessibilityConnector {
                     manageAccessibilityEvent(null, null);
 
                 case LumiAccessibilityService.INFO_CONFIG:
-                    if (main.getNearbyManager().isConnectedAsFollower()) {
-                        main.runOnUiThread(() -> main.refreshOverlay());
+                    if (NearbyPeersManager.isConnectedAsFollower()) {
+                        LeadMeMain.runOnUI(main::refreshOverlay);
                     }
                     break;
 
@@ -384,7 +382,7 @@ public class LumiAccessibilityConnector {
 
                 case LumiAccessibilityService.EVENT_RECEIVED:
 
-                    if (main.getNearbyManager().isConnectedAsFollower() || main.getNearbyManager().isConnectedAsGuide()) {
+                    if (NearbyPeersManager.isConnectedAsFollower() || NearbyPeersManager.isConnectedAsGuide()) {
                         Bundle data = intent.getExtras();
                         Object one = data.getString(LumiAccessibilityService.INFO_TAG);
                         Object two = data.getParcelable(LumiAccessibilityService.EVENT_OBJ);

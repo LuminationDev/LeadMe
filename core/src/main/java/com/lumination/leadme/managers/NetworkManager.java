@@ -1,21 +1,20 @@
 package com.lumination.leadme.managers;
 
 import static com.google.android.gms.nearby.connection.Payload.fromBytes;
+import static com.lumination.leadme.LeadMeMain.UIHandler;
 
-import android.app.Activity;
-import android.content.Context;
 import android.content.Intent;
-import android.net.nsd.NsdServiceInfo;
-import android.net.wifi.WifiManager;
 import android.os.Build;
 import android.os.Parcel;
 import android.util.Log;
 import android.view.View;
 
 import com.google.android.gms.nearby.connection.Payload;
+import com.lumination.leadme.adapters.ConnectedLearnersAdapter;
 import com.lumination.leadme.connections.ConnectedPeer;
 import com.lumination.leadme.LeadMeMain;
 import com.lumination.leadme.R;
+import com.lumination.leadme.controller.Controller;
 import com.lumination.leadme.services.FileTransferService;
 import com.lumination.leadme.services.NetworkService;
 import com.lumination.leadme.models.Client;
@@ -27,11 +26,6 @@ import java.util.Base64;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
-
 /**
  * Responsible for starting and stopping the network service holding the leaders server.
  * Manages the learners connection to the server.
@@ -39,113 +33,30 @@ import java.util.concurrent.TimeUnit;
 public class NetworkManager {
     private static final String TAG = "NetworkManager";
 
-    private static LeadMeMain main;
-    private static WifiManager.MulticastLock multicastLock; // Acquire multicast lock
     private static boolean init = false; //check if connection has been initialised
 
     public static ArrayList<Client> currentClients = new ArrayList<>();
 
     public static ExecutorService executorService = Executors.newCachedThreadPool();
-    public static ScheduledExecutorService scheduledExecutor = new ScheduledThreadPoolExecutor(1);
-    private static final ThreadPoolExecutor connectionThreadPool = (ThreadPoolExecutor) Executors.newFixedThreadPool(1);
 
-    public NetworkManager(LeadMeMain main) {
-        NetworkManager.main = main;
-    }
+    public NetworkManager() { }
 
     /**
      * Start the server socket on a device.
      */
     public void startService() {
         Log.d(TAG, "startService: ");
-        scheduledExecutor = new ScheduledThreadPoolExecutor(1);
-        Intent network_intent = new Intent(main.getApplicationContext(), NetworkService.class);
+        Intent network_intent = new Intent(LeadMeMain.getInstance().getApplicationContext(), NetworkService.class);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            main.startForegroundService(network_intent);
+            LeadMeMain.getInstance().startForegroundService(network_intent);
         } else {
-            main.startService(network_intent);
+            LeadMeMain.getInstance().startService(network_intent);
         }
     }
 
     public static void stopService() {
-        Intent stop_network_intent = new Intent(main.getApplicationContext(), NetworkService.class);
-        main.stopService(stop_network_intent);
-    }
-
-    /**
-     * Acquire multicast lock - required for pre API 11 and some devices.
-     */
-    public static void setMulticastLock(Activity main) {
-        WifiManager wifi = (WifiManager) main.getSystemService(Context.WIFI_SERVICE);
-        multicastLock = wifi.createMulticastLock("multicastLock");
-        multicastLock.setReferenceCounted(true);
-        multicastLock.acquire();
-    }
-
-    /**
-     * Stop the leaders socket server. This will drop all currently connected clients.
-     */
-    public static void stopServer() {
-        NetworkService.stopServer();
-
-        if (multicastLock != null) {
-            multicastLock.release();
-            multicastLock = null;
-        }
-    }
-
-    /**
-     * Get the name set for the current device
-     */
-    public static String getName() {
-        return main.getNearbyManager().getName();
-    }
-
-    /**
-     * Using a supplied NsdService connect to a server using the details provided.
-     *
-     * @param serviceInfo An NsdServiceInfo object containing the details about the selected leader.
-     */
-    public void connectToServer(NsdServiceInfo serviceInfo) {
-        connectionThreadPool.submit(() -> {
-            Log.d(TAG, "connectToServer: attempting to connect to " + serviceInfo.getHost() + ":" + serviceInfo.getPort());
-
-            NetworkService.startServer();
-
-            NSDManager.mService = serviceInfo;
-
-            NetworkService.sendToServer(getName(), "NAME");
-
-            clientSetup();
-        });
-    }
-
-    /**
-     * If the socket is connected send the learners name back to the server to start the TCP client
-     * and then begin monitoring the connection.
-     */
-    private void clientSetup() {
-        Log.d(TAG, "connectToServer: connection successful");
-
-        main.getNearbyManager().nsdManager.stopDiscovery();
-
-        main.runOnUiThread(() -> {
-            main.findViewById(R.id.client_main).setVisibility(View.VISIBLE);
-            List<String> inputList = Arrays.asList(NSDManager.getChosenServiceInfo().getServiceName().split("#"));
-            main.setLeaderName(inputList.get(0));
-        });
-
-        startConnectionCheck();
-    }
-
-    /**
-     * Send the learner's name to the leaders server, this acts as the initial connection method.
-     * Start an executor to continually check if the leader has disconnected or is still active. If
-     * not then move the learner from a logged in state to the splash screen.
-     */
-    public void startConnectionCheck() {
-        scheduledExecutor.scheduleAtFixedRate(() -> NetworkService.sendToServer(getName(), "PING"),
-                3000, 10000, TimeUnit.MILLISECONDS);
+        Intent stop_network_intent = new Intent(LeadMeMain.getInstance().getApplicationContext(), NetworkService.class);
+        LeadMeMain.getInstance().stopService(stop_network_intent);
     }
 
     /**
@@ -153,13 +64,13 @@ public class NetworkManager {
      * have been disconnected.
      * @param id An int representing the ID of the learner who is being disconnected.
      */
-    public void removeClient(int id) {
-        ArrayList<Integer> selected = new ArrayList<>();
+    public void removeClient(String id) {
+        ArrayList<String> selected = new ArrayList<>();
         selected.add(id);
         sendToSelectedClients("disconnect", "DISCONNECT", selected);
         Log.d(TAG, "removeClient: client successfully removed");
         if (currentClients.size() == 0) {
-            main.waitingForLearners.setVisibility(View.VISIBLE);
+            LeadMeMain.getInstance().waitingForLearners.setVisibility(View.VISIBLE);
         }
     }
 
@@ -172,6 +83,9 @@ public class NetworkManager {
     public static void messageReceivedFromServer(String input) {
         Log.d(TAG, "messageReceivedFromServer: " + input);
         List<String> inputList = Arrays.asList(input.split(","));
+        if (inputList.size() == 0) {
+            return;
+        }
         switch (inputList.get(0)) {
             case "COMMUNICATION":
                 receivedCommunication(inputList.get(1));
@@ -186,7 +100,12 @@ public class NetworkManager {
                 break;
 
             case "FILE":
-                receivedFile(inputList.get(1));
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        receivedFile(inputList.get(1));
+                    }
+                }).start();
                 break;
 
             case "DISCONNECT":
@@ -207,7 +126,7 @@ public class NetworkManager {
     private static void receivedCommunication(String input) {
         Log.d(TAG, "messageReceivedFromServer: [COMM] " + input);
         if (input.contains("Thanks")) {
-            main.closeDialogController(true);
+            LeadMeMain.getInstance().closeDialogController(true);
             init = true;
         }
     }
@@ -233,9 +152,9 @@ public class NetworkManager {
         final String timestamp = System.currentTimeMillis() + "MS";
         Log.d(TAG, timestamp + "]] messageReceivedFromServer: [ACTION] " + p.readString() + ", " + payload);
 
-        main.getHandler().postAtFrontOfQueue(() -> {
+        LeadMeMain.UIHandler.postAtFrontOfQueue(() -> {
             Log.d(TAG, timestamp + "]] messageReceivedFromServer: [ACTION] INSIDE MAIN THREAD");
-            main.handlePayload(payload.asBytes());
+            LeadMeMain.getInstance().handlePayload(payload.asBytes());
             try {
                 Thread.sleep(100);
             } catch (InterruptedException e) {
@@ -258,12 +177,11 @@ public class NetworkManager {
      * @param input A string containing the ID of the device being pinged.
      */
     private static void receivedPing(String input) {
-        main.getNearbyManager().myID = input;
-        Log.d(TAG, "messageReceivedFromServer: PING!!");
+        NearbyPeersManager.myID = input;
         Log.d(TAG, "messageReceivedFromServer: received ping and subsequently ignoring it");
 
         if (!init) {
-            main.closeDialogController(true);
+            LeadMeMain.getInstance().closeDialogController(true);
             init = true;
         }
     }
@@ -274,9 +192,9 @@ public class NetworkManager {
      */
     private static void receivedFile(String input) {
         List<String> inputList2 = Arrays.asList(input.split(":"));
-        if (main.fileTransferEnabled) {
+        if (LeadMeMain.fileTransferEnabled) {
             FileTransferManager.setFileType(inputList2.get(2));
-            main.getFileTransferManager().receivingFile(NetworkService.getLeaderIPAddress(), Integer.parseInt(inputList2.get(1)));
+            Controller.getInstance().getFileTransferManager().receivingFile(NetworkService.getLeaderIPAddress(), Integer.parseInt(inputList2.get(1)));
         }
     }
 
@@ -285,9 +203,10 @@ public class NetworkManager {
      */
     public static void receivedDisconnect() {
         Log.w(TAG, "Disconnect. Guide? " + LeadMeMain.isGuide);
-        main.getNearbyManager().disconnectFromEndpoint("");
-        scheduledExecutor.shutdown();
+        FirebaseManager.handleDisconnect(LeadMeMain.isGuide);
+        NearbyPeersManager.disconnectFromEndpoint("");
         stopService();
+        FirebaseManager.setServerIP("");
     }
 
     /**
@@ -301,7 +220,7 @@ public class NetworkManager {
      * @param clientID An int representing which learner this update relates to.
      * @param type     A string to determine what action is being taken.
      */
-    public static void updateParent(String message, int clientID, String type) {
+    public static void updateParent(String message, String clientID, String type) {
         switch (type) {
             case "NAME":
                 parentUpdateName(message, clientID);
@@ -325,6 +244,37 @@ public class NetworkManager {
         }
     }
 
+    public static void addLearnerIfNotExists(String clientId) {
+        boolean exists = false;
+        ArrayList<String> selected = new ArrayList<>();
+        for (int i = 0; i < currentClients.size(); i++) {
+            if (currentClients.get(i).ID.equals(clientId)) {
+                exists = true;
+                break;
+            }
+        }
+        if (!exists) {
+            Log.d(TAG, "updateParent: creating new client: ID:" + clientId);
+            Client temp = new Client();
+            temp.name = "Connecting...";
+            temp.ID = clientId;
+            temp.pingCycle = 1;
+            currentClients.add(temp);
+            Endpoint endpoint = new Endpoint();
+            endpoint.name = clientId;
+            endpoint.Id = String.valueOf(clientId);
+            ConnectedPeer thisPeer = new ConnectedPeer(endpoint);
+            NetworkService.learnerManager(clientId);
+            LeadMeMain.runOnUI(() -> {
+                Controller.getInstance().getConnectedLearnersAdapter().addStudent(thisPeer);
+                LeadMeMain.getInstance().showConnectedStudents(true);
+            });
+            FirebaseManager.handleLearnerConnectingToLeader(clientId);
+        }
+
+        selected.add(clientId);
+    }
+
     /**
      * Detect if the most recent connection is a reconnect or a new learner, handle any name changes
      * or client creation appropriately.
@@ -334,43 +284,23 @@ public class NetworkManager {
      * @param clientID An integer representing the clients ID saved within the student class on a
      *                 leaders device.
      */
-    private static void parentUpdateName(String message, int clientID) {
-        boolean exists = false;
-        ArrayList<Integer> selected = new ArrayList<>();
-
+    public static void parentUpdateName(String message, String clientID) {
         for (int i = 0; i < currentClients.size(); i++) {
-            if (currentClients.get(i).ID == clientID) {
+            if (currentClients.get(i).ID.equals(clientID)) {
                 if (!currentClients.get(i).name.equals(message)) {
                     Log.d(TAG, "updateParent: " + currentClients.get(i).name + " has changed to " + message);
                     currentClients.get(i).name = message;
                     String[] spilt = message.split(":");
-                    main.getConnectedLearnersAdapter().getMatchingPeer(String.valueOf(clientID)).setName(spilt[0]);
+                    ConnectedLearnersAdapter.getMatchingPeer(clientID).setName(spilt[0]);
                 }
-                exists = true;
                 currentClients.get(i).pingCycle = 1;
                 Log.d(TAG, "updateParent: ID:" + clientID + " name: " + message + " is active");
+                LeadMeMain.runOnUI(() -> {
+                    Controller.getInstance().getConnectedLearnersAdapter().refresh();
+                });
+                break;
             }
         }
-
-        if (!exists) {
-            Log.d(TAG, "updateParent: creating new client: ID:" + clientID + " name is: " + message);
-            Client temp = new Client();
-            temp.name = message;
-            temp.ID = clientID;
-            temp.pingCycle = 1;
-            currentClients.add(temp);
-            Endpoint endpoint = new Endpoint();
-            endpoint.name = message;
-            endpoint.Id = String.valueOf(clientID);
-            ConnectedPeer thisPeer = new ConnectedPeer(endpoint);
-            main.runOnUiThread(() -> {
-                main.getConnectedLearnersAdapter().addStudent(thisPeer);
-                main.showConnectedStudents(true);
-            });
-        }
-
-        selected.add(clientID);
-        sendToSelectedClients("Thanks " + message, "COMMUNICATION", selected);//lets client know their name has been saved
     }
 
     /**
@@ -380,15 +310,15 @@ public class NetworkManager {
      * @param clientID An integer representing the clients ID saved within the student class on a
      *                 leaders device.
      */
-    private static void parentUpdateDisconnect(int clientID) {
+    public static void parentUpdateDisconnect(String clientID) {
         for (int i = 0; i < currentClients.size(); i++) {
-            if (currentClients.get(i).ID == clientID) {
+            if (currentClients.get(i).ID.equals(clientID)) {
                 Log.d(TAG, "updateParent: student has been disconnected: " + clientID);
                 cleanUpTransfer(clientID);
                 NetworkService.removeStudent(clientID);
                 currentClients.remove(i);
                 if (currentClients.size() == 0) {
-                    main.runOnUiThread(() -> main.waitingForLearners.setVisibility(View.VISIBLE));
+                    LeadMeMain.runOnUI(() -> LeadMeMain.getInstance().waitingForLearners.setVisibility(View.VISIBLE));
                 } else {
                     Log.d(TAG, "updateParent: " + currentClients.size() + " remaining students");
                 }
@@ -404,15 +334,15 @@ public class NetworkManager {
      * @param clientID An integer representing the clients ID saved within the student class on a
      *                 leaders device.
      */
-    private static void parentUpdateLost(int clientID) {
+    private static void parentUpdateLost(String clientID) {
         Log.d(TAG, "updateParent: client: " + clientID + " has lost connection");
         cleanUpTransfer(clientID);
         currentClients.remove(clientID);
-        main.getXrayManager().removePeerFromMap(String.valueOf(clientID));
-        main.runOnUiThread(() -> {
-            if (main.getConnectedLearnersAdapter().getMatchingPeer(String.valueOf(clientID)) != null) {
-                if (main.getConnectedLearnersAdapter().getMatchingPeer(String.valueOf(clientID)).getStatus() != ConnectedPeer.STATUS_ERROR) {
-                    main.updatePeerStatus(String.valueOf(clientID), ConnectedPeer.STATUS_ERROR, null);
+        Controller.getInstance().getXrayManager().removePeerFromMap(String.valueOf(clientID));
+        LeadMeMain.runOnUI(() -> {
+            if (ConnectedLearnersAdapter.getMatchingPeer(String.valueOf(clientID)) != null) {
+                if (ConnectedLearnersAdapter.getMatchingPeer(String.valueOf(clientID)).getStatus() != ConnectedPeer.STATUS_ERROR) {
+                    LeadMeMain.updatePeerStatus(String.valueOf(clientID), ConnectedPeer.STATUS_ERROR, null);
                 }
             }
         });
@@ -436,20 +366,39 @@ public class NetworkManager {
         p.setDataPosition(0);
         Log.d(TAG, "messageReceivedFromServer: " + p.readString());
         Payload payload = fromBytes(bytes);
-        main.runOnUiThread(() -> main.handlePayload(payload.asBytes()));
+        LeadMeMain.runOnUI(() -> LeadMeMain.getInstance().handlePayload(payload.asBytes()));
         p.recycle();
     }
 
     /**
      * Add messages to the message queue which is then checked by each student thread.
      */
-    public static void sendToSelectedClients(String message, String type, ArrayList<Integer> selectedClientIDs) {
+    public static void sendToSelectedClients(String message, String type, ArrayList<String> selectedClientIDs) {
         Log.d(TAG, "sendToSelectedClients: " + selectedClientIDs + " " + currentClients.size());
 
+        if(currentClients.size() == 0) {
+            return;
+        }
+        if (currentClients.size() == selectedClientIDs.size()) {
+            if(type.equals("DISCONNECT")) {
+                currentClients.clear();
+                LeadMeMain.runOnUI(() -> LeadMeMain.getInstance().waitingForLearners.setVisibility(View.VISIBLE));
+                LeadMeMain.getInstance().showConnectedStudents(true);
+            }
+            NetworkService.sendToAllClients(message, type);
+            UIHandler.postDelayed(() ->
+                            NetworkService.sendToAllClients("", ""),
+                    500);
+            return;
+        }
+
         for (int i = 0; i < currentClients.size(); i++) {
-            for (int selected : selectedClientIDs) {
-                if (selected == currentClients.get(i).ID) {
+            for (String selected : selectedClientIDs) {
+                if (selected.equals(currentClients.get(i).ID)) {
                     NetworkService.sendToClient(selected, message, type);
+                    UIHandler.postDelayed(() ->
+                            NetworkService.sendToClient(selected, "", ""),
+                            500);
 
                     if(type.equals("DISCONNECT")) {
                         currentClients.remove(i);
@@ -463,7 +412,7 @@ public class NetworkManager {
      * Remove any devices that may have disconnected while file transfer was active.
      * @param ID An ID representing a learner.
      */
-    private static void cleanUpTransfer(int ID) {
+    private static void cleanUpTransfer(String ID) {
         if(FileTransferManager.selected != null && FileTransferManager.transfers != null) {
             FileTransferManager.selected.remove(ID);
             FileTransferManager.transfers.remove(ID);
@@ -475,8 +424,8 @@ public class NetworkManager {
      * Stop the screenSharingService from sending images to the guide.
      * @param ID An int representing the learner that needs to stop sending images.
      */
-    public void stopMonitoring(int ID) {
-        ArrayList<Integer> selected = new ArrayList<>();
+    public void stopMonitoring(String ID) {
+        ArrayList<String> selected = new ArrayList<>();
         selected.add(ID);
         sendToSelectedClients("STOP", "MONITOR", selected);
     }
@@ -487,9 +436,9 @@ public class NetworkManager {
      * @param localPort An int representing the port to use for the transfer server.
      * @param fileType  A string representing the type of file that is being transferred.
      */
-    public static void sendFile(int ID, int localPort, String fileType) {
+    public static void sendFile(String ID, int localPort, String fileType) {
         Log.e(TAG, "Sending file to: " + ID);
-        ArrayList<Integer> selected = new ArrayList<>();
+        ArrayList<String> selected = new ArrayList<>();
         selected.add(ID);
         sendToSelectedClients("SEND:" + localPort + ":" + fileType, "FILE", selected);
     }

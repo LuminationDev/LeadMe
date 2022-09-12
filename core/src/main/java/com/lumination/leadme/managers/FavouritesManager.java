@@ -2,7 +2,6 @@ package com.lumination.leadme.managers;
 
 import android.app.AlertDialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.graphics.drawable.Drawable;
 import android.util.ArraySet;
@@ -17,15 +16,19 @@ import android.widget.GridView;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import androidx.core.content.res.ResourcesCompat;
+
 import com.koushikdutta.urlimageviewhelper.UrlImageViewHelper;
 import com.lumination.leadme.LeadMeMain;
 import com.lumination.leadme.R;
+import com.lumination.leadme.controller.Controller;
 import com.lumination.leadme.linkpreview.LinkPreviewCallback;
 import com.lumination.leadme.linkpreview.SourceContent;
 import com.lumination.leadme.linkpreview.TextCrawler;
 
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
@@ -63,7 +66,7 @@ public class FavouritesManager extends BaseAdapter {
     private final LayoutInflater inflater;
 
     private final int favType;
-    private int maxLimit = 10;
+    private final int maxLimit;
 
     private String favPrefix;
 
@@ -79,9 +82,9 @@ public class FavouritesManager extends BaseAdapter {
         this.maxLimit = maxLimit;
 
         inflater = LayoutInflater.from(main);
-        activeBg = main.getResources().getDrawable(R.drawable.add_favourite_active, null);
-        emptyBg = main.getResources().getDrawable(R.drawable.add_favourite, null);
-        placeholder = main.getResources().getDrawable(R.drawable.web_no_preview, null);
+        activeBg = ResourcesCompat.getDrawable(main.getResources(), R.drawable.add_favourite_active, null);
+        emptyBg = ResourcesCompat.getDrawable(main.getResources(), R.drawable.add_favourite, null);
+        placeholder = ResourcesCompat.getDrawable(main.getResources(), R.drawable.web_no_preview, null);
 
         sharedPreferences = main.getSharedPreferences(main.getResources().getString(R.string.preference_file_key), Context.MODE_PRIVATE);
         editor = sharedPreferences.edit();
@@ -137,15 +140,20 @@ public class FavouritesManager extends BaseAdapter {
 
     private void populateFavouritesFromPreferences() {
         //retrieve content and put into lists
-        Set<String> tmpContent = sharedPreferences.getStringSet(favPrefix, new HashSet<String>());
+        Set<String> tmpContent = sharedPreferences.getStringSet(favPrefix, new HashSet<>());
         Object[] content = tmpContent.toArray();
-        for (int i = 0; i < content.length; i++) {
-            //Log.d(TAG, i + ") " + content[i]);
-            if (content[i] != null && content[i].toString().replace("::::", "").trim().length() > 0) {
-                String[] tmp = content[i].toString().split(breaker);
+        for (Object o : content) {
+            if (o != null && o.toString().replace("::::", "").trim().length() > 0) {
+                String[] tmp = o.toString().split(breaker);
                 actualItems.add(tmp[0]);
                 contentList.add(tmp[0]);
-                titleList.add(tmp[1]);
+
+                if(tmp.length > 1) {
+                    titleList.add(tmp[1]);
+                } else {
+                    titleList.add(tmp[0]);
+                }
+
                 iconList.add(null);
             }
         }
@@ -224,7 +232,7 @@ public class FavouritesManager extends BaseAdapter {
                                 }
                             });
                         } else {
-                            Drawable drawable = main.getResources().getDrawable(R.drawable.placeholder_broken_img, null);
+                            Drawable drawable = ResourcesCompat.getDrawable(main.getResources(), R.drawable.placeholder_broken_img, null);
                             iconList.set(prevIndex, drawable);
                             previewStorage.put(sourceContent.getFinalUrl(), drawable);
                         }
@@ -305,7 +313,6 @@ public class FavouritesManager extends BaseAdapter {
         }
     }
 
-
     //TODO pretty sure this is a dumb way to do it
     String breaker = "::::";
 
@@ -332,8 +339,7 @@ public class FavouritesManager extends BaseAdapter {
     }
 
     public void addToFavourites(String content, String title) {
-        Drawable icon = placeholder;
-        addToFavourites(content, title, icon);
+        addToFavourites(content, title, placeholder);
     }
 
     //content is URL or packageName
@@ -355,12 +361,8 @@ public class FavouritesManager extends BaseAdapter {
             if(contentList.get(x).contains(youtubeId)) {
                 Log.d(TAG, "Youtube ID duplicate found");
                 return;
-            };
+            }
         }
-
-//        if (contentList.contains(content)) {
-//            return; //it's already there!
-//        }
 
         //update local/working variables
         int thisIndex = getNextFavIndex();
@@ -436,19 +438,14 @@ public class FavouritesManager extends BaseAdapter {
         favBackBtn.setOnClickListener(v -> favouritesDialog.dismiss());
 
         favouritesDialog = new AlertDialog.Builder(main).setView(favouritesView).create();
-        favouritesDialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
-            @Override
-            public void onDismiss(DialogInterface dialog) {
-                main.hideSystemUI();
-            }
-        });
+        favouritesDialog.setOnDismissListener(dialog -> main.hideSystemUI());
     }
 
     private void showAddFavDialog(String packageName) {
         favAdding = true; //adding
         favPackageName = packageName; //assign so we can use this in dialogs/buttons
-        final String title = main.getAppManager().getAppName(packageName);
-        final Drawable icon = main.getAppManager().getAppIcon(packageName);
+        final String title = AppManager.getAppName(packageName);
+        final Drawable icon = AppManager.getAppIcon(packageName);
         favMsgView.setText(main.getResources().getString(R.string.add_this_app_to_favourites));
         favOKBtn.setVisibility(View.VISIBLE);
         favImgView.setImageDrawable(icon);
@@ -461,8 +458,8 @@ public class FavouritesManager extends BaseAdapter {
         favPackageName = packageName; //assign so we can use this in dialogs/buttons
 
         if (favType == FAVTYPE_APP) {
-            favImgView.setImageDrawable(main.getAppManager().getAppIcon(packageName));
-            favTitleView.setText(main.getAppManager().getAppName(packageName));
+            favImgView.setImageDrawable(AppManager.getAppIcon(packageName));
+            favTitleView.setText(AppManager.getAppName(packageName));
         } else {
             int thisIndex = contentList.indexOf(packageName);
             favImgView.setImageDrawable(getPreview(packageName));
@@ -476,8 +473,8 @@ public class FavouritesManager extends BaseAdapter {
 
     private void showFullAlertFavDialog(String packageName) {
         favPackageName = packageName; //assign so we can use this in dialogs/buttons
-        final String title = main.getAppManager().getAppName(packageName);
-        final Drawable icon = main.getAppManager().getAppIcon(packageName);
+        final String title = AppManager.getAppName(packageName);
+        final Drawable icon = AppManager.getAppIcon(packageName);
         favMsgView.setText(main.getResources().getString(R.string.all_your_favourites_are_full));
         favOKBtn.setVisibility(View.GONE);
         favImgView.setImageDrawable(icon);
@@ -487,8 +484,8 @@ public class FavouritesManager extends BaseAdapter {
 
     private void showAlreadyFavDialog(String packageName) {
         favPackageName = packageName; //assign so we can use this in dialogs/buttons
-        final String title = main.getAppManager().getAppName(packageName);
-        final Drawable icon = main.getAppManager().getAppIcon(packageName);
+        final String title = AppManager.getAppName(packageName);
+        final Drawable icon = AppManager.getAppIcon(packageName);
         favMsgView.setText(main.getResources().getString(R.string.already_in_fav));
         favOKBtn.setVisibility(View.GONE);
         favImgView.setImageDrawable(icon);
@@ -603,24 +600,18 @@ public class FavouritesManager extends BaseAdapter {
         }
     }
 
-    public boolean updateTitle(String url, String title) {
+    public void updateTitle(String url, String title) {
         int index = contentList.indexOf(url);
         if (index != -1) {
             titleList.set(index, title);
             formatAndSavePrefs();
-            return true;
-        } else {
-            return false;
         }
     }
 
-    public boolean updatePreview(String url, Drawable icon) {
+    public void updatePreview(String url, Drawable icon) {
         int index = contentList.indexOf(url);
         if (index != -1) {
             iconList.set(index, icon);
-            return true;
-        } else {
-            return false;
         }
     }
 
@@ -628,7 +619,7 @@ public class FavouritesManager extends BaseAdapter {
         gettingPreviews.clear();
     }
 
-    private HashMap<String, TextCrawler> crawlers = new HashMap<>();
+    private final HashMap<String, TextCrawler> crawlers = new HashMap<>();
     private TextCrawler tmpCrawler;
 
     public void refreshPreview(String url) {
@@ -646,15 +637,8 @@ public class FavouritesManager extends BaseAdapter {
 
             gettingPreviews.add(tmpUrl); //storing it here means we only try once per url
             crawlers.put(tmpUrl, tmpCrawler);
-//            Thread previewThread = new Thread(() -> tmpCrawler.makePreview(linkPreviewCallback, tmpUrl)
-//            );
-//            previewThread.start();
-            main.backgroundExecutor.submit(new Runnable() {
-                @Override
-                public void run() {
-                    tmpCrawler.makePreview(linkPreviewCallback, tmpUrl);
-                }
-            });
+
+            main.backgroundExecutor.submit(() -> tmpCrawler.makePreview(linkPreviewCallback, tmpUrl));
         }
     }
 
@@ -667,8 +651,7 @@ public class FavouritesManager extends BaseAdapter {
         }
     }
 
-    private ArrayList<String> gettingPreviews = new ArrayList<>();
-    boolean gettingPreview = false;
+    private final ArrayList<String> gettingPreviews = new ArrayList<>();
 
     private void updateWebFavView(View convertView, final String url, final String title, Drawable icon) {
         final ViewHolder viewHolder = (ViewHolder) convertView.getTag();
@@ -724,8 +707,8 @@ public class FavouritesManager extends BaseAdapter {
             convertView.setLongClickable(false);
 
         } else { //actual favourite
-            final String appName = main.getAppManager().getAppName(favPackage);
-            final Drawable appIcon = main.getAppManager().getAppIcon(favPackage);
+            final String appName = AppManager.getAppName(favPackage);
+            final Drawable appIcon = AppManager.getAppIcon(favPackage);
             viewHolder.favouriteName.setText(appName);
             viewHolder.favouriteIcon.setImageDrawable(appIcon);
             viewHolder.favouriteIcon.setBackground(activeBg);
@@ -734,7 +717,7 @@ public class FavouritesManager extends BaseAdapter {
             convertView.setClickable(true);
             convertView.setOnClickListener(v -> {
                 favAdding = false;
-                main.getDialogManager().showAppPushDialog(appName, appIcon, favPackage);
+                Controller.getInstance().getDialogManager().showAppPushDialog(appName, appIcon, favPackage);
             });
 
             convertView.setLongClickable(true);
@@ -749,7 +732,7 @@ public class FavouritesManager extends BaseAdapter {
     }
 
     // stores and recycles views as they are scrolled off screen
-    public class ViewHolder {
+    public static class ViewHolder {
         final TextView favouriteName;
         final ImageView favouriteIcon;
 

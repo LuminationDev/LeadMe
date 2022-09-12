@@ -7,6 +7,9 @@ import android.view.accessibility.AccessibilityEvent;
 import android.view.accessibility.AccessibilityNodeInfo;
 
 import com.lumination.leadme.LeadMeMain;
+import com.lumination.leadme.controller.Controller;
+import com.lumination.leadme.managers.DispatchManager;
+import com.lumination.leadme.managers.NearbyPeersManager;
 
 import java.util.ArrayList;
 
@@ -27,7 +30,7 @@ public class YouTubeAccessibilityManager {
     public static final int CUE_FS_ONLY = 8;
     //don't need to schedule mute as this is managed elsewhere
 
-    private LumiAccessibilityConnector connector;
+    private final LumiAccessibilityConnector connector;
     private LeadMeMain main;
 
     public YouTubeAccessibilityManager(LeadMeMain main, LumiAccessibilityConnector connector) {
@@ -46,7 +49,7 @@ public class YouTubeAccessibilityManager {
     public void manageYouTubeAccess(AccessibilityEvent event, AccessibilityNodeInfo rootInActiveWindow) {
 
         Log.d(TAG, "manageYouTubeAccess: ");
-        if (main.getNearbyManager().isConnectedAsGuide()) {
+        if (NearbyPeersManager.isConnectedAsGuide()) {
             return; //guides manage YT their own way
         }
 
@@ -73,7 +76,7 @@ public class YouTubeAccessibilityManager {
 
         ArrayList<AccessibilityNodeInfo> detectAdNodes = connector.collectChildren(rootInActiveWindow, detectAdsPhrases, 0);
         if (!detectAdNodes.isEmpty()) {
-            Log.e(TAG, "WAITING FOR AD TO FINISH >> " + main.getWebManager().getLaunchTitle());
+            Log.e(TAG, "WAITING FOR AD TO FINISH >> " + Controller.getInstance().getWebManager().getLaunchTitle());
             adFinished = false;
 
             for (AccessibilityNodeInfo detectNode : detectAdNodes) {
@@ -99,7 +102,7 @@ public class YouTubeAccessibilityManager {
                     Thread.sleep(1500);
 
                     if(adFinished) {
-                        main.getHandler().post(this::alertGuideAdsHaveFinished);
+                        LeadMeMain.UIHandler.post(this::alertGuideAdsHaveFinished);
                     }
                 } catch (InterruptedException e) {
                     e.printStackTrace();
@@ -119,16 +122,17 @@ public class YouTubeAccessibilityManager {
         dismissPopups(rootInActiveWindow); //do this for each fresh load of the video
 
         ArrayList<AccessibilityNodeInfo> adNodes = null;
-        if (!main.getWebManager().isFreshPlay() && !videoPlayStarted) {
+        if (!Controller.getInstance().getWebManager().isFreshPlay() && !videoPlayStarted) {
             //this code assists in confirming that the ACTUAL video (not just an ad) has started
             //tapVideoScreen();
-            pushTitle = main.getWebManager().getLaunchTitle().trim();
-            pushURL = main.getWebManager().getPushURL();
+            pushTitle = Controller.getInstance().getWebManager().getLaunchTitle().trim();
+            pushURL = Controller.getInstance().getWebManager().getPushURL();
+
             adNodes = connector.collectChildren(rootInActiveWindow, "Ad", 0);
 
             adNodes.addAll(connector.collectChildren(rootInActiveWindow, "title", 0));
 
-            Log.d(TAG, "Has it started? " + videoPlayStarted + ", " + main.getWebManager().isFreshPlay() + ", " + adNodes.size() + " for " + pushTitle);
+            Log.d(TAG, "Has it started? " + videoPlayStarted + ", " + Controller.getInstance().getWebManager().isFreshPlay() + ", " + adNodes.size() + " for " + pushTitle);
 //            tapVideoScreen();
 
             if (adNodes.isEmpty()) {
@@ -138,13 +142,13 @@ public class YouTubeAccessibilityManager {
 //            tapVideoScreen();
         }
 
-        if (main.getWebManager().isFreshPlay()) {
+        if (Controller.getInstance().getWebManager().isFreshPlay()) {
             //this typically happens before ads play,
             //but sometimes doesn't trigger until after
             Log.w(TAG, "FRESH PLAY");
             videoPlayStarted = false; //reset this here
             closedMini = false; //reset
-            main.getWebManager().setFreshPlay(false); //done!
+            Controller.getInstance().getWebManager().setFreshPlay(false); //done!
             cueYouTubeAction(CUE_PAUSE + "");
             cueYouTubeAction(CUE_FS_ONLY + "");
         } else if (!videoPlayStarted && !pushTitle.isEmpty() && adNodes == null && adNodes.isEmpty()) {
@@ -159,9 +163,9 @@ public class YouTubeAccessibilityManager {
         }
 
         //check if this should auto-enter VR mode
-        if (main.getWebManager().launchingVR) {
+        if (Controller.getInstance().getWebManager().launchingVR) {
             cuedActions.add(CUE_VR_ON + "");
-            main.getWebManager().launchingVR = false;
+            Controller.getInstance().getWebManager().launchingVR = false;
         }
 
         if (goalTime.isEmpty()) {
@@ -469,7 +473,7 @@ public class YouTubeAccessibilityManager {
 
     public void cueYouTubeAction(String actionStr) {
         //Log.d(TAG, "cueYouTubeAction: ");
-        if (main.getNearbyManager().isConnectedAsGuide()) {
+        if (NearbyPeersManager.isConnectedAsGuide()) {
             return; //guides manage YT their own way
         }
         int action = Integer.parseInt(actionStr);
@@ -504,20 +508,14 @@ public class YouTubeAccessibilityManager {
         Log.e(TAG, "LAST ACTIONS Event: " + connector.lastEvent + " Info: " + connector.lastInfo);
 
         if (connector.lastEvent != null && connector.lastInfo != null) {
-            //new Thread(() -> {
-            main.backgroundExecutor.submit(new Runnable() {
-                @Override
-                public void run() {
-                    manageYouTubeAccess(connector.lastEvent, connector.lastInfo); //re-try last event
-                }
+            main.backgroundExecutor.submit(() -> {
+                manageYouTubeAccess(connector.lastEvent, connector.lastInfo); //re-try last event
             });
-
-            //}).start();
         }
     }
 
     //these are not case sensitive, and will return partial matches
-    private static String[] keyYouTubePhrases = {
+    private static final String[] keyYouTubePhrases = {
             "Play video",
             "Pause video",
             "Enter virtual reality mode",
@@ -532,7 +530,7 @@ public class YouTubeAccessibilityManager {
             //"Expand Mini Player"
     };
 
-    private static String[] popupPhrases = {
+    private static final String[] popupPhrases = {
             "Continue",
             "Dismiss",
             "Skip trial",
@@ -543,18 +541,18 @@ public class YouTubeAccessibilityManager {
             "Watch in " //should capture 'Watch in VIEW MASTER VR VIEWER' and similar for other viewers
     };
 
-    private static String[] skipAdsPhrases = {
+    private static final String[] skipAdsPhrases = {
             "Skip ad",
             "Skip ads"
     };
 
-    private static String[] detectAdsPhrases = {
+    private static final String[] detectAdsPhrases = {
             "Video will play after ad",
             "Up next in",
             "Visit advertiser"
     };
 
-    private static String[] detectMiniPlayer = {
+    private static final String[] detectMiniPlayer = {
             "Close miniplayer"
     };
 
@@ -667,8 +665,8 @@ public class YouTubeAccessibilityManager {
     private void alertGuideAdsHaveFinished() {
         Log.d(TAG, "Alerting Guide Ads have finished");
 
-        main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.STUDENT_FINISH_ADS + main.getNearbyManager().getID(),
-                main.getNearbyManager().getAllPeerIDs());
+        DispatchManager.sendActionToSelected(Controller.ACTION_TAG, Controller.STUDENT_FINISH_ADS + NearbyPeersManager.getID(),
+                NearbyPeersManager.getAllPeerIDs());
     }
 
     boolean videoPlayStarted = false;
@@ -684,8 +682,8 @@ public class YouTubeAccessibilityManager {
             Log.d(TAG, "Closing Mini Player");
             closedMini = true;
             //difficult to accurately tap the right button, so just relaunch the video
-            main.getWebManager().launchYouTube(pushURL, pushTitle, main.getWebManager().getYouTubeEmbedPlayer().isVROn(), false);
-            if (!main.getWebManager().launchingVR) {
+            Controller.getInstance().getWebManager().launchYouTube(pushURL, pushTitle, Controller.getInstance().getWebManager().getYouTubeEmbedPlayer().isVROn(), false);
+            if (!Controller.getInstance().getWebManager().launchingVR) {
                 cueYouTubeAction(CUE_PAUSE + "");
                 cueYouTubeAction(CUE_VR_OFF + "");
             }
@@ -702,7 +700,7 @@ public class YouTubeAccessibilityManager {
     }
 
     private void endOfVideo() {
-        main.runOnUiThread(() -> {
+        LeadMeMain.runOnUI(() -> {
             connector.bringMainToFront();
             main.updateFollowerCurrentTaskToLeadMe();
         });

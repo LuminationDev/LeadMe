@@ -7,7 +7,10 @@ import android.os.Build;
 import android.os.Environment;
 import android.util.Log;
 
+import com.lumination.leadme.controller.Controller;
+import com.lumination.leadme.managers.DispatchManager;
 import com.lumination.leadme.managers.FileTransferManager;
+import com.lumination.leadme.managers.NearbyPeersManager;
 import com.lumination.leadme.utilities.FileUtilities;
 import com.lumination.leadme.LeadMeMain;
 
@@ -140,15 +143,15 @@ public class VRAccessibilityManager {
 
     //Send an action to the guide requesting that a file be transferred to this device
     private void requestFile() {
-        main.fileTransferEnabled = true; //hard coded for now - change to permission later
+        LeadMeMain.fileTransferEnabled = true; //hard coded for now - change to permission later
 
-        if(main.fileTransferEnabled) {
+        if(LeadMeMain.fileTransferEnabled) {
             FileTransferManager.setFileType("VRVideo");
-            main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.FILE_REQUEST_TAG + ":" + main.getNearbyManager().getID()
-                    + ":" + "false" + ":" + FileTransferManager.getFileType(), main.getNearbyManager().getSelectedPeerIDs());
-            main.runOnUiThread(() ->main.getDialogManager().showWarningDialog("Missing File", "Video is transferring now."));
+            DispatchManager.sendActionToSelected(Controller.ACTION_TAG, Controller.FILE_REQUEST_TAG + ":" + NearbyPeersManager.getID()
+                    + ":" + "false" + ":" + FileTransferManager.getFileType(), NearbyPeersManager.getSelectedPeerIDs());
+            LeadMeMain.runOnUI(() -> Controller.getInstance().getDialogManager().showWarningDialog("Missing File", "Video is transferring now."));
         } else {
-            main.runOnUiThread(() ->main.getDialogManager().showWarningDialog("Permission Needed", "File Transfer is not enabled " +
+            LeadMeMain.runOnUI(() ->Controller.getInstance().getDialogManager().showWarningDialog("Permission Needed", "File Transfer is not enabled " +
                     "\nThe file cannot be sent."));
         }
     }

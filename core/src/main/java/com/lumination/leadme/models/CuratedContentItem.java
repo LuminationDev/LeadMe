@@ -8,6 +8,7 @@ public class CuratedContentItem {
     public String years;
     public String subject;
     public String topics;
+    public String topicsPlainText;
     public String img_url;
     public int id;
 
@@ -21,5 +22,6 @@ public class CuratedContentItem {
         this.years = years;
         this.subject = subject;
         this.topics = topics;
+        this.topicsPlainText = topics.replace(",", ", ");
     }
 }

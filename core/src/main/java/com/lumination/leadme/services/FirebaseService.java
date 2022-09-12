@@ -26,9 +26,6 @@ public class FirebaseService extends Service {
     private static final String CHANNEL_ID = "firebase_communication";
     private static final String CHANNEL_NAME = "Firebase_Communication";
 
-    private static String publicIP;
-    private static String serverIP;
-
     // Binder given to clients
     private final IBinder binder = new FirebaseService.LocalBinder();
 
@@ -41,36 +38,6 @@ public class FirebaseService extends Service {
             // Return this instance of FirebaseService so clients can call public methods
             return FirebaseService.this;
         }
-    }
-
-    public static void setPublicIP(String IP) {
-        publicIP = IP;
-    }
-
-    public static void setServerIP(String IP) {
-        serverIP = IP;
-    }
-
-    /**
-     * Remove the login details from firebase if the leader ends session or logs out. Uses the
-     * publicIP and serverIP address to find the data entry. Only executes if server discovery
-     * was used to connect initially. Also stops the time stamp updater from running.
-     */
-    public static void removeAddress() {
-        if(publicIP == null) {
-            return;
-        }
-
-        if(publicIP.length() == 0) {
-            return;
-        }
-
-        Log.e(TAG, "FIREBASE PublicIP: " + publicIP + " Server:" + serverIP);
-
-        FirebaseFirestore.getInstance().collection("addresses").document(publicIP)
-                .collection("Leaders").document(serverIP).delete()
-                .addOnSuccessListener(aVoid -> Log.d(TAG, "DocumentSnapshot successfully written!"))
-                .addOnFailureListener(e -> Log.w(TAG, "Error writing document", e));
     }
 
     @Override
@@ -115,7 +82,6 @@ public class FirebaseService extends Service {
     }
 
     public void endForeground() {
-        removeAddress();
         stopForeground(true);
         stopSelf();
     }

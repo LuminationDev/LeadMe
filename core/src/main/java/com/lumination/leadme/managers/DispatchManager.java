@@ -12,10 +12,12 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.nearby.connection.Payload;
+import com.lumination.leadme.adapters.ConnectedLearnersAdapter;
 import com.lumination.leadme.connections.ConnectedPeer;
 import com.lumination.leadme.accessibility.VRAccessibilityManager;
 import com.lumination.leadme.LeadMeMain;
 import com.lumination.leadme.R;
+import com.lumination.leadme.controller.Controller;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -25,18 +27,18 @@ import java.util.List;
 import java.util.Set;
 
 public class DispatchManager {
-    private final String TAG = "Dispatcher";
+    private static final String TAG = "Dispatcher";
     private final LeadMeMain main;
-    public String[] launchAppOnFocus = null;
-    public String tagRepush;
-    public String packageNameRepush;
-    public String appNameRepush;
-    public String lockTagRepush;
-    public String extraRepush;
-    public boolean streamingRepush;
-    public boolean vrModeRepush;
-    public String mActionTag=null, mAction=null;
-    public int lastEvent =0;
+    public static String[] launchAppOnFocus = null;
+    public static String tagRepush;
+    public static String packageNameRepush;
+    public static String appNameRepush;
+    public static String lockTagRepush;
+    public static String extraRepush;
+    public static boolean streamingRepush;
+    public static boolean vrModeRepush;
+    public static String mActionTag=null, mAction=null;
+    public static int lastEvent =0;
 
     private final Actions dispatchAction = new Actions();
 
@@ -44,9 +46,9 @@ public class DispatchManager {
         this.main = main;
     }
 
-    public void repushApp(Set<String> selectedPeerIDs) {
+    public static void repushApp(Set<String> selectedPeerIDs) {
         Log.w(TAG, "REPUSH: " + tagRepush + ", " + packageNameRepush + ", " + appNameRepush + ", " + lockTagRepush + ", " + extraRepush);
-        main.recallToLeadMe();
+        LeadMeMain.getInstance().recallToLeadMe();
         switch(lastEvent){
             case 1:
                 requestRemoteWithinLaunch(tagRepush, packageNameRepush, appNameRepush, lockTagRepush, extraRepush, streamingRepush, vrModeRepush, selectedPeerIDs);
@@ -70,7 +72,7 @@ public class DispatchManager {
             if (!main.verifyOverlay()) {
                 return;
             }
-            if (main.getNearbyManager().isConnectedAsFollower() && interactionBlocked) {
+            if (NearbyPeersManager.isConnectedAsFollower() && interactionBlocked) {
                 Log.d(TAG, "BLOCKING!");
                 LeadMeMain.overlayParams.flags = LeadMeMain.CORE_FLAGS;
             } else {
@@ -84,15 +86,16 @@ public class DispatchManager {
             }
         };
 
-        main.runOnUiThread(myRunnable);
+        LeadMeMain.runOnUI(myRunnable);
     }
 
-    private void writeMessageToSelected(byte[] bytes, Set<String> selectedPeerIDs) {
-        if (main.getNearbyManager().isConnectedAsGuide()) {
-            main.getNearbyManager().sendToSelected(Payload.fromBytes(bytes), selectedPeerIDs);
-        } else {
-            Log.i(TAG, "Sorry, you can't send messages!");
-        }
+    private static void writeMessageToSelected(byte[] bytes, Set<String> selectedPeerIDs) {
+//        if (NearbyPeersManager.isConnectedAsGuide()) {
+        Log.d(TAG, "writeMessageToSelected");
+            NearbyPeersManager.sendToSelected(Payload.fromBytes(bytes), selectedPeerIDs);
+//        } else {
+//            Log.i(TAG, "Sorry, you can't send messages!");
+//        }
     }
 
     /**
@@ -106,7 +109,7 @@ public class DispatchManager {
      * @param vrMode A boolean determining if launching in VR mode.
      * @param selectedPeerIDs A set of strings that represents the selected peers.
      */
-    public void requestRemoteWithinLaunch(String tag, String packageName, String appName, String lockTag, String extra, boolean streaming, boolean vrMode, Set<String> selectedPeerIDs) {
+    public static void requestRemoteWithinLaunch(String tag, String packageName, String appName, String lockTag, String extra, boolean streaming, boolean vrMode, Set<String> selectedPeerIDs) {
         Log.d(TAG, "requestRemoteWithinLaunch: " + extra);
         lastEvent=1;
         tagRepush = tag;
@@ -128,7 +131,7 @@ public class DispatchManager {
         bytes = p.marshall();
         p.recycle();
         writeMessageToSelected(bytes, selectedPeerIDs);
-        main.updateLastTask(main.getAppManager().getAppIcon(packageName), main.getAppManager().getAppName(packageName), packageName, lockTag);
+        LeadMeMain.getInstance().updateLastTask(AppManager.getAppIcon(packageName), AppManager.getAppName(packageName), packageName, lockTag);
     }
 
     /**
@@ -140,8 +143,8 @@ public class DispatchManager {
      * @param install A string representing if the application needs to be installed on a device.
      * @param selectedPeerIDs A set of strings that represents the selected peers.
      */
-    public void requestRemoteAppOpen(String tag, String packageName, String appName, String lockTag, String install, Set<String> selectedPeerIDs) {
-        main.setProgressTimer(2000);
+    public static void requestRemoteAppOpen(String tag, String packageName, String appName, String lockTag, String install, Set<String> selectedPeerIDs) {
+        LeadMeMain.getInstance().setProgressTimer(2000);
         Log.d(TAG, "requestRemoteAppOpen: ");
         lastEvent=2;
         tagRepush = tag;
@@ -161,24 +164,25 @@ public class DispatchManager {
         p.recycle();
         writeMessageToSelected(bytes, selectedPeerIDs);
 
-        main.updateLastTask(main.getAppManager().getAppIcon(packageName), main.getAppManager().getAppName(packageName), packageName, lockTag);
+        LeadMeMain.getInstance().updateLastTask(AppManager.getAppIcon(packageName), AppManager.getAppName(packageName), packageName, lockTag);
 
-        if (!packageName.equals(main.getAppManager().withinPackage)) {
-            main.getAppManager().getWithinPlayer().foundURL = "";
+        if (!packageName.equals(AppManager.withinPackage)) {
+            Controller.getInstance().getAppManager().getWithinPlayer().foundURL = "";
         }
     }
 
     public synchronized void alertLogout() {
-        ArrayList<Integer> selected = new ArrayList<>();
-        for (String peer : main.getNearbyManager().getAllPeerIDs()) {
-            selected.add(Integer.parseInt(peer));
+        ArrayList<String> selected = new ArrayList<>();
+        for (String peer : NearbyPeersManager.getAllPeerIDs()) {
+            selected.add(peer);
         }
         NetworkManager.sendToSelectedClients("DISCONNECT", "DISCONNECT", selected);
     }
 
-    public synchronized void sendActionToSelected(String actionTag, String action, Set<String> selectedPeerIDs) {
-        main.setProgressTimer(2000);
-        if(action.contains(LeadMeMain.LAUNCH_URL) || action.contains(LeadMeMain.LAUNCH_YT)) {
+    public static synchronized void sendActionToSelected(String actionTag, String action, Set<String> selectedPeerIDs) {
+        Log.d(TAG, "sendActionToSelected: " + actionTag + " " + action);
+        LeadMeMain.getInstance().setProgressTimer(2000);
+        if(action.contains(Controller.LAUNCH_URL) || action.contains(Controller.LAUNCH_YT)) {
             lastEvent = 3;
             mActionTag = actionTag;
             mAction = action;
@@ -191,29 +195,7 @@ public class DispatchManager {
         p.recycle();
 
         //auto-install, request, notification tags and success tag are exempt so students can alert teacher to their status
-        if (main.getNearbyManager().isConnectedAsGuide() ||
-                action.startsWith(LeadMeMain.YOUR_ID_IS) ||
-                action.startsWith(LeadMeMain.RETURN_TAG) ||
-                action.startsWith(LeadMeMain.PERMISSION_DENIED) ||
-                action.startsWith(LeadMeMain.TRANSFER_ERROR) ||
-                action.startsWith(LeadMeMain.FILE_REQUEST_TAG) ||
-                action.startsWith(LeadMeMain.APP_NOT_INSTALLED) ||
-                action.startsWith(LeadMeMain.AUTO_INSTALL_ATTEMPT) ||
-                action.startsWith(LeadMeMain.AUTO_INSTALL_FAILED) ||
-                action.startsWith(LeadMeMain.STUDENT_NO_OVERLAY) ||
-                action.startsWith(LeadMeMain.STUDENT_NO_INTERNET) ||
-                action.startsWith(LeadMeMain.STUDENT_NO_ACCESSIBILITY) ||
-                action.startsWith(LeadMeMain.STUDENT_OFF_TASK_ALERT) ||
-                action.startsWith(LeadMeMain.STUDENT_FINISH_ADS) ||
-                action.startsWith(LeadMeMain.PING_TAG) ||
-                action.startsWith(LeadMeMain.LAUNCH_SUCCESS) ||
-                action.startsWith(LeadMeMain.STUDENT_NO_XRAY) ||
-                action.startsWith(LeadMeMain.DISCONNECTION) ||
-                action.startsWith(LeadMeMain.NAME_REQUEST)) {
-            main.getNearbyManager().sendToSelected(Payload.fromBytes(bytes), selectedPeerIDs);
-        } else {
-            Log.i(TAG, "Sorry, you can't send actions!");
-        }
+        NearbyPeersManager.sendToSelected(Payload.fromBytes(bytes), selectedPeerIDs);
     }
 
     public synchronized boolean readAction(byte[] bytes) {
@@ -234,112 +216,112 @@ public class DispatchManager {
 
         Log.d(TAG, "Received action: " + actionTag + ", " + action);
 
-        if (actionTag != null && actionTag.equals(LeadMeMain.ACTION_TAG)) {
+        if (actionTag != null && actionTag.equals(Controller.ACTION_TAG)) {
 
             switch (action) {
-                case LeadMeMain.XRAY_ON:
+                case Controller.XRAY_ON:
                     dispatchAction.turnOnXray();
                     break;
 
-                case LeadMeMain.XRAY_OFF:
+                case Controller.XRAY_OFF:
                     dispatchAction.turnOffXray();
                     break;
 
-                case LeadMeMain.XRAY_REQUEST:
+                case Controller.XRAY_REQUEST:
                     dispatchAction.requestXray();
                     break;
 
-                case LeadMeMain.PING_ACTION:
+                case Controller.PING_ACTION:
                     dispatchAction.stillAlivePing(action);
                     break;
 
-                case LeadMeMain.RETURN_TAG:
+                case Controller.RETURN_TAG:
                     dispatchAction.returnToLeadMe();
                     break;
 
-                case LeadMeMain.EXIT_TAG:
+                case Controller.EXIT_TAG:
                     dispatchAction.endSession();
                     break;
 
-                case LeadMeMain.LAUNCH_ACCESS:
+                case Controller.LAUNCH_ACCESS:
                     dispatchAction.requestAccessibility();
                     break;
 
-                case LeadMeMain.NAME_REQUEST:
+                case Controller.NAME_REQUEST:
                     dispatchAction.issueNameChange();
                     break;
 
                 default:
-                    if (action.startsWith(LeadMeMain.YOUR_ID_IS)) {
-                        dispatchAction.setPeerID(action);
+                    if (action.startsWith(Controller.YOUR_ID_IS)) {
+//                        dispatchAction.setPeerID(action); todo - unneeded now, but don't want to break things by removing this if statement right now
 
-                    } else if(action.startsWith(LeadMeMain.NAME_CHANGE)) {
+                    } else if(action.startsWith(Controller.NAME_CHANGE)) {
                         dispatchAction.nameChange(action);
 
-                    } else if(action.startsWith(LeadMeMain.NAME_REQUEST)){
+                    } else if(action.startsWith(Controller.NAME_REQUEST)){
                         dispatchAction.requestNameChange(action);
 
-                    } else if (action.startsWith(LeadMeMain.VID_MUTE_TAG)) {
+                    } else if (action.startsWith(Controller.VID_MUTE_TAG)) {
                         dispatchAction.muteLearner();
 
-                    } else if (action.startsWith(LeadMeMain.VID_UNMUTE_TAG)) {
+                    } else if (action.startsWith(Controller.VID_UNMUTE_TAG)) {
                         dispatchAction.unMuteLearner();
 
-                    } else if (action.startsWith(LeadMeMain.VID_ACTION_TAG)) {
+                    } else if (action.startsWith(Controller.VID_ACTION_TAG)) {
                         dispatchAction.youtubeAction(action);
 
-                    } else if (action.startsWith(LeadMeMain.VR_PLAYER_TAG)) {
+                    } else if (action.startsWith(Controller.VR_PLAYER_TAG)) {
                         dispatchAction.vrPlayerAction(action);
 
-                    } else if(action.startsWith(LeadMeMain.FILE_REQUEST_TAG)) {
+                    } else if(action.startsWith(Controller.FILE_REQUEST_TAG)) {
                         dispatchAction.requestFile(action);
 
-                    } else if (action.startsWith(LeadMeMain.STUDENT_FINISH_ADS)) {
+                    } else if (action.startsWith(Controller.STUDENT_FINISH_ADS)) {
                         dispatchAction.adsFinished();
 
-                    } else if (action.startsWith(LeadMeMain.LOGOUT_TAG)) {
+                    } else if (action.startsWith(Controller.LOGOUT_TAG)) {
                         dispatchAction.logout(action);
 
-                    } else if (action.startsWith(LeadMeMain.LOCK_TAG)) {
+                    } else if (action.startsWith(Controller.LOCK_TAG)) {
                         dispatchAction.lockDevice();
 
-                    } else if (action.startsWith(LeadMeMain.UNLOCK_TAG)) {
+                    } else if (action.startsWith(Controller.UNLOCK_TAG)) {
                         dispatchAction.unlockDevice();
 
-                    } else if (action.startsWith(LeadMeMain.BLACKOUT_TAG)) {
+                    } else if (action.startsWith(Controller.BLACKOUT_TAG)) {
                         dispatchAction.blackout();
 
-                    } else if (action.startsWith(LeadMeMain.TRANSFER_ERROR)) {
+                    } else if (action.startsWith(Controller.TRANSFER_ERROR)) {
                         dispatchAction.transferError(action);
 
-                    } else if(action.startsWith(LeadMeMain.UPDATE_DEVICE_MESSAGE)) {
+                    } else if(action.startsWith(Controller.UPDATE_DEVICE_MESSAGE)) {
                         dispatchAction.updateDeviceMessage(action);
 
-                    } else if(action.startsWith(LeadMeMain.MULTI_INSTALL)) {
+                    } else if(action.startsWith(Controller.MULTI_INSTALL)) {
                         dispatchAction.multiInstall(action);
 
-                    } else if(action.startsWith(LeadMeMain.APP_NOT_INSTALLED)) {
+                    } else if(action.startsWith(Controller.APP_NOT_INSTALLED)) {
                         dispatchAction.applicationNotInstalled(action);
 
-                    } else if (action.startsWith(LeadMeMain.AUTO_INSTALL_FAILED)) {
+                    } else if (action.startsWith(Controller.AUTO_INSTALL_FAILED)) {
                         dispatchAction.autoInstallFail(action);
 
-                    } else if(action.startsWith(LeadMeMain.COLLECT_APPS)) {
+                    } else if(action.startsWith(Controller.COLLECT_APPS)) {
                         dispatchAction.collectApplications();
 
-                    } else if(action.startsWith(LeadMeMain.APP_COLLECTION)) {
+                    } else if(action.startsWith(Controller.APP_COLLECTION)) {
                         dispatchAction.applicationCollection(action);
 
-                    } else if(action.startsWith(LeadMeMain.AUTO_UNINSTALL)) {
+                    } else if(action.startsWith(Controller.AUTO_UNINSTALL)) {
                         dispatchAction.uninstallApplication(action);
 
-                    } else if (action.startsWith(LeadMeMain.DISCONNECTION)) {
+                    } else if (action.startsWith(Controller.DISCONNECTION)) {
                         dispatchAction.disconnectLearner(action);
 
-                    } else if (action.startsWith(LeadMeMain.LAUNCH_URL)) {
+                    } else if (action.startsWith(Controller.LAUNCH_URL)) {
                         dispatchAction.launchURL(action);
 
-                    } else if (action.startsWith(LeadMeMain.LAUNCH_YT)) {
+                    } else if (action.startsWith(Controller.LAUNCH_YT)) {
                         dispatchAction.launchYoutube(action);
 
                     } else {
@@ -355,17 +337,17 @@ public class DispatchManager {
 
     }
 
-    public boolean hasDelayedLaunchContent() {
+    public static boolean hasDelayedLaunchContent() {
         return launchAppOnFocus != null || LeadMeMain.appIntentOnFocus != null;
     }
 
-    public void launchDelayedApp() {
-        main.verifyOverlay();
+    public static void launchDelayedApp() {
+        LeadMeMain.getInstance().verifyOverlay();
         Log.d(TAG, "[XX] Have something to launch? " + Arrays.toString(launchAppOnFocus));
         if (launchAppOnFocus != null) {
             final String[] tmp = launchAppOnFocus;
             launchAppOnFocus = null; //reset
-            main.getAppManager().launchLocalApp(tmp[0], tmp[1], true, false, "false", null);
+            Controller.getInstance().getAppManager().launchLocalApp(tmp[0], tmp[1], true, false, "false", null);
         }
     }
 
@@ -383,12 +365,12 @@ public class DispatchManager {
 
         p.recycle();
 
-        Log.d(TAG, "Received in OpenApp!: " + tag + ", " + packageName + ", " + appName + ", " + lockTag + ", " + extra + ", " + streaming + ", " + vrMode + " vs " + main.getAppManager().lastApp);
-        if (tag != null && tag.equals(LeadMeMain.APP_TAG)) {
-            if (lockTag.equals(LeadMeMain.LOCK_TAG)) {
+        Log.d(TAG, "Received in OpenApp!: " + tag + ", " + packageName + ", " + appName + ", " + lockTag + ", " + extra + ", " + streaming + ", " + vrMode + " vs " + AppManager.lastApp);
+        if (tag != null && tag.equals(Controller.APP_TAG)) {
+            if (lockTag.equals(Controller.LOCK_TAG)) {
                 dispatchAction.lockDevice();
 
-            } else if (lockTag.equals(LeadMeMain.UNLOCK_TAG)) {
+            } else if (lockTag.equals(Controller.UNLOCK_TAG)) {
                 //I've been selected to toggle student lock
 //                main.blackout(false);
 //                disableInteraction(ConnectedPeer.STATUS_UNLOCK);
@@ -400,38 +382,38 @@ public class DispatchManager {
             }
 
             boolean appInForeground = main.isAppVisibleInForeground();
-            if (packageName.equals(main.getAppManager().withinPackage)) {
+            if (packageName.equals(AppManager.withinPackage)) {
                 if (!extra.isEmpty()) {
                     // save all the info for a Within launch
                     Uri thisURI = Uri.parse(extra);
 
-                    if (main.getAppManager().withinURI != null && main.getAppManager().withinURI.equals(thisURI) && !main.isAppVisibleInForeground()) {
+                    if (AppManager.withinURI != null && AppManager.withinURI.equals(thisURI) && !main.isAppVisibleInForeground()) {
                         Log.w(TAG, "We're already playing " + thisURI.toString() + "! Ignoring...");
                         return true; //successfully extracted the details, no action needed
 
                     } else {
                         Log.e(TAG, String.valueOf(thisURI));
-                        main.getAppManager().withinURI = thisURI;
-                        main.getAppManager().isStreaming = Boolean.parseBoolean(streaming);
-                        main.getAppManager().isVR = Boolean.parseBoolean(vrMode);
+                        AppManager.withinURI = thisURI;
+                        AppManager.isStreaming = Boolean.parseBoolean(streaming);
+                        AppManager.isVR = Boolean.parseBoolean(vrMode);
                         Log.d(TAG, "Setting streaming status, vrMode and URL for WITHIN VR " + extra + ", " + streaming + ", " + vrMode + ", (" + appInForeground + ")");
 
                     }
                 } else {
                     Log.w(TAG, "[1] No URI, reset state!");
                     //no URL was specified, so clear any previous info
-                    main.getAppManager().withinURI = null;
+                    AppManager.withinURI = null;
                     main.getLumiAccessibilityConnector().resetState();
 
                 }
             } else {
                 Log.w(TAG, "[2] No URI, reset state!");
                 //no URL was specified, so clear any previous info
-                main.getAppManager().withinURI = null;
+                AppManager.withinURI = null;
                 main.getLumiAccessibilityConnector().resetState();
             }
 
-            if (!appInForeground) {//!main.getAppLaunchAdapter().lastApp.equals(packageName)) {
+            if (!appInForeground) {
                 Log.d(TAG, "NEED FOCUS!");
                 //only needed if it's not what we've already got open
                 //TODO make this more robust, check if it's actually running
@@ -443,7 +425,7 @@ public class DispatchManager {
             } else {
                 Log.d(TAG, "HAVE FOCUS!");
                 launchAppOnFocus = null; //reset
-                main.getHandler().post(() -> main.getAppManager().launchLocalApp(packageName, appName, true, false, extra, null));
+                LeadMeMain.UIHandler.post(() -> Controller.getInstance().getAppManager().launchLocalApp(packageName, appName, true, false, extra, null));
 
             }
             return true;
@@ -454,17 +436,109 @@ public class DispatchManager {
     }
 
 
-    public void alertGuidePermissionGranted(String whichPermission, boolean isGranted) {
+    public static void alertGuidePermissionGranted(String whichPermission, boolean isGranted) {
         if (isGranted) {
-            sendActionToSelected(LeadMeMain.ACTION_TAG, whichPermission + "OK:" + main.getNearbyManager().getID(), main.getNearbyManager().getAllPeerIDs());
+            sendActionToSelected(Controller.ACTION_TAG, whichPermission + "OK:" + NearbyPeersManager.getID(), NearbyPeersManager.getAllPeerIDs());
         } else {
-            sendActionToSelected(LeadMeMain.ACTION_TAG, whichPermission + "FAIL:" + main.getNearbyManager().getID(), main.getNearbyManager().getAllPeerIDs());
+            sendActionToSelected(Controller.ACTION_TAG, whichPermission + "FAIL:" + NearbyPeersManager.getID(), NearbyPeersManager.getAllPeerIDs());
         }
     }
 
-    public void alertGuideStudentOffTask() {
-        sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.STUDENT_OFF_TASK_ALERT + main.getNearbyManager().getID(),
-                main.getNearbyManager().getAllPeerIDs());
+    public static void alertGuideStudentOffTask() {
+        sendActionToSelected(Controller.ACTION_TAG, Controller.STUDENT_OFF_TASK_ALERT + NearbyPeersManager.getID(),
+                NearbyPeersManager.getAllPeerIDs());
+    }
+
+    /**
+     * Creates a dialog asking for a peer to allow a certain permission, no dialog is present for disabling
+     * the permission. Used for auto installing applications and transferring files between devices.
+     * @param permission A string representing what permission wanting to be allowed.
+     * @param enable A boolean representing if the permission is being turned on or off.
+     */
+    public static void askForPeerPermission(String permission, Boolean enable) {
+        String msg;
+
+        switch(permission) {
+            case Controller.FILE_TRANSFER:
+                if(enable) {
+                    msg = "Guide wants to enable \nfile transfer services.";
+                } else {
+                    LeadMeMain.fileTransferEnabled = false;
+                    return;
+                }
+
+                if(LeadMeMain.fileTransferEnabled) {
+                    return;
+                }
+
+                break;
+
+            case Controller.AUTO_INSTALL:
+                if(enable) {
+                    msg = "Guide wants to enable \nauto installing of applications.";
+                } else {
+                    LeadMeMain.autoInstallApps = false;
+                    return;
+                }
+
+                if(LeadMeMain.autoInstallApps) {
+                    return;
+                }
+
+                break;
+
+            default:
+                Log.e(TAG, "askForPeerPermission: Permission is not defined.");
+                return;
+        }
+
+        Controller.getInstance().getDialogManager().showPermissionDialog(msg, permission);
+    }
+
+    /**
+     * Determines if a permission has been allowed or denied, enables the permission if allowed.
+     * @param permission A string representing what permission has been requested.
+     * @param allowed A boolean representing if the peer has allowed or denied the request.
+     */
+    public static void permissionAllowed(String permission, Boolean allowed) {
+        if(allowed) {
+            switch (permission) {
+                case Controller.FILE_TRANSFER:
+                    LeadMeMain.fileTransferEnabled = true;
+                    break;
+
+                case Controller.AUTO_INSTALL:
+                    LeadMeMain.autoInstallApps = true;
+                    break;
+
+                default:
+                    break;
+            }
+
+            permissionGranted(permission);
+        } else {
+            permissionDenied(permission);
+        }
+    }
+
+    /**
+     * Sends an action back to the guide if the permission has been granted.
+     * @param permission A string representing what permission has been granted.
+     */
+    public static void permissionGranted(String permission) {
+        DispatchManager.sendActionToSelected(Controller.ACTION_TAG,
+                Controller.PERMISSION_DENIED + ":" + "OK" + ":" + NearbyPeersManager.getID() + ":" + permission,
+                NearbyPeersManager.getSelectedPeerIDsOrAll());
+    }
+
+    /**
+     * Sends an action back to the guide if the permission has been denied.
+     * @param permission A string representing what permission has been denied.
+     */
+    public static void permissionDenied(String permission) {
+        DispatchManager.sendActionToSelected(Controller.ACTION_TAG,
+                Controller.PERMISSION_DENIED + ":" + "BAD" + ":" + NearbyPeersManager.getID() + ":" + permission,
+                NearbyPeersManager.getSelectedPeerIDsOrAll());
     }
 
     /**
@@ -476,19 +550,19 @@ public class DispatchManager {
          * permission if not, otherwise connect to the server and start sending images.
          */
         private void turnOnXray() {
-            if(!main.screenSharingManager.permissionGranted){
-                main.screenSharingManager.startService(true);
+            if(!ScreenSharingManager.permissionGranted){
+                Controller.getInstance().getScreenSharingManager().startService(true);
                 return;
             }
 
-            main.screenSharingManager.connectToServer();
+            Controller.getInstance().getScreenSharingManager().connectToServer();
         }
 
         /**
          * Stop sending images to the screenCap server.
          */
         private void turnOffXray() {
-            main.screenSharingManager.stopMonitoring();
+            Controller.getInstance().getScreenSharingManager().stopMonitoring();
         }
 
         /**
@@ -500,7 +574,7 @@ public class DispatchManager {
             Set<String> peerSet = new HashSet<>();
             peerSet.add(action.split(":")[1]);
             //send a response back to the ID that pinged me
-            sendActionToSelected(LeadMeMain.PING_TAG, LeadMeMain.PING_ACTION + ":" + main.getNearbyManager().getID(), peerSet);
+            sendActionToSelected(Controller.PING_TAG, Controller.PING_ACTION + ":" + NearbyPeersManager.getID(), peerSet);
         }
 
         /**
@@ -508,8 +582,8 @@ public class DispatchManager {
          */
         private void returnToLeadMe() {
             Log.d(TAG, "Trying to return to " + LeadMeMain.leadMeAppName);
-            main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.LAUNCH_SUCCESS + LeadMeMain.leadMePackageName
-                    + ":" + main.getNearbyManager().getID() + ":" + LeadMeMain.leadMePackageName, main.getNearbyManager().getAllPeerIDs());
+            sendActionToSelected(Controller.ACTION_TAG, Controller.LAUNCH_SUCCESS + LeadMeMain.leadMePackageName
+                    + ":" + NearbyPeersManager.getID() + ":" + LeadMeMain.leadMePackageName, NearbyPeersManager.getAllPeerIDs());
             main.updateFollowerCurrentTaskToLeadMe();
             main.recallToLeadMe();
         }
@@ -527,7 +601,7 @@ public class DispatchManager {
          * Request that a connected learner device turn on their accessibility settings.
          */
         private void requestAccessibility() {
-            main.getPermissionsManager().requestAccessibilitySettingsOn();
+            Controller.getInstance().getPermissionsManager().requestAccessibilitySettingsOn();
         }
 
         /**
@@ -547,28 +621,15 @@ public class DispatchManager {
             confirm.setOnClickListener(v -> {
                 String name = newName.getText().toString();
                 if(newName.getText() != null && name.length() > 0){
-                    main.getNearbyManager().myName = name;
+                    NearbyPeersManager.myName = name;
                     main.changeStudentName(name);
-                    sendActionToSelected(LeadMeMain.ACTION_TAG,LeadMeMain.NAME_REQUEST+name+":"+main.getNearbyManager().getID(),main.getNearbyManager().getAllPeerIDs());
+                    sendActionToSelected(Controller.ACTION_TAG,
+                            Controller.NAME_REQUEST + name
+                                    + ":" + NearbyPeersManager.getID(),
+                            NearbyPeersManager.getAllPeerIDs());
                     studentNameChangeRequest.dismiss();
                 }
             });
-        }
-
-        /**
-         * Sets the ID of a connected peer as assigned by a guide.
-         * @param action A string of the incoming action, it contains the new ID for the peer.
-         */
-        private void setPeerID(String action) {
-            String[] split = action.split(":");
-            if (split.length == 3) {
-                //Now I know my ID! Store it.
-                Log.d(TAG, ">>> INCOMING: " + action + " vs " + main.getNearbyManager().getName() + " // " + main.getNearbyManager().getID());
-                if (split[2].equals(main.getUUID())) {
-                    Log.d(TAG, "My peer tells me my ID is " + split[1] + " -- " + action + ", " + main.getNearbyManager().getName() + "/" + main.getUUID());
-                    main.getNearbyManager().setID(split[1]);
-                }
-            }
         }
 
         /**
@@ -577,7 +638,7 @@ public class DispatchManager {
          */
         private void nameChange(String action) {
             String[] Strsplit = action.split(":");
-            main.getNearbyManager().myName=Strsplit[1];
+            NearbyPeersManager.myName = Strsplit[1];
             main.changeStudentName(Strsplit[1]);
         }
 
@@ -591,10 +652,10 @@ public class DispatchManager {
             //teachers handler for name change
             String[] Strsplit = action.split(":");
 
-            ConnectedPeer peer = main.getConnectedLearnersAdapter().getMatchingPeer(Strsplit[2]);
+            ConnectedPeer peer = ConnectedLearnersAdapter.getMatchingPeer(Strsplit[2]);
             String oldName = peer.getDisplayName();
             peer.setName(Strsplit[1]);
-            main.getConnectedLearnersAdapter().refresh();
+            Controller.getInstance().getConnectedLearnersAdapter().refresh();
             View NameChangedConfirm = View.inflate(main, R.layout.f__name_push_confirm, null);
             AlertDialog studentNameConfirm = new AlertDialog.Builder(main)
                     .setView(NameChangedConfirm)
@@ -655,7 +716,7 @@ public class DispatchManager {
             if(Integer.parseInt(split[1]) == VRAccessibilityManager.CUE_PROJECTION) {
                 additionalInfo = split[2]; //projection type
             }
-            main.getVRAccessibilityManager().vrPlayerAction(Integer.parseInt(split[1]), additionalInfo);
+            Controller.getInstance().getVRAccessibilityManager().vrPlayerAction(Integer.parseInt(split[1]), additionalInfo);
         }
 
         /**
@@ -667,22 +728,22 @@ public class DispatchManager {
         private void requestFile(String action) {
             String[] split = action.split(":");
             String ID = split[1];
-            Log.e("FILE REQUEST", "Requesting: " + main.vrURI + " from: " + ID + " status: " + split[2] + " type: " + split[3]);
+            Log.e("FILE REQUEST", "Requesting: " + LeadMeMain.vrURI + " from: " + ID + " status: " + split[2] + " type: " + split[3]);
 
             //Set the file type for handling when complete
             FileTransferManager.setFileType(split[3]);
 
             //If false, then the learner needs the file, otherwise the transfer is complete - relaunch the app
             if(split[2].equals("false")) {
-                LeadMeMain.fileRequests.add(Integer.parseInt(ID));
-                main.getDialogManager().showRequestDialog(5);
+                LeadMeMain.fileRequests.add(ID);
+                Controller.getInstance().getDialogManager().showRequestDialog(5);
             } else {
                 Set<String> peer = new HashSet<>();
                 peer.add(ID);
 
                 //TODO change into a switch case if more request types are handled later
                 if(FileTransferManager.getFileType().equals("VRVideo")) {
-                    main.getVrEmbedVideoPlayer().relaunchVR(peer);
+                    Controller.getInstance().getVrEmbedVideoPlayer().relaunchVR(peer);
                 }
             }
         }
@@ -691,7 +752,7 @@ public class DispatchManager {
          * Alerts the guide that a peer's ads have finished on youtube.
          */
         private void adsFinished() {
-            main.getWebManager().getYouTubeEmbedPlayer().addPeerReady();
+            Controller.getInstance().getWebManager().getYouTubeEmbedPlayer().addPeerReady();
         }
 
         /**
@@ -701,7 +762,7 @@ public class DispatchManager {
         private void logout(String action) {
             String id = action.split(":")[1];
             Log.d(TAG, "Guide " + id + " has logged out!");
-            main.getNearbyManager().disconnectFromEndpoint(id);
+            NearbyPeersManager.disconnectFromEndpoint(id);
         }
 
         /**
@@ -711,9 +772,9 @@ public class DispatchManager {
             //I've been selected to toggle student lock
             main.blackout(false);
             disableInteraction(ConnectedPeer.STATUS_LOCK);
-            sendActionToSelected(LeadMeMain.ACTION_TAG,
-                    LeadMeMain.LAUNCH_SUCCESS + "LOCKON" + ":" + main.getNearbyManager().getID() + ":" + LeadMeMain.leadMePackageName,
-                    main.getNearbyManager().getAllPeerIDs());
+            sendActionToSelected(Controller.ACTION_TAG,
+                    Controller.LAUNCH_SUCCESS + "LOCKON" + ":" + NearbyPeersManager.getID() + ":" + LeadMeMain.leadMePackageName,
+                    NearbyPeersManager.getAllPeerIDs());
         }
 
         /**
@@ -724,8 +785,11 @@ public class DispatchManager {
             main.blackout(false);
             disableInteraction(ConnectedPeer.STATUS_UNLOCK);
             main.getLumiAccessibilityConnector().manageAccessibilityEvent(null,null);
-            sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.LAUNCH_SUCCESS + "LOCKOFF" + ":" + main.getNearbyManager().getID() + ":" + LeadMeMain.leadMePackageName,
-                    main.getNearbyManager().getAllPeerIDs());
+            sendActionToSelected(Controller.ACTION_TAG,
+                    Controller.LAUNCH_SUCCESS + "LOCKOFF"
+                            + ":" + NearbyPeersManager.getID()
+                            + ":" + LeadMeMain.leadMePackageName,
+                    NearbyPeersManager.getAllPeerIDs());
         }
 
         /**
@@ -734,8 +798,11 @@ public class DispatchManager {
         private void blackout() {
             main.blackout(true);
             disableInteraction(ConnectedPeer.STATUS_BLACKOUT);
-            sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.LAUNCH_SUCCESS + "BLACKOUT" + ":" + main.getNearbyManager().getID() + ":" + main.getApplicationContext().getPackageName(),
-                    main.getNearbyManager().getAllPeerIDs());
+            sendActionToSelected(Controller.ACTION_TAG,
+                    Controller.LAUNCH_SUCCESS + "BLACKOUT"
+                            + ":" + NearbyPeersManager.getID()
+                            + ":" + main.getApplicationContext().getPackageName(),
+                    NearbyPeersManager.getAllPeerIDs());
         }
 
         /**
@@ -744,7 +811,7 @@ public class DispatchManager {
          */
         private void transferError(String action) {
             String[] split = action.split(":");
-            main.getFileTransferManager().removePeer(split[1], split[2]);
+            Controller.getInstance().getFileTransferManager().removePeer(split[1], split[2]);
         }
 
         /**
@@ -767,7 +834,7 @@ public class DispatchManager {
             //change the string array into an array
             String[] appArray = applications.replace("[","").replace("]","").split(",");
             String[] firstApp = appArray[0].split("//");
-            main.getLumiAppInstaller().autoInstall(firstApp[0], firstApp[1], split[1], appArray);
+            Controller.getInstance().getLumiAppInstaller().autoInstall(firstApp[0], firstApp[1], split[1], appArray);
         }
 
         /**
@@ -781,13 +848,13 @@ public class DispatchManager {
             //get the student id add it to the need to install array.
             Log.d(TAG, "Application needed on peer: " + split[3]);
 
-            main.getConnectedLearnersAdapter().appLaunchFail(split[3], appNameRepush);
+            Controller.getInstance().getConnectedLearnersAdapter().appLaunchFail(split[3], appNameRepush);
 
             if(LeadMeMain.FLAG_INSTALLER) {
-                main.getLumiAppInstaller().peersToInstall.add(split[3]);
+                Controller.getInstance().getLumiAppInstaller().peersToInstall.add(split[3]);
 
                 //open a dialog to confirm if wanting to install apps
-                main.getLumiAppInstaller().applicationsToInstallWarning(split[1], split[2], false); //should auto update number of devices need as the action come in
+                Controller.getInstance().getLumiAppInstaller().applicationsToInstallWarning(split[1], split[2], false); //should auto update number of devices need as the action come in
             }
         }
 
@@ -799,21 +866,21 @@ public class DispatchManager {
          */
         private void autoInstallFail(String action) {
             String[] split = action.split(":");
-            main.getConnectedLearnersAdapter().appLaunchFail(split[2], split[1]);
+            Controller.getInstance().getConnectedLearnersAdapter().appLaunchFail(split[2], split[1]);
 
             //in this case, student will be back in LeadMe, so update icon too
-            main.getConnectedLearnersAdapter().updateIcon(split[2], main.getAppManager().getAppIcon(LeadMeMain.leadMePackageName));
+            Controller.getInstance().getConnectedLearnersAdapter().updateIcon(split[2], AppManager.getAppIcon(LeadMeMain.leadMePackageName));
         }
 
         /**
          * Collect all applications (package name & app name) installed on a connected device
          */
         private void collectApplications() {
-            List<String> applicationInfo = new ArrayList<>(main.getAppManager().refreshAppList());
+            List<String> applicationInfo = new ArrayList<>(Controller.getInstance().getAppManager().refreshAppList());
 
             //send back to the leader - placeholder for now
-            sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.APP_COLLECTION + ":" + applicationInfo,
-                    main.getNearbyManager().getSelectedPeerIDs());
+            sendActionToSelected(Controller.ACTION_TAG, Controller.APP_COLLECTION + ":" + applicationInfo,
+                    NearbyPeersManager.getSelectedPeerIDs());
         }
 
         /**
@@ -827,8 +894,8 @@ public class DispatchManager {
             //change the string array into an array
             String[] appArray = applications.replace("[", "").replace("]", "").split(",");
 
-            Collections.addAll(main.getLumiAppInstaller().peerApplications, appArray);
-            main.getLumiAppInstaller().populateUninstall();
+            Collections.addAll(Controller.getInstance().getLumiAppInstaller().peerApplications, appArray);
+            Controller.getInstance().getLumiAppInstaller().populateUninstall();
         }
 
         /**
@@ -843,22 +910,21 @@ public class DispatchManager {
             String applications = split[2]; //get the array of apps currently in string form
             //change the string array into an array
             String[] appArray = applications.replace("[","").replace("]","").split(",");
-            Collections.addAll(main.getLumiAppInstaller().appsToManage, appArray);
+            Collections.addAll(Controller.getInstance().getLumiAppInstaller().appsToManage, appArray);
 
-            main.getLumiAppInstaller().runUninstaller();
+            Controller.getInstance().getLumiAppInstaller().runUninstaller();
         }
 
         /**
-         * The guide is recieving a message that a learner has just abruptly disconnected.
+         * The guide is receiving a message that a learner has just abruptly disconnected.
          * @param action A string of the incoming action, it contains the ID of the disconnecting
          *               peer.
          */
         private void disconnectLearner(String action) {
             String[] split = action.split(":"); //get the peer ID
 
-            //TODO disconnect this student
             Log.e(TAG, split[1] + " has just disconnected");
-            NetworkManager.updateParent("Blah", Integer.parseInt(split[1]), "LOST");
+            NetworkManager.updateParent(split[1] + " has disconnected", split[1], "LOST");
         }
 
         /**
@@ -868,7 +934,7 @@ public class DispatchManager {
          */
         private void launchURL(String action) {
             String[] split = action.split(":::", 3);
-            main.getWebManager().launchWebsite(split[1], split[2], true);
+            Controller.getInstance().getWebManager().launchWebsite(split[1], split[2], true);
 //            main.url_overlay.setVisibility(View.VISIBLE);
         }
 
@@ -879,7 +945,7 @@ public class DispatchManager {
          */
         private void launchYoutube(String action) {
             String[] split = action.split(":::", 4);
-            main.getWebManager().launchYouTube(split[1], split[2], split[3].equals("true"), true);
+            Controller.getInstance().getWebManager().launchYouTube(split[1], split[2], split[3].equals("true"), true);
             Log.w(TAG, action + "||" + split[1] + ", " + split[2] + ", " + split[3] + "|");
         }
 
@@ -890,11 +956,11 @@ public class DispatchManager {
         private void askPermission(String action) {
             String[] split = action.split(":");
 
-            if(action.startsWith(LeadMeMain.FILE_TRANSFER)) {
-                main.askForPeerPermission(LeadMeMain.FILE_TRANSFER, Boolean.parseBoolean(split[1]));
+            if(action.startsWith(Controller.FILE_TRANSFER)) {
+                askForPeerPermission(Controller.FILE_TRANSFER, Boolean.parseBoolean(split[1]));
 
-            } else if(action.startsWith(LeadMeMain.AUTO_INSTALL)) {
-                main.askForPeerPermission(LeadMeMain.AUTO_INSTALL, Boolean.parseBoolean(split[1]));
+            } else if(action.startsWith(Controller.AUTO_INSTALL)) {
+                askForPeerPermission(Controller.AUTO_INSTALL, Boolean.parseBoolean(split[1]));
             }
         }
 
@@ -904,7 +970,7 @@ public class DispatchManager {
          * student alerts area.
          */
         private void requestXray() {
-            main.screenSharingManager.startService(false);
+            Controller.getInstance().getScreenSharingManager().startService(false);
         }
 
         /**
@@ -915,81 +981,81 @@ public class DispatchManager {
         private void updatePeerStatus(String action) {
             String[] split = action.split(":");
 
-            if (action.startsWith(LeadMeMain.STUDENT_NO_OVERLAY)) {
+            if (action.startsWith(Controller.STUDENT_NO_OVERLAY)) {
                 if (split[1].equalsIgnoreCase("OK")) {
-                    main.updatePeerStatus(split[2], ConnectedPeer.STATUS_SUCCESS, LeadMeMain.STUDENT_NO_OVERLAY);
+                    LeadMeMain.updatePeerStatus(split[2], ConnectedPeer.STATUS_SUCCESS, Controller.STUDENT_NO_OVERLAY);
                 } else {
-                    main.updatePeerStatus(split[2], ConnectedPeer.STATUS_WARNING, LeadMeMain.STUDENT_NO_OVERLAY);
+                    LeadMeMain.updatePeerStatus(split[2], ConnectedPeer.STATUS_WARNING, Controller.STUDENT_NO_OVERLAY);
                 }
 
-            } else if (action.startsWith(LeadMeMain.STUDENT_OFF_TASK_ALERT)) {
-                main.updatePeerStatus(split[1], ConnectedPeer.STATUS_WARNING, LeadMeMain.STUDENT_OFF_TASK_ALERT);
+            } else if (action.startsWith(Controller.STUDENT_OFF_TASK_ALERT)) {
+                LeadMeMain.updatePeerStatus(split[1], ConnectedPeer.STATUS_WARNING, Controller.STUDENT_OFF_TASK_ALERT);
 
-            } else if (action.startsWith(LeadMeMain.STUDENT_NO_INTERNET)) {
+            } else if (action.startsWith(Controller.STUDENT_NO_INTERNET)) {
                 if (split[1].equalsIgnoreCase("OK")) {
-                    main.updatePeerStatus(split[2], ConnectedPeer.STATUS_SUCCESS, LeadMeMain.STUDENT_NO_INTERNET);
+                    LeadMeMain.updatePeerStatus(split[2], ConnectedPeer.STATUS_SUCCESS, Controller.STUDENT_NO_INTERNET);
                 } else {
-                    main.updatePeerStatus(split[2], ConnectedPeer.STATUS_WARNING, LeadMeMain.STUDENT_NO_INTERNET);
+                    LeadMeMain.updatePeerStatus(split[2], ConnectedPeer.STATUS_WARNING, Controller.STUDENT_NO_INTERNET);
                 }
 
-            } else if(action.startsWith(LeadMeMain.STUDENT_NO_XRAY)){
+            } else if(action.startsWith(Controller.STUDENT_NO_XRAY)){
                 if (split[1].equalsIgnoreCase("OK")) {
-                    main.updatePeerStatus(split[2], ConnectedPeer.STATUS_SUCCESS, LeadMeMain.STUDENT_NO_XRAY);
+                    LeadMeMain.updatePeerStatus(split[2], ConnectedPeer.STATUS_SUCCESS, Controller.STUDENT_NO_XRAY);
                 } else {
-                    main.updatePeerStatus(split[2], ConnectedPeer.STATUS_WARNING, LeadMeMain.STUDENT_NO_XRAY);
+                    LeadMeMain.updatePeerStatus(split[2], ConnectedPeer.STATUS_WARNING, Controller.STUDENT_NO_XRAY);
                 }
 
-            } else if (action.startsWith(LeadMeMain.STUDENT_NO_ACCESSIBILITY)) {
+            } else if (action.startsWith(Controller.STUDENT_NO_ACCESSIBILITY)) {
                 if (split[1].equalsIgnoreCase("OK")) {
-                    main.updatePeerStatus(split[2], ConnectedPeer.STATUS_SUCCESS, LeadMeMain.STUDENT_NO_ACCESSIBILITY);
+                    LeadMeMain.updatePeerStatus(split[2], ConnectedPeer.STATUS_SUCCESS, Controller.STUDENT_NO_ACCESSIBILITY);
                 } else {
-                    main.updatePeerStatus(split[2], ConnectedPeer.STATUS_WARNING, LeadMeMain.STUDENT_NO_ACCESSIBILITY);
+                    LeadMeMain.updatePeerStatus(split[2], ConnectedPeer.STATUS_WARNING, Controller.STUDENT_NO_ACCESSIBILITY);
                 }
 
-            } else if (action.startsWith(LeadMeMain.PERMISSION_DENIED)) {
-                if (split[3].equals(LeadMeMain.FILE_TRANSFER)) {
+            } else if (action.startsWith(Controller.PERMISSION_DENIED)) {
+                if (split[3].equals(Controller.FILE_TRANSFER)) {
                     if (split[1].equalsIgnoreCase("OK")) {
-                        main.updatePeerStatus(split[2], ConnectedPeer.STATUS_SUCCESS, LeadMeMain.PERMISSION_TRANSFER_DENIED);
+                        LeadMeMain.updatePeerStatus(split[2], ConnectedPeer.STATUS_SUCCESS, Controller.PERMISSION_TRANSFER_DENIED);
                     } else {
-                        main.updatePeerStatus(split[2], ConnectedPeer.STATUS_INSTALLED, null);
-                        main.updatePeerStatus(split[2], ConnectedPeer.STATUS_WARNING, LeadMeMain.PERMISSION_TRANSFER_DENIED);
+                        LeadMeMain.updatePeerStatus(split[2], ConnectedPeer.STATUS_INSTALLED, null);
+                        LeadMeMain.updatePeerStatus(split[2], ConnectedPeer.STATUS_WARNING, Controller.PERMISSION_TRANSFER_DENIED);
                     }
-                } else if (split[3].equals(LeadMeMain.AUTO_INSTALL)) {
+                } else if (split[3].equals(Controller.AUTO_INSTALL)) {
                     if (split[1].equalsIgnoreCase("OK")) {
-                        main.updatePeerStatus(split[2], ConnectedPeer.STATUS_SUCCESS, LeadMeMain.PERMISSION_AUTOINSTALL_DENIED);
+                        LeadMeMain.updatePeerStatus(split[2], ConnectedPeer.STATUS_SUCCESS, Controller.PERMISSION_AUTOINSTALL_DENIED);
                     } else {
-                        main.updatePeerStatus(split[2], ConnectedPeer.STATUS_INSTALLED, null);
-                        main.updatePeerStatus(split[2], ConnectedPeer.STATUS_WARNING, LeadMeMain.PERMISSION_AUTOINSTALL_DENIED);
+                        LeadMeMain.updatePeerStatus(split[2], ConnectedPeer.STATUS_INSTALLED, null);
+                        LeadMeMain.updatePeerStatus(split[2], ConnectedPeer.STATUS_WARNING, Controller.PERMISSION_AUTOINSTALL_DENIED);
                     }
                 }
 
                 Log.d(TAG, "Peer: " + split[2] + " has denied permission: " + split[3]);
 
-            } else if (action.startsWith(LeadMeMain.AUTO_INSTALL_ATTEMPT)) {
-                    main.updatePeerStatus(split[2], ConnectedPeer.STATUS_INSTALLING, null);
+            } else if (action.startsWith(Controller.AUTO_INSTALL_ATTEMPT)) {
+                LeadMeMain.updatePeerStatus(split[2], ConnectedPeer.STATUS_INSTALLING, null);
 
-            } else if (action.startsWith(LeadMeMain.LAUNCH_SUCCESS)) {
+            } else if (action.startsWith(Controller.LAUNCH_SUCCESS)) {
 
                 switch (split[1]) {
                     case "LOCKON":
-                        main.updatePeerStatus(split[2], ConnectedPeer.STATUS_LOCK, null);
+                        LeadMeMain.updatePeerStatus(split[2], ConnectedPeer.STATUS_LOCK, null);
                         break;
 
                     case "LOCKOFF":
-                        main.updatePeerStatus(split[2], ConnectedPeer.STATUS_UNLOCK, null);
+                        LeadMeMain.updatePeerStatus(split[2], ConnectedPeer.STATUS_UNLOCK, null);
                         break;
 
                     case "BLACKOUT":
-                        main.updatePeerStatus(split[2], ConnectedPeer.STATUS_BLACKOUT, null);
+                        LeadMeMain.updatePeerStatus(split[2], ConnectedPeer.STATUS_BLACKOUT, null);
                         break;
 
                     default:
                         if (split[1].equals("INSTALLED")) { //remove the downloading icon from the peer
-                            main.updatePeerStatus(split[2], ConnectedPeer.STATUS_INSTALLED, null);
+                            LeadMeMain.updatePeerStatus(split[2], ConnectedPeer.STATUS_INSTALLED, null);
                         }
-                        main.updatePeerStatus(split[2], ConnectedPeer.STATUS_SUCCESS, LeadMeMain.STUDENT_OFF_TASK_ALERT);
-                        main.getConnectedLearnersAdapter().appLaunchSuccess(split[2], split[1]);
-                        main.getConnectedLearnersAdapter().updateIcon(split[2], main.getAppManager().getAppIcon(split[3]));
+                        LeadMeMain.updatePeerStatus(split[2], ConnectedPeer.STATUS_SUCCESS, Controller.STUDENT_OFF_TASK_ALERT);
+                        Controller.getInstance().getConnectedLearnersAdapter().appLaunchSuccess(split[2], split[1]);
+                        Controller.getInstance().getConnectedLearnersAdapter().updateIcon(split[2], AppManager.getAppIcon(split[3]));
                 }
             }
         }

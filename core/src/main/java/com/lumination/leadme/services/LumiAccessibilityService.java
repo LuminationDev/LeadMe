@@ -1,10 +1,6 @@
 package com.lumination.leadme.services;
 
-import android.app.Notification;
-import android.app.NotificationChannel;
-import android.app.NotificationManager;
 import android.content.ComponentName;
-import android.content.Context;
 import android.content.Intent;
 import android.content.res.Configuration;
 import android.os.Bundle;
@@ -13,10 +9,8 @@ import android.view.accessibility.AccessibilityEvent;
 import android.view.accessibility.AccessibilityNodeInfo;
 
 import androidx.annotation.NonNull;
-import androidx.core.app.NotificationCompat;
 
 import com.lumination.leadme.LeadMeMain;
-import com.lumination.leadme.R;
 import com.lumination.leadme.accessibility.LumiAccessibilityReceiver;
 
 public class LumiAccessibilityService extends android.accessibilityservice.AccessibilityService {

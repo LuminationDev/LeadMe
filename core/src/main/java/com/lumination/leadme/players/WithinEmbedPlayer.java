@@ -25,18 +25,29 @@ import android.widget.Spinner;
 import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.Scanner;
 
 import androidx.core.content.ContextCompat;
+import androidx.core.content.res.ResourcesCompat;
 import androidx.core.widget.ImageViewCompat;
 import androidx.databinding.DataBindingUtil;
 import androidx.databinding.ViewDataBinding;
 
+import com.bumptech.glide.Glide;
 import com.lumination.leadme.BR;
 import com.lumination.leadme.LeadMeMain;
 import com.lumination.leadme.R;
 import com.lumination.leadme.adapters.LumiSpinnerAdapter;
+import com.lumination.leadme.controller.Controller;
+import com.lumination.leadme.managers.AppManager;
+import com.lumination.leadme.managers.DispatchManager;
+import com.lumination.leadme.managers.NearbyPeersManager;
+
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
 
 public class WithinEmbedPlayer {
 
@@ -55,7 +66,7 @@ public class WithinEmbedPlayer {
     private final CheckBox favCheck;
     private final View withinControllerDialogView, withinSearchDialogView;
     private final TextView internetUnavailableMsg, searchUnavailableMsg, downModeText;
-    public WebView controllerWebView, searchWebView;
+    public WebView searchWebView;
     private final Switch vrModeBtn, downModeBtn;
     private final ImageView vrIcon;
     private final Spinner lockSpinner;
@@ -77,7 +88,7 @@ public class WithinEmbedPlayer {
      * https://developers.google.com/youtube/iframe_api_reference
      */
 
-    private final ViewGroup.LayoutParams searchBackupParams, controllerBackupParams;
+    private final ViewGroup.LayoutParams searchBackupParams;
 
     public WithinEmbedPlayer(LeadMeMain main) {
         this.main = main;
@@ -102,27 +113,23 @@ public class WithinEmbedPlayer {
         pushBtn = withinControllerDialogView.findViewById(R.id.push_btn);
         repushBtn = withinControllerDialogView.findViewById(R.id.push_again_btn);
         vrIcon = withinControllerDialogView.findViewById(R.id.vr_mode_icon);
-        controllerWebView = withinControllerDialogView.findViewById(R.id.within_webview);
-        controllerBackupParams = controllerWebView.getLayoutParams();
         internetUnavailableMsg = withinControllerDialogView.findViewById(R.id.no_internet);
         internetUnavailableMsg.setOnClickListener(v -> loadVideoGuideURL(foundURL));
-        setupWebView(controllerWebView);
-        setupWebClient(controllerWebView, false);
         setupGuideVideoControllerButtons();
-        main.getDialogManager().setupPushToggle(withinControllerDialogView, false);
+        Controller.getInstance().getDialogManager().setupPushToggle(withinControllerDialogView, false);
 
         withinSearchDialogView.findViewById(R.id.open_favourites).setOnClickListener(v -> {
             main.closeKeyboard();
             main.hideSystemUI();
             videoSearchDialog.dismiss();
-            main.getWebManager().launchUrlYtFavourites();
+            Controller.getInstance().getWebManager().launchUrlYtFavourites();
         });
 
         searchSpinner = (Spinner) withinSearchDialogView.findViewById(R.id.search_spinner);
-        String[] searchSpinnerItems = new String[3];
+        String[] searchSpinnerItems = new String[2];
         searchSpinnerItems[0] = "Default";
         searchSpinnerItems[1] = "Within search";
-        searchSpinnerItems[2] = "YouTube search";
+        //searchSpinnerItems[2] = "YouTube search";
         Integer[] search_imgs = {R.drawable.search_icon_larger, R.drawable.search_within, R.drawable.search_yt};
         LumiSpinnerAdapter search_adapter = new LumiSpinnerAdapter(main, R.layout.row_search_spinner, searchSpinnerItems, search_imgs);
         searchSpinner.setAdapter(search_adapter);
@@ -131,17 +138,17 @@ public class WithinEmbedPlayer {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 switch (position) {
-                    case 2: //youtube search
-                        main.closeKeyboard();
-                        main.hideSystemUI();
-                        videoSearchDialog.dismiss();
-                        main.getWebManager().buildAndShowSearchDialog(1);
-                        break;
+//                    case 2: //youtube search
+//                        main.closeKeyboard();
+//                        main.hideSystemUI();
+//                        videoSearchDialog.dismiss();
+//                        Controller.getInstance().getWebManager().buildAndShowSearchDialog(1);
+//                        break;
                     case 1:
                         main.closeKeyboard();
                         main.hideSystemUI();
                         videoSearchDialog.dismiss();
-                        main.getWebManager().buildAndShowSearchDialog(2);
+                        Controller.getInstance().getWebManager().buildAndShowSearchDialog(2);
                         break;
                     default: //default / within
                         //do nothing, we're already here?
@@ -215,12 +222,12 @@ public class WithinEmbedPlayer {
         if (vrMode) {
             vrModeBtn.setText(main.getResources().getString(R.string.vr_mode_on));
             vrModeBtn.setChecked(true);
-            vrIcon.setImageDrawable(main.getResources().getDrawable(R.drawable.task_vr_icon, null));
+            vrIcon.setImageDrawable(ResourcesCompat.getDrawable(main.getResources(), R.drawable.task_vr_icon, null));
 
         } else {
             vrModeBtn.setText(main.getResources().getString(R.string.vr_mode_off));
             vrModeBtn.setChecked(false);
-            vrIcon.setImageDrawable(main.getResources().getDrawable(R.drawable.task_vr_icon_disabled, null));
+            vrIcon.setImageDrawable(ResourcesCompat.getDrawable(main.getResources(), R.drawable.task_vr_icon_disabled, null));
         }
     }
 
@@ -243,10 +250,9 @@ public class WithinEmbedPlayer {
     public String foundURL = "";
     private String foundTitle = "";
 
-    private String setFoundURL (String value) {
+    private void setFoundURL (String value) {
         foundURL = value;
         binding.setVariable(BR.foundURL, foundURL);
-        return foundURL;
     }
 
     private void setupWebClient(WebView tmpWebView, boolean searchView) {
@@ -271,16 +277,6 @@ public class WithinEmbedPlayer {
 
                     //controller view
                     ViewGroup webViewContainer = (ViewGroup) withinControllerDialogView.findViewById(R.id.preview_view);
-                    webViewContainer.removeView(controllerWebView);
-                    controllerWebView.destroy();
-                    controllerWebView = null;
-
-                    //build it again
-                    controllerWebView = new WebView(main);
-                    controllerWebView.setLayoutParams(controllerBackupParams);
-                    setupWebView(controllerWebView);
-                    setupWebClient(controllerWebView, false);
-                    webViewContainer.addView(controllerWebView, 0);
 
                     //search view
                     webViewContainer = (ViewGroup) withinSearchDialogView.findViewById(R.id.preview_view);
@@ -309,7 +305,8 @@ public class WithinEmbedPlayer {
                 if (searchView && url.startsWith(foundPrefix) && url.endsWith(foundSuffix)) {
                     foundTitle = url.replace(foundPrefix, "").replace(foundSuffix, "");
                     setFoundURL(urlPrefix + foundTitle);
-                    Log.w(TAG, "EXTRACTED! " + foundURL + ", " + main.getAppManager().getFavouritesManager().isInFavourites(foundURL));
+                    Log.w(TAG, "EXTRACTED! " + foundURL + ", " + Controller.getInstance().getAppManager().getFavouritesManager().isInFavourites(foundURL));
+
 
                 } else if (url.startsWith("https://cms.with.in/v1/category/all?page=")) {
                     view.stopLoading();
@@ -337,7 +334,7 @@ public class WithinEmbedPlayer {
     }
 
     private void setupWithinSearchButtons() {
-        Drawable disabledBg = main.getResources().getDrawable(R.drawable.bg_disabled, null);
+        Drawable disabledBg = ResourcesCompat.getDrawable(main.getResources(), R.drawable.bg_disabled, null);
         Button withinBackBtn = withinSearchDialogView.findViewById(R.id.within_back_btn);
 
         //set up standard dialog buttons
@@ -346,9 +343,9 @@ public class WithinEmbedPlayer {
             setFoundURL("");
         });
 
-        withinSearchDialogView.findViewById(R.id.within_back).setOnClickListener(v -> {
-            videoSearchDialog.dismiss();
-        });
+        withinSearchDialogView.findViewById(R.id.within_back).setOnClickListener(v ->
+                videoSearchDialog.dismiss()
+        );
 
         withinSearchDialogView.findViewById(R.id.select_btn).setOnClickListener(v -> {
             if (!v.getBackground().equals(disabledBg) && !foundURL.trim().equals("")) {
@@ -410,17 +407,11 @@ public class WithinEmbedPlayer {
     }
 
     private void setupGuideVideoControllerButtons() {
-        //set up standard dialog buttons
-        withinControllerDialogView.findViewById(R.id.web_back_btn).setOnClickListener(v -> {
-            controllerWebView.goBack();
-        });
-
         withinControllerDialogView.findViewById(R.id.new_video).setOnClickListener(v -> {
-            controllerWebView.loadUrl("about:blank");
             resetControllerState();
             videoControlDialog.dismiss();
             showWithinSearch();
-            main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.RETURN_TAG, main.getNearbyManager().getSelectedPeerIDsOrAll());
+            DispatchManager.sendActionToSelected(Controller.ACTION_TAG, Controller.RETURN_TAG, NearbyPeersManager.getSelectedPeerIDsOrAll());
         });
 
         withinControllerDialogView.findViewById(R.id.video_back_btn).setOnClickListener(v -> {
@@ -435,21 +426,23 @@ public class WithinEmbedPlayer {
 
         withinControllerDialogView.findViewById(R.id.mute_btn).setOnClickListener(v -> {
             main.muteAudio(); //this is managed by the main activity
-            main.muteLeaners();
+            DispatchManager.sendActionToSelected(Controller.ACTION_TAG, Controller.VID_MUTE_TAG,
+                    NearbyPeersManager.getSelectedPeerIDsOrAll());
         });
 
         withinControllerDialogView.findViewById(R.id.unmute_btn).setOnClickListener(v -> {
             main.unMuteAudio(); //this is managed by the main activity
-            main.unmuteLearners();
+            DispatchManager.sendActionToSelected(Controller.ACTION_TAG, Controller.VID_UNMUTE_TAG,
+                    NearbyPeersManager.getSelectedPeerIDsOrAll());
         });
 
-        repushBtn.setOnClickListener(v -> {
-            main.getDispatcher().repushApp(main.getNearbyManager().getSelectedPeerIDsOrAll());
-        });
+        repushBtn.setOnClickListener(v ->
+                DispatchManager.repushApp(NearbyPeersManager.getSelectedPeerIDsOrAll())
+        );
 
-        pushBtn.setOnClickListener(v -> {
-            pushWithin();
-        });
+        pushBtn.setOnClickListener(v ->
+                pushWithin()
+        );
 
         vrModeBtn.setOnCheckedChangeListener((buttonView, isChecked) -> {
             vrMode = isChecked;
@@ -489,8 +482,8 @@ public class WithinEmbedPlayer {
     private void pushWithin() {
         attemptedURL = foundURL;
         Log.d(TAG, "Launching WithinVR for students: " + attemptedURL + ", [STR] " + stream + ", [VR] " + vrMode);
-        main.getAppManager().launchWithin(attemptedURL, stream, vrMode, main.getSelectedOnly());
-        main.updateFollowerCurrentTask(main.getAppManager().withinPackage, "Within VR", "VR Video", attemptedURL, foundTitle);
+        Controller.getInstance().getAppManager().launchWithin(attemptedURL, stream, vrMode, LeadMeMain.selectedOnly);
+        main.updateFollowerCurrentTask(AppManager.withinPackage, "Within VR", "VR Video", attemptedURL, foundTitle);
 
         //update UI
         main.showLeaderScreen();
@@ -498,7 +491,7 @@ public class WithinEmbedPlayer {
 
         //add to favourites
         if (favCheck.isChecked()) {
-            main.getWebManager().getYouTubeFavouritesManager().addToFavourites(foundURL, foundTitle, null);
+            Controller.getInstance().getWebManager().getYouTubeFavouritesManager().addToFavourites(foundURL, foundTitle, null);
         }
 
         withinControllerDialogView.findViewById(R.id.vr_mode).setVisibility(vrMode ? View.VISIBLE : View.GONE);
@@ -506,7 +499,7 @@ public class WithinEmbedPlayer {
     }
 
     public void showWithin() {
-        Log.w(TAG, "Showing WITHIN: " + attemptedURL + ", " + foundURL + ", " + main.getAppManager().withinURI);
+        Log.w(TAG, "Showing WITHIN: " + attemptedURL + ", " + foundURL + ", " + AppManager.withinURI);
         if (attemptedURL.isEmpty()) {
             showWithinSearch();
         } else {
@@ -526,7 +519,7 @@ public class WithinEmbedPlayer {
             videoSearchDialog.setOnDismissListener(dialog -> main.hideSystemUI());
         }
 
-        main.getDialogManager().toggleSelectedView(withinControllerDialogView);
+        Controller.getInstance().getDialogManager().toggleSelectedView(withinControllerDialogView);
 
         loadSearchView();
         videoSearchDialog.show();
@@ -564,30 +557,36 @@ public class WithinEmbedPlayer {
         videoControlDialog.setCancelable(false);
         videoControlDialog.show();
         //return to main screen
-        main.getDialogManager().hideConfirmPushDialog();
+        Controller.getInstance().getDialogManager().hideConfirmPushDialog();
     }
 
     private void loadVideoGuideURL(String url) {
-        if (main.getPermissionsManager().isInternetConnectionAvailable()) {
+        if (Controller.getInstance().getPermissionsManager().isInternetConnectionAvailable()) {
             internetUnavailableMsg.setVisibility(View.GONE);
-            controllerWebView.setVisibility(View.VISIBLE);
             Log.d(TAG, "Attempting to load " + url + " on controller");
 
-            controllerWebView.loadDataWithBaseURL(null, getiFrameData(url), "text/html", "UTF-8", null);
-
+            new Thread(() -> {
+                Document doc = null;
+                try {
+                    doc = Jsoup.connect(url).get();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                String previewImageUrl = doc.select("meta[name=image]").first().attr("content");
+                LeadMeMain.runOnUI(() -> Glide.with(withinControllerDialogView).load(previewImageUrl).into((ImageView) withinControllerDialogView.findViewById(R.id.within_imageview)));
+            }).start();
             //update check if appropriate
             favCheck.setEnabled(true);
-            favCheck.setChecked(main.getWebManager().getYouTubeFavouritesManager().isInFavourites(foundURL));
+            favCheck.setChecked(Controller.getInstance().getWebManager().getYouTubeFavouritesManager().isInFavourites(foundURL));
 
         } else {
             internetUnavailableMsg.setVisibility(View.VISIBLE);
-            controllerWebView.setVisibility(View.GONE);
         }
     }
 
     private void loadSearchView() {
         resetControllerState();
-        if (main.getPermissionsManager().isInternetConnectionAvailable()) {
+        if (Controller.getInstance().getPermissionsManager().isInternetConnectionAvailable()) {
             searchUnavailableMsg.setVisibility(View.GONE);
             searchWebView.setVisibility(View.VISIBLE);
             searchWebView.loadDataWithBaseURL(null, getiFrameData("https://www.with.in/experiences"), "text/html", "UTF-8", null);
@@ -600,12 +599,13 @@ public class WithinEmbedPlayer {
     public String getiFrameData(String url) {
         InputStream htmlTemplate = main.getResources().openRawResource(R.raw.embed_within_player);
         Scanner scanner = new Scanner(htmlTemplate);
-        String output = "";
+        StringBuilder output = new StringBuilder();
         while (scanner.hasNext()) {
-            output += scanner.nextLine() + "\n";
+            output.append(scanner.nextLine()).append("\n");
         }
-        output = output.replace("PLACEHOLDER_URL", url);
-        return output;
+
+        output = new StringBuilder(output.toString().replace("PLACEHOLDER_URL", url));
+        return output.toString();
     }
 
     public void resetControllerState() {
@@ -616,16 +616,6 @@ public class WithinEmbedPlayer {
     }
 
     public void onDestroy() {
-        controllerWebView.clearHistory();
-        controllerWebView.clearCache(true);
-        controllerWebView.loadUrl("about:blank");
-        controllerWebView.onPause();
-        controllerWebView.removeAllViews();
-        controllerWebView.destroyDrawingCache();
-        controllerWebView.pauseTimers();
-        controllerWebView.destroy();
-        controllerWebView = null;
-
         searchWebView.clearHistory();
         searchWebView.clearCache(true);
         searchWebView.loadUrl("about:blank");
