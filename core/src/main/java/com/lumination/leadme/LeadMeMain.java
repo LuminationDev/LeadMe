@@ -1279,7 +1279,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         mainLeader.findViewById(R.id.fav_btn_core).setOnClickListener(view -> {
             this.closeKeyboard();
             this.hideSystemUI();
-            this.getWebManager().launchUrlYtFavourites();
+            Controller.getInstance().getWebManager().launchUrlYtFavourites();
         });
 
         mainLeader.findViewById(R.id.url_core_btn).setOnTouchListener(touchListener);
