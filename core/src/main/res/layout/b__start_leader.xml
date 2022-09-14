@@ -4,15 +4,29 @@
     android:layout_height="match_parent"
     android:background="@drawable/dusk_background"
     android:orientation="vertical">
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <Button
+            android:id="@+id/version"
+            android:layout_width="70dp"
+            android:layout_height="60dp"
+            android:layout_alignParentStart="true"
+            android:layout_margin="20dp"
+            android:textSize="20sp"
+            android:text="V1.00"
+            android:textColor="@color/white"
+            android:fontFamily="@font/poppins_regular"
+            android:background="@drawable/version_background" />
 
-
-    <ImageView
-        android:id="@+id/menu_btn"
-        android:layout_width="30dp"
-        android:layout_height="30dp"
-        android:layout_gravity="end"
-        android:layout_margin="20dp"
-        android:src="@drawable/menu_icon" />
+        <ImageView
+            android:id="@+id/menu_btn"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:layout_alignParentEnd="true"
+            android:layout_margin="20dp"
+            android:src="@drawable/menu_icon" />
+    </RelativeLayout>
 
     <Space
         android:layout_width="wrap_content"

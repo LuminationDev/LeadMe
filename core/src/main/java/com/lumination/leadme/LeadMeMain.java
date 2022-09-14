@@ -1501,6 +1501,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         View.OnClickListener menuListener = view -> {
             lastDisplayedIndex = leadmeAnimator.getDisplayedChild();
             leadmeAnimator.setDisplayedChild(ANIM_OPTIONS_INDEX);
+            ((TextView) optionsScreen.findViewById(R.id.version)).setText("Version " + BuildConfig.VERSION_NAME);
             if (NearbyPeersManager.isConnectedAsFollower() || NearbyPeersManager.isConnectedAsGuide()) {
                 optionsScreen.findViewById(R.id.options_loginBtn).setVisibility(View.GONE);
                 optionsScreen.findViewById(R.id.options_notsigned).setVisibility(View.GONE);
@@ -1532,6 +1533,8 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
         startLeader.findViewById(R.id.menu_btn).setOnClickListener(menuListener);
         startLearner.findViewById(R.id.menu_btn).setOnClickListener(menuListener);
+        ((TextView) startLeader.findViewById(R.id.version)).setText("V" + BuildConfig.VERSION_NAME);
+        ((TextView) startLearner.findViewById(R.id.version)).setText("V" + BuildConfig.VERSION_NAME);
         mainLeader.findViewById(R.id.menu_btn).setOnClickListener(menuListener);
         mainLearner.findViewById(R.id.menu_btn).setOnClickListener(menuListener);
         appLauncherScreen.findViewById(R.id.menu_btn).setOnClickListener(menuListener);
