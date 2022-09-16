@@ -63,9 +63,16 @@ public class FileTransferService extends Service {
 
         Runnable serverTask = () -> {
             try {
-                serverSocket = new ServerSocket();
-                serverSocket.setReuseAddress(true);
-                serverSocket.bind(new InetSocketAddress(PORT));
+                if (serverSocket != null) {
+                    try {
+                        Log.e(TAG, "Closing SERVER socket");
+                        serverSocket.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                    serverSocket = null;
+                }
+                serverSocket = new ServerSocket(PORT);
 
                 Log.d(TAG, "Waiting for clients to connect...");
 
@@ -80,6 +87,14 @@ public class FileTransferService extends Service {
             } catch (IOException e) {
                 Log.e(TAG, "Unable to start or continue transfer server");
                 e.printStackTrace();
+                if (serverSocket != null) {
+                    try {
+                        serverSocket.close();
+                    } catch (IOException ex) {
+                        ex.printStackTrace();
+                    }
+                    serverSocket = null;
+                }
             }
         };
 
