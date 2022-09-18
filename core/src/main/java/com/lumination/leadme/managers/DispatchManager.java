@@ -742,8 +742,11 @@ public class DispatchManager {
                 peer.add(ID);
 
                 //TODO change into a switch case if more request types are handled later
-                if(FileTransferManager.getFileType().equals("VRVideo")) {
+                if(FileTransferManager.getFileType().equals("Video")) {
                     Controller.getInstance().getVrEmbedVideoPlayer().relaunchVR(peer);
+                }
+                if(FileTransferManager.getFileType().equals("Photo")) {
+                    Controller.getInstance().getVrEmbedPhotoPlayer().relaunchVR(peer);
                 }
             }
         }

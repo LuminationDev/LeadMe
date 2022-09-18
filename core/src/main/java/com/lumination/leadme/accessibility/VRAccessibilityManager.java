@@ -118,7 +118,7 @@ public class VRAccessibilityManager {
             Uri source = FileUtilities.searchStorage(main, split[0]);
 
             if(source == null) {
-                requestFile();
+                requestFile(split[2]);
                 return;
             } else {
                 //File path needed for Unity instead of Uri.
@@ -128,7 +128,7 @@ public class VRAccessibilityManager {
             File temp = FileUtilities.findFile(Environment.getExternalStorageDirectory(), fileName);
 
             if(temp == null) {
-                requestFile();
+                requestFile(split[2]);
                 return;
             } else {
                 absFilepath = temp.getPath();
@@ -142,11 +142,11 @@ public class VRAccessibilityManager {
     }
 
     //Send an action to the guide requesting that a file be transferred to this device
-    private void requestFile() {
+    private void requestFile(String fileType) {
         LeadMeMain.fileTransferEnabled = true; //hard coded for now - change to permission later
 
         if(LeadMeMain.fileTransferEnabled) {
-            FileTransferManager.setFileType("VRVideo");
+            FileTransferManager.setFileType(fileType);
             DispatchManager.sendActionToSelected(Controller.ACTION_TAG, Controller.FILE_REQUEST_TAG + ":" + NearbyPeersManager.getID()
                     + ":" + "false" + ":" + FileTransferManager.getFileType(), NearbyPeersManager.getSelectedPeerIDs());
             LeadMeMain.runOnUI(() -> Controller.getInstance().getDialogManager().showWarningDialog("Missing File", "Video is transferring now."));
