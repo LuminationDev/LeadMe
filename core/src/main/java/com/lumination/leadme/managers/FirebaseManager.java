@@ -77,8 +77,8 @@ public class FirebaseManager {
     {
         NearbyPeersManager.setID(getLocalIpAddress().replace(".", "_"));
         DatabaseReference database = getDatabase();
-        roomReference = database.child(waitForPublic().replace(".", "_")).child("rooms").child(NetworkService.getLeaderIPAddress().getHostAddress().replace(".", "_"));
-        messagesReference = database.child(waitForPublic().replace(".", "_")).child("messages").child(NetworkService.getLeaderIPAddress().getHostAddress().replace(".", "_"));
+        roomReference = database.child(waitForPublic(false).replace(".", "_")).child("rooms").child(NetworkService.getLeaderIPAddress().getHostAddress().replace(".", "_"));
+        messagesReference = database.child(waitForPublic(false).replace(".", "_")).child("messages").child(NetworkService.getLeaderIPAddress().getHostAddress().replace(".", "_"));
 
         learnerReceiveMessageListener = new ValueEventListener() {
             @Override
@@ -108,9 +108,9 @@ public class FirebaseManager {
     public static void connectAsLeader(String name)
     {
         DatabaseReference database = getDatabase();
-        database.child(waitForPublic().replace(".", "_")).child("rooms").child(getLocalIpAddress().replace(".", "_")).child("id").setValue(getLocalIpAddress());
-        roomReference = database.child(waitForPublic().replace(".", "_")).child("rooms").child(getLocalIpAddress().replace(".", "_"));
-        messagesReference = database.child(waitForPublic().replace(".", "_")).child("messages").child(getLocalIpAddress().replace(".", "_"));
+        database.child(waitForPublic(true).replace(".", "_")).child("rooms").child(getLocalIpAddress().replace(".", "_")).child("id").setValue(getLocalIpAddress());
+        roomReference = database.child(waitForPublic(false).replace(".", "_")).child("rooms").child(getLocalIpAddress().replace(".", "_"));
+        messagesReference = database.child(waitForPublic(false).replace(".", "_")).child("messages").child(getLocalIpAddress().replace(".", "_"));
         messagesReference.child("learners").child("id").setValue(getLocalIpAddress());
         messagesReference.child("currentMessage").setValue("");
         roomReference.child("leaderName").setValue(name);
@@ -202,7 +202,7 @@ public class FirebaseManager {
      * attached to wait for any chances in the firebase.
      * */
     public static void retrieveLeaders() {
-        waitForPublic();
+        waitForPublic(true);
 
         Log.d(TAG, "retrieveLeaders: " + publicIP);
 
@@ -225,7 +225,7 @@ public class FirebaseManager {
         }
 
         DatabaseReference database = FirebaseDatabase.getInstance("https://leafy-rope-301003-default-rtdb.asia-southeast1.firebasedatabase.app/").getReference();
-        roomsReference = database.child(waitForPublic().replace(".", "_")).child("rooms");
+        roomsReference = database.child(waitForPublic(false).replace(".", "_")).child("rooms");
         if (roomsListener != null) {
             FirebaseManager.roomsReference.removeEventListener(FirebaseManager.roomsListener);
         }
@@ -263,8 +263,8 @@ public class FirebaseManager {
     /**
      * Attempt to get the public IP address of the current device (router address)
      */
-    private static String waitForPublic() {
-        if (publicIP != null) {
+    private static String waitForPublic(boolean refreshIpAddress) {
+        if (publicIP != null && !refreshIpAddress) {
             return  publicIP;
         }
         Thread getPublic = new Thread(() -> {
