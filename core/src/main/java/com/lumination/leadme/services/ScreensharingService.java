@@ -1,6 +1,5 @@
 package com.lumination.leadme.services;
 
-import android.annotation.TargetApi;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
@@ -14,7 +13,6 @@ import androidx.core.app.NotificationCompat;
 
 import com.lumination.leadme.R;
 
-@TargetApi(29)
 public class ScreensharingService extends Service {
     private static final String CHANNEL_ID = "screen_capture";
     private static final String CHANNEL_NAME = "Screen_Capture";

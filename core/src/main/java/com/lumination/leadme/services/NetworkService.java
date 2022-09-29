@@ -1,6 +1,5 @@
 package com.lumination.leadme.services;
 
-import android.annotation.TargetApi;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
@@ -24,7 +23,6 @@ import java.util.HashMap;
 /**
  * Responsible for handling network connection between a leader and a learner.
  */
-@TargetApi(29)
 public class NetworkService extends Service {
     private static final String TAG = "NetworkService";
     private static final String CHANNEL_ID = "network_service";
