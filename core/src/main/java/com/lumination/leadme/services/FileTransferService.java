@@ -1,6 +1,5 @@
 package com.lumination.leadme.services;
 
-import android.annotation.TargetApi;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
@@ -18,13 +17,11 @@ import com.lumination.leadme.R;
 import com.lumination.leadme.utilities.ClientTransferTask;
 
 import java.io.IOException;
-import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-@TargetApi(29)
 public class FileTransferService extends Service {
     private static final String TAG = "FileTransferService";
 
