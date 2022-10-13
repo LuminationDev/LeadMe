@@ -970,8 +970,7 @@ public class DialogManager {
         loginDialogView.findViewById(R.id.close_login_alert_btn).setOnClickListener(v -> {
             if (nameView.getText().toString().trim().length() == 0) {
                 nameView.requestFocus();
-            } else {
-                loginDialogView.findViewById(R.id.login_pin_entry).requestFocus();
+                loginDialogView.findViewById(R.id.wrong_code_view).setVisibility(View.VISIBLE);
             }
             loginDialogView.findViewById(R.id.name_code_entry_view).setVisibility(View.VISIBLE);
             loginDialogView.findViewById(R.id.wrong_code_view).setVisibility(View.GONE);

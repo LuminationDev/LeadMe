@@ -113,31 +113,6 @@
         app:layout_constraintTop_toBottomOf="@+id/leadme_logo"
         tools:visibility="gone">
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_marginLeft="20dp"
-            android:layout_marginRight="20dp"
-            android:layout_marginBottom="20dp"
-            android:orientation="horizontal">
-
-            <ImageView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_vertical"
-                android:src="@drawable/icon_fav_star_check" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:layout_marginLeft="5dp"
-                android:layout_weight="1"
-                android:fontFamily="@font/poppins_regular"
-                android:gravity="center_vertical"
-                android:text="Your registration code is valid" />
-        </LinearLayout>
-
         <TextView
             android:id="@+id/signup_error"
             android:layout_width="match_parent"
