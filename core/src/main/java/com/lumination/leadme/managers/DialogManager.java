@@ -965,8 +965,8 @@ public class DialogManager {
         });
 
         loginDialogView.findViewById(R.id.connect_btn).setOnClickListener(v -> main.initiateLeaderAdvertising());
-
         readyBtn = loginDialogView.findViewById(R.id.connect_btn);
+
         loginDialogView.findViewById(R.id.close_login_alert_btn).setOnClickListener(v -> {
             if (nameView.getText().toString().trim().length() == 0) {
                 nameView.requestFocus();

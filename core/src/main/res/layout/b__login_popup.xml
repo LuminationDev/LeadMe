@@ -505,65 +505,6 @@
             android:progressDrawable="@color/leadme_blue"
             android:progressTint="@color/leadme_blue"
             android:visibility="gone" />
-
-        <LinearLayout
-            android:id="@+id/full_wrong_code_view"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:orientation="vertical"
-            android:visibility="gone">
-
-
-            <TextView
-                android:paddingTop="30dp"
-                android:id="@+id/full_error_title"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:layout_marginTop="10dp"
-                android:fontFamily="@font/poppins_semibold"
-                android:gravity="center|center_horizontal"
-                android:text="Oops! Please fix these issues\nand try again:"
-                android:textSize="18sp" />
-
-            <TextView
-                android:id="@+id/no_name_message"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="20dp"
-                android:layout_marginTop="20dp"
-                android:fontFamily="@font/poppins_regular"
-                android:text="@string/missing_name"
-                android:textSize="18sp" />
-
-            <TextView
-                android:id="@+id/full_wrong_code_message"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="20dp"
-                android:layout_marginTop="10dp"
-                android:layout_marginBottom="10dp"
-                android:fontFamily="@font/poppins_regular"
-                android:text="@string/wrong_code"
-                android:textSize="18sp" />
-
-            <Button
-                android:paddingTop="30dp"
-                android:id="@+id/full_close_login_alert_btn"
-                style="@style/Widget.AppCompat.Button.Borderless"
-                android:layout_width="@dimen/standard_btn_width"
-                android:layout_height="@dimen/standard_btn_height"
-                android:layout_gravity="center_horizontal"
-                android:accessibilityTraversalAfter="@id/back_btn"
-                android:accessibilityTraversalBefore="@id/login_pin_entry"
-                android:background="@drawable/bg_active"
-                android:clickable="true"
-                android:fontFamily="@font/poppins_semibold"
-                android:text="@string/ok"
-                android:textColor="@color/leadme_white"
-                android:textSize="16sp" />
-
-        </LinearLayout>
     </FrameLayout>
 
 </LinearLayout>

@@ -24,6 +24,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
+    //wasn't sure if to remove this or not (verification text has been removed from signup page)
     <LinearLayout
         android:id="@+id/rego_code"
         android:layout_width="match_parent"
