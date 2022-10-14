@@ -60,6 +60,8 @@
     <string name="options">Options</string>
     <string name="finish">Finish</string>
     <string name="close">Close</string>
+    <string name="confirm_code">Confirm Code</string>
+    <string name="cancel">Cancel</string>
 
     <string name="send">Send</string>
     <string name="done">Done</string>
