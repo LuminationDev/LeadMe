@@ -75,6 +75,7 @@ import androidx.lifecycle.OnLifecycleEvent;
 
 import com.BoardiesITSolutions.FileDirectoryPicker.OpenFilePicker;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.BuildConfig;
 import com.google.firebase.auth.AuthCredential;
 import com.google.firebase.auth.EmailAuthProvider;
 import com.google.firebase.auth.FirebaseAuth;
@@ -98,6 +99,8 @@ import com.lumination.leadme.services.LumiAccessibilityService;
 import com.lumination.leadme.services.NetworkService;
 import com.lumination.leadme.utilities.FileUtilities;
 import com.lumination.leadme.utilities.OnboardingGestureDetector;
+
+import org.w3c.dom.Text;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -148,6 +151,8 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
     public static String leadMeAppName = "";
     public static String leadMePackageName = "";
+    //find version name
+
 
     public static final int OVERLAY_ON = 0;
     public static final int ACCESSIBILITY_ON = 1;
@@ -184,7 +189,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     public static WindowManager windowManager;
     public static WindowManager.LayoutParams overlayParams, url_overlayParams;
     public View overlayView, url_overlay;
-
+    public static String versionName = BuildConfig.VERSION_NAME;
     //VR Player
     public static boolean defaultVideo = true;
 
@@ -689,7 +694,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             //to catch up from a permission being set
             if (!overlayInitialised) {
                 UIHandler.postDelayed(() ->
-                        DispatchManager.alertGuidePermissionGranted(Controller.STUDENT_NO_OVERLAY, Controller.getInstance().getPermissionsManager().isOverlayPermissionGranted()),
+                                DispatchManager.alertGuidePermissionGranted(Controller.STUDENT_NO_OVERLAY, Controller.getInstance().getPermissionsManager().isOverlayPermissionGranted()),
                         1000);
             }
 
@@ -816,7 +821,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                         }
                     }
 
-                //if we have launched at least one thing previously, we might want to reset the task icon to LeadMe
+                    //if we have launched at least one thing previously, we might want to reset the task icon to LeadMe
                 } else if (currentTaskPackageName != null) {
                     Log.e(TAG, "IS NOW A GOOD TIME TO UPDATE TO TASK ICON??");
                     DispatchManager.sendActionToSelected(Controller.ACTION_TAG, Controller.LAUNCH_SUCCESS + currentTaskPackageName + ":" + NearbyPeersManager.getID() + ":" + currentTaskPackageName, NearbyPeersManager.getAllPeerIDs());
@@ -1481,6 +1486,8 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         leaderLearnerSwitcher.addView(startLeader); //leader will be index 0
         leaderLearnerSwitcher.addView(startLearner); //learner will be index 1
 
+        ((TextView) optionsScreen.findViewById(R.id.version)).setText("V" + versionName);
+
         leadmeAnimator.addView(splashscreen);
         leadmeAnimator.addView(switcherView);
         leadmeAnimator.addView(mainLearner);
@@ -1530,6 +1537,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             }
         };
 
+
         startLeader.findViewById(R.id.menu_btn).setOnClickListener(menuListener);
         startLearner.findViewById(R.id.menu_btn).setOnClickListener(menuListener);
         mainLeader.findViewById(R.id.menu_btn).setOnClickListener(menuListener);
@@ -1537,6 +1545,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         appLauncherScreen.findViewById(R.id.menu_btn).setOnClickListener(menuListener);
         xrayScreen.findViewById(R.id.menu_btn).setOnClickListener(menuListener);
         multiAppManager.findViewById(R.id.menu_btn).setOnClickListener(menuListener);
+
 
         //set up back buttons
         appLauncherScreen.findViewById(R.id.back_btn).setOnClickListener(view -> leadmeAnimator.setDisplayedChild(ANIM_LEADER_INDEX));
@@ -2260,26 +2269,26 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                 WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES;
 
         overlayParams = new WindowManager.LayoutParams(
-            size.x,
-            size.y + 160,
-            0,
-            -80,
-            LAYOUT_FLAG, // TYPE_SYSTEM_ALERT is denied in apiLevel >=19
-            CORE_FLAGS,
-            PixelFormat.TRANSLUCENT
+                size.x,
+                size.y + 160,
+                0,
+                -80,
+                LAYOUT_FLAG, // TYPE_SYSTEM_ALERT is denied in apiLevel >=19
+                CORE_FLAGS,
+                PixelFormat.TRANSLUCENT
         );
         overlayParams.gravity = Gravity.TOP | Gravity.START;
         overlayView.setFitsSystemWindows(false); // allow us to draw over status bar, navigation bar
 
         //Purpose: Blocking the URL bar at the top of the screen when launching websites
         url_overlayParams = new WindowManager.LayoutParams(
-            size.x,
-            220,
-            0,
-            0,
-            LAYOUT_FLAG, // TYPE_SYSTEM_ALERT is denied in apiLevel >=19
-            CORE_FLAGS,
-            PixelFormat.OPAQUE
+                size.x,
+                220,
+                0,
+                0,
+                LAYOUT_FLAG, // TYPE_SYSTEM_ALERT is denied in apiLevel >=19
+                CORE_FLAGS,
+                PixelFormat.OPAQUE
 //                PixelFormat.TRANSLUCENT
         );
         url_overlayParams.gravity = Gravity.TOP | Gravity.START;
@@ -2469,8 +2478,8 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     public void recallToLeadMe() {
         Log.d(TAG,
                 "Returning. State: " + getLifecycle().getCurrentState() +
-                "Animator: " + leadmeAnimator.getDisplayedChild() +
-                "Focus: " + appHasFocus);
+                        "Animator: " + leadmeAnimator.getDisplayedChild() +
+                        "Focus: " + appHasFocus);
 
         if (leadmeAnimator.getDisplayedChild() == ANIM_START_SWITCH_INDEX || isGuide){
             return;
@@ -2794,7 +2803,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                 getResources().getString(R.string.onboard_4),
                 getResources().getString(R.string.onboard_5),
                 getResources().getString(R.string.onboard_6)};
-
         Uri[] videos = {Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.welcome), Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.push_app),
                 Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.block), Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.manage),
                 Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.watchvideo), Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.recall)};
