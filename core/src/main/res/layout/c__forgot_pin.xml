@@ -4,7 +4,8 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="@color/leadme_white">
 
     <ImageView
         android:id="@+id/leadme_logo2"
@@ -84,106 +85,29 @@
                 android:fontFamily="@font/poppins_regular"
                 android:text="Enter your new 4 digit leader pin" />
 
-            <LinearLayout
-                android:layout_width="wrap_content"
+            <com.alimuzaffar.lib.pin.PinEntryEditText
+                android:id="@+id/signup_pin1"
+                android:layout_width="200dp"
                 android:layout_height="wrap_content"
-                android:layout_gravity="center_horizontal"
+                android:layout_gravity="center"
                 android:layout_marginTop="20dp"
                 android:layout_marginBottom="20dp"
-                android:divider="@drawable/divider_horizontal"
-                android:orientation="horizontal"
-                android:showDividers="middle">
-
-                <EditText
-                    android:id="@+id/signup_pin1"
-                    android:layout_width="@dimen/code_textbox_size"
-                    android:layout_height="30dp"
-                    android:autofillHints=""
-                    android:background="@drawable/rounded_btn_highlight"
-                    android:digits="0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ _"
-                    android:focusableInTouchMode="true"
-                    android:fontFamily="@font/poppins_regular"
-                    android:gravity="bottom|center_horizontal"
-                    android:hint="@string/code_hint"
-                    android:imeOptions="flagNavigateNext"
-                    android:inputType="number"
-                    android:maxLength="1"
-                    android:paddingTop="5dp"
-                    android:singleLine="true"
-                    android:textAlignment="center"
-                    android:textColor="@color/leadme_black"
-                    android:textColorHint="@color/leadme_medium_grey"
-                    android:textSize="16sp"
-                    android:visibility="visible"></EditText>
-
-                <EditText
-                    android:id="@+id/signup_pin2"
-                    android:layout_width="@dimen/code_textbox_size"
-                    android:layout_height="30dp"
-                    android:autofillHints=""
-                    android:background="@drawable/rounded_btn_highlight"
-                    android:digits="0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ _"
-                    android:focusableInTouchMode="true"
-                    android:fontFamily="@font/poppins_regular"
-                    android:gravity="bottom|center_horizontal"
-                    android:hint="@string/code_hint"
-                    android:imeOptions="flagNavigateNext"
-                    android:inputType="number"
-                    android:maxLength="1"
-                    android:paddingTop="5dp"
-                    android:singleLine="true"
-                    android:textAlignment="center"
-                    android:textColor="@color/leadme_black"
-                    android:textColorHint="@color/leadme_medium_grey"
-                    android:textSize="16sp"
-                    android:visibility="visible"></EditText>
-
-                <EditText
-                    android:id="@+id/signup_pin3"
-                    android:layout_width="@dimen/code_textbox_size"
-                    android:layout_height="30dp"
-                    android:autofillHints=""
-                    android:background="@drawable/rounded_btn_highlight"
-                    android:digits="0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ _"
-                    android:focusableInTouchMode="true"
-                    android:fontFamily="@font/poppins_regular"
-                    android:gravity="bottom|center_horizontal"
-                    android:hint="@string/code_hint"
-                    android:imeOptions="flagNavigateNext"
-                    android:inputType="number"
-                    android:maxLength="1"
-                    android:paddingTop="5dp"
-                    android:singleLine="true"
-                    android:textAlignment="center"
-                    android:textColor="@color/leadme_black"
-                    android:textColorHint="@color/leadme_medium_grey"
-                    android:textSize="16sp"
-                    android:visibility="visible"></EditText>
-
-                <EditText
-                    android:id="@+id/signup_pin4"
-                    android:layout_width="@dimen/code_textbox_size"
-                    android:layout_height="30dp"
-                    android:autofillHints=""
-                    android:background="@drawable/rounded_btn_highlight"
-                    android:digits="0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ _"
-                    android:focusableInTouchMode="true"
-                    android:fontFamily="@font/poppins_regular"
-                    android:gravity="bottom|center_horizontal"
-                    android:hint="@string/code_hint"
-                    android:imeOptions="flagNavigateNext"
-                    android:inputType="number"
-                    android:maxLength="1"
-                    android:paddingTop="5dp"
-                    android:singleLine="true"
-                    android:textAlignment="center"
-                    android:textColor="@color/leadme_black"
-                    android:textColorHint="@color/leadme_medium_grey"
-                    android:textSize="16sp"
-                    android:visibility="visible"></EditText>
-
-
-            </LinearLayout>
+                android:cursorVisible="false"
+                android:digits="1234567890"
+                android:gravity="center"
+                android:hint=""
+                android:inputType="number"
+                android:layoutDirection="ltr"
+                android:maxLength="4"
+                android:textIsSelectable="true"
+                android:textSize="16sp"
+                app:pinAnimationType="fromBottom"
+                app:pinBackgroundDrawable="@drawable/pincode_background"
+                app:pinBackgroundIsSquare="true"
+                app:pinLineColors="@color/leadme_darkest_grey"
+                app:pinLineStroke="2dp"
+                app:pinLineStrokeSelected="4dp"
+                app:pinTextBottomPadding="10dp" />
 
             <TextView
                 android:layout_width="match_parent"
@@ -193,106 +117,57 @@
                 android:fontFamily="@font/poppins_regular"
                 android:text="Confirm your new pin" />
 
-            <LinearLayout
-                android:layout_width="wrap_content"
+            <com.alimuzaffar.lib.pin.PinEntryEditText
+                android:id="@+id/signup_pin2"
+                android:layout_width="200dp"
                 android:layout_height="wrap_content"
-                android:layout_gravity="center_horizontal"
+                android:layout_gravity="center"
                 android:layout_marginTop="20dp"
-                android:divider="@drawable/divider_horizontal"
-                android:orientation="horizontal"
-                android:showDividers="middle">
+                android:layout_marginBottom="20dp"
+                android:cursorVisible="false"
+                android:digits="1234567890"
+                android:gravity="center"
+                android:hint=""
+                android:inputType="number"
+                android:layoutDirection="ltr"
+                android:maxLength="4"
+                android:textIsSelectable="true"
+                android:textSize="16sp"
+                app:pinAnimationType="fromBottom"
+                app:pinBackgroundDrawable="@drawable/pincode_background"
+                app:pinBackgroundIsSquare="true"
+                app:pinLineColors="@color/leadme_darkest_grey"
+                app:pinLineStroke="2dp"
+                app:pinLineStrokeSelected="4dp"
+                app:pinTextBottomPadding="10dp" />
 
-                <EditText
-                    android:id="@+id/signup_pin5"
-                    android:layout_width="@dimen/code_textbox_size"
-                    android:layout_height="30dp"
-                    android:autofillHints=""
-                    android:background="@drawable/rounded_btn_highlight"
-                    android:digits="0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ _"
-                    android:focusableInTouchMode="true"
-                    android:fontFamily="@font/poppins_regular"
-                    android:gravity="bottom|center_horizontal"
-                    android:hint="@string/code_hint"
-                    android:imeOptions="flagNavigateNext"
-                    android:inputType="number"
-                    android:maxLength="1"
-                    android:paddingTop="5dp"
-                    android:singleLine="true"
-                    android:textAlignment="center"
-                    android:textColor="@color/leadme_black"
-                    android:textColorHint="@color/leadme_medium_grey"
-                    android:textSize="16sp"
-                    android:visibility="visible"></EditText>
+        </LinearLayout>
 
-                <EditText
-                    android:id="@+id/signup_pin6"
-                    android:layout_width="@dimen/code_textbox_size"
-                    android:layout_height="30dp"
-                    android:autofillHints=""
-                    android:background="@drawable/rounded_btn_highlight"
-                    android:digits="0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ _"
-                    android:focusableInTouchMode="true"
-                    android:fontFamily="@font/poppins_regular"
-                    android:gravity="bottom|center_horizontal"
-                    android:hint="@string/code_hint"
-                    android:imeOptions="flagNavigateNext"
-                    android:inputType="number"
-                    android:maxLength="1"
-                    android:paddingTop="5dp"
-                    android:singleLine="true"
-                    android:textAlignment="center"
-                    android:textColor="@color/leadme_black"
-                    android:textColorHint="@color/leadme_medium_grey"
-                    android:textSize="16sp"
-                    android:visibility="visible"></EditText>
+        <LinearLayout
+            android:id="@+id/reset_pin_warning"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:visibility="gone"
+            android:background="@color/leadme_white">
 
-                <EditText
-                    android:id="@+id/signup_pin7"
-                    android:layout_width="@dimen/code_textbox_size"
-                    android:layout_height="30dp"
-                    android:autofillHints=""
-                    android:background="@drawable/rounded_btn_highlight"
-                    android:digits="0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ _"
-                    android:focusableInTouchMode="true"
-                    android:fontFamily="@font/poppins_regular"
-                    android:gravity="bottom|center_horizontal"
-                    android:hint="@string/code_hint"
-                    android:imeOptions="flagNavigateNext"
-                    android:inputType="number"
-                    android:maxLength="1"
-                    android:paddingTop="5dp"
-                    android:singleLine="true"
-                    android:textAlignment="center"
-                    android:textColor="@color/leadme_black"
-                    android:textColorHint="@color/leadme_medium_grey"
-                    android:textSize="16sp"
-                    android:visibility="visible"></EditText>
+            <ImageView
+                android:id="@+id/warning"
+                android:layout_width="match_parent"
+                android:layout_height="150dp"
+                android:src="@drawable/alert_warning" />
 
-                <EditText
-                    android:id="@+id/signup_pin8"
-                    android:layout_width="@dimen/code_textbox_size"
-                    android:layout_height="30dp"
-                    android:autofillHints=""
-                    android:background="@drawable/rounded_btn_highlight"
-                    android:digits="0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ _"
-                    android:focusableInTouchMode="true"
-                    android:fontFamily="@font/poppins_regular"
-                    android:gravity="bottom|center_horizontal"
-                    android:hint="@string/code_hint"
-                    android:imeOptions="flagNavigateNext"
-                    android:inputType="number"
-                    android:maxLength="1"
-                    android:paddingTop="5dp"
-                    android:singleLine="true"
-                    android:textAlignment="center"
-                    android:textColor="@color/leadme_black"
-                    android:textColorHint="@color/leadme_medium_grey"
-                    android:textSize="16sp"
-                    android:visibility="visible"></EditText>
-
-
-            </LinearLayout>
-
+            <TextView
+                android:id="@+id/warning_text"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="20dp"
+                android:layout_marginTop="20dp"
+                android:layout_marginRight="20dp"
+                android:fontFamily="@font/poppins_semibold"
+                android:gravity="center"
+                android:text="Are you sure this is the code \nyou'd like to use?"
+                android:textSize="16sp" />
         </LinearLayout>
 
         <LinearLayout
@@ -300,7 +175,8 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:orientation="vertical"
-            android:visibility="gone">
+            android:visibility="gone"
+            android:background="@color/leadme_white">
 
             <ImageView
                 android:id="@+id/imageView"
@@ -385,7 +261,6 @@
                 android:includeFontPadding="false"
                 android:padding="5dp"
                 android:text="Forgot password?"
-                android:textAlignment="textEnd"
                 android:textColor="@color/leadme_blue"
                 android:textSize="13sp" />
 
@@ -409,7 +284,7 @@
         android:layout_width="wrap_content"
         android:layout_height="0dp"
         android:layout_gravity="center"
-        android:layout_marginTop="30dp"
+        android:layout_marginTop="60dp"
         android:gravity="center"
         android:orientation="vertical"
         app:layout_constraintEnd_toEndOf="parent"

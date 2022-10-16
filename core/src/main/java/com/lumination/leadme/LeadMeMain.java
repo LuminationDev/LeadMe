@@ -3125,17 +3125,17 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         leadmeAnimator.setDisplayedChild(leadmeAnimator.getChildCount()-1);
         Button confirm = resetPinView.findViewById(R.id.pin_reset_confirm);
         Button cancel = resetPinView.findViewById(R.id.pin_reset_cancel);
-        View[] pages = {resetPinView.findViewById(R.id.pin_reset_pass_view),resetPinView.findViewById(R.id.set_pin),resetPinView.findViewById(R.id.pin_reset_finish_view)};
+        View[] pages = {resetPinView.findViewById(R.id.pin_reset_pass_view),resetPinView.findViewById(R.id.set_pin),resetPinView.findViewById(R.id.reset_pin_warning),resetPinView.findViewById(R.id.pin_reset_finish_view)};
         ProgressBar pBar = resetPinView.findViewById(R.id.pin_reset_spinner);
         pBar.setVisibility(View.INVISIBLE);
 
         resetPinView.setOnClickListener(v -> Controller.getInstance().getDialogManager().hideSoftKeyboard(v));
-
         switch(page){
             case 0:
                 pages[0].setVisibility(View.VISIBLE);
                 pages[1].setVisibility(View.GONE);
                 pages[2].setVisibility(View.GONE);
+                pages[3].setVisibility(View.GONE);
                 TextView error = resetPinView.findViewById(R.id.pin_reset_error);
                 EditText Pass = resetPinView.findViewById(R.id.pin_reset_password);
                 TextView forgotPass = resetPinView.findViewById(R.id.pin_reset_forgot_password);
@@ -3178,9 +3178,8 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                 pages[1].setVisibility(View.VISIBLE);
                 pages[0].setVisibility(View.GONE);
                 pages[2].setVisibility(View.GONE);
-                EditText[] codes = {resetPinView.findViewById(R.id.signup_pin1), resetPinView.findViewById(R.id.signup_pin2), resetPinView.findViewById(R.id.signup_pin3)
-                        , resetPinView.findViewById(R.id.signup_pin4), resetPinView.findViewById(R.id.signup_pin5), resetPinView.findViewById(R.id.signup_pin6)
-                        , resetPinView.findViewById(R.id.signup_pin7), resetPinView.findViewById(R.id.signup_pin8)};
+                pages[3].setVisibility(View.GONE);
+                EditText[] codes = {resetPinView.findViewById(R.id.signup_pin1), resetPinView.findViewById(R.id.signup_pin2)};
                 TextWatcher pinWatcher = new TextWatcher() {
                     @Override
                     public void beforeTextChanged(CharSequence s, int start, int count, int after) {
@@ -3189,13 +3188,11 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
                     @Override
                     public void onTextChanged(CharSequence s, int start, int before, int count) {
-                        if (s != null && s.length() == 1 && pinCodeInd < 7) {
+                        if (s != null && s.length() == 1 && pinCodeInd <= 8) {
                             pinCodeInd++;
-                            codes[pinCodeInd].requestFocus();
-
-                        } else if (s != null && s.length() == 0 && pinCodeInd > 0) {
+                        }
+                        else if (s != null && s.length() == 0 && pinCodeInd >= 0) {
                             pinCodeInd--;
-                            codes[pinCodeInd].requestFocus();
                         }
                     }
 
@@ -3209,7 +3206,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                     if (keyCode == KeyEvent.KEYCODE_DEL || keyCode == KeyEvent.KEYCODE_BACK) {
                         if (pinCodeInd > 0) {
                             pinCodeInd--;
-                            codes[pinCodeInd].requestFocus();
                         }
                     }
                     return false; //true if event consumed, false otherwise
@@ -3222,18 +3218,10 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
                 confirm.setOnClickListener(view -> {
                     closeKeyboard();
-                    StringBuilder pin = new StringBuilder();
-                    StringBuilder confirmPin = new StringBuilder();
+                    String pin = ((EditText)resetPinView.findViewById(R.id.signup_pin1)).getText().toString();
+                    String confirmPin = ((EditText)resetPinView.findViewById(R.id.signup_pin2)).getText().toString();
 
-                    for (int i = 0; i < 8; i++) {
-                        if (i < 4) {
-                            pin.append(codes[i].getText().toString());
-                        } else {
-                            confirmPin.append(codes[i].getText().toString());
-                        }
-                    }
-
-                    if(pin.toString().equals(confirmPin.toString())){
+                    if(pin.equals(confirmPin)){
                         setProgressSpinner(5000, pBar);
 
                         Task<Void> setPin = Controller.getInstance().getAuthenticationManager().setAccountPin(pin.toString());
@@ -3241,6 +3229,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                         setPin.addOnCompleteListener(task -> {
                             if(task.isSuccessful()){
                                 setAndDisplayPinReset(2);
+                                resetPinView.findViewById(R.id.reset_pin_warning).setVisibility(View.VISIBLE);
                             }else{
                                 pBar.setVisibility(View.INVISIBLE);
                             }
@@ -3260,14 +3249,35 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                 pages[2].setVisibility(View.VISIBLE);
                 pages[1].setVisibility(View.GONE);
                 pages[0].setVisibility(View.GONE);
+                pages[3].setVisibility(View.GONE);
 
+                confirm.setText(R.string.confirm_code);
+                confirm.setOnClickListener(view -> {
+                    setAndDisplayPinReset(3);
+                    resetPinView.findViewById(R.id.pin_reset_finish_view).setVisibility(View.VISIBLE);
+                });
+
+                cancel.setText(R.string.cancel);
+                cancel.setOnClickListener(view -> {
+                    pBar.setVisibility(View.INVISIBLE);
+                    leadmeAnimator.setDisplayedChild(savedViewIndex);
+                    savedViewIndex=-1;
+                    leadmeAnimator.removeView(resetPinView);
+                });
+                break;
+
+            case 3:
+                pages[3].setVisibility(View.VISIBLE);
+                pages[2].setVisibility(View.GONE);
+                pages[1].setVisibility(View.GONE);
+                pages[0].setVisibility(View.GONE);
                 confirm.setText(R.string.finish);
+                cancel.setText(R.string.back);
                 confirm.setOnClickListener(view -> {
                     leadmeAnimator.setDisplayedChild(savedViewIndex);
                     savedViewIndex=-1;
                     leadmeAnimator.removeView(resetPinView);
                 });
-
                 cancel.setOnClickListener(view -> {
                     leadmeAnimator.setDisplayedChild(savedViewIndex);
                     savedViewIndex=-1;

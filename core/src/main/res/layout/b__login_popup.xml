@@ -23,31 +23,19 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:orientation="vertical"
-            android:visibility="gone">
+            android:visibility="gone"
+            android:background="@color/leadme_white">
 
-            <Space
-                android:layout_width="match_parent"
-                android:layout_height="30dp" />
 
             <TextView
                 android:id="@+id/error_title"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
-                android:layout_marginTop="10dp"
+                android:layout_marginTop="40dp"
                 android:fontFamily="@font/poppins_semibold"
                 android:gravity="center|center_horizontal"
                 android:text="Oops! Please fix these issues\nand try again:"
-                android:textSize="18sp" />
-
-            <TextView
-                android:id="@+id/no_name_message"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="20dp"
-                android:layout_marginTop="20dp"
-                android:fontFamily="@font/poppins_regular"
-                android:text="@string/missing_name"
                 android:textSize="18sp" />
 
             <TextView
@@ -61,9 +49,6 @@
                 android:text="@string/wrong_code"
                 android:textSize="18sp" />
 
-            <Space
-                android:layout_width="match_parent"
-                android:layout_height="30dp" />
 
             <Button
                 android:id="@+id/close_login_alert_btn"
@@ -188,7 +173,6 @@
                     android:includeFontPadding="false"
                     android:paddingRight="5dp"
                     android:text="Forgot password?"
-                    android:textAlignment="textEnd"
                     android:textColor="@color/leadme_blue"
                     android:textSize="13sp" />
             </LinearLayout>
@@ -292,12 +276,10 @@
                     android:textColor="@color/leadme_white"
                     android:textSize="16sp" />
 
-                <Space
-                    android:layout_width="match_parent"
-                    android:layout_height="10dp" />
+
 
                 <Button
-
+                    android:paddingTop="10dp"
                     android:id="@+id/login_back"
                     style="?android:attr/borderlessButtonStyle"
                     android:layout_width="@dimen/standard_btn_width"
@@ -323,7 +305,8 @@
             android:orientation="vertical"
             android:showDividers="middle|beginning|end"
             android:visibility="visible"
-            tools:visibility="gone">
+            tools:visibility="gone"
+            android:background="@color/leadme_white">
 
 
             <LinearLayout
@@ -355,7 +338,6 @@
                         android:layout_height="10dp"
                         android:layout_gravity="center"
                         android:src="@drawable/circle_btn"
-                        android:tint="@color/accent"
                         app:tint="@color/accent" />
 
                     <TextView
@@ -418,7 +400,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="10dp"
-                android:orientation="vertical">
+                android:orientation="vertical"
+                android:background="@color/leadme_white">
 
                 <TextView
                     android:id="@+id/teacher_code_label"
@@ -457,7 +440,7 @@
                     android:id="@+id/login_forgot_pin"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_gravity="right"
+                    android:layout_gravity="end"
                     android:layout_marginTop="10dp"
                     android:layout_marginRight="50dp"
                     android:layout_weight="1"
@@ -470,10 +453,6 @@
                     android:textSize="13sp" />
 
             </LinearLayout>
-
-            <Space
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content" />
 
             <LinearLayout
                 android:id="@+id/button_view"
@@ -498,11 +477,8 @@
                     android:textColor="@color/leadme_white"
                     android:textSize="16sp" />
 
-                <Space
-                    android:layout_width="match_parent"
-                    android:layout_height="10dp" />
-
                 <Button
+                    android:paddingTop="10dp"
                     android:id="@+id/back_btn"
                     style="?android:attr/borderlessButtonStyle"
                     android:layout_width="@dimen/standard_btn_width"
@@ -529,7 +505,7 @@
             android:progressDrawable="@color/leadme_blue"
             android:progressTint="@color/leadme_blue"
             android:visibility="gone" />
-
     </FrameLayout>
 
 </LinearLayout>
+
