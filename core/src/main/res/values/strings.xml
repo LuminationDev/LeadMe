@@ -211,5 +211,6 @@
     <string name="unselect">Unselect</string>
     <string name="unselected">Unselected</string>
     <string name="projection_type">Projection Type</string>
+    <string name="please_confirm_pin_change">Please confirm pin change.</string>
 
 </resources>

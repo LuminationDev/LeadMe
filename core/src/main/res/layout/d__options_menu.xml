@@ -319,13 +319,15 @@
             <TextView
                 android:id="@+id/version"
                 android:layout_marginLeft="10dp"
+                android:layout_marginRight="10dp"
                 android:layout_marginBottom="5dp"
-                android:layout_width="wrap_content"
+                android:layout_width="50dp"
                 android:layout_height="wrap_content"
                 android:fontFamily="@font/poppins_regular"
                 android:includeFontPadding="false"
                 android:text=""
                 android:textColor="@color/leadme_white"
+                android:textAlignment="center"
                 android:textSize="16sp"
                 android:layout_alignParentBottom="true"/>
         </RelativeLayout>

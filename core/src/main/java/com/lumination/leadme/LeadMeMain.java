@@ -75,7 +75,7 @@ import androidx.lifecycle.OnLifecycleEvent;
 
 import com.BoardiesITSolutions.FileDirectoryPicker.OpenFilePicker;
 import com.google.android.gms.tasks.Task;
-import com.google.firebase.BuildConfig;
+import com.lumination.leadme.BuildConfig;
 import com.google.firebase.auth.AuthCredential;
 import com.google.firebase.auth.EmailAuthProvider;
 import com.google.firebase.auth.FirebaseAuth;
@@ -3217,11 +3217,13 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                 }
 
                 confirm.setOnClickListener(view -> {
+                    ((TextView)resetPinView.findViewById(R.id.pin_error_text)).setText("");
+                    ((ImageView)resetPinView.findViewById(R.id.pin_error_image)).setImageDrawable(null);
                     closeKeyboard();
                     String pin = ((EditText)resetPinView.findViewById(R.id.signup_pin1)).getText().toString();
                     String confirmPin = ((EditText)resetPinView.findViewById(R.id.signup_pin2)).getText().toString();
 
-                    if(pin.equals(confirmPin)){
+                    if(pin.equals(confirmPin) && pin.length() > 0){
                         setProgressSpinner(5000, pBar);
 
                         Task<Void> setPin = Controller.getInstance().getAuthenticationManager().setAccountPin(pin.toString());
@@ -3234,6 +3236,9 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                                 pBar.setVisibility(View.INVISIBLE);
                             }
                         });
+                    } else {
+                        ((TextView)resetPinView.findViewById(R.id.pin_error_text)).setText("Pins do not match");
+                        ((ImageView)resetPinView.findViewById(R.id.pin_error_image)).setImageDrawable(ResourcesCompat.getDrawable(this.getResources(), R.drawable.alert_error, null));
                     }
                 });
 
