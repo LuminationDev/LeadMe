@@ -6,21 +6,27 @@ orbs:
   android: circleci/android@2.1.2
   node: circleci/node@5.0.2
 
+jobs:
+  build:
+    executor:
+      name: android/android-docker
+      tag: "2022.0.7"
+    steps:
+      - run:
+          name: Decode Android key store
+          command: echo $BASE64_KEYSTORE | base64 -d | tee keystore android/app/keystore > /dev/null
+      - run:
+          name: Create keystore.properties
+          command: cd android && printf 'releaseKeyAlias=%s\nreleaseKeyPassword=%s\nreleaseKeyStore=%s\nreleaseStorePassword=%s' \ $RELEASE_KEY_ALIAS $RELEASE_KEY_PASSWORD $RELEASE_KEYSTORE $RELEASE_STORE_PASSWORD > keystore.properties
+      - run:
+          name: Create Google Play key
+          command: echo $GOOGLE_PLAY_KEY > google-play-key.json
+      - run: fastlane playstore
+
+
 # Invoke jobs via workflows
 # See: https://circleci.com/docs/2.0/configuration-reference/#workflows
 workflows:
     deploy:
       jobs:
-        - android/deploy-to-play-store:
-                executor:
-                  name: android/android-docker
-                  tag: "2022.0.7"
-                base64-keystore: BASE64_KEYSTORE
-                release-key-alias: RELEASE_KEY_ALIAS
-                release-key-password: RELEASE_KEY_PASSWORD
-                release-keystore: ./keystore
-                release-store-password: RELEASE_STORE_PASSWORD
-                keystore-properties-working-directory: '.'
-                google-play-key: GOOGLE_PLAY_KEY
-                lane-name: deploy
-                fastlane-working-directory: '.'
+        - build
