@@ -15,7 +15,7 @@ jobs:
           path: app/build/outputs/apk/release
       - run:
           name: List dir
-          command: echo ls
+          command: ls
       - run:
           name: Decode Android key store
           command: echo $BASE64_KEYSTORE | base64 -d | tee keystore android/app/keystore > /dev/null
