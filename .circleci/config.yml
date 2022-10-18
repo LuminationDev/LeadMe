@@ -14,8 +14,8 @@ jobs:
       - store_artifacts:
           path: app/build/outputs/apk/release
       - run:
-          name: List dir
-          command: ls
+          name: Create keystore 
+          command: touch android/app/keystore
       - run:
           name: Decode Android key store
           command: echo $BASE64_KEYSTORE | base64 -d | tee keystore android/app/keystore > /dev/null
