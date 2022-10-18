@@ -22,6 +22,14 @@ jobs:
           name: Create Google Play key
           command: echo $GOOGLE_PLAY_KEY > google-play-key.json
       - run: fastlane playstore
+  my-job-name:
+    executor:
+      name: android/android-docker
+      tag: "2022.0.7"
+    steps:
+      - checkout
+      - run: |
+          # echo Hello, World!
 
 
 # Invoke jobs via workflows
@@ -29,6 +37,7 @@ jobs:
 workflows:
     deploy:
       jobs:
+        - my-job-name
         - build:
             type: approval
             filters:
