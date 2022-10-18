@@ -29,4 +29,9 @@ jobs:
 workflows:
     deploy:
       jobs:
-        - build
+        - build:
+            type: approval
+            filters:
+              branches:
+                only:
+                  - development
