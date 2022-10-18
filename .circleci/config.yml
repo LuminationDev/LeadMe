@@ -26,7 +26,7 @@ jobs:
       - run:
           name: Create Google Play key
           command: echo $GOOGLE_PLAY_KEY > google-play-key.json
-      - run: fastlane playstore
+      - run: bundle exec fastlane deploy
 
 
 # Invoke jobs via workflows
