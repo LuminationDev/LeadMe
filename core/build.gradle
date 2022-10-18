@@ -1,12 +1,19 @@
 apply plugin: 'com.android.application'
 apply plugin: 'com.google.gms.google-services'
 apply plugin: 'com.google.firebase.crashlytics'
+
+def keyStorePropertiesFile = rootProject.file("keystore.properties")
+def keyStoreProperties = new Properties()
+keyStoreProperties.load(new FileInputStream(keyStorePropertiesFile))
+
 android {
     compileSdkVersion 30
     buildToolsVersion '30.0.3'
 
     defaultConfig {
         applicationId "com.lumination.leadme"
+        versionCode 21
+        versionName "1.20"
         minSdkVersion 27
         targetSdkVersion 30
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
@@ -19,6 +26,14 @@ android {
 //            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
 //        }
         release {
+            signingConfigs {
+                release {
+                    keyAlias keyStoreProperties['releaseKeyAlias']
+                    keyPassword keyStoreProperties['releaseKeyPassword']
+                    storeFile file(keyStoreProperties['releaseKeyStore'])
+                    storePassword keyStoreProperties['releaseStorePassword']
+                }
+            }
             minifyEnabled true
             shrinkResources true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
