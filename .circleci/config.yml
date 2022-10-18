@@ -2,25 +2,25 @@
 # See: https://circleci.com/docs/2.0/configuration-reference
 version: 2.1
 
-# Define a job to be invoked later in a workflow.
-# See: https://circleci.com/docs/2.0/configuration-reference/#jobs
-jobs:
-  say-hello:
-    # Specify the execution environment. You can specify an image from Dockerhub or use one of our Convenience Images from CircleCI's Developer Hub.
-    # See: https://circleci.com/docs/2.0/configuration-reference/#docker-machine-macos-windows-executor
-    docker:
-      - image: cimg/base:stable
-    # Add steps to the job
-    # See: https://circleci.com/docs/2.0/configuration-reference/#steps
-    steps:
-      - checkout
-      - run:
-          name: "Say hello"
-          command: "echo Hello, World!"
+orbs:
+  android: circleci/android@2.1.2
+  node: circleci/node@5.0.2
 
 # Invoke jobs via workflows
 # See: https://circleci.com/docs/2.0/configuration-reference/#workflows
 workflows:
-  say-hello-workflow:
-    jobs:
-      - say-hello
+    deploy:
+      jobs:
+        - android/deploy-to-play-store:
+                executor:
+                  name: android/android-docker
+                  tag: "2022.0.7"
+                base64-keystore: BASE64_KEYSTORE
+                release-key-alias: RELEASE_KEY_ALIAS
+                release-key-password: RELEASE_KEY_PASSWORD
+                release-keystore: ./keystore
+                release-store-password: RELEASE_STORE_PASSWORD
+                keystore-properties-working-directory: '.'
+                google-play-key: GOOGLE_PLAY_KEY
+                lane-name: deploy
+                fastlane-working-directory: '.'
