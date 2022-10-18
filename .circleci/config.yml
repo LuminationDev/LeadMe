@@ -6,11 +6,14 @@ orbs:
   android: circleci/android@2.1.2
   node: circleci/node@5.0.2
 
+executors:
+  android-executor:
+    docker:
+      - image: cimg/android
+
 jobs:
   build:
-    executor:
-      name: android/android-docker
-      tag: "2022.0.7"
+    executor: android-executor
     steps:
       - run:
           name: Decode Android key store
