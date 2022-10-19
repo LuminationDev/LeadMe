@@ -33,13 +33,11 @@ platform :android do
   desc "Build a new apk for testing"
     lane :build_test_apk do
       gradle(task: "clean")
-      gradle(task: "build", build_type: "Release")
+      gradle(task: "assemble", build_type: "Release")
         copy_artifacts(
                   artifacts: ['~/project/core/build/outputs/apk/**/*.apk'],
                   target_path: '~/project'
                 )
-        APK_LOCATION = "#{lane_context[SharedValues::GRADLE_APK_OUTPUT_PATH]}"
-        sh("#{APK_LOCATION}")
         sh("ls ~/project")
         sh("ls ../core")
         sh("ls ../core/build")
