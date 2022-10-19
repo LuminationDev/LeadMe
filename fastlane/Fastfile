@@ -35,8 +35,8 @@ platform :android do
       gradle(task: "clean")
       gradle(task: "build", build_type: "Release")
       APK_LOCATION = "#{lane_context[SharedValues::GRADLE_APK_OUTPUT_PATH]}"
-      sh("ls")
-      sh("mv #{APK_LOCATION} ./core")
+      sh("ls ../")
+      sh("mv #{APK_LOCATION} ../core")
     end
 
   desc "Deploy a new version to the Google Play"
