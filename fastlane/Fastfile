@@ -39,6 +39,8 @@ platform :android do
           target_path: '../core'
         )
         sh("ls ../core")
+        sh("ls ../core/build")
+        sh("ls ../core/build/outputs")
         sh("ls ../core/build/outputs/apk")
     end
 
