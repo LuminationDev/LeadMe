@@ -21,10 +21,10 @@ android {
 
     signingConfigs {
         release {
-            keyAlias keyStoreProperties['keyAlias']
-            keyPassword keyStoreProperties['keyPassword']
-            storeFile keyStoreProperties['storeFile'] ? file(keyStoreProperties['storeFile']) : null
-            storePassword keyStoreProperties['storePassword']
+            keyAlias keyStoreProperties['releaseKeyAlias']
+            keyPassword keyStoreProperties['releaseKeyPassword']
+            storeFile keyStoreProperties['releaseKeyStore'] ? file(keyStoreProperties['releaseKeyStore']) : null
+            storePassword keyStoreProperties['releaseStorePassword']
         }
     }
 
