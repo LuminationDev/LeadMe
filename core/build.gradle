@@ -12,8 +12,8 @@ android {
 
     defaultConfig {
         applicationId "com.lumination.leadme"
-        versionCode 21
-        versionName "1.20"
+        versionCode 22
+        versionName "1.21"
         minSdkVersion 27
         targetSdkVersion 30
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
