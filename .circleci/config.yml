@@ -41,9 +41,9 @@ jobs:
           name: dir
           command: ls
       - run: fastlane build_test_apk
-      - run: ls
+      - run: cd core/build/outputs/apk && ls
       - store_artifacts:
-          path: app/build/outputs/apk/release
+          path: core/build/outputs/apk/release
 
 
 # Invoke jobs via workflows
