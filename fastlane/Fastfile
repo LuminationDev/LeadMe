@@ -38,11 +38,12 @@ platform :android do
           artifacts: ['*/build/outputs/apk/**/*.apk'],
           target_path: '/'
         )
-      copy_artifacts(
-          artifacts: [lane_context[SharedValues::GRADLE_APK_OUTPUT_PATH]],
-          target_path: '/'
-        )
+        copy_artifacts(
+                  artifacts: ['*/build/outputs/apk/**/*.apk'],
+                  target_path: '~/'
+                )
         sh("ls /")
+        sh("ls ~/")
         sh("ls ../core")
         sh("ls ../core/build")
         sh("ls ../core/build/outputs")
