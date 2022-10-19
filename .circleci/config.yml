@@ -36,13 +36,12 @@ jobs:
       - image: cimg/android:2022.09.2
     steps:
       - run:
-          name: Preparing for artifacts
-          command: |
-            mkdir /tmp/artifacts
+          name: dir
+          command: ls
       - run: fastlane build_test_apk
       - run: ls build_test_apk
       - store_artifacts:
-          path: /tmp/artifacts
+          path: app/build/outputs/apk/release
 
 
 # Invoke jobs via workflows
