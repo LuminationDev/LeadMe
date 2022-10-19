@@ -10,6 +10,8 @@ commands:
   configure:
     steps:
       - checkout
+      - setup_remote_docker:
+          docker_layer_caching: true
       - store_artifacts:
           path: app/build/outputs/apk/release
       - run:
@@ -42,7 +44,7 @@ jobs:
           command: ls
       - run: fastlane build_test_apk
       - run: cd core && ls
-      - run: cd build && ls
+      - run: cd release && ls
       - run: cd outputs && ls
       - run: cd apk && ls
       - store_artifacts:
