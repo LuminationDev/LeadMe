@@ -21,11 +21,11 @@ jobs:
           name: Create keystore.properties
           command: printf 'releaseKeyAlias=%s\nreleaseKeyPassword=%s\nreleaseKeyStore=%s\nreleaseStorePassword=%s' \ $RELEASE_KEY_ALIAS $RELEASE_KEY_PASSWORD $RELEASE_KEYSTORE $RELEASE_STORE_PASSWORD > keystore.properties
       - run:
-          name: Decode Android key store
-          command: echo $BASE64_KEYSTORE | base64 -d > keystore.jks
-      - run:
           name: Create Google Play key
           command: echo $GOOGLE_PLAY_KEY > google-play-key.json
+      - run:
+          name: Decode Android key store
+          command: cd core && echo $BASE64_KEYSTORE | base64 -d > keystore.jks && cd ..
       - run:
           name: dir again
           command: ls
