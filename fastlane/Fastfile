@@ -38,8 +38,8 @@ platform :android do
           artifacts: ['*/build/outputs/apk/**/*.apk'],
           target_path: '../core'
         )
-        sh("cd ../core")
-        sh("ls")
+        sh("ls ../core")
+        sh("ls ../core/build/outputs/apk")
     end
 
   desc "Deploy a new version to the Google Play"
