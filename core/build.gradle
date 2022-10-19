@@ -26,13 +26,11 @@ android {
 //            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
 //        }
         release {
-            signingConfigs {
-                release {
-                    keyAlias keyStoreProperties['releaseKeyAlias']
-                    keyPassword keyStoreProperties['releaseKeyPassword']
-                    storeFile file(keyStoreProperties['releaseKeyStore'])
-                    storePassword keyStoreProperties['releaseStorePassword']
-                }
+            signingConfig {
+                keyAlias keyStoreProperties['releaseKeyAlias']
+                keyPassword keyStoreProperties['releaseKeyPassword']
+                storeFile file(keyStoreProperties['releaseKeyStore'])
+                storePassword keyStoreProperties['releaseStorePassword']
             }
             minifyEnabled true
             shrinkResources true
