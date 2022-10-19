@@ -31,12 +31,17 @@ platform :android do
 #   end
 
   desc "Deploy a new version to the Google Play"
+    lane :build_test_apk do
+      gradle(task: "clean")
+      gradle(task: "build", build_type: "Release")
+    end
+
+  desc "Deploy a new version to the Google Play"
   lane :deploy do
     gradle(task: "clean")
     gradle(task: "bundle", build_type: "Release")
     upload_to_play_store(
-        track: 'internal',
-        release_status: 'draft'
+        track: 'production'
     )
   end
 end
