@@ -26,6 +26,9 @@ jobs:
       - run:
           name: Create Google Play key
           command: echo $GOOGLE_PLAY_KEY > google-play-key.json
+      - run:
+          name: dir again
+          command: ls
       - run: fastlane deploy
 
 
