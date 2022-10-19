@@ -35,10 +35,14 @@ platform :android do
       gradle(task: "clean")
       gradle(task: "build", build_type: "Release")
       copy_artifacts(
-          artifacts: [lane_context[SharedValues::GRADLE_APK_OUTPUT_PATH]],
-          target_path: '../core'
+          artifacts: ['*/build/outputs/apk/**/*.apk'],
+          target_path: '/'
         )
-        sh("ls")
+      copy_artifacts(
+          artifacts: [lane_context[SharedValues::GRADLE_APK_OUTPUT_PATH]],
+          target_path: '/'
+        )
+        sh("ls /")
         sh("ls ../core")
         sh("ls ../core/build")
         sh("ls ../core/build/outputs")
