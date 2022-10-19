@@ -34,16 +34,10 @@ platform :android do
     lane :build_test_apk do
       gradle(task: "clean")
       gradle(task: "assemble", build_type: "Release")
-        copy_artifacts(
-                  artifacts: ['*/build/outputs/apk/**/*.apk'],
-                  target_path: '../core'
-                )
-        sh("ls ~/project")
-        sh("ls ../core")
-        sh("ls ../core/build")
-        sh("ls ../core/build/outputs")
-        sh("ls ../core/build/outputs/apk")
-        sh("ls ../core/build/outputs/apk/release")
+      copy_artifacts(
+        artifacts: ['*/build/outputs/apk/**/*.apk'],
+        target_path: '../core'
+      )
     end
 
   desc "Deploy a new version to the Google Play"
