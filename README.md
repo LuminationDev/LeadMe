@@ -13,6 +13,8 @@ An Android app that allows a 'guide' to launch apps and deploy videos on connect
 
 
 Authors
-*Natalie Teasdale
-*Darragh Kearns
-*Edward Coad
+* Natalie Teasdale
+* Darragh Kearns
+* Edward Coad
+* Marissa Bond
+* Jacob Lund
