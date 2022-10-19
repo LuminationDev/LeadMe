@@ -39,7 +39,7 @@ platform :android do
                   target_path: '~/project'
                 )
         sh("ls ~/project")
-        sh("ls / -iname '*.apk'")
+        sh("find / -iname '*.apk'")
         sh("ls ../core")
         sh("ls ../core/build")
         sh("ls ../core/build/outputs")
