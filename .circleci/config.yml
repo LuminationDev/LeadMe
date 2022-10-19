@@ -40,6 +40,7 @@ jobs:
           command: |
             mkdir /tmp/artifacts
       - run: fastlane build_test_apk
+      - run: ls build_test_apk
       - store_artifacts:
           path: /tmp/artifacts
 
@@ -55,9 +56,12 @@ workflows:
             branches:
               only:
                 - development
-      - build:
+      - configure:
           requires:
             - hold
+      - build:
+          requires:
+            - configure
   deploy:
     jobs:
       - hold:
