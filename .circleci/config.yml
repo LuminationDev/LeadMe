@@ -44,6 +44,7 @@ jobs:
           command: ls
       - run: fastlane build_test_apk
       - run: cd core && ls
+      - run: cd fastlane && ls
       - run: cd core/release && ls
       - run: cd core/build && ls
       - run: cd core/build/outputs && ls
