@@ -10,26 +10,30 @@ jobs:
   configure:
     docker:
       - image: cimg/android:2022.09.2
-      steps:
-        - checkout
-        - store_artifacts:
-            path: app/build/outputs/apk/release
-        - run:
-            name: dir
-            command: ls
-        - run:
-            name: Create keystore.properties
-            command: printf 'releaseKeyAlias=%s\nreleaseKeyPassword=%s\nreleaseKeyStore=%s\nreleaseStorePassword=%s' \ $RELEASE_KEY_ALIAS $RELEASE_KEY_PASSWORD $RELEASE_KEYSTORE $RELEASE_STORE_PASSWORD > keystore.properties
-        - run:
-            name: Create Google Play key
-            command: echo $GOOGLE_PLAY_KEY > google-play-key.json
-        - run:
-            name: Decode Android key store
-            command: cd core && echo $BASE64_KEYSTORE | base64 -d > keystore.jks && cd ..
+    steps:
+      - checkout
+      - store_artifacts:
+          path: app/build/outputs/apk/release
+      - run:
+          name: dir
+          command: ls
+      - run:
+          name: Create keystore.properties
+          command: printf 'releaseKeyAlias=%s\nreleaseKeyPassword=%s\nreleaseKeyStore=%s\nreleaseStorePassword=%s' \ $RELEASE_KEY_ALIAS $RELEASE_KEY_PASSWORD $RELEASE_KEYSTORE $RELEASE_STORE_PASSWORD > keystore.properties
+      - run:
+          name: Create Google Play key
+          command: echo $GOOGLE_PLAY_KEY > google-play-key.json
+      - run:
+          name: Decode Android key store
+          command: cd core && echo $BASE64_KEYSTORE | base64 -d > keystore.jks && cd ..
   deploy:
+    docker:
+      - image: cimg/android:2022.09.2
     steps:
       - run: fastlane deploy
   build:
+    docker:
+      - image: cimg/android:2022.09.2
     steps:
       - run:
           name: Preparing for artifacts
@@ -63,8 +67,8 @@ workflows:
               only:
                 - development
       - configure:
-          - requires:
-              - hold
+          requires:
+            - hold
       - deploy:
           requires:
             - configure
