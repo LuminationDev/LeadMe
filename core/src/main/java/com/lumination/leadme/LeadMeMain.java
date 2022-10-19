@@ -117,6 +117,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import eu.bolt.screenshotty.ScreenshotManagerBuilder;
+import io.sentry.Sentry;
 
 /*
     LeadMe Main:
@@ -1873,19 +1874,23 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         calcParams();
 
         //add overlay to the window manager
-        windowManager.addView(overlayView, overlayParams);
-        windowManager.updateViewLayout(overlayView, overlayParams);
-        overlayView.setVisibility(View.INVISIBLE);
+        try {
+            windowManager.addView(overlayView, overlayParams);
+            windowManager.updateViewLayout(overlayView, overlayParams);
+            overlayView.setVisibility(View.INVISIBLE);
 
-        //add the url overlay to the window manager
-        windowManager.addView(url_overlay, url_overlayParams);
-        windowManager.updateViewLayout(url_overlay, url_overlayParams);
-        url_overlay.setVisibility(View.INVISIBLE);
+            //add the url overlay to the window manager
+            windowManager.addView(url_overlay, url_overlayParams);
+            windowManager.updateViewLayout(url_overlay, url_overlayParams);
+            url_overlay.setVisibility(View.INVISIBLE);
 
-        overlayInitialised = true; //must set this before calling disable interaction
+            overlayInitialised = true; //must set this before calling disable interaction
 
-        //set default state
-        Controller.getInstance().getDispatcher().disableInteraction(ConnectedPeer.STATUS_UNLOCK);
+            //set default state
+            Controller.getInstance().getDispatcher().disableInteraction(ConnectedPeer.STATUS_UNLOCK);
+        } catch (WindowManager.BadTokenException e) {
+            Sentry.captureException(e);
+        }
     }
 
     /**
