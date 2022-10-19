@@ -41,7 +41,10 @@ jobs:
           name: dir
           command: ls
       - run: fastlane build_test_apk
-      - run: cd core/build/outputs/apk && ls
+      - run: cd core && ls
+      - run: cd build && ls
+      - run: cd outputs && ls
+      - run: cd apk && ls
       - store_artifacts:
           path: core/build/outputs/apk/release
 
