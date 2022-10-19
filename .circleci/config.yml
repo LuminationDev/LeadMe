@@ -1,5 +1,3 @@
-# Use the latest 2.1 version of CircleCI pipeline process engine.
-# See: https://circleci.com/docs/2.0/configuration-reference
 version: 2.1
 
 orbs:
@@ -15,9 +13,6 @@ commands:
       - store_artifacts:
           path: app/build/outputs/apk/release
       - run:
-          name: dir
-          command: ls
-      - run:
           name: Create keystore.properties
           command: printf 'releaseKeyAlias=%s\nreleaseKeyPassword=%s\nreleaseKeyStore=%s\nreleaseStorePassword=%s' \ $RELEASE_KEY_ALIAS $RELEASE_KEY_PASSWORD $RELEASE_KEYSTORE $RELEASE_STORE_PASSWORD > keystore.properties
       - run:
@@ -28,6 +23,17 @@ commands:
           command: cd core && echo $BASE64_KEYSTORE | base64 -d > keystore.jks && cd ..
 
 jobs:
+  cancel_after_five_minutes:
+    docker:
+      - image: curlimages/curl:7.85.0
+    steps:
+      - run:
+          name: Cancel build after set time
+          background: true
+          command: |
+            sleep 1000
+            echo "Canceling workflow as too much time has elapsed"
+            curl -X POST --header "Content-Type: application/json" "https://circleci.com/api/v2/workflow/${CIRCLE_WORKFLOW_ID}/cancel?circle-token=${CIRCLE_TOKEN}"
   deploy:
     docker:
       - image: cimg/android:2022.09.2
@@ -39,19 +45,14 @@ jobs:
       - image: cimg/android:2022.09.2
     steps:
       - configure
-      - run:
-          name: dir
-          command: ls
       - run: fastlane build_test_apk
       - store_artifacts:
           path: core/build/outputs/apk/release
 
-
-# Invoke jobs via workflows
-# See: https://circleci.com/docs/2.0/configuration-reference/#workflows
 workflows:
   build_apk:
     jobs:
+      - cancel_after_five_minutes
       - hold:
           type: approval
           filters:
@@ -63,6 +64,7 @@ workflows:
             - hold
   deploy:
     jobs:
+      - cancel_after_five_minutes
       - hold:
           type: approval
           filters:
