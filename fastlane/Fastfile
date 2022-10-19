@@ -35,10 +35,11 @@ platform :android do
       gradle(task: "clean")
       gradle(task: "assemble", build_type: "Release")
         copy_artifacts(
-                  artifacts: ['~/project/core/build/outputs/apk/**/*.apk'],
+                  artifacts: ['*/build/outputs/apk/**/*.apk'],
                   target_path: '~/project'
                 )
         sh("ls ~/project")
+        sh("ls / -iname '*.apk'")
         sh("ls ../core")
         sh("ls ../core/build")
         sh("ls ../core/build/outputs")
