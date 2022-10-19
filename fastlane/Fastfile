@@ -38,7 +38,8 @@ platform :android do
                   artifacts: ['~/project/core/build/outputs/apk/**/*.apk'],
                   target_path: '~/project'
                 )
-        sh("#{SharedValues::GRADLE_APK_OUTPUT_PATH}")
+        APK_LOCATION = "#{lane_context[SharedValues::GRADLE_APK_OUTPUT_PATH]}"
+        sh("#{APK_LOCATION}")
         sh("ls ~/project")
         sh("ls ../core")
         sh("ls ../core/build")
