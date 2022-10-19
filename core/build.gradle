@@ -19,6 +19,15 @@ android {
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    signingConfigs {
+        release {
+            keyAlias keyStoreProperties['keyAlias']
+            keyPassword keyStoreProperties['keyPassword']
+            storeFile keyStoreProperties['storeFile'] ? file(keyStoreProperties['storeFile']) : null
+            storePassword keyStoreProperties['storePassword']
+        }
+    }
+
     buildTypes {
 //        debug {
 //            minifyEnabled true
@@ -26,12 +35,7 @@ android {
 //            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
 //        }
         release {
-            signingConfig {
-                keyAlias keyStoreProperties['releaseKeyAlias']
-                keyPassword keyStoreProperties['releaseKeyPassword']
-                storeFile file(keyStoreProperties['releaseKeyStore'])
-                storePassword keyStoreProperties['releaseStorePassword']
-            }
+            signingConfig signingConfigs.release
             minifyEnabled true
             shrinkResources true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
