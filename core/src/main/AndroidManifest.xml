@@ -68,6 +68,7 @@
         android:requestLegacyExternalStorage="true"
         android:allowBackup="true">
         <meta-data android:name="google_analytics_adid_collection_enabled" android:value="false" />
+        <meta-data android:name="io.sentry.dsn" android:value="https://dfcd6d087aa340319216257e583f49d6@o1294571.ingest.sentry.io/4503969052229632" />
         <activity
             android:name="com.lumination.leadme.LeadMeMain"
             android:screenOrientation="portrait"
