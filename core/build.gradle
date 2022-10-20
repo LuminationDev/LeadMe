@@ -12,7 +12,7 @@ android {
 
     defaultConfig {
         applicationId "com.lumination.leadme"
-        versionCode 22
+        versionCode 23
         versionName "1.21"
         minSdkVersion 27
         targetSdkVersion 30
