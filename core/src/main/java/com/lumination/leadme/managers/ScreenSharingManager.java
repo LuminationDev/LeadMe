@@ -94,17 +94,15 @@ public class ScreenSharingManager {
      */
     public void startService(boolean StartOnReturn){
         Log.d(TAG, "startService: ");
-        projectionManager = (MediaProjectionManager) main.getSystemService(Context.MEDIA_PROJECTION_SERVICE);
         Intent screen_share_intent = new Intent(main.getApplicationContext(), ScreensharingService.class);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            main.startForegroundService(screen_share_intent);
-        } else {
-            main.startService(screen_share_intent);
-        }
-        if(StartOnReturn){
+        main.stopService(screen_share_intent);
+
+        main.startForegroundService(screen_share_intent);
+        if(StartOnReturn) {
             startImed=true;
         }
 
+        projectionManager = (MediaProjectionManager) main.getSystemService(Context.MEDIA_PROJECTION_SERVICE);
         main.startActivityForResult(projectionManager.createScreenCaptureIntent(), main.SCREEN_CAPTURE);
     }
 
@@ -119,7 +117,7 @@ public class ScreenSharingManager {
             DispatchManager.sendActionToSelected(Controller.ACTION_TAG,
                     Controller.STUDENT_NO_XRAY + "OK:" + NearbyPeersManager.myID, NearbyPeersManager.getAllPeerIDs());
             permissionGranted=true;
-        }else{
+        } else {
             DispatchManager.sendActionToSelected(Controller.ACTION_TAG,
                     Controller.STUDENT_NO_XRAY + "BAD:" + NearbyPeersManager.myID, NearbyPeersManager.getAllPeerIDs());
             return;

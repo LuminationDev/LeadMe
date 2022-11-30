@@ -8,6 +8,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Binder;
 import android.os.IBinder;
+import android.util.Log;
 
 import androidx.core.app.NotificationCompat;
 
@@ -16,6 +17,7 @@ import com.lumination.leadme.R;
 public class ScreensharingService extends Service {
     private static final String CHANNEL_ID = "screen_capture";
     private static final String CHANNEL_NAME = "Screen_Capture";
+    public static boolean IS_ACTIVITY_RUNNING = false;
 
     // Binder given to clients
     private final IBinder binder = new LocalBinder();
@@ -33,8 +35,9 @@ public class ScreensharingService extends Service {
 
     @Override
     public void onCreate() {
+        Log.e("SCREEN SHARING", "CREATED");
         super.onCreate();
-        startForeground();
+//        startForeground();
     }
 
     @Override
@@ -45,7 +48,8 @@ public class ScreensharingService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        return START_NOT_STICKY;
+        this.startForeground();
+        return START_STICKY;
     }
 
     public void startForeground() {

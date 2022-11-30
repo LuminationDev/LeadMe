@@ -70,7 +70,7 @@ public class LumiAccessibilityService extends android.accessibilityservice.Acces
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         Log.d("ClearFromRecentService", "Service Started");
-        return START_NOT_STICKY;
+        return START_STICKY;
     }
 
     @Override
