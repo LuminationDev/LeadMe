@@ -55,7 +55,7 @@ public class FirebaseService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        return START_NOT_STICKY;
+        return START_STICKY;
     }
 
     public void startForeground() {
