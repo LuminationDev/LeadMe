@@ -29,6 +29,7 @@ import com.lumination.leadme.managers.PermissionManager;
 import com.lumination.leadme.managers.ScreenSharingManager;
 import com.lumination.leadme.managers.WebManager;
 import com.lumination.leadme.managers.XrayManager;
+import com.lumination.leadme.players.VREmbedLinkPlayer;
 import com.lumination.leadme.players.VREmbedPhotoPlayer;
 import com.lumination.leadme.players.VREmbedVideoPlayer;
 import com.lumination.leadme.utilities.AppInstaller;
@@ -115,6 +116,7 @@ public class Controller {
     //Managers and players
     private final VREmbedPhotoPlayer vrEmbedPhotoPlayer;
     private final VREmbedVideoPlayer vrEmbedVideoPlayer;
+    private final VREmbedLinkPlayer vrEmbedLinkPlayer;
     private final VRAccessibilityManager vrAccessibilityManager;
 
     private final NetworkManager networkManager;
@@ -151,6 +153,7 @@ public class Controller {
         vrAccessibilityManager = new VRAccessibilityManager(main);
         vrEmbedPhotoPlayer = new VREmbedPhotoPlayer(main);
         vrEmbedVideoPlayer = new VREmbedVideoPlayer(main);
+        vrEmbedLinkPlayer = new VREmbedLinkPlayer(main);
         appLaunchAdapter = new AppManager(main);
         xrayManager = new XrayManager(main, LeadMeMain.getInstance().xrayScreen);
         fileTransferManager = new FileTransferManager(main);
@@ -335,6 +338,7 @@ public class Controller {
     public FileTransferManager getFileTransferManager() { return fileTransferManager; }
     public VREmbedVideoPlayer getVrEmbedVideoPlayer() { return vrEmbedVideoPlayer; }
     public VREmbedPhotoPlayer getVrEmbedPhotoPlayer() { return vrEmbedPhotoPlayer; }
+    public VREmbedLinkPlayer getVrEmbedLinkPlayer() { return vrEmbedLinkPlayer; }
     public PermissionManager getPermissionsManager() {
         return permissionManager;
     }

@@ -148,7 +148,7 @@ public class WithinEmbedPlayer {
                         main.closeKeyboard();
                         main.hideSystemUI();
                         videoSearchDialog.dismiss();
-                        Controller.getInstance().getWebManager().buildAndShowSearchDialog(2);
+                        Controller.getInstance().getWebManager().searchManager.buildAndShowSearchDialog(2);
                         break;
                     default: //default / within
                         //do nothing, we're already here?

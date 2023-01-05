@@ -71,7 +71,7 @@ public class FavouritesManager extends BaseAdapter {
     private String favPrefix;
 
     private final LeadMeMain main;
-    private final WebManager webManager;
+    private final WebManager webManager; //TODO decouple
 
     public FavouritesManager(LeadMeMain main, WebManager webManager, int favType, int maxLimit) {
         this.main = main;

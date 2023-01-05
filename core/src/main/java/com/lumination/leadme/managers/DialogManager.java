@@ -19,7 +19,6 @@ import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.core.content.res.ResourcesCompat;
 
@@ -234,6 +233,14 @@ public class DialogManager {
             Controller.getInstance().getVrEmbedVideoPlayer().showPlaybackPreview();
         });
 
+        Button linkBtn = vrContentType.findViewById(R.id.select_link_source_btn);
+        linkBtn.setOnClickListener(v -> {
+            vrContentTypeDialog.dismiss();
+            dialogShowing = false;
+            LeadMeMain.defaultVideo = true;
+            Controller.getInstance().getVrEmbedLinkPlayer().showPlaybackPreview();
+        });
+
         Button photoBtn = vrContentType.findViewById(R.id.select_photo_source_btn);
         photoBtn.setOnClickListener(v -> {
             vrContentTypeDialog.dismiss();
@@ -425,7 +432,6 @@ public class DialogManager {
             hideSystemUI();
         });
     }
-
 
     /**
      * Displays an alert box, notifying the guide that there are files missing on a learner devices.
