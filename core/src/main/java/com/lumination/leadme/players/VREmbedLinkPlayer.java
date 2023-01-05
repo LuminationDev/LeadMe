@@ -36,6 +36,7 @@ import com.lumination.leadme.R;
 import com.lumination.leadme.accessibility.VRAccessibilityManager;
 import com.lumination.leadme.controller.Controller;
 import com.lumination.leadme.managers.DispatchManager;
+import com.lumination.leadme.managers.FavouritesManager;
 import com.lumination.leadme.managers.NearbyPeersManager;
 import com.lumination.leadme.managers.SearchManager;
 import com.lumination.leadme.managers.WebManager;
@@ -108,6 +109,10 @@ public class VREmbedLinkPlayer {
         vrplayerPreviewVideoView.getSettings().setJavaScriptEnabled(true); // enable javascript
         vrplayerPreviewVideoView.getSettings().setJavaScriptCanOpenWindowsAutomatically(true);
         vrplayerPreviewVideoView.addJavascriptInterface(this, "Android");
+
+        vrplayerSettingsDialogView.findViewById(R.id.open_favourites).setOnClickListener(view ->
+            Controller.getInstance().getFavouritesManager().launchUrlYtFavourites(FavouritesManager.LAUNCHTYPE_WEB)
+        );
 
         //Web search
         createPlaybackDialog();
@@ -594,7 +599,7 @@ public class VREmbedLinkPlayer {
         openPreview();
     }
 
-    private void openPreview(String url) {
+    public void openPreview(String url) {
         setAttemptedURL(url);
 
         playbackSettingsDialog.show();

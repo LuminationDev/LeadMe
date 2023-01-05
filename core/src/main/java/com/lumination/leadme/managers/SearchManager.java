@@ -36,7 +36,7 @@ public class SearchManager {
 
     private final String TAG = "SearchManager";
 
-    public boolean isYouTube = false;
+    public static boolean isYouTube = false;
 
     private final Spinner searchSpinner;
     private final String[] searchSpinnerItems;

@@ -30,6 +30,7 @@ import com.google.firebase.crashlytics.FirebaseCrashlytics;
 import com.koushikdutta.urlimageviewhelper.UrlImageViewHelper;
 import com.lumination.leadme.BR;
 import com.lumination.leadme.adapters.CuratedContentAdapter;
+import com.lumination.leadme.adapters.FavouritesAdapter;
 import com.lumination.leadme.controller.Controller;
 import com.lumination.leadme.linkpreview.LinkPreviewCallback;
 import com.lumination.leadme.linkpreview.SourceContent;
@@ -72,8 +73,8 @@ public class CuratedContentManager {
 
     public static CuratedContentAdapter curatedContentAdapterSearch;
 
-    private static FavouritesManager urlFavouritesManager;
-    private static FavouritesManager videoFavouritesManager;
+    private static FavouritesAdapter urlFavouritesManager;
+    private static FavouritesAdapter videoFavouritesManager;
     private static LeadMeMain main;
 
     public static View curatedContentScreen;
@@ -208,8 +209,8 @@ public class CuratedContentManager {
         ccSubjects.add(0, "Please select");
         CuratedContentManager.curatedContentSubjects = ccSubjects;
 
-        CuratedContentManager.urlFavouritesManager = Controller.getInstance().getWebManager().getUrlFavouritesManager();
-        CuratedContentManager.videoFavouritesManager = Controller.getInstance().getWebManager().getYouTubeFavouritesManager();
+        CuratedContentManager.urlFavouritesManager = Controller.getInstance().getFavouritesManager().getUrlFavouritesAdapter();
+        CuratedContentManager.videoFavouritesManager = Controller.getInstance().getFavouritesManager().getYouTubeFavouritesAdapter();
         CuratedContentManager.main = LeadMeMain.getInstance();
         if (CuratedContentManager.curatedContentAdapter != null) {
             LeadMeMain.runOnUI(() -> {

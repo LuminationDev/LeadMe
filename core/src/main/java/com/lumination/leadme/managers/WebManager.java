@@ -16,7 +16,6 @@ import android.view.View;
 import android.webkit.URLUtil;
 import android.widget.Button;
 import android.widget.CheckBox;
-import android.widget.GridView;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.Spinner;
@@ -44,7 +43,7 @@ public class WebManager {
     private static final String TAG = "WebManager";
     private final TextCrawler textCrawler = new TextCrawler(this);
 
-    private AlertDialog websiteLaunchDialog, previewDialog, urlYtFavDialog;
+    private AlertDialog websiteLaunchDialog, previewDialog;
     private final View websiteLaunchDialogView;
     private final View previewDialogView;
     public boolean launchingVR = false, enteredVR = false;
@@ -60,12 +59,9 @@ public class WebManager {
 
     private final Button previewPushBtn;
 
-    private final View webYouTubeFavView;
-    private final FavouritesManager urlFavouritesManager;
-    private final FavouritesManager youTubeFavouritesManager;
-
     private final LeadMeMain main;
     public final SearchManager searchManager;
+    public final FavouritesManager favouritesManager;
     private final DialogManager dialogManager;
     private final CheckBox favCheckbox;
 
@@ -97,30 +93,15 @@ public class WebManager {
         lockSpinner.setAdapter(push_adapter);
         lockSpinner.setSelection(0); //default to locked
 
-        //set up favourites view
-        webYouTubeFavView = View.inflate(main, R.layout.d__url_yt_favourites, null);
         favCheckbox = previewDialogView.findViewById(R.id.fav_checkbox);
-        setupWarningDialog();
 
-        urlFavouritesManager = new FavouritesManager(main, this, FavouritesManager.FAVTYPE_URL, 10);
-        youTubeFavouritesManager = new FavouritesManager(main, this, FavouritesManager.FAVTYPE_YT, 10);
-
-        ((GridView) webYouTubeFavView.findViewById(R.id.yt_favourites)).setAdapter(getYouTubeFavouritesManager());
-        ((GridView) webYouTubeFavView.findViewById(R.id.url_favourites)).setAdapter(getUrlFavouritesManager());
-
-        webYouTubeFavView.findViewById(R.id.clear_fav_btn).setOnClickListener(v -> {
-            showClearWebFavDialog(CLEAR_ALL);
-            getYouTubeFavouritesManager().clearFavourites();
-            getUrlFavouritesManager().clearFavourites();
-        });
-
-        setupViews();
         setupPreviewDialog();
         setupWebLaunchDialog();
         buildPreviewDialog();
 
         //Must be after preview dialog setup
         searchManager = new SearchManager(main, websiteLaunchDialogView, previewDialog, this::showPreview);
+        favouritesManager = Controller.getInstance().getFavouritesManager();
     }
 
     private boolean error = false;
@@ -141,7 +122,7 @@ public class WebManager {
                 hidePreviewDialog();
                 String searchTerm = sourceContent.getUrl().replace("http://", "").replace("https://", "").replace("www.", "").replace(".com/", "");
                 Log.d(TAG, "UnknownHostHandler: search: " + searchTerm);
-                searchManager.isYouTube = false;
+                SearchManager.isYouTube = false;
                 searchManager.setErrorPreview(searchTerm);
             } else {
                 // Populate your preview layout with the results of sourceContent.
@@ -169,19 +150,19 @@ public class WebManager {
                 try {
                     UrlImageViewHelper.setUrlDrawable(previewImage, icon, (imageView, loadedBitmap, url, loadedFromCache) -> {
 
-                        if (searchManager.isYouTube) {
-                            youTubeFavouritesManager.updateTitle(url, previewTitle.getText().toString());
+                        if (SearchManager.isYouTube) {
+                            favouritesManager.getYouTubeFavouritesAdapter().updateTitle(url, previewTitle.getText().toString());
                             youTubeEmbedPlayer.updateTitle(previewTitle.getText().toString());
                         } else {
-                            urlFavouritesManager.updateTitle(url, previewTitle.getText().toString());
+                            favouritesManager.getUrlFavouritesAdapter().updateTitle(url, previewTitle.getText().toString());
                         }
 
                         if (loadedBitmap != null) {
                             previewImage.setVisibility(View.VISIBLE); //show image
-                            if (searchManager.isYouTube) {
-                                youTubeFavouritesManager.updatePreview(url, previewImage.getDrawable());
+                            if (SearchManager.isYouTube) {
+                                favouritesManager.getYouTubeFavouritesAdapter().updatePreview(url, previewImage.getDrawable());
                             } else {
-                                urlFavouritesManager.updatePreview(url, previewImage.getDrawable());
+                                favouritesManager.getUrlFavouritesAdapter().updatePreview(url, previewImage.getDrawable());
                             }
 
                         } else {
@@ -190,9 +171,8 @@ public class WebManager {
                         }
                     });
 
-                    getUrlFavouritesManager().notifyDataSetChanged();
-                    getYouTubeFavouritesManager().notifyDataSetChanged();
-
+                    favouritesManager.getUrlFavouritesAdapter().notifyDataSetChanged();
+                    favouritesManager.getYouTubeFavouritesAdapter().notifyDataSetChanged();
 
                 } catch (Exception e) {
                     Log.e(TAG, "Error launching URL: " + e.getMessage());
@@ -215,98 +195,6 @@ public class WebManager {
         add(new ComponentName("com.android.browser", "com.android.browser.BrowserActivity"));
     }};
 
-    public FavouritesManager getUrlFavouritesManager() {
-        return urlFavouritesManager;
-    }
-
-    public FavouritesManager getYouTubeFavouritesManager() {
-        return youTubeFavouritesManager;
-    }
-
-    private void setupViews() {
-        Log.d(TAG, "setupViews: ");
-        webYouTubeFavView.findViewById(R.id.yt_add_btn).setOnClickListener(v -> {
-            searchManager.isYouTube = true;
-            Log.w(TAG, "YouTube add!");
-            showWebLaunchDialog(true);
-            urlYtFavDialog.dismiss();
-        });
-
-        webYouTubeFavView.findViewById(R.id.url_add_btn).setOnClickListener(v -> {
-            searchManager.isYouTube = false;
-            Log.w(TAG, "URL add!");
-            showWebLaunchDialog(true);
-            urlYtFavDialog.dismiss();
-        });
-
-        webYouTubeFavView.findViewById(R.id.yt_del_btn).setOnClickListener(v -> showClearWebFavDialog(CLEAR_VID));
-        webYouTubeFavView.findViewById(R.id.url_del_btn).setOnClickListener(v -> showClearWebFavDialog(CLEAR_URL));
-    }
-
-    final private static int CLEAR_ALL = 0;
-    final private static int CLEAR_VID = 1;
-    final private static int CLEAR_URL = 2;
-    private int whatToClear = -1;
-
-    private TextView warningTextView;
-    private AlertDialog warningDialog;
-
-    private void setupWarningDialog() {
-        Log.d(TAG, "setupWarningDialog: ");
-        View warningDialogView = View.inflate(main, R.layout.e__fav_clear_confirmation_popup, null);
-        warningTextView = warningDialogView.findViewById(R.id.favclear_comment);
-
-        warningDialogView.findViewById(R.id.ok_btn).setOnClickListener(v -> {
-            switch (whatToClear) {
-                case CLEAR_ALL:
-                    getYouTubeFavouritesManager().clearFavourites();
-                    getUrlFavouritesManager().clearFavourites();
-                    break;
-
-                case CLEAR_VID:
-                    getYouTubeFavouritesManager().clearFavourites();
-                    break;
-
-                case CLEAR_URL:
-                    getUrlFavouritesManager().clearFavourites();
-                    break;
-            }
-            warningDialog.dismiss();
-            getUrlFavouritesManager().notifyDataSetChanged();
-            getYouTubeFavouritesManager().notifyDataSetChanged();
-        });
-
-        warningDialogView.findViewById(R.id.back_btn).setOnClickListener(v -> warningDialog.dismiss());
-
-        warningDialog = new AlertDialog.Builder(main)
-                .setView(warningDialogView)
-                .create();
-        warningDialog.setOnDismissListener(dialog -> main.hideSystemUI());
-
-    }
-
-    private void showClearWebFavDialog(int whatToClear) {
-        Log.d(TAG, "showClearWebFavDialog: ");
-        String message = "";
-        this.whatToClear = whatToClear;
-        switch (whatToClear) {
-            case CLEAR_ALL:
-                message = main.getResources().getString(R.string.delete_videos_and_websites_confirm);
-                break;
-
-            case CLEAR_VID:
-                message = main.getResources().getString(R.string.delete_videos_confirm);
-                break;
-
-            case CLEAR_URL:
-                message = main.getResources().getString(R.string.delete_websites_confirm);
-                break;
-        }
-
-        warningTextView.setText(message);
-        warningDialog.show();
-    }
-
     private void setupPreviewDialog() {
         Log.d(TAG, "setupPreviewDialog: ");
         previewImage = previewDialogView.findViewById(R.id.preview_image);
@@ -319,40 +207,37 @@ public class WebManager {
 
         previewPushBtn.setOnClickListener(v -> {
             //save to favourites if needed
-            if (/*adding_to_fav ||*/ saveWebToFav.isChecked()) {
-                if (searchManager.isYouTube) {
-                    getYouTubeFavouritesManager().addCurrentPreviewToFavourites();
+            if (/*FavouritesManager.adding_to_fav ||*/ saveWebToFav.isChecked()) {
+                if (SearchManager.isYouTube) {
+                    favouritesManager.getYouTubeFavouritesAdapter().addCurrentPreviewToFavourites(getPushURL(), getPreviewTitle(), getPreviewImage());
                 } else {
-                    getUrlFavouritesManager().addCurrentPreviewToFavourites();
+                    favouritesManager.getUrlFavouritesAdapter().addCurrentPreviewToFavourites(getPushURL(), getPreviewTitle(), getPreviewImage());
                 }
             }
 
             //if we're not only saving to favourites, push it to learners
-            if (!adding_to_fav) {
+            if (!FavouritesManager.adding_to_fav) {
                 //retrieve appropriate list of receivers
                 pushURL(pushURL, pushTitle);
             }
 
             //clean up dialogs
             hidePreviewDialog();
-            Controller.getInstance().getDialogManager().showConfirmPushDialog(false, adding_to_fav);
+            Controller.getInstance().getDialogManager().showConfirmPushDialog(false, FavouritesManager.adding_to_fav);
+            FavouritesManager.adding_to_fav = false;
 
             //reset
             pushURL = "";
             pushTitle = "";
             previewTitle.setText("");
             previewImage.setImageDrawable(null);
-
         });
 
         previewDialogView.findViewById(R.id.back_btn).setOnClickListener(v -> {
             hidePreviewDialog();
-            showWebLaunchDialog(adding_to_fav);
+            FavouritesManager.adding_to_fav = false;
+            showWebLaunchDialog(false);
         });
-    }
-
-    public View getWebYouTubeFavView() {
-        return webYouTubeFavView;
     }
 
     public ImageView getPreviewImageView() {
@@ -610,7 +495,7 @@ public class WebManager {
 
     private void showYouTubePreview(String url) {
         Log.d(TAG, "showYouTubePreview: ");
-        searchManager.isYouTube = true;
+        SearchManager.isYouTube = true;
         //first position is 'locked' - default for YouTube
         lockSpinner.setSelection(0);
         buildAndShowPreviewDialog(url);
@@ -618,7 +503,7 @@ public class WebManager {
 
     private void showWebsitePreview(String url) {
         Log.d(TAG, "showWebsitePreview: ");
-        searchManager.isYouTube = false;
+        SearchManager.isYouTube = false;
         //second position is 'unlocked' - default for website
         lockSpinner.setSelection(1);
         buildAndShowPreviewDialog(url);
@@ -636,14 +521,14 @@ public class WebManager {
         pushURL = url;
         controllerURL = url;
 
-        if (searchManager.isYouTube) {
+        if (SearchManager.isYouTube) {
             lockSpinner.setSelection(0); //default to locked
-            pushTitle = getYouTubeFavouritesManager().getTitle(url);
+            pushTitle = favouritesManager.getYouTubeFavouritesAdapter().getTitle(url);
             previewDialogView.findViewById(R.id.preview_youtube).setVisibility(View.VISIBLE);
             previewDialogView.findViewById(R.id.preview_web).setVisibility(View.GONE);
         } else {
             lockSpinner.setSelection(1); //default to unlocked
-            pushTitle = getUrlFavouritesManager().getTitle(url);
+            pushTitle = favouritesManager.getUrlFavouritesAdapter().getTitle(url);
             previewDialogView.findViewById(R.id.preview_web).setVisibility(View.VISIBLE);
             previewDialogView.findViewById(R.id.preview_youtube).setVisibility(View.GONE);
         }
@@ -655,18 +540,18 @@ public class WebManager {
         Controller.getInstance().getDialogManager().toggleSelectedView(previewDialogView);
 
         //set up preview to appear correctly
-        if (adding_to_fav) {
-            previewPushBtn.setText(main.getResources().getString(R.string.add_this_app_to_favourites));
+        if (FavouritesManager.adding_to_fav) {
+            LeadMeMain.runOnUI(() -> previewPushBtn.setText(main.getResources().getString(R.string.add_this_app_to_favourites)));
             favCheckbox.setChecked(true);
             favCheckbox.setVisibility(View.GONE);
-
-        } else if (searchManager.isYouTube) {
-            favCheckbox.setChecked(youTubeFavouritesManager.isInFavourites(url));
+        } else if (SearchManager.isYouTube) {
+            LeadMeMain.runOnUI(() -> previewPushBtn.setText(main.getResources().getString(R.string.push_this_to_everyone)));
+            favCheckbox.setChecked(favouritesManager.getYouTubeFavouritesAdapter().isInFavourites(url));
             youTubeEmbedPlayer.showPlaybackPreview(pushURL, pushTitle);
             return;
-
         } else {
-            favCheckbox.setChecked(urlFavouritesManager.isInFavourites(url));
+            LeadMeMain.runOnUI(() -> previewPushBtn.setText(main.getResources().getString(R.string.push_this_to_everyone)));
+            favCheckbox.setChecked(favouritesManager.getUrlFavouritesAdapter().isInFavourites(url));
             favCheckbox.setVisibility(View.VISIBLE);
         }
 
@@ -684,17 +569,15 @@ public class WebManager {
         previewDialog.setOnDismissListener(dialog -> main.hideSystemUI());
     }
 
-    boolean adding_to_fav = false;
-
     public void showWebLaunchDialog(boolean isYT, boolean add_fav_mode) {
         Log.d(TAG, "showWebLaunchDialog: ");
-        searchManager.isYouTube = isYT;
+        SearchManager.isYouTube = isYT;
         showWebLaunchDialog(add_fav_mode);
     }
 
     public void showWebLaunchDialog(boolean add_fav_mode) {
         Log.d(TAG, "showWebLaunchDialog: ");
-        if (searchManager.isYouTube && lastWasGuideView) {
+        if (SearchManager.isYouTube && lastWasGuideView) {
             youTubeEmbedPlayer.showVideoController(); //null, null);
             return;
         }
@@ -705,8 +588,6 @@ public class WebManager {
                     .create();
             websiteLaunchDialog.setOnDismissListener(dialog -> main.hideSystemUI());
         }
-
-        adding_to_fav = add_fav_mode;
 
         websiteLaunchDialog.show();
         websiteLaunchDialogView.findViewById(R.id.url_input_field).requestFocus();
@@ -754,7 +635,7 @@ public class WebManager {
             main.closeKeyboard();
             main.hideSystemUI();
             websiteLaunchDialog.dismiss();
-            launchUrlYtFavourites();
+            favouritesManager.launchUrlYtFavourites(FavouritesManager.LAUNCHTYPE_WEB);
         });
     }
 
@@ -788,7 +669,7 @@ public class WebManager {
                 hidePreviewDialog();
                 String searchTerm = url.replace("http://", "").replace("https://", "").replace("www.", "").replace(".com/", "");
                 Log.d(TAG, "UnknownHostHandler: search: " + searchTerm);
-                searchManager.isYouTube = false;
+                SearchManager.isYouTube = false;
                 searchManager.setErrorPreview(searchTerm);
                 return;
             }
@@ -796,7 +677,7 @@ public class WebManager {
 
         String youTubeId = getYouTubeID(url);
         if (!youTubeId.isEmpty()) {
-            searchManager.isYouTube = true;
+            SearchManager.isYouTube = true;
         }
 
         if (url.contains("with.in/watch/")) {
@@ -818,12 +699,12 @@ public class WebManager {
 
         Drawable preview;
         String title;
-        if (searchManager.isYouTube) {
-            title = youTubeFavouritesManager.getTitle(url);
-            preview = youTubeFavouritesManager.getPreview(url);
+        if (SearchManager.isYouTube) {
+            title = favouritesManager.getYouTubeFavouritesAdapter().getTitle(url);
+            preview = favouritesManager.getYouTubeFavouritesAdapter().getPreview(url);
         } else {
-            title = urlFavouritesManager.getTitle(url);
-            preview = urlFavouritesManager.getPreview(url);
+            title = favouritesManager.getUrlFavouritesAdapter().getTitle(url);
+            preview = favouritesManager.getUrlFavouritesAdapter().getPreview(url);
         }
 
         if (preview == null || title == null) {
@@ -864,32 +745,6 @@ public class WebManager {
         return origUrl;
     }
 
-    void hideFavDialog() {
-        Log.d(TAG, "hideFavDialog: ");
-        main.closeKeyboard();
-        main.hideSystemUI();
-        urlYtFavDialog.dismiss();
-    }
-
-    public void launchUrlYtFavourites() {
-        Log.d(TAG, "launchUrlYtFavourites: ");
-        getUrlFavouritesManager().clearPreviews();
-        getUrlFavouritesManager().notifyDataSetChanged();
-        getYouTubeFavouritesManager().clearPreviews();
-        getYouTubeFavouritesManager().notifyDataSetChanged();
-
-        if (urlYtFavDialog == null) {
-            urlYtFavDialog = new AlertDialog.Builder(main)
-                    .setView(webYouTubeFavView)
-                    .create();
-            urlYtFavDialog.setOnDismissListener(dialog -> main.hideSystemUI());
-
-            webYouTubeFavView.findViewById(R.id.back_btn).setOnClickListener(v -> urlYtFavDialog.dismiss());
-        }
-
-        urlYtFavDialog.show();
-    }
-
     private void hideWebsiteLaunchDialog() {
         Log.d(TAG, "hideWebsiteLaunchDialog: ");
         main.closeKeyboard();
@@ -922,19 +777,13 @@ public class WebManager {
         } else {
             startSubstring = "&t=1";
         }
-        String finalURL = "https://www.youtube.com/watch/" + id + suffix + startSubstring;
+        String finalURL = "https://www.youtube.com/watch/" + id + FavouritesManager.getSuffix() + startSubstring;
         Log.d(TAG, "Final URL: " + finalURL);
         return finalURL;
     }
 
     public YouTubeEmbedPlayer getYouTubeEmbedPlayer() {
         return youTubeEmbedPlayer;
-    }
-
-    private static final String suffix = "?rel=0&autoplay=0"; //&autoplay=1&start=1&end=10&controls=0&rel=0";
-
-    public String getSuffix() {
-        return suffix;
     }
 
     public void launchYouTube(String url, String urlTitle, boolean vrOn, boolean updateTask) {
@@ -1048,10 +897,8 @@ public class WebManager {
             websiteLaunchDialog.dismiss();
         if (previewDialog != null)
             previewDialog.dismiss();
-        if (urlYtFavDialog != null)
-            urlYtFavDialog.dismiss();
-        if (warningDialog != null)
-            warningDialog.dismiss();
+        if (favouritesManager.warningDialog != null)
+            favouritesManager.warningDialog.dismiss();
 
         youTubeEmbedPlayer.dismissDialogs();
     }

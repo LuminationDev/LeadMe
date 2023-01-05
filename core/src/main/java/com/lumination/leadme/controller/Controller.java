@@ -21,6 +21,7 @@ import com.lumination.leadme.managers.AppManager;
 import com.lumination.leadme.managers.AuthenticationManager;
 import com.lumination.leadme.managers.DialogManager;
 import com.lumination.leadme.managers.DispatchManager;
+import com.lumination.leadme.managers.FavouritesManager;
 import com.lumination.leadme.managers.FileTransferManager;
 import com.lumination.leadme.managers.FirebaseManager;
 import com.lumination.leadme.managers.NearbyPeersManager;
@@ -125,6 +126,7 @@ public class Controller {
     private final PermissionManager permissionManager;
     private final AuthenticationManager authenticationManager;
     private final NearbyPeersManager nearbyManager;
+    private final FavouritesManager favouritesManager;
     private final WebManager webManager;
     private final DialogManager dialogManager;
     private final AppManager appLaunchAdapter;
@@ -148,6 +150,7 @@ public class Controller {
         dialogManager = new DialogManager(main);
         nearbyManager = new NearbyPeersManager();
         dispatcher = new DispatchManager(main);
+        favouritesManager = new FavouritesManager(main);
         webManager = new WebManager(main);
         leaderSelectAdapter = new LeaderSelectAdapter(main);
         vrAccessibilityManager = new VRAccessibilityManager(main);
@@ -354,6 +357,9 @@ public class Controller {
     }
     public AppManager getAppManager() {
         return appLaunchAdapter;
+    }
+    public FavouritesManager getFavouritesManager() {
+        return favouritesManager;
     }
     public WebManager getWebManager() {
         return webManager;

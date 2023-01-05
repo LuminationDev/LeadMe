@@ -44,6 +44,7 @@ import com.lumination.leadme.adapters.LumiSpinnerAdapter;
 import com.lumination.leadme.controller.Controller;
 import com.lumination.leadme.managers.AppManager;
 import com.lumination.leadme.managers.DispatchManager;
+import com.lumination.leadme.managers.FavouritesManager;
 import com.lumination.leadme.managers.NearbyPeersManager;
 
 import org.jsoup.Jsoup;
@@ -122,7 +123,7 @@ public class WithinEmbedPlayer {
             main.closeKeyboard();
             main.hideSystemUI();
             videoSearchDialog.dismiss();
-            Controller.getInstance().getWebManager().launchUrlYtFavourites();
+            Controller.getInstance().getFavouritesManager().launchUrlYtFavourites(FavouritesManager.LAUNCHTYPE_WEB);
         });
 
         searchSpinner = (Spinner) withinSearchDialogView.findViewById(R.id.search_spinner);
@@ -305,7 +306,7 @@ public class WithinEmbedPlayer {
                 if (searchView && url.startsWith(foundPrefix) && url.endsWith(foundSuffix)) {
                     foundTitle = url.replace(foundPrefix, "").replace(foundSuffix, "");
                     setFoundURL(urlPrefix + foundTitle);
-                    Log.w(TAG, "EXTRACTED! " + foundURL + ", " + Controller.getInstance().getAppManager().getFavouritesManager().isInFavourites(foundURL));
+                    Log.w(TAG, "EXTRACTED! " + foundURL + ", " + Controller.getInstance().getFavouritesManager().getAppFavouritesAdapter().isInFavourites(foundURL));
 
 
                 } else if (url.startsWith("https://cms.with.in/v1/category/all?page=")) {
@@ -491,7 +492,7 @@ public class WithinEmbedPlayer {
 
         //add to favourites
         if (favCheck.isChecked()) {
-            Controller.getInstance().getWebManager().getYouTubeFavouritesManager().addToFavourites(foundURL, foundTitle, null);
+            Controller.getInstance().getFavouritesManager().getYouTubeFavouritesAdapter().addToFavourites(foundURL, foundTitle, null);
         }
 
         withinControllerDialogView.findViewById(R.id.vr_mode).setVisibility(vrMode ? View.VISIBLE : View.GONE);
@@ -577,7 +578,7 @@ public class WithinEmbedPlayer {
             }).start();
             //update check if appropriate
             favCheck.setEnabled(true);
-            favCheck.setChecked(Controller.getInstance().getWebManager().getYouTubeFavouritesManager().isInFavourites(foundURL));
+            favCheck.setChecked(Controller.getInstance().getFavouritesManager().getYouTubeFavouritesAdapter().isInFavourites(foundURL));
 
         } else {
             internetUnavailableMsg.setVisibility(View.VISIBLE);

@@ -34,7 +34,6 @@ public class AppManager extends BaseAdapter {
 
     private final LeadMeMain main;
     private static PackageManager pm;
-    private final FavouritesManager favouritesManager;
     private final WithinEmbedPlayer withinPlayer;
 
     private List<ApplicationInfo> appList;
@@ -50,7 +49,6 @@ public class AppManager extends BaseAdapter {
 
     public AppManager(LeadMeMain main) {
         this.main = main;
-        favouritesManager = new FavouritesManager(main, null, FavouritesManager.FAVTYPE_APP, 4);
         withinPlayer = new WithinEmbedPlayer(main);
         app_placeholder = ContextCompat.getDrawable(main.context, R.drawable.icon_unknown_browser);
         defaultBrowserUrl = main.getResources().getString(R.string.default_browser_url);
@@ -70,10 +68,6 @@ public class AppManager extends BaseAdapter {
 
         LumiSpinnerAdapter withinAdapter = new LumiSpinnerAdapter(main, R.layout.row_push_spinner, items, imgs);
         withinLockSpinner.setAdapter(withinAdapter);
-    }
-
-    public FavouritesManager getFavouritesManager() {
-        return favouritesManager;
     }
 
     public static Drawable getAppIcon(String packageName) {
@@ -393,7 +387,7 @@ public class AppManager extends BaseAdapter {
 
             convertView.setLongClickable(true);
             convertView.setOnLongClickListener(v -> {
-                favouritesManager.manageFavouritesEntry(packageName);
+                Controller.getInstance().getFavouritesManager().getAppFavouritesAdapter().manageFavouritesEntry(packageName);
                 return true; //true if event is consumed
             });
 

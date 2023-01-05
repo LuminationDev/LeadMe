@@ -680,7 +680,7 @@ public class DialogManager {
         if (isSavedOnly) {
             LeadMeMain.UIHandler.postDelayed(() -> {
                 hideConfirmPushDialog();
-                Controller.getInstance().getWebManager().launchUrlYtFavourites();
+                Controller.getInstance().getFavouritesManager().launchUrlYtFavourites(FavouritesManager.LAUNCHTYPE_WEB);
             }, 1500);
         } else {
             LeadMeMain.UIHandler.postDelayed(this::hideConfirmPushDialog, 1500);
