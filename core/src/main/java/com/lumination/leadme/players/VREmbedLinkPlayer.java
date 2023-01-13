@@ -692,10 +692,6 @@ public class VREmbedLinkPlayer {
     }
 
     private void setupGuideVideoControllerButtons() {
-        videoControllerDialogView.findViewById(R.id.push_again_btn).setOnClickListener(v ->
-                relaunchVR(NearbyPeersManager.getSelectedPeerIDsOrAll())
-        );
-
         videoControllerDialogView.findViewById(R.id.new_video_btn).setOnClickListener(v -> {
             resetControllerState();
             videoControlDialog.dismiss();

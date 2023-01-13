@@ -57,23 +57,6 @@
                 android:textColor="@color/leadme_black"
                 android:textSize="16sp" />
 
-            <TextView
-                android:id="@+id/push_again_btn"
-                android:layout_width="60dp"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_vertical"
-                android:layout_marginEnd="15dp"
-                android:clickable="true"
-                android:drawableTop="@drawable/icon_repush"
-                android:fontFamily="@font/poppins_semibold"
-                android:gravity="center_horizontal"
-                android:includeFontPadding="false"
-                android:text="@string/re_push"
-                android:textAllCaps="false"
-                android:textColor="@color/leadme_darkest_grey"
-                android:textSize="12sp"
-                android:focusable="true" />
-
         </LinearLayout>
 
         <TextView
