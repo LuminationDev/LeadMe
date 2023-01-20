@@ -5,6 +5,9 @@
     "projectToken": "",
     "baseBranches": []
   },
+  "scanSettingsSAST": {
+    "enableScan": "true"
+  },
   "checkRunSettings": {
     "vulnerableCheckRunConclusionLevel": "failure",
     "displayMode": "diff",
