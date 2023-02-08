@@ -50,9 +50,6 @@ public class DispatchManager {
         Log.w(TAG, "REPUSH: " + tagRepush + ", " + packageNameRepush + ", " + appNameRepush + ", " + lockTagRepush + ", " + extraRepush);
         LeadMeMain.getInstance().recallToLeadMe();
         switch(lastEvent){
-            case 1:
-                requestRemoteWithinLaunch(tagRepush, packageNameRepush, appNameRepush, lockTagRepush, extraRepush, streamingRepush, vrModeRepush, selectedPeerIDs);
-                break;
             case 2:
                 requestRemoteAppOpen(tagRepush, packageNameRepush, appNameRepush, lockTagRepush, "false", selectedPeerIDs);
                 break;
@@ -99,42 +96,6 @@ public class DispatchManager {
     }
 
     /**
-     * Launch a within experience on the learner's devices with a set video source to stream or download.
-     * @param tag A string ....
-     * @param packageName A string representing if the package is within.
-     * @param appName A string representing the name of the application 'Within'.
-     * @param lockTag A string representing if the learner devices should be in lock or play mode.
-     * @param extra A string representing the URL of the video to launch.
-     * @param streaming A boolean determining if the video is to be streamed or downloaded.
-     * @param vrMode A boolean determining if launching in VR mode.
-     * @param selectedPeerIDs A set of strings that represents the selected peers.
-     */
-    public static void requestRemoteWithinLaunch(String tag, String packageName, String appName, String lockTag, String extra, boolean streaming, boolean vrMode, Set<String> selectedPeerIDs) {
-        Log.d(TAG, "requestRemoteWithinLaunch: " + extra);
-        lastEvent=1;
-        tagRepush = tag;
-        packageNameRepush = packageName;
-        appNameRepush = appName;
-        lockTagRepush = lockTag;
-        extraRepush = extra;
-        streamingRepush = streaming;
-        vrModeRepush = vrMode;
-        Parcel p = Parcel.obtain();
-        byte[] bytes;
-        p.writeString(tag);
-        p.writeString(packageName);
-        p.writeString(appName);
-        p.writeString(lockTag);
-        p.writeString(extra);
-        p.writeString(streaming + "");
-        p.writeString(vrMode + "");
-        bytes = p.marshall();
-        p.recycle();
-        writeMessageToSelected(bytes, selectedPeerIDs);
-        LeadMeMain.getInstance().updateLastTask(AppManager.getAppIcon(packageName), AppManager.getAppName(packageName), packageName, lockTag);
-    }
-
-    /**
      * Launch an application on the learner's device.
      * @param tag A string ....
      * @param packageName A string representing if the package is within.
@@ -165,10 +126,6 @@ public class DispatchManager {
         writeMessageToSelected(bytes, selectedPeerIDs);
 
         LeadMeMain.getInstance().updateLastTask(AppManager.getAppIcon(packageName), AppManager.getAppName(packageName), packageName, lockTag);
-
-        if (!packageName.equals(AppManager.withinPackage)) {
-            Controller.getInstance().getAppManager().getWithinPlayer().foundURL = "";
-        }
     }
 
     public synchronized void alertLogout() {
@@ -382,36 +339,8 @@ public class DispatchManager {
             }
 
             boolean appInForeground = main.isAppVisibleInForeground();
-            if (packageName.equals(AppManager.withinPackage)) {
-                if (!extra.isEmpty()) {
-                    // save all the info for a Within launch
-                    Uri thisURI = Uri.parse(extra);
-
-                    if (AppManager.withinURI != null && AppManager.withinURI.equals(thisURI) && !main.isAppVisibleInForeground()) {
-                        Log.w(TAG, "We're already playing " + thisURI.toString() + "! Ignoring...");
-                        return true; //successfully extracted the details, no action needed
-
-                    } else {
-                        Log.e(TAG, String.valueOf(thisURI));
-                        AppManager.withinURI = thisURI;
-                        AppManager.isStreaming = Boolean.parseBoolean(streaming);
-                        AppManager.isVR = Boolean.parseBoolean(vrMode);
-                        Log.d(TAG, "Setting streaming status, vrMode and URL for WITHIN VR " + extra + ", " + streaming + ", " + vrMode + ", (" + appInForeground + ")");
-
-                    }
-                } else {
-                    Log.w(TAG, "[1] No URI, reset state!");
-                    //no URL was specified, so clear any previous info
-                    AppManager.withinURI = null;
-                    main.getLumiAccessibilityConnector().resetState();
-
-                }
-            } else {
-                Log.w(TAG, "[2] No URI, reset state!");
-                //no URL was specified, so clear any previous info
-                AppManager.withinURI = null;
-                main.getLumiAccessibilityConnector().resetState();
-            }
+            Log.w(TAG, "[2] No URI, reset state!");
+            main.getLumiAccessibilityConnector().resetState();
 
             if (!appInForeground) {
                 Log.d(TAG, "NEED FOCUS!");

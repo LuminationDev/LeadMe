@@ -120,8 +120,7 @@ public class WebManager {
         searchSpinnerItems = new String[3];
         searchSpinnerItems[0] = "Google search";
         searchSpinnerItems[1] = "YouTube search";
-        searchSpinnerItems[2] = "Within search";
-        Integer[] search_imgs = {R.drawable.search_google, R.drawable.search_yt, R.drawable.search_within};
+        Integer[] search_imgs = {R.drawable.search_google, R.drawable.search_yt};
         LumiSpinnerAdapter search_adapter = new LumiSpinnerAdapter(main, R.layout.row_search_spinner, searchSpinnerItems, search_imgs);
         searchSpinner.setAdapter(search_adapter);
 
@@ -564,19 +563,6 @@ public class WebManager {
         Intent intent = new Intent();
         intent.setAction(Intent.ACTION_VIEW);
 
-        if (url.contains("with.in/watch")) {
-            intent.setPackage(AppManager.withinPackage);
-            Uri uri = Uri.parse(url);
-            intent.setData(uri);
-
-            if (intent.resolveActivityInfo(pm, 0) != null) {
-                main.startActivity(intent);
-                return;
-            } else {
-                intent.setPackage(null); //remove this
-            }
-        }
-
         intent.addCategory(Intent.CATEGORY_BROWSABLE);
         intent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
         Uri uri = Uri.parse(url);
@@ -850,12 +836,6 @@ public class WebManager {
             isYouTube = true;
         }
 
-        if (url.contains("with.in/watch/")) {
-            Log.w(TAG, "This is a Within VR video!");
-            Controller.getInstance().getAppManager().getWithinPlayer().showController(url);
-            return;
-        }
-
         //hide preview image and title
         previewProgress.setVisibility(View.VISIBLE);
         previewMessage.setVisibility(View.GONE);
@@ -1115,7 +1095,6 @@ public class WebManager {
     //private boolean searchYoutube = true;
     private final int SEARCH_WEB = 0;
     private final int SEARCH_YOUTUBE = 1;
-    private final int SEARCH_WITHIN = 2;
     private int searchType = SEARCH_WEB;
     private WebView searchWebView;
 
@@ -1185,9 +1164,6 @@ public class WebManager {
                         ((TextView) searchDialogView.findViewById(R.id.web_search_title)).setText(R.string.search_web);
                         searchType = SEARCH_WEB;
 
-                    } else if (searchSpinnerItems[position].startsWith("Within")) {
-                        ((TextView) searchDialogView.findViewById(R.id.web_search_title)).setText(R.string.search_within);
-                        searchType = SEARCH_WITHIN;
                     }
                     searchText(searchView.getQuery().toString());
                 }
@@ -1205,9 +1181,6 @@ public class WebManager {
                     break;
                 case SEARCH_YOUTUBE:
                     searchSpinner.setSelection(1);
-                    break;
-                case SEARCH_WITHIN:
-                    searchSpinner.setSelection(2);
                     break;
             }
 
@@ -1235,10 +1208,6 @@ public class WebManager {
             case SEARCH_YOUTUBE:
                 isYouTube=true;
                 searchSpinner.setSelection(1);
-                break;
-            case SEARCH_WITHIN:
-                isYouTube=false;
-                searchSpinner.setSelection(2);
                 break;
         }
         populateSearch();
@@ -1279,9 +1248,6 @@ public class WebManager {
             //NOTE - if this is used, will need to change triggers for when to show preview
             // (currently loads preview for anything that doesn't begin with google.com)
             //web.loadUrl("https://www.youtube.com/results?search_query="+newText);
-
-        } else if (searchType == SEARCH_WITHIN) {
-            searchWebView.loadUrl("https://www.google.com/search?q=" + newText + "&as_sitesearch=with.in");
 
         } else {
             searchWebView.loadUrl("https://www.google.com/search?q=" + newText);

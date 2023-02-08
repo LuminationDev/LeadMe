@@ -4,7 +4,7 @@ An Android app that allows a 'guide' to launch apps and deploy videos on connect
 * Push Apps to learners on an individual basis
 * lock, unlock and block the views of selected learners
 * screen share from student to teacher
-* launch youtube and within videos on student devices
+* launch youtube videos on student devices
 * launch websites on student devices
 
 
