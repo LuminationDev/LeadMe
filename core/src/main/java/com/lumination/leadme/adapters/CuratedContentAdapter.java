@@ -87,9 +87,6 @@ public class CuratedContentAdapter extends BaseAdapter {
 
         ImageView curatedContentTypeIcon = result.findViewById(R.id.curated_content_type_icon);
         switch (item.type) {
-            case WITHIN:
-                curatedContentTypeIcon.setBackground(ResourcesCompat.getDrawable(main.getResources(), R.drawable.search_within, null));
-                break;
             case YOUTUBE:
                 curatedContentTypeIcon.setBackground(ResourcesCompat.getDrawable(main.getResources(), R.drawable.core_yt_icon, null));
                 break;

@@ -110,9 +110,6 @@ public class CuratedContentManager {
 
         ImageView curatedContentTypeIcon = curatedContentScreenSingle.findViewById(R.id.curated_content_type_icon);
         switch (curatedContentItem.type) {
-            case WITHIN:
-                curatedContentTypeIcon.setBackground(ResourcesCompat.getDrawable(main.getResources(), R.drawable.search_within, null));
-                break;
             case YOUTUBE:
                 curatedContentTypeIcon.setBackground(ResourcesCompat.getDrawable(main.getResources(), R.drawable.core_yt_icon, null));
                 break;
@@ -276,9 +273,6 @@ public class CuratedContentManager {
                 switch (radioSelection) {
                     case "Youtube":
                         CuratedContentManager.filterCuratedContentByType(CuratedContentManager.filteredCuratedContentList, CuratedContentType.YOUTUBE);
-                        break;
-                    case "Within":
-                        CuratedContentManager.filterCuratedContentByType(CuratedContentManager.filteredCuratedContentList, CuratedContentType.WITHIN);
                         break;
                     case "Website":
                         CuratedContentManager.filterCuratedContentByType(CuratedContentManager.filteredCuratedContentList, CuratedContentType.LINK);
