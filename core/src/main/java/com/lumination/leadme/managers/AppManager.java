@@ -1,12 +1,10 @@
 package com.lumination.leadme.managers;
 
-import android.content.ComponentName;
 import android.content.Intent;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.graphics.drawable.Drawable;
-import android.net.Uri;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -33,7 +31,6 @@ public class AppManager extends BaseAdapter {
 
     private final LeadMeMain main;
     private static PackageManager pm;
-    private final FavouritesManager favouritesManager;
 
     private List<ApplicationInfo> appList;
     private ArrayList<String> appNameList;
@@ -47,7 +44,6 @@ public class AppManager extends BaseAdapter {
 
     public AppManager(LeadMeMain main) {
         this.main = main;
-        favouritesManager = new FavouritesManager(main, null, FavouritesManager.FAVTYPE_APP, 4);
         app_placeholder = ContextCompat.getDrawable(main.context, R.drawable.icon_unknown_browser);
         defaultBrowserUrl = main.getResources().getString(R.string.default_browser_url);
         inflater = LayoutInflater.from(main);
@@ -62,10 +58,6 @@ public class AppManager extends BaseAdapter {
         LumiSpinnerAdapter adapter = new LumiSpinnerAdapter(main, R.layout.row_push_spinner, items, imgs);
         lockSpinner.setAdapter(adapter);
         lockSpinner.setSelection(1); //default to unlocked
-    }
-
-    public FavouritesManager getFavouritesManager() {
-        return favouritesManager;
     }
 
     public static Drawable getAppIcon(String packageName) {
@@ -319,7 +311,7 @@ public class AppManager extends BaseAdapter {
 
             convertView.setLongClickable(true);
             convertView.setOnLongClickListener(v -> {
-                favouritesManager.manageFavouritesEntry(packageName);
+                Controller.getInstance().getFavouritesManager().getAppFavouritesAdapter().manageFavouritesEntry(packageName);
                 return true; //true if event is consumed
             });
 

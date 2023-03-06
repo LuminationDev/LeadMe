@@ -211,5 +211,9 @@
     <string name="unselected">Unselected</string>
     <string name="projection_type">Projection Type</string>
     <string name="please_confirm_pin_change">Please confirm pin change.</string>
+    <string name="link">Link</string>
+    <string name="video">Video</string>
+    <string name="photo">Photo</string>
+    <string name="loading_video">Loading video...</string>
 
 </resources>

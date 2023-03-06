@@ -235,16 +235,13 @@ public class YouTubeEmbedPlayer {
             }
         });
 
-        controllerWebView.setOnTouchListener(new View.OnTouchListener() {
-            @Override
-            public boolean onTouch(View v, MotionEvent event) {
-                //after ads finish initial play guide uses the buttons
-                if(firstTouch) {
-                    return peerWaitingForAds(); //check if ads have finished
-                }
-
-                return !firstTouch;
+        controllerWebView.setOnTouchListener((v, event) -> {
+            //after ads finish initial play guide uses the buttons
+            if(firstTouch) {
+                return peerWaitingForAds(); //check if ads have finished
             }
+
+            return !firstTouch;
         });
     }
 
@@ -538,7 +535,6 @@ public class YouTubeEmbedPlayer {
         output = output.replace("PLACEHOLDER_START", startTime);
         //Log.d(TAG, output);
         return output;
-
     }
 
     public void showVideoController() {
@@ -592,8 +588,8 @@ public class YouTubeEmbedPlayer {
         currentTime = -1;
         totalTime = -1;
         progressBar.setProgress(0);
-        playFromTime.setText("00:00");
-        elapsedTimeText.setText("00:00");
+        playFromTime.setText(R.string.zero_seconds);
+        elapsedTimeText.setText(R.string.zero_seconds);
         firstTouch = true;
         adsFinished = false;
         peersAdControl = 0;
@@ -751,7 +747,7 @@ public class YouTubeEmbedPlayer {
             lastLockState = lockSpinner.getSelectedItem().toString().startsWith("View");
             webManager.pushYouTube(attemptedURL, controllerTitle, durationCalc, lastLockState, isVROn(), LeadMeMain.selectedOnly);
             if (favCheck.isChecked()) {
-                webManager.getYouTubeFavouritesManager().addCurrentPreviewToFavourites();
+                webManager.favouritesManager.getYouTubeFavouritesAdapter().addCurrentPreviewToFavourites(webManager.getPushURL(), webManager.getPreviewTitle(), webManager.getPreviewImage());
             }
 
             main.showLeaderScreen();
@@ -774,6 +770,7 @@ public class YouTubeEmbedPlayer {
         lockSpinner.setAdapter(push_adapter);
         lockSpinner.setSelection(0); //default to locked
     }
+
     private void showPushConfirmed() {
         playbackSettingsDialog.dismiss();
         View confirmPushDialogView = View.inflate(main, R.layout.e__confirm_popup, null);
@@ -828,7 +825,7 @@ public class YouTubeEmbedPlayer {
             youtubeVideoControls.setVisibility(View.GONE);
         }
 
-        favCheck.setChecked(Controller.getInstance().getWebManager().getYouTubeFavouritesManager().isInFavourites(url));
+        favCheck.setChecked(Controller.getInstance().getFavouritesManager().getYouTubeFavouritesAdapter().isInFavourites(url));
 
         if (playbackSettingsDialog == null) {
             playbackSettingsDialog = new AlertDialog.Builder(main)
