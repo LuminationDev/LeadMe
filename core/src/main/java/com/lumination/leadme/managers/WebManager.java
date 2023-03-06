@@ -92,7 +92,6 @@ public class WebManager {
         LumiSpinnerAdapter push_adapter = new LumiSpinnerAdapter(main, R.layout.row_push_spinner, lockSpinnerItems, push_imgs);
         lockSpinner.setAdapter(push_adapter);
         lockSpinner.setSelection(0); //default to locked
-
         favCheckbox = previewDialogView.findViewById(R.id.fav_checkbox);
 
         setupPreviewDialog();
@@ -395,19 +394,6 @@ public class WebManager {
         Intent intent = new Intent();
         intent.setAction(Intent.ACTION_VIEW);
 
-        if (url.contains("with.in/watch")) {
-            intent.setPackage(AppManager.withinPackage);
-            Uri uri = Uri.parse(url);
-            intent.setData(uri);
-
-            if (intent.resolveActivityInfo(pm, 0) != null) {
-                main.startActivity(intent);
-                return;
-            } else {
-                intent.setPackage(null); //remove this
-            }
-        }
-
         intent.addCategory(Intent.CATEGORY_BROWSABLE);
         intent.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
         Uri uri = Uri.parse(url);
@@ -678,12 +664,6 @@ public class WebManager {
         String youTubeId = getYouTubeID(url);
         if (!youTubeId.isEmpty()) {
             SearchManager.isYouTube = true;
-        }
-
-        if (url.contains("with.in/watch/")) {
-            Log.w(TAG, "This is a Within VR video!");
-            Controller.getInstance().getAppManager().getWithinPlayer().showController(url);
-            return;
         }
 
         //hide preview image and title

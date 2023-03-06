@@ -1,12 +1,10 @@
 package com.lumination.leadme.managers;
 
-import android.content.ComponentName;
 import android.content.Intent;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.graphics.drawable.Drawable;
-import android.net.Uri;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -22,7 +20,6 @@ import com.lumination.leadme.LeadMeMain;
 import com.lumination.leadme.R;
 import com.lumination.leadme.adapters.LumiSpinnerAdapter;
 import com.lumination.leadme.controller.Controller;
-import com.lumination.leadme.players.WithinEmbedPlayer;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -34,7 +31,6 @@ public class AppManager extends BaseAdapter {
 
     private final LeadMeMain main;
     private static PackageManager pm;
-    private final WithinEmbedPlayer withinPlayer;
 
     private List<ApplicationInfo> appList;
     private ArrayList<String> appNameList;
@@ -44,12 +40,10 @@ public class AppManager extends BaseAdapter {
     public static String lastApp = "";
 
     public static final String vrplayerPackage = "com.lumination.VRPlayer";
-    public static final String withinPackage = "com.shakingearthdigital.vrsecardboard";
     public static final String youtubePackage = "com.google.android.youtube";
 
     public AppManager(LeadMeMain main) {
         this.main = main;
-        withinPlayer = new WithinEmbedPlayer(main);
         app_placeholder = ContextCompat.getDrawable(main.context, R.drawable.icon_unknown_browser);
         defaultBrowserUrl = main.getResources().getString(R.string.default_browser_url);
         inflater = LayoutInflater.from(main);
@@ -58,16 +52,12 @@ public class AppManager extends BaseAdapter {
 
         //set up lock spinner
         lockSpinner = Controller.getInstance().getDialogManager().appPushDialogView.findViewById(R.id.push_spinner);
-        withinLockSpinner = withinPlayer.getLockSpinner();
         String[] items = {"View only", "Free play"};
         Integer[] imgs = {R.drawable.controls_view, R.drawable.controls_play};
 
         LumiSpinnerAdapter adapter = new LumiSpinnerAdapter(main, R.layout.row_push_spinner, items, imgs);
         lockSpinner.setAdapter(adapter);
         lockSpinner.setSelection(1); //default to unlocked
-
-        LumiSpinnerAdapter withinAdapter = new LumiSpinnerAdapter(main, R.layout.row_push_spinner, items, imgs);
-        withinLockSpinner.setAdapter(withinAdapter);
     }
 
     public static Drawable getAppIcon(String packageName) {
@@ -154,12 +144,6 @@ public class AppManager extends BaseAdapter {
                 launchLocalApp(packageName, appName, false, true, "false", null);
                 break;
 
-            case "VR Video":
-                if (packageName.equals(withinPackage)) {
-                    launchWithin(withinPlayer.foundURL, isStreaming, isVR, LeadMeMain.selectedOnly);
-                    break;
-                }
-
             case "YouTube":
                 Controller.getInstance().getWebManager().launchYouTube(url, urlTitle, false, Controller.getInstance().getWebManager().getYouTubeEmbedPlayer().isVROn());
                 break;
@@ -217,20 +201,6 @@ public class AppManager extends BaseAdapter {
             }
         }
 
-        if (packageName.equals(withinPackage)) {
-            intent = new Intent(Intent.ACTION_VIEW);
-            intent.setData(withinURI);
-            intent.addCategory(Intent.CATEGORY_BROWSABLE);
-            intent.setComponent(new ComponentName(withinPackage, withinPackage + ".activities.DeeplinkStartupActivity"));
-            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-        } else {
-            main.getLumiAccessibilityConnector().withinManager.cleanUpVideo(); //reset video state
-        }
-
-        if (actualAppPackage.equals(withinPackage)) {
-            main.activityManager.killBackgroundProcesses(withinPackage);
-        }
-
         if (actualAppPackage.equals(youtubePackage)) {
             main.activityManager.killBackgroundProcesses(youtubePackage);
         }
@@ -246,7 +216,6 @@ public class AppManager extends BaseAdapter {
                 main.updateFollowerCurrentTask(actualAppPackage, appName, "Application", "", "");
             }
         }
-        Log.w(TAG, "Launching: " + appName + ", " + actualAppPackage + " " + withinPackage + ", " + withinURI);
 
 
         DispatchManager.sendActionToSelected(Controller.ACTION_TAG,
@@ -257,7 +226,7 @@ public class AppManager extends BaseAdapter {
                 NearbyPeersManager.getAllPeerIDs());
     }
 
-    private final Spinner lockSpinner, withinLockSpinner;
+    private final Spinner lockSpinner;
 
     /**
      * Used by LEADER to launch an app on LEARNER devices.
@@ -285,51 +254,9 @@ public class AppManager extends BaseAdapter {
         DispatchManager.requestRemoteAppOpen(Controller.APP_TAG, packageName, appName, lockTag, install, peerSet);
     }
 
-    public WithinEmbedPlayer getWithinPlayer() {
-        return withinPlayer;
-    }
-
     public static boolean isStreaming = false;
     public static boolean isVR = true;
-    public static Uri withinURI = null;
     public static boolean videoInit = false;
-
-    public static boolean getIsWithinStreaming() {
-        return isStreaming;
-    }
-
-    public static boolean getIsWithinVRMode() {
-        return isVR;
-    }
-
-    /**
-     * Request that Within open with the supplied url video.
-     * @param url A string representing the url of the selected video.
-     * @param isStreaming A boolean determining if the video should be streamed of downloaded.
-     * @param isVR A boolean determining if the experience is in VR or flat screen mode.
-     * @param selectedOnly  A boolean determining if just the selected peers should launch the
-     *                      application.
-     */
-    public void launchWithin(String url, boolean isStreaming, boolean isVR, boolean selectedOnly) {
-        Log.d(TAG, "launchWithin: " + isStreaming + ", " + isVR + ", " + "Title: " + url);
-        AppManager.isStreaming = isStreaming;
-        AppManager.isVR = isVR;
-        videoInit = false; //reset
-        //update lock status
-        String lockTag = Controller.LOCK_TAG;
-        if (withinLockSpinner.getSelectedItemPosition() == 1) {
-            //locked by default, unlocked if selected
-            lockTag = Controller.UNLOCK_TAG;
-        }
-        //send launch request
-        if(selectedOnly) {
-            DispatchManager.requestRemoteWithinLaunch(Controller.APP_TAG, withinPackage,
-                    "Within VR", lockTag, url, isStreaming, isVR, NearbyPeersManager.getSelectedPeerIDsOrAll());
-        }else{
-            DispatchManager.requestRemoteWithinLaunch(Controller.APP_TAG, withinPackage,
-                    "Within VR", lockTag, url, isStreaming, isVR, NearbyPeersManager.getAllPeerIDs());
-        }
-    }
 
 
     @Override
@@ -373,13 +300,10 @@ public class AppManager extends BaseAdapter {
             viewHolder.myIcon.setImageDrawable(appIcon);
 
             convertView.setOnClickListener(v -> {
-                Log.i(TAG, "Launching " + appName + " from " + packageName + " " + withinPackage);
+                Log.i(TAG, "Launching " + appName + " from " + packageName);
 
                 if(Controller.getInstance().getLumiAppInstaller().multiInstalling) { //selecting apps to install - first so Within can be selected
                     Controller.getInstance().getLumiAppInstaller().selectToInstall(selectedIndicator, appName + "//" + packageName);
-                } else if (packageName.equals(withinPackage)) {
-                    Log.d(TAG, "getView: is a within package");
-                    withinPlayer.showWithin(); //showGuideController();
                 } else {
                     Controller.getInstance().getDialogManager().showAppPushDialog(appName, appIcon, packageName);
                 }

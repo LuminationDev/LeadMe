@@ -38,18 +38,15 @@ public class LumiAccessibilityConnector {
     public boolean gestureInProgress = false;
 
     public YouTubeAccessibilityManager ytManager;
-    public WithinAccessibilityManager withinManager;
 
     public LumiAccessibilityConnector(LeadMeMain main) {
         Log.d(TAG, "LumiAccessibilityConnector: ");
         this.main = main;
         ytManager = new YouTubeAccessibilityManager(main, this);
-        withinManager = new WithinAccessibilityManager(main, this);
     }
 
     public void resetState() {
         ytManager.adFinished = false;
-        withinManager.resetTapInit();
     }
 
     public void cueYouTubeAction(String actionStr) {
@@ -251,13 +248,7 @@ public class LumiAccessibilityConnector {
             AccessibilityEvent finalEvent = event;
             AccessibilityNodeInfo finalRootInActiveWindow = rootInActiveWindow;
 
-            if (!appInForeground && event.getSource() != null && event.getSource().getPackageName().toString().contains(AppManager.withinPackage)) {
-                Log.e(TAG, "SOMETHING!");
-                executor.execute(() -> {
-                    withinManager.manageWithinAccess(finalEvent, finalRootInActiveWindow);
-                });
-
-            } else if (!appInForeground && event.getSource() != null && event.getSource().getPackageName().toString().contains(AppManager.youtubePackage)) {
+            if (!appInForeground && event.getSource() != null && event.getSource().getPackageName().toString().contains(AppManager.youtubePackage)) {
                 executor.execute(() -> {
                     Log.e(TAG, "Youtube: " + finalEvent);
                     //non-UI work here

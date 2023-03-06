@@ -591,15 +591,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             }
 
             runOnUI(() -> {
-                //wait until layout update is actioned before trying to gesture
-                while (currentTaskPackageName.equals(AppManager.withinPackage) && overlayView.isLayoutRequested()) {
-                    try {
-                        Thread.sleep(200);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                }
-
                 Log.w(TAG, "gesture cancelled");
                 getLumiAccessibilityConnector().gestureInProgress = false;
                 //activate the event once the tap completes
@@ -638,15 +629,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
                     backgroundExecutor.submit(() -> {
                         //wait until layout update is actioned before trying to gesture --> needs to be NON-UI thread or blocks
-                        do {
-                            try {
-                                Log.e(TAG, "Waiting... " + overlayView.isLayoutRequested());
-                                Thread.sleep(200);
-                            } catch (InterruptedException e) {
-                                e.printStackTrace();
-                            }
-                        } while (currentTaskPackageName.equals(AppManager.withinPackage) && overlayView.isLayoutRequested());
-
                         runOnUiThread(() -> { //must be UI thread
                             boolean success = accessibilityService.dispatchGesture(swipe, gestureResultCallback, UIHandler);
                             Log.e(TAG, "Did I dispatch " + swipe + " to " + accessibilityService + "? " + success + " // " + overlayView.isAttachedToWindow() + " // " + overlayView.isLayoutRequested());
@@ -814,7 +796,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                 if (studentLockOn && currentTaskPackageName != null && !currentTaskPackageName.equals(leadMePackageName)) {
                     Log.e(TAG, "RELAUNCH?? " + currentTaskPackageName);
 
-                    if (currentTaskPackageName.equals(AppManager.withinPackage) || currentTaskPackageName.equals(AppManager.youtubePackage)) {
+                    if (currentTaskPackageName.equals(AppManager.youtubePackage)) {
                         Controller.getInstance().getAppManager().relaunchLast(currentTaskPackageName, currentTaskName, currentTaskType, currentTaskURL, currentTaskURLTitle);
                     } else {
                         if(!currentTaskPackageName.equals(VREmbedVideoPlayer.packageName)) {
@@ -1281,11 +1263,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
         mainLeader.findViewById(R.id.url_core_btn).setOnTouchListener(touchListener);
         mainLeader.findViewById(R.id.url_core_btn).setOnClickListener(view -> Controller.getInstance().getWebManager().showWebLaunchDialog(false, false));
-
-        mainLeader.findViewById(R.id.within_core_btn).setOnTouchListener(touchListener);
-        mainLeader.findViewById(R.id.within_core_btn).setOnClickListener(view -> {
-            Controller.getInstance().getAppManager().getWithinPlayer().showWithin(); //launch within search
-        });
 
         mainLeader.findViewById(R.id.xray_core_btn).setOnTouchListener(touchListener);
         mainLeader.findViewById(R.id.xray_core_btn).setOnClickListener(v -> {
@@ -2506,7 +2483,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         closeKeyboard();
         PermissionManager.needsRecall = false;
         getLumiAccessibilityConnector().bringMainToFront(); //call each other until it works
-        getLumiAccessibilityConnector().withinManager.cleanUpVideo(); //end video
 
         Intent intent = new Intent(this, LeadMeMain.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);

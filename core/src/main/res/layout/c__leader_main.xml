@@ -170,27 +170,6 @@
             </LinearLayout>
 
             <LinearLayout
-                android:id="@+id/within_core_btn"
-                style="@style/LeaderButton"
-                android:orientation="vertical">
-                <LinearLayout
-                    style="@style/LeaderButton__IconWrapper">
-                    <LinearLayout
-                        style="@style/LeaderButton__Icon"
-                        android:background="@drawable/core_yt_icon"/>
-                </LinearLayout>
-                <LinearLayout
-                    style="@style/LeaderButton__Text">
-                    <TextView
-                        style="@style/LeaderButton__Text__Eyebrow"
-                        android:text="PUSH"/>
-                    <TextView
-                        style="@style/LeaderButton__Text__Lead"
-                        android:text="Within"/>
-                </LinearLayout>
-            </LinearLayout>
-
-            <LinearLayout
                 android:id="@+id/xray_core_btn"
                 style="@style/LeaderButton"
                 android:orientation="vertical">
