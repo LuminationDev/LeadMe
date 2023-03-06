@@ -88,6 +88,7 @@ public class VREmbedLinkPlayer {
     private int startFromTime = 1;
     private SeekBar progressBar;
     boolean pageLoaded = false;
+    boolean isYoutube = false;
 
     private boolean firstTouch; //track if the guide has started the video
     private final ImageView playBtn, pauseBtn;
@@ -295,19 +296,41 @@ public class VREmbedLinkPlayer {
     private void loadVideoGuideURL(String url, WebView video) {
         Log.d(TAG, "loadVideoGuideURL: 1");
 
-        //TODO switch between link domains here later?
-        attemptedURL = embedYouTubeURL(url);
-
         if (Controller.getInstance().getPermissionsManager().isInternetConnectionAvailable()) {
             internetUnavailableMsg.setVisibility(View.GONE);
+
+            //Switch between streaming domains
+            if(isYoutubeUrl(url)) {
+                isYoutube = true;
+                attemptedURL = embedYouTubeURL(url);
+                video.loadDataWithBaseURL(null, getYoutubeiFrameForURL(attemptedURL), "text/html", "UTF-8", null);
+            } else {
+                isYoutube = false;
+                firstTouch = false; //Do not have to interact with the screen before buttons can be activated (Youtube requires this)
+                attemptedURL = url;
+                video.loadDataWithBaseURL(null, getVimeoiFrameForURL(attemptedURL), "text/html", "UTF-8", null);
+            }
+
             Log.w(TAG, "Loading webview for: " + attemptedURL + ", " + video.getTag());
-            video.loadDataWithBaseURL(null, getiFrameForURL(attemptedURL), "text/html", "UTF-8", null);
         } else {
             internetUnavailableMsg.setVisibility(View.VISIBLE);
         }
         Log.d(TAG, "loadVideoGuideURL: 2");
     }
 
+    /**
+     * Determine if the supplied URL is of a youtube domain.
+     * @param youTubeURl A string of the URL to be checked.
+     * @return A boolean representing if the URL is of youtube origin.
+     */
+    private static boolean isYoutubeUrl(String youTubeURl) {
+        boolean success;
+        String pattern = "^(http(s)?:\\/\\/)?((w){3}.)?youtu(be|.be)?(\\.com)?\\/.+";
+
+        // Not Valid youtube URL
+        success = !youTubeURl.isEmpty() && youTubeURl.matches(pattern);
+        return success;
+    }
 
     /**
      * If the user has just selected a video for viewing hide the choose video button.
@@ -487,7 +510,7 @@ public class VREmbedLinkPlayer {
         setCurrentTime("" + newTime);
     }
 
-    public String getiFrameForURL(String url) {
+    public String getYoutubeiFrameForURL(String url) {
         String embedID = WebManager.getYouTubeID(url);
 
         InputStream htmlTemplate = main.getResources().openRawResource(R.raw.embed_yt_player);
@@ -502,6 +525,20 @@ public class VREmbedLinkPlayer {
         }
         output = new StringBuilder(output.toString().replace("PLACEHOLDER_ID", embedID));
         output = new StringBuilder(output.toString().replace("PLACEHOLDER_START", startTime));
+
+        return output.toString();
+    }
+
+    public String getVimeoiFrameForURL(String url) {
+        InputStream htmlTemplate = main.getResources().openRawResource(R.raw.embed_vimeo_player);
+        Scanner scanner = new Scanner(htmlTemplate);
+        StringBuilder output = new StringBuilder();
+
+        while (scanner.hasNext()) {
+            output.append(scanner.nextLine()).append("\n");
+        }
+
+        output = new StringBuilder(output.toString().replace("PLACEHOLDER_SOURCE", url));
 
         return output.toString();
     }
@@ -871,9 +908,13 @@ public class VREmbedLinkPlayer {
     private void playVideo() {
         if(buttonMessages()) { return; }
         //Play local video
-        LeadMeMain.runOnUI(() ->
-            controllerWebView.loadUrl("javascript:player.playVideo();")
-        );
+        LeadMeMain.runOnUI(() -> {
+            if (isYoutube) {
+                controllerWebView.loadUrl("javascript:player.playVideo();");
+            } else {
+                controllerWebView.loadUrl("javascript:playVideo();");
+            }
+        });
         buttonHighlights(VRAccessibilityManager.CUE_PLAY);
 
         //Send action to peers to play
@@ -885,9 +926,13 @@ public class VREmbedLinkPlayer {
     private void pauseVideo() {
         if(buttonMessages()) { return; }
         //Pause local video
-        LeadMeMain.runOnUI(() ->
-            controllerWebView.loadUrl("javascript:player.pauseVideo();")
-        );
+        LeadMeMain.runOnUI(() -> {
+            if (isYoutube) {
+                controllerWebView.loadUrl("javascript:player.pauseVideo();");
+            } else {
+                controllerWebView.loadUrl("javascript:pauseVideo();");
+            }
+        });
         buttonHighlights(VRAccessibilityManager.CUE_PAUSE);
 
         //Send action to peers to pause
