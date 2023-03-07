@@ -392,6 +392,10 @@ public class VREmbedLinkPlayer {
             Controller.getInstance().getDialogManager().showVRContentDialog();
         });
 
+        if(!isYoutube) {
+            playFromTime.setText("0:01");
+        }
+
         progressBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
@@ -458,6 +462,12 @@ public class VREmbedLinkPlayer {
         }
 
         Log.d(TAG, "Launching VR Player for students at: " + startFromTime);
+
+        if(!isYoutube) {
+            //Clear any timers that my be present from previous events
+            WebView video = vrplayerPreviewVideoView.findViewById(R.id.video_stream_videoview);
+            video.loadUrl("javascript:clearTimer();");
+        }
 
         //setting the playback video controller
         setupVideoPreview(controllerWebView);
