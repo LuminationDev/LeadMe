@@ -13,25 +13,12 @@
         <script>
           var player;
           var mytimer;
-          var playerCurrentTime;
-
           // 1. Wait for the page to load then assign the player object
           player = document.getElementById("video_stream");
 
           player.addEventListener('loadeddata', function() {
             var playerTotalTime = player.duration;
             Android.setTotalTime(parseInt(playerTotalTime));
-
-            player.currentTime = 0;
-
-            mytimer = setInterval(function() {
-              playerCurrentTime = player.currentTime;
-              Android.setCurrentTime(parseInt(playerCurrentTime));
-
-              if(playerCurrentTime === playerTotalTime) {
-                clearTimeout(mytimer);
-              }
-            }, 1000);
           }, false);
 
           function seekTo(url, time){
