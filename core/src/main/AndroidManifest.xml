@@ -89,12 +89,6 @@
         </receiver>
         <service
             android:enabled="true"
-            android:name=".services.ScreensharingService"
-            android:foregroundServiceType="mediaProjection"
-            android:stopWithTask="true">
-        </service>
-        <service
-            android:enabled="true"
             android:name=".services.FirebaseService"
             android:foregroundServiceType="dataSync"
             android:stopWithTask="true">

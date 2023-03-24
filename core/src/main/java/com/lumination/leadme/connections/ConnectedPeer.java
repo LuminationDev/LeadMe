@@ -43,7 +43,6 @@ public class ConnectedPeer {
     private boolean overlayEnabled = true;
     private boolean internetEnabled = true;
     private boolean lastAppLaunchSucceeded = true;
-    private boolean xray = true;
     private boolean transfer = true;
     private boolean installer = true;
 
@@ -105,10 +104,6 @@ public class ConnectedPeer {
                 hiddenAlerts.remove("onTask");
                 onTask = success;
                 break;
-            case Controller.STUDENT_NO_XRAY:
-                hiddenAlerts.remove("xrayOn");
-                xray=success;
-                break;
             case Controller.PERMISSION_TRANSFER_DENIED:
                 hiddenAlerts.remove("transferOn");
                 transfer=success;
@@ -146,9 +141,6 @@ public class ConnectedPeer {
         }
         if (!internetEnabled && !hiddenAlerts.contains("internetOn")) {
             res += "• No internet connection\n";
-        }
-        if(!xray && !hiddenAlerts.contains("xrayOn")){
-            res += "• Xray permission is disabled\n";
         }
         if(!transfer && !hiddenAlerts.contains("transferOn")) {
             res += "• Transfer permission is disabled\n";
@@ -257,13 +249,6 @@ public class ConnectedPeer {
                 hiddenAlerts.add("internetOn");
             } else {
                 hiddenAlerts.remove("internetOn");
-            }
-        }
-        if(!xray){
-            if(hide){
-                hiddenAlerts.add("xrayOn");
-            } else {
-                hiddenAlerts.remove("xrayOn");
             }
         }
         if(!transfer){

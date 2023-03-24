@@ -176,18 +176,6 @@ public class DispatchManager {
         if (actionTag != null && actionTag.equals(Controller.ACTION_TAG)) {
 
             switch (action) {
-                case Controller.XRAY_ON:
-                    dispatchAction.turnOnXray();
-                    break;
-
-                case Controller.XRAY_OFF:
-                    dispatchAction.turnOffXray();
-                    break;
-
-                case Controller.XRAY_REQUEST:
-                    dispatchAction.requestXray();
-                    break;
-
                 case Controller.PING_ACTION:
                     dispatchAction.stillAlivePing(action);
                     break;
@@ -474,26 +462,6 @@ public class DispatchManager {
      * Action functions associated with the dispatch manager class.
      */
     private class Actions {
-        /**
-         * Detect if the screen capture service for a learner device is granted permission. Ask for
-         * permission if not, otherwise connect to the server and start sending images.
-         */
-        private void turnOnXray() {
-            if(!ScreenSharingManager.permissionGranted){
-                Controller.getInstance().getScreenSharingManager().startService(true);
-                return;
-            }
-
-            Controller.getInstance().getScreenSharingManager().connectToServer();
-        }
-
-        /**
-         * Stop sending images to the screenCap server.
-         */
-        private void turnOffXray() {
-            Controller.getInstance().getScreenSharingManager().stopMonitoring();
-        }
-
         /**
          * Ping a device ID to establish if the socket connection is still alive.
          * @param action A string of the incoming action, it contains the ID of the peer relating
@@ -897,15 +865,6 @@ public class DispatchManager {
         }
 
         /**
-         * Ask a learner to turn on the screen sharing service. Is only activated if the service is
-         * not accepted initially or the service is terminated during a session through the
-         * student alerts area.
-         */
-        private void requestXray() {
-            Controller.getInstance().getScreenSharingManager().startService(false);
-        }
-
-        /**
          * Update the learner icons on the guides device to reflect any changes to the status of
          * that peer.
          * @param action A string of the incoming action, it contains the update status and peer
@@ -928,13 +887,6 @@ public class DispatchManager {
                     LeadMeMain.updatePeerStatus(split[2], ConnectedPeer.STATUS_SUCCESS, Controller.STUDENT_NO_INTERNET);
                 } else {
                     LeadMeMain.updatePeerStatus(split[2], ConnectedPeer.STATUS_WARNING, Controller.STUDENT_NO_INTERNET);
-                }
-
-            } else if(action.startsWith(Controller.STUDENT_NO_XRAY)){
-                if (split[1].equalsIgnoreCase("OK")) {
-                    LeadMeMain.updatePeerStatus(split[2], ConnectedPeer.STATUS_SUCCESS, Controller.STUDENT_NO_XRAY);
-                } else {
-                    LeadMeMain.updatePeerStatus(split[2], ConnectedPeer.STATUS_WARNING, Controller.STUDENT_NO_XRAY);
                 }
 
             } else if (action.startsWith(Controller.STUDENT_NO_ACCESSIBILITY)) {

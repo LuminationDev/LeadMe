@@ -169,8 +169,6 @@ public class NearbyPeersManager {
             disconnectStudent(endpointId);
         } else {
             LeadMeMain.runOnUI(() -> {
-                Controller.getInstance().getScreenSharingManager().clientToServerSocket = null;
-                Controller.getInstance().getScreenSharingManager().stopService(); //stop the screen sharing service
                 ArrayList<ConnectedPeer> temp = new ArrayList<>();
                 Controller.getInstance().getLeaderSelectAdapter().setLeaderList(temp);
                 LeadMeMain.getInstance().showLeaderWaitMsg(true);

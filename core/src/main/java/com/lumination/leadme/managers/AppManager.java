@@ -262,10 +262,6 @@ public class AppManager extends BaseAdapter {
         DispatchManager.requestRemoteAppOpen(Controller.APP_TAG, packageName, appName, lockTag, install, peerSet);
     }
 
-    public static boolean isStreaming = false;
-    public static boolean isVR = true;
-    public static boolean videoInit = false;
-
 
     @Override
     public int getCount() {

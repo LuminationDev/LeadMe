@@ -170,27 +170,6 @@
             </LinearLayout>
 
             <LinearLayout
-                android:id="@+id/xray_core_btn"
-                style="@style/LeaderButton"
-                android:orientation="vertical">
-                <LinearLayout
-                    style="@style/LeaderButton__IconWrapper">
-                    <LinearLayout
-                        style="@style/LeaderButton__Icon"
-                        android:background="@drawable/core_xray_with_inset"/>
-                </LinearLayout>
-                <LinearLayout
-                    style="@style/LeaderButton__Text">
-                    <TextView
-                        style="@style/LeaderButton__Text__Eyebrow"
-                        android:text="VIEW"/>
-                    <TextView
-                        style="@style/LeaderButton__Text__Lead"
-                        android:text="X-Ray"/>
-                </LinearLayout>
-            </LinearLayout>
-
-            <LinearLayout
                 android:id="@+id/vr_core_btn"
                 style="@style/LeaderButton"
                 android:orientation="vertical">

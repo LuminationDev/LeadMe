@@ -339,16 +339,6 @@ public class StudentAlertsAdapter extends BaseAdapter {
                     for(int i=0; i<AlertsByCategories.get(position).size();i++){
                         AlertsByCategories.get(position).get(i).hideAlerts(true);
                     }
-                }
-                else if(alertBtn.getText().equals("Enable Xray")) {
-                    ArrayList<String> ids = new ArrayList<>();
-                    for (int i = 0; i < AlertsByCategories.get(5).size(); i++) {
-                        ids.add(String.valueOf(AlertsByCategories.get(5).get(i).getID()));
-                    }
-                    if (ids.size() > 0) {
-                        Set<String> selectedPeerIDs = new HashSet<>(ids);
-                        DispatchManager.sendActionToSelected(Controller.ACTION_TAG, Controller.XRAY_REQUEST, selectedPeerIDs);
-                    }
                 } else if(alertBtn.getText().equals("Launch")) {
                     ArrayList<String> ids = new ArrayList<>();
                     for (int i = 0; i < AlertsByCategories.get(2).size(); i++) {

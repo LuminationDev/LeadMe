@@ -249,9 +249,6 @@ public class ConnectedLearnersAdapter extends BaseAdapter {
                 case Controller.STUDENT_OFF_TASK_ALERT:
                     warningMessage = "could be off task";
                     break;
-                case Controller.STUDENT_NO_XRAY:
-                    warningMessage = "xray popup was denied";
-                    break;
                 case Controller.PERMISSION_TRANSFER_DENIED:
                     warningMessage = "file transfer permission was denied";
                     break;
@@ -345,7 +342,6 @@ public class ConnectedLearnersAdapter extends BaseAdapter {
 
                 removeStudent(lastPromptedID);
                 refresh();
-                Controller.getInstance().getNetworkManager().stopMonitoring(lastPromptedID);
                 Controller.getInstance().getNetworkManager().removeClient(lastPromptedID);
 
                 logoutPrompt.dismiss();
@@ -435,7 +431,6 @@ public class ConnectedLearnersAdapter extends BaseAdapter {
                 popupWindow.showAsDropDown(v,200,-100);
                 disconnect.setOnClickListener(v2 -> {
                     Log.d(TAG, "[adapter] Removing student: " + lastClickedID);
-                    Controller.getInstance().getXrayManager().resetClientMaps(lastClickedID); //remove the peer from the HashMaps
                     ArrayList<String> selected = new ArrayList<>();
                     selected.add(lastClickedID);
                     NetworkManager.sendToSelectedClients("", "DISCONNECT", selected);

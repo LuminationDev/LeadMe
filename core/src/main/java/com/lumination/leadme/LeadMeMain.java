@@ -115,8 +115,6 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
-
-import eu.bolt.screenshotty.ScreenshotManagerBuilder;
 import io.sentry.Sentry;
 
 /*
@@ -228,13 +226,12 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     private static final int ANIM_LEADER_INDEX = 3;
     private static final int ANIM_APP_LAUNCH_INDEX = 4;
     private static final int ANIM_OPTIONS_INDEX = 5;
-    private static final int ANIM_XRAY_INDEX = 6;
-    protected static final int ANIM_MULTI_INDEX = 7;
-    public static final int ANIM_CURATED_CONTENT_LAUNCH_INDEX = 8;
-    private static final int ANIM_CURATED_CONTENT_SINGLE_LAUNCH_INDEX = 9;
+    protected static final int ANIM_MULTI_INDEX = 6;
+    public static final int ANIM_CURATED_CONTENT_LAUNCH_INDEX = 7;
+    private static final int ANIM_CURATED_CONTENT_SINGLE_LAUNCH_INDEX = 8;
 
     public View waitingForLearners, appLauncherScreen;
-    public View splashscreen, startLearner, mainLearner, startLeader, mainLeader, optionsScreen, switcherView, xrayScreen;
+    public View splashscreen, startLearner, mainLearner, startLeader, mainLeader, optionsScreen, switcherView;
     public View multiAppManager;
     private TextView learnerWaitingText;
     public Button alertsBtn;
@@ -290,9 +287,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
     public static boolean canAskForAccessibility = true;
 
-    public final int SCREEN_CAPTURE = 999;
-    private static final int REQUEST_SCREENSHOT_PERMISSION = 1234;
-
     //TODO MOVE FUNCTIONS TO NEW CONTROLLER CLASS
     @SuppressLint("WrongConstant")
     @Override
@@ -319,10 +313,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                 Log.d(TAG, "RETURNED RESULT FROM YOUTUBE! " + resultCode + ", " + data);
                 break;
 
-            case SCREEN_CAPTURE:
-                Controller.getInstance().screenCapture(resultCode, data);
-                break;
-
             case RC_SIGN_IN:
                 Controller.getInstance().googleSignIn(data);
                 break;
@@ -339,7 +329,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                 Log.d(TAG, "RETURNED FROM ?? with " + resultCode);
                 break;
         }
-        Controller.getInstance().getXrayManager().screenshotManager.onActivityResult(requestCode, resultCode, data);
     }
 
     public boolean handleMessage(Message msg) {
@@ -970,10 +959,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         prepareConnectionElements();
         checkAppVersion();
 
-        Controller.getInstance().getXrayManager().screenshotManager = new ScreenshotManagerBuilder(this)
-                .withPermissionRequestCode(REQUEST_SCREENSHOT_PERMISSION) //optional, 888 is the default
-                .build();
-
         firstTimeUser();
     }
 
@@ -1094,7 +1079,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         mainLearner = View.inflate(context, R.layout.c__learner_main, null);
         mainLeader = View.inflate(context, R.layout.c__leader_main, null);
         optionsScreen = View.inflate(context, R.layout.d__options_menu, null);
-        xrayScreen = View.inflate(context, R.layout.d__xray_view, null);
         appLauncherScreen = View.inflate(context, R.layout.d__app_list, null);
         learnerWaitingText = startLearner.findViewById(R.id.waiting_text);
         multiAppManager = View.inflate(context, R.layout.d__app_manager_list, null);
@@ -1263,27 +1247,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
         mainLeader.findViewById(R.id.url_core_btn).setOnTouchListener(touchListener);
         mainLeader.findViewById(R.id.url_core_btn).setOnClickListener(view -> Controller.getInstance().getWebManager().showWebLaunchDialog(false, false));
-
-        mainLeader.findViewById(R.id.xray_core_btn).setOnTouchListener(touchListener);
-        mainLeader.findViewById(R.id.xray_core_btn).setOnClickListener(v -> {
-            if (Controller.getInstance().getConnectedLearnersAdapter().getCount() > 0) {
-                View confirmationView = View.inflate(LeadMeMain.getInstance(), R.layout.e__xray_experimental_confirmation, null);
-                AlertDialog confirmationDialog = new AlertDialog.Builder(LeadMeMain.getInstance())
-                        .setView(confirmationView)
-                        .show();
-                Button okButton = confirmationView.findViewById(R.id.ok_btn);
-                Button backButton = confirmationView.findViewById(R.id.back_btn);
-                okButton.setOnClickListener(w -> {
-                    Controller.getInstance().getXrayManager().showXrayView("");
-                    confirmationDialog.dismiss();
-                });
-                backButton.setOnClickListener(w -> {
-                    confirmationDialog.dismiss();
-                });
-            } else {
-                Toast.makeText(getApplicationContext(), "No students connected.", Toast.LENGTH_SHORT).show();
-            }
-        });
 
         checkAddtionalPreferences();
 
@@ -1472,7 +1435,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         leadmeAnimator.addView(mainLeader);
         leadmeAnimator.addView(appLauncherScreen);
         leadmeAnimator.addView(optionsScreen);
-        leadmeAnimator.addView(xrayScreen);
         leadmeAnimator.addView(multiAppManager);
         leadmeAnimator.addView(CuratedContentManager.curatedContentScreen);
         leadmeAnimator.addView(CuratedContentManager.curatedContentScreenSingle);
@@ -1521,7 +1483,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         mainLeader.findViewById(R.id.menu_btn).setOnClickListener(menuListener);
         mainLearner.findViewById(R.id.menu_btn).setOnClickListener(menuListener);
         appLauncherScreen.findViewById(R.id.menu_btn).setOnClickListener(menuListener);
-        xrayScreen.findViewById(R.id.menu_btn).setOnClickListener(menuListener);
         multiAppManager.findViewById(R.id.menu_btn).setOnClickListener(menuListener);
 
 
@@ -1804,10 +1765,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         leadmeAnimator.setDisplayedChild(ANIM_LEADER_INDEX);
     }
 
-    public void displayXrayView() {
-        leadmeAnimator.setDisplayedChild(ANIM_XRAY_INDEX);
-    }
-
     public ProgressBar setProgressTimer(int Time) {
         ProgressBar indeterminate = mainLeader.findViewById(R.id.leader_loading);
         if (indeterminate != null) {
@@ -2062,7 +2019,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
      */
     private void logoutResetController() {
         Log.d(TAG, "Resetting controller");
-        Controller.getInstance().getXrayManager().resetClientMaps(null);
         //I dont like this but sometimes sending it once doesn't work....
         Controller.getInstance().getDispatcher().alertLogout(); //need to send this before resetting 'isGuide'
         Controller.getInstance().getDispatcher().alertLogout(); //need to send this before resetting 'isGuide'
@@ -2999,8 +2955,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         if(scheduledCheck != null){
             scheduledCheck.cancel(true);
         }
-
-        Controller.getInstance().getScreenSharingManager().startService(false);
 
         //If the serverIP address has not changed set it to the locally found guide
         if(FirebaseManager.getServerIP().equals("")) {
