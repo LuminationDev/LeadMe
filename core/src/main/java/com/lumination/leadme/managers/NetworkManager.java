@@ -114,6 +114,10 @@ public class NetworkManager {
 
             default:
                 Log.d(TAG, "messageReceivedFromServer: Invalid message type");
+                for (int i = 0; i < inputList.size(); i++) {
+                    Log.d(TAG, inputList.get(i));
+                }
+
                 break;
         }
     }

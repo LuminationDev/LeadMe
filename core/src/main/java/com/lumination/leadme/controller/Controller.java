@@ -71,6 +71,7 @@ public class Controller {
     public static final String LAUNCH_URL = "Launch:::";
     public static final String LAUNCH_YT = "YT:::";
     public static final String LAUNCH_ACCESS = "LaunchAccess";
+    public static final String OPEN_CURATED_CONTENT = "OpenCuratedContent";
 
     public static final String PERMISSION_DENIED = "PermissionDenied";
     public static final String FILE_TRANSFER = "FileTransfer";

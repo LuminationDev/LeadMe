@@ -21,9 +21,11 @@ import com.lumination.leadme.controller.Controller;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 public class DispatchManager {
@@ -155,6 +157,21 @@ public class DispatchManager {
         NearbyPeersManager.sendToSelected(Payload.fromBytes(bytes), selectedPeerIDs);
     }
 
+    public static String encodeMessage(String actionTag, String action) {
+        Parcel p = Parcel.obtain();
+        byte[] bytes;
+        p.writeString(actionTag);
+        p.writeString(action);
+        bytes = p.marshall();
+
+        p.unmarshall(bytes, 0, Objects.requireNonNull(bytes).length);
+        p.setDataPosition(0);
+        byte[] b = p.marshall();
+        p.recycle();
+
+        return Base64.getEncoder().encodeToString(b);
+    }
+
     public synchronized boolean readAction(byte[] bytes) {
         if(main.setProgressTimer(-1)!=null){
             main.setProgressTimer(-1).setVisibility(View.INVISIBLE);
@@ -269,6 +286,8 @@ public class DispatchManager {
                     } else if (action.startsWith(Controller.LAUNCH_YT)) {
                         dispatchAction.launchYoutube(action);
 
+                    } else if (action.startsWith(Controller.OPEN_CURATED_CONTENT)) {
+                        dispatchAction.openCuratedContent();
                     } else {
                         dispatchAction.askPermission(action);
                         dispatchAction.updatePeerStatus(action);
@@ -847,6 +866,12 @@ public class DispatchManager {
             String[] split = action.split(":::", 4);
             Controller.getInstance().getWebManager().launchYouTube(split[1], split[2], split[3].equals("true"), true);
             Log.w(TAG, action + "||" + split[1] + ", " + split[2] + ", " + split[3] + "|");
+        }
+
+        private void openCuratedContent() {
+            CuratedContentManager.setupCuratedContent(main);
+            main.showCuratedContentScreen();
+            main.appLauncherScreen.findViewById(R.id.app_scroll_view).scrollTo(0, 0);
         }
 
         /**

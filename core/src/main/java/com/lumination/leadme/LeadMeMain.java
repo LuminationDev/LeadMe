@@ -225,7 +225,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
     private static final int ANIM_SPLASH_INDEX = 0;
     private static final int ANIM_START_SWITCH_INDEX = 1;
-    private static final int ANIM_LEARNER_INDEX = 2;
+    public static final int ANIM_LEARNER_INDEX = 2;
     private static final int ANIM_LEADER_INDEX = 3;
     private static final int ANIM_APP_LAUNCH_INDEX = 4;
     private static final int ANIM_OPTIONS_INDEX = 5;
@@ -1205,8 +1205,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             ((PinEntryEditText) startLearner.findViewById(R.id.room_code)).setText("");
         });
 
-
-
         (appLauncherScreen.findViewById(R.id.repush_btn)).setOnClickListener(v -> {
             Log.d(TAG, "Repushing " + lastAppID);
             //VR player needs to select the source before reopening, handle just like fresh start.
@@ -1503,7 +1501,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
         //set up back buttons
         appLauncherScreen.findViewById(R.id.back_btn).setOnClickListener(view -> leadmeAnimator.setDisplayedChild(ANIM_LEADER_INDEX));
-        CuratedContentManager.curatedContentScreen.findViewById(R.id.back_btn).setOnClickListener(view -> leadmeAnimator.setDisplayedChild(ANIM_LEADER_INDEX));
+        CuratedContentManager.curatedContentScreen.findViewById(R.id.back_btn).setOnClickListener(view -> leadmeAnimator.setDisplayedChild(isGuide ? ANIM_LEADER_INDEX : ANIM_LEARNER_INDEX));
 
         //multi installer screen back button
         multiAppManager.findViewById(R.id.back_btn).setOnClickListener(view -> {
@@ -2090,7 +2088,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             FirebaseManager.connectAsLeader(name);
 
             CuratedContentManager.hasDoneSetup = false;
-            CuratedContentManager.getCuratedContent(this);
         } else {
             //display main student view
             leadmeAnimator.setDisplayedChild(ANIM_LEARNER_INDEX);
@@ -2104,6 +2101,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             ((TextView) optionsScreen.findViewById(R.id.connected_as_role)).setText(getResources().getText(R.string.learner));
             ((TextView) optionsScreen.findViewById(R.id.connected_as_role)).setTextColor(getResources().getColor(R.color.medium, null));
         }
+        CuratedContentManager.getCuratedContent(this);
     }
 
     /**

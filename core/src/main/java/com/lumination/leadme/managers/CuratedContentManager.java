@@ -38,6 +38,7 @@ import com.lumination.leadme.models.CuratedContentItem;
 import com.lumination.leadme.models.CuratedContentType;
 import com.lumination.leadme.LeadMeMain;
 import com.lumination.leadme.R;
+import com.lumination.leadme.services.NetworkService;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -92,11 +93,19 @@ public class CuratedContentManager {
         selectItem.setOnClickListener(new View.OnClickListener() {
               @Override
               public void onClick(View view) {
-                WebManager webManager = new WebManager(main);
-                webManager.showPreview(curatedContentItem.link);
+                  if (LeadMeMain.isGuide) {
+                      WebManager webManager = new WebManager(main);
+                      webManager.showPreview(curatedContentItem.link);
+                  } else {
+                      CuratedContentManager.curatedContentScreen.findViewById(R.id.back_btn).setOnClickListener(v -> main.leadmeAnimator.setDisplayedChild(main.ANIM_LEARNER_INDEX));
+                      NetworkService.receiveMessage("ACTION," + DispatchManager.encodeMessage("Action", Controller.LAUNCH_URL + curatedContentItem.link + ":::" + curatedContentItem.title));
+                  }
               }
           }
         );
+        if (!LeadMeMain.isGuide) {
+            selectItem.setText("Watch");
+        }
 
         View.OnClickListener back = new View.OnClickListener() {
             @Override
@@ -124,6 +133,7 @@ public class CuratedContentManager {
             CheckBox fav = listItem.findViewById(R.id.fav_checkbox_curated_content);
             fav.setChecked(checked);
         });
+        checkBox.setVisibility(LeadMeMain.isGuide ? View.VISIBLE : View.GONE);
 
         main.showCuratedContentSingleScreen();
     }
@@ -150,6 +160,15 @@ public class CuratedContentManager {
                 CuratedContentItem current = CuratedContentManager.filteredCuratedContentList.get(i);
                 CuratedContentManager.showCuratedContentSingle(main, current, view);
             }
+        });
+
+        if (!LeadMeMain.isGuide) {
+            curatedContentScreen.findViewById(R.id.action_bar).setVisibility(View.GONE);
+        }
+
+        curatedContentScreen.findViewById(R.id.push_button).setOnClickListener(view -> {
+            DispatchManager.sendActionToSelected(Controller.ACTION_TAG,
+                    Controller.OPEN_CURATED_CONTENT, NearbyPeersManager.getAllPeerIDs());
         });
 
         curatedContentScreen.findViewById(R.id.filter_button).setOnClickListener(view -> {
