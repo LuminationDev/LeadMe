@@ -3,6 +3,7 @@ package com.lumination.leadme;
 import android.accessibilityservice.AccessibilityService;
 import android.accessibilityservice.GestureDescription;
 import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.app.ActivityManager;
 import android.app.AlertDialog;
 import android.content.BroadcastReceiver;
@@ -74,6 +75,7 @@ import androidx.lifecycle.LifecycleObserver;
 import androidx.lifecycle.OnLifecycleEvent;
 
 import com.BoardiesITSolutions.FileDirectoryPicker.OpenFilePicker;
+import com.alimuzaffar.lib.pin.PinEntryEditText;
 import com.google.android.gms.tasks.Task;
 import com.lumination.leadme.BuildConfig;
 import com.google.firebase.auth.AuthCredential;
@@ -90,6 +92,7 @@ import com.lumination.leadme.accessibility.LumiAccessibilityConnector;
 import com.lumination.leadme.adapters.ConnectedLearnersAdapter;
 import com.lumination.leadme.managers.AppManager;
 import com.lumination.leadme.managers.FirebaseManager;
+import com.lumination.leadme.managers.Leader;
 import com.lumination.leadme.managers.NearbyPeersManager;
 import com.lumination.leadme.managers.NetworkManager;
 import com.lumination.leadme.managers.PermissionManager;
@@ -1190,7 +1193,19 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         ((GridView) appLauncherScreen.findViewById(R.id.fav_list_grid)).setAdapter(Controller.getInstance().getAppManager().getFavouritesManager());
         (appLauncherScreen.findViewById(R.id.current_task_layout)).setVisibility(View.GONE);
         (appLauncherScreen.findViewById(R.id.text_current_task)).setVisibility(View.GONE);
-        ((ListView) startLearner.findViewById(R.id.leader_list_view)).setAdapter(Controller.getInstance().getLeaderSelectAdapter());
+
+        startLearner.setOnClickListener(t -> {
+            closeKeyboard();
+        });
+
+        startLearner.findViewById(R.id.submit_room_code).setOnClickListener(v -> {
+            String roomCode = ((PinEntryEditText) startLearner.findViewById(R.id.room_code)).getText().toString();
+            FirebaseManager.roomCode = roomCode;
+            FirebaseManager.retrieveLeaderDetails(this, startLearner.findViewById(R.id.error_text));
+            ((PinEntryEditText) startLearner.findViewById(R.id.room_code)).setText("");
+        });
+
+
 
         (appLauncherScreen.findViewById(R.id.repush_btn)).setOnClickListener(v -> {
             Log.d(TAG, "Repushing " + lastAppID);
@@ -1860,9 +1875,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             learnerWaitingText.setText(getResources().getString(R.string.enable_storage));
             Controller.getInstance().getPermissionsManager().checkStoragePermission();
         } else if (!NearbyPeersManager.isConnectedAsFollower()) {
-            initiateManualLeaderDiscovery();
-
-            learnerWaitingText.setText(getResources().getString(R.string.waiting_for_leaders));
+            learnerWaitingText.setText("Enter a room code to join a class");
         }
         leaderLearnerSwitcher.setDisplayedChild(SWITCH_LEARNER_INDEX);
         leader_toggle.setBackground(ResourcesCompat.getDrawable(getResources(), R.drawable.bg_passive_right_white, null));
@@ -1877,18 +1890,8 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         }
     }
 
-    /**
-     * Helper methods used by multiple managers
-     */
-    boolean isOpen = false;
-
     public void openKeyboard() {
         showSystemUI();
-        //Log.d(TAG, "Open keyboard! " + isOpen);
-        if (isOpen) {
-            return; //not needed
-        }
-        isOpen = true;
 
         View view = this.getCurrentFocus();
         if (view == null) {
@@ -1901,19 +1904,11 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     public void closeKeyboard() {
         hideSystemUI();
         View view = this.getCurrentFocus();
-        //Log.d(TAG, "Close keyboard! " + isOpen);
-
-        if (!isOpen) {
-            return; //not needed
-        }
-        isOpen = false;
 
         // Check if no view has focus:
         if (view != null) {
             InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
             imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
-        } else {
-            imm.toggleSoftInput(InputMethodManager.HIDE_IMPLICIT_ONLY, 0);
         }
     }
 
@@ -1937,17 +1932,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                 initialiseOverlayView();
             }
         }
-    }
-
-    //MANUAL CONNECTION FOR LEARNERS
-    /**
-     * Empty the current leader list and stop any Nsd discovery. Start the client socket listener
-     * and retrieve any a snapshot from Firebase with any leaders that are currently active.
-     */
-    public void initiateManualLeaderDiscovery() {
-        Log.d(TAG, "Initiating Manual Leader Discovery");
-        Controller.getInstance().getLeaderSelectAdapter().setLeaderList(new ArrayList<>());
-        FirebaseManager.retrieveLeaders();
     }
 
     public boolean checkLoginDetails() {
@@ -2034,7 +2018,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         FirebaseManager.setServerIP("");
         NetworkService.resetClientIDs();
         Controller.getInstance().getConnectedLearnersAdapter().resetOnLogout();
-        Controller.getInstance().getLeaderSelectAdapter().setLeaderList(new ArrayList<>()); //empty the list
         setUIDisconnected();
         Controller.getInstance().getFileTransferManager().stopService();
         NetworkManager.stopService();
@@ -2534,8 +2517,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         //display login view
         prepLoginSwitcher();
         leadmeAnimator.setDisplayedChild(ANIM_START_SWITCH_INDEX);
-
-        initiateManualLeaderDiscovery();
     }
 
     public void collapseStatus() {
@@ -2956,13 +2937,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             scheduledCheck.cancel(true);
         }
 
-        //If the serverIP address has not changed set it to the locally found guide
-        if(FirebaseManager.getServerIP().equals("")) {
-            FirebaseManager.setServerIP(NearbyPeersManager.selectedLeader.getID());
-        }
-
-        NearbyPeersManager.connectToManualLeader(NearbyPeersManager.selectedLeader.getDisplayName(),
-                FirebaseManager.getServerIP());
+        NearbyPeersManager.connectToManualLeader();
 
         toggleConnectionOptions(View.GONE); //Remove connection options
 

@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@drawable/dusk_background"
@@ -41,7 +42,7 @@
             android:layout_marginBottom="40dp"
             android:fontFamily="@font/poppins_semibold"
             android:gravity="center_horizontal"
-            android:text="@string/select_a_leader_to_join_a_class"
+            android:text="@string/join_a_class_lead"
             android:textColor="@color/leadme_white"
             android:textSize="20sp" />
 
@@ -61,35 +62,65 @@
 
                 <TextView
                     android:id="@+id/waiting_text"
-                    android:layout_width="match_parent"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="30dp"
-                    android:fontFamily="@font/poppins_regular"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_marginBottom="20dp"
+                    android:layout_marginTop="20dp"
+                    android:fontFamily="@font/poppins_semibold"
                     android:gravity="center_horizontal"
-                    android:text="@string/waiting_for_leaders"
-                    android:textAlignment="center"
-                    android:textColor="@color/leadme_medium_grey"
-                    android:textSize="16sp" />
+                    android:text="@string/join_a_class_lead"
+                    android:textColor="@color/black"
+                    android:textSize="20sp" />
 
-                <ListView
-                    android:id="@+id/leader_list_view"
-                    android:layout_width="match_parent"
-                    android:layout_height="0dp"
-                    android:layout_weight="0.8"
+                <com.alimuzaffar.lib.pin.PinEntryEditText
+                    android:id="@+id/room_code"
+                    android:layout_width="200dp"
+                    android:layout_height="36dp"
+                    android:layout_gravity="center_horizontal"
+                    app:pinBackgroundDrawable="@drawable/pincode_background"
+                    app:pinBackgroundIsSquare="false"
+                    android:maxLength="4"
+                    android:textIsSelectable="true"
+                    android:digits="1234567890"
+                    android:hint=""
+                    android:inputType="number"
+                    android:layout_marginTop="20dp"
+                    android:layout_marginBottom="40dp"
+                    android:cursorVisible="false"
+                    android:layoutDirection="ltr"
+                    app:pinLineColors="@color/leadme_darkest_grey"
+                    app:pinLineStroke="2dp"
+                    app:pinLineStrokeSelected="4dp"
+                    app:pinTextBottomPadding="10dp" />
+
+                <TextView
+                    android:id="@+id/error_text"
+                    android:visibility="gone"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_marginBottom="40dp"
+                    android:fontFamily="@font/poppins_semibold"
+                    android:gravity="center_horizontal"
+                    android:text="Room not found. Try again"
+                    android:textColor="@color/leadme_red"
+                    android:textSize="20sp" />
+
+                <Button
+                    android:id="@+id/submit_room_code"
+                    style="?android:attr/borderlessButtonStyle"
+                    android:layout_width="@dimen/standard_btn_width"
+                    android:layout_height="@dimen/standard_btn_height"
+                    android:layout_gravity="center_horizontal"
+                    android:background="@drawable/bg_active"
                     android:clickable="true"
-                    android:clipChildren="false"
-                    android:clipToPadding="false"
-                    android:contextClickable="false"
-                    android:divider="@color/leadme_white"
                     android:focusable="true"
-                    android:footerDividersEnabled="false"
-                    android:headerDividersEnabled="false"
-                    android:numColumns="1"
-                    android:overScrollMode="never"
-                    android:padding="20dp"
-                    tools:listitem="@layout/row_leader">
-
-                </ListView>
+                    android:fontFamily="@font/poppins_semibold"
+                    android:text="Connect"
+                    android:textAllCaps="false"
+                    android:textColor="@color/leadme_white"
+                    android:textSize="16sp" />
 
                 <LinearLayout
                     android:layout_width="match_parent"

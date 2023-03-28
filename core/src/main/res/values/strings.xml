@@ -34,7 +34,7 @@
     <string name="powered_by">Powered by</string>
     <string name="lumination_logo">Lumination logo</string>
     <string name="leadme_logo">LeadMe logo</string>
-    <string name="select_a_leader_to_join_a_class">Select a leader to join a class</string>
+    <string name="join_a_class_lead">Enter a room code to join a class</string>
     <string name="login_and_begin_class">login and begin class</string>
     <string name="toggle_below_to">, toggle below to</string>
     <string name="menu_hamburger">Menu hamburger</string>

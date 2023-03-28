@@ -14,7 +14,6 @@ import com.google.android.play.core.appupdate.AppUpdateManager;
 import com.lumination.leadme.LeadMeMain;
 import com.lumination.leadme.accessibility.VRAccessibilityManager;
 import com.lumination.leadme.adapters.ConnectedLearnersAdapter;
-import com.lumination.leadme.adapters.LeaderSelectAdapter;
 import com.lumination.leadme.managers.AppManager;
 import com.lumination.leadme.managers.AuthenticationManager;
 import com.lumination.leadme.managers.DialogManager;
@@ -118,7 +117,6 @@ public class Controller {
     private final DialogManager dialogManager;
     private final AppManager appLaunchAdapter;
     private final ConnectedLearnersAdapter connectedLearnersAdapter;
-    private final LeaderSelectAdapter leaderSelectAdapter;
     private final DispatchManager dispatcher;
     private final AppInstaller lumiAppInstaller;
 
@@ -135,7 +133,6 @@ public class Controller {
         nearbyManager = new NearbyPeersManager();
         dispatcher = new DispatchManager(main);
         webManager = new WebManager(main);
-        leaderSelectAdapter = new LeaderSelectAdapter(main);
         vrAccessibilityManager = new VRAccessibilityManager(main);
         vrEmbedPhotoPlayer = new VREmbedPhotoPlayer(main);
         vrEmbedVideoPlayer = new VREmbedVideoPlayer(main);
@@ -321,9 +318,6 @@ public class Controller {
     }
     public NearbyPeersManager getNearbyManager() {
         return nearbyManager;
-    }
-    public LeaderSelectAdapter getLeaderSelectAdapter() {
-        return leaderSelectAdapter;
     }
     public AppManager getAppManager() {
         return appLaunchAdapter;
