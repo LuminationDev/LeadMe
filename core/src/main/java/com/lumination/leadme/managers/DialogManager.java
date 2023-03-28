@@ -19,7 +19,6 @@ import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.core.content.res.ResourcesCompat;
 
@@ -49,7 +48,6 @@ public class DialogManager {
     private View confirmPushDialogView,
             loginDialogView,
             toggleBtnView,
-            manView,
             permissionDialogView,
             requestDialogView;
 
@@ -60,7 +58,6 @@ public class DialogManager {
             studentAlertsDialog,
             loginDialog,
             recallPrompt,
-            manualDialog,
             permissionDialog,
             requestDialog,
             fileTypeDialog,
@@ -562,15 +559,6 @@ public class DialogManager {
         }
     }
 
-    public void showWaitingDialog() {
-        if (waitingDialog == null) {
-            setupWaitingDialog();
-        }
-
-        waitingDialog.show();
-        dialogShowing = true;
-    }
-
     /**
      * Display an AlertDialog for first time users with a link to the online manual.
      */
@@ -911,15 +899,6 @@ public class DialogManager {
     }
 
     /**
-     * Displays an AlertDialog whilst a peer is connecting to a guide.
-     */
-    public void showWaitingForConnectDialog() {
-        loginDialog.dismiss();
-        showWaitingDialog();
-        dialogShowing = true;
-    }
-
-    /**
      *
      */
     public void showLoginAlertMessage() {
@@ -1196,9 +1175,6 @@ public class DialogManager {
         }
         if (recallPrompt != null) {
             recallPrompt.dismiss();
-        }
-        if  (Controller.getInstance().getLumiAppInstaller().installDialog != null) {
-            Controller.getInstance().getLumiAppInstaller().installDialog.dismiss();
         }
         if (Controller.getInstance().getWebManager() != null) {
             Controller.getInstance().getWebManager().cleanUp();

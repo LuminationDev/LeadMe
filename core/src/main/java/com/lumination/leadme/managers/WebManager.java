@@ -56,13 +56,13 @@ public class WebManager {
 
     //tag for debugging
     private static final String TAG = "WebManager";
-    private final TextCrawler textCrawler = new TextCrawler(this);
+    private final TextCrawler textCrawler = new TextCrawler();
 
     private AlertDialog websiteLaunchDialog, previewDialog, urlYtFavDialog, searchDialog;
     private final View websiteLaunchDialogView;
     private final View previewDialogView;
     private final View searchDialogView;
-    public boolean launchingVR = false, enteredVR = false;
+    public boolean launchingVR = false;
     public boolean lastWasGuideView = false;
 
     private ImageView previewImage;
@@ -72,7 +72,6 @@ public class WebManager {
     private boolean isYouTube = false;
     private String pushURL = "";
     private String pushTitle = "";
-    String controllerURL = "";
 
     private final Button previewPushBtn;
 
@@ -88,14 +87,11 @@ public class WebManager {
     private final String[] searchSpinnerItems;
     private final YouTubeEmbedPlayer youTubeEmbedPlayer;
 
-    public Thread thread;
-
     //this entire thing is in progress
     public WebManager(LeadMeMain main) {
         Log.d(TAG, "WebManager: ");
         this.main = main;
         this.dialogManager = Controller.getInstance().getDialogManager();
-        thread = Thread.currentThread();
 
         websiteLaunchDialogView = View.inflate(main, R.layout.d__enter_url, null);
         previewDialogView = View.inflate(main, R.layout.e__preview_url_push, null);
@@ -674,7 +670,6 @@ public class WebManager {
         main.closeKeyboard();
 
         pushURL = url;
-        controllerURL = url;
 
         if (isYouTube) {
             lockSpinner.setSelection(0); //default to locked
@@ -995,7 +990,6 @@ public class WebManager {
         });
 
         launchingVR = vrOn; //activate auto-VR mode
-        enteredVR = false;
         final String youTubePackageName = AppManager.youtubePackage;
 
         Log.w(TAG, "CLEAN YOUTUBE: " + pushURL + " || " + launchingVR);
@@ -1020,10 +1014,6 @@ public class WebManager {
             //the YouTube app doesn't exist
             Log.d(TAG, "YOUTUBE APP DOESN'T EXIST?! " + youTubePackageName);
             youTubeExists = false;
-            //if installing, try that first.
-            if (LeadMeMain.autoInstallApps) {
-                Controller.getInstance().getLumiAppInstaller().autoInstall(youTubePackageName, "YouTube", "false", null);
-            }
         }
 
         //YouTube app doesn't exist on this device
@@ -1097,11 +1087,6 @@ public class WebManager {
     private final int SEARCH_YOUTUBE = 1;
     private int searchType = SEARCH_WEB;
     private WebView searchWebView;
-
-    public void buildAndShowSearchDialog(int type) {
-        searchType=type;
-        buildAndShowSearchDialog();
-    }
 
     private void buildAndShowSearchDialog() {
         Log.d(TAG, "buildAndShowSearchDialog: ");

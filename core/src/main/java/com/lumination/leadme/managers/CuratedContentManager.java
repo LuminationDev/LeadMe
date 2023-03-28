@@ -25,7 +25,6 @@ import androidx.databinding.ViewDataBinding;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.slider.LabelFormatter;
 import com.google.android.material.slider.RangeSlider;
-import com.google.api.Distribution;
 import com.google.firebase.crashlytics.FirebaseCrashlytics;
 import com.koushikdutta.urlimageviewhelper.UrlImageViewHelper;
 import com.lumination.leadme.BR;
@@ -147,7 +146,7 @@ public class CuratedContentManager {
         CuratedContentManager.curatedContentBinding.setLifecycleOwner(main);
         CuratedContentManager.curatedContentBinding.setVariable(BR.curatedContentList, CuratedContentManager.filteredCuratedContentList);
         ListView curatedContentListView = CuratedContentManager.curatedContentScreen.findViewById(R.id.curated_content_list);
-        CuratedContentManager.curatedContentAdapter = new CuratedContentAdapter(main, curatedContentScreen.findViewById(R.id.curated_content_list));
+        CuratedContentManager.curatedContentAdapter = new CuratedContentAdapter(main);
         curatedContentListView.setAdapter(CuratedContentManager.curatedContentAdapter);
         CuratedContentManager.curatedContentAdapter.curatedContentList = CuratedContentManager.filteredCuratedContentList;
         CuratedContentManager.curatedContentAdapter.notifyDataSetChanged();
@@ -365,7 +364,7 @@ public class CuratedContentManager {
 
         });
 
-        CuratedContentManager.curatedContentAdapterSearch = new CuratedContentAdapter(main, searchSheetDialog.findViewById(R.id.curated_content_list));
+        CuratedContentManager.curatedContentAdapterSearch = new CuratedContentAdapter(main);
 
         searchInput.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override
@@ -587,7 +586,7 @@ public class CuratedContentManager {
     };
 
     public static void getPreviewImages (LeadMeMain main, String url) {
-        TextCrawler textCrawler = new TextCrawler(Controller.getInstance().getWebManager());
+        TextCrawler textCrawler = new TextCrawler();
         textCrawler.makePreview(previewImageCallback, url);
     }
 }

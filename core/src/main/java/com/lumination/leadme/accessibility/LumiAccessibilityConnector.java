@@ -35,8 +35,6 @@ public class LumiAccessibilityConnector {
     //handler for executing on the main thread
     private static boolean waitingForStateChange = false;
 
-    public boolean gestureInProgress = false;
-
     public YouTubeAccessibilityManager ytManager;
 
     public LumiAccessibilityConnector(LeadMeMain main) {
@@ -178,12 +176,6 @@ public class LumiAccessibilityConnector {
         }
     }
 
-    public void gestureTapNode(AccessibilityNodeInfo thisNode) {
-        Rect bounds = new Rect();
-        thisNode.getBoundsInScreen(bounds);
-        main.tapBounds(bounds.centerX(), bounds.centerY());
-    }
-
 
     public void bringMainToFront() {
         Log.d(TAG, "bringMainToFront: ");
@@ -322,16 +314,6 @@ public class LumiAccessibilityConnector {
                 main.collapseStatus();
 
             }
-
-            //check if we're trying to install something, respond appropriately
-            if ((AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED == event.getEventType()
-                    || (AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED == event.getEventType()))) {
-                //run the install event
-                if(LeadMeMain.managingAutoInstaller) {
-                    Controller.getInstance().getLumiAppInstaller().install(event);
-                }
-            }
-
         } catch (Exception e) {
             //giant try-catch because we'd prefer to fail managing a single accessibility
             //action than crash the program outright
@@ -375,7 +357,6 @@ public class LumiAccessibilityConnector {
 
                     if (NearbyPeersManager.isConnectedAsFollower() || NearbyPeersManager.isConnectedAsGuide()) {
                         Bundle data = intent.getExtras();
-                        Object one = data.getString(LumiAccessibilityService.INFO_TAG);
                         Object two = data.getParcelable(LumiAccessibilityService.EVENT_OBJ);
                         Object three = data.getParcelable(LumiAccessibilityService.EVENT_ROOT);
 

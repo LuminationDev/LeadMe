@@ -81,6 +81,8 @@ dependencies {
     //for screenshots
     implementation 'com.github.Nikoloutsos:KLoadingSpin:1.1.0'
 
+    implementation 'org.jsoup:jsoup:1.15.4'
+
     //for firebase
     implementation platform('com.google.firebase:firebase-bom:26.7.0')
     implementation 'com.google.firebase:firebase-analytics'

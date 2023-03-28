@@ -28,7 +28,6 @@ import com.lumination.leadme.linkpreview.TextCrawler;
 
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
@@ -616,7 +615,7 @@ public class FavouritesManager extends BaseAdapter {
             if (tmpCrawler != null) {
                 tmpCrawler.cancel(); //cancel the old
             }
-            tmpCrawler = new TextCrawler(webManager); //make a freshie
+            tmpCrawler = new TextCrawler(); //make a freshie
 
 
             gettingPreviews.add(tmpUrl); //storing it here means we only try once per url

@@ -1,7 +1,6 @@
 package com.lumination.leadme.managers;
 
 import android.app.AlertDialog;
-import android.net.Uri;
 import android.os.Parcel;
 import android.util.Log;
 import android.view.View;
@@ -22,9 +21,7 @@ import com.lumination.leadme.controller.Controller;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
-import java.util.Collections;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
@@ -37,8 +34,6 @@ public class DispatchManager {
     public static String appNameRepush;
     public static String lockTagRepush;
     public static String extraRepush;
-    public static boolean streamingRepush;
-    public static boolean vrModeRepush;
     public static String mActionTag=null, mAction=null;
     public static int lastEvent =0;
 
@@ -259,23 +254,11 @@ public class DispatchManager {
                     } else if(action.startsWith(Controller.UPDATE_DEVICE_MESSAGE)) {
                         dispatchAction.updateDeviceMessage(action);
 
-                    } else if(action.startsWith(Controller.MULTI_INSTALL)) {
-                        dispatchAction.multiInstall(action);
-
                     } else if(action.startsWith(Controller.APP_NOT_INSTALLED)) {
                         dispatchAction.applicationNotInstalled(action);
 
                     } else if (action.startsWith(Controller.AUTO_INSTALL_FAILED)) {
                         dispatchAction.autoInstallFail(action);
-
-                    } else if(action.startsWith(Controller.COLLECT_APPS)) {
-                        dispatchAction.collectApplications();
-
-                    } else if(action.startsWith(Controller.APP_COLLECTION)) {
-                        dispatchAction.applicationCollection(action);
-
-                    } else if(action.startsWith(Controller.AUTO_UNINSTALL)) {
-                        dispatchAction.uninstallApplication(action);
 
                     } else if (action.startsWith(Controller.DISCONNECTION)) {
                         dispatchAction.disconnectLearner(action);
@@ -743,20 +726,6 @@ public class DispatchManager {
         }
 
         /**
-         * Start the auto installer function with the supplied application package names.
-         * @param action A string of the incoming action, it contains an array of applications to
-         *               install.
-         */
-        private void multiInstall(String action) {
-            String[] split = action.split(":"); //get the instructions
-            String applications = split[2]; //get the array of apps currently in string form
-            //change the string array into an array
-            String[] appArray = applications.replace("[","").replace("]","").split(",");
-            String[] firstApp = appArray[0].split("//");
-            Controller.getInstance().getLumiAppInstaller().autoInstall(firstApp[0], firstApp[1], split[1], appArray);
-        }
-
-        /**
          * Notifies the guide that a pushed application is not on the learner devices. Adds that learner
          * to the peers to install array and asks if the guide wants to install the applications.
          * @param action A string of the incoming action, it contains the missing apps name, package
@@ -768,13 +737,6 @@ public class DispatchManager {
             Log.d(TAG, "Application needed on peer: " + split[3]);
 
             Controller.getInstance().getConnectedLearnersAdapter().appLaunchFail(split[3], appNameRepush);
-
-            if(LeadMeMain.FLAG_INSTALLER) {
-                Controller.getInstance().getLumiAppInstaller().peersToInstall.add(split[3]);
-
-                //open a dialog to confirm if wanting to install apps
-                Controller.getInstance().getLumiAppInstaller().applicationsToInstallWarning(split[1], split[2], false); //should auto update number of devices need as the action come in
-            }
         }
 
         /**
@@ -789,49 +751,6 @@ public class DispatchManager {
 
             //in this case, student will be back in LeadMe, so update icon too
             Controller.getInstance().getConnectedLearnersAdapter().updateIcon(split[2], AppManager.getAppIcon(LeadMeMain.leadMePackageName));
-        }
-
-        /**
-         * Collect all applications (package name & app name) installed on a connected device
-         */
-        private void collectApplications() {
-            List<String> applicationInfo = new ArrayList<>(Controller.getInstance().getAppManager().refreshAppList());
-
-            //send back to the leader - placeholder for now
-            sendActionToSelected(Controller.ACTION_TAG, Controller.APP_COLLECTION + ":" + applicationInfo,
-                    NearbyPeersManager.getSelectedPeerIDs());
-        }
-
-        /**
-         * Guide is receiving a list of applications that a connected learner has.
-         * @param action A string of the incoming action, it contains an array of all the applications
-         *               installed.
-         */
-        private void applicationCollection(String action) {
-            String[] split = action.split(":"); //get the app array
-            String applications = split[1]; //get the array of apps currently in string form
-            //change the string array into an array
-            String[] appArray = applications.replace("[", "").replace("]", "").split(",");
-
-            Collections.addAll(Controller.getInstance().getLumiAppInstaller().peerApplications, appArray);
-            Controller.getInstance().getLumiAppInstaller().populateUninstall();
-        }
-
-        /**
-         * Uninstalls the applications that have been received in the action on a device.
-         * Note: Currently not achievable as there is a Android UI button that has to manually be
-         * pressed within the Play Store.
-         * @param action A string of the incoming action, it contains an array of all the applications
-         *               that are to be uninstalled.
-         */
-        private void uninstallApplication(String action) {
-            String[] split = action.split(":"); //get the instructions
-            String applications = split[2]; //get the array of apps currently in string form
-            //change the string array into an array
-            String[] appArray = applications.replace("[","").replace("]","").split(",");
-            Collections.addAll(Controller.getInstance().getLumiAppInstaller().appsToManage, appArray);
-
-            Controller.getInstance().getLumiAppInstaller().runUninstaller();
         }
 
         /**

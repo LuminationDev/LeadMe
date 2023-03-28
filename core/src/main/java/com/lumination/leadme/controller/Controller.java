@@ -10,7 +10,6 @@ import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.tasks.Task;
-import com.google.android.play.core.appupdate.AppUpdateManager;
 import com.lumination.leadme.LeadMeMain;
 import com.lumination.leadme.accessibility.VRAccessibilityManager;
 import com.lumination.leadme.adapters.ConnectedLearnersAdapter;
@@ -26,8 +25,6 @@ import com.lumination.leadme.managers.PermissionManager;
 import com.lumination.leadme.managers.WebManager;
 import com.lumination.leadme.players.VREmbedPhotoPlayer;
 import com.lumination.leadme.players.VREmbedVideoPlayer;
-import com.lumination.leadme.utilities.AppInstaller;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -77,14 +74,10 @@ public class Controller {
     public static final String FILE_TRANSFER = "FileTransfer";
     public static final String UPDATE_DEVICE_MESSAGE = "UpdateDeviceMessage";
 
-    public static final String MULTI_INSTALL = "MultiInstall";
     public static final String AUTO_INSTALL = "AutoInstalling";
     public static final String AUTO_INSTALL_FAILED = "AutoInstallFail:";
     public static final String AUTO_INSTALL_ATTEMPT = "AutoInstallAttempt:";
     public static final String APP_NOT_INSTALLED = "AppNotInstalled";
-    public static final String COLLECT_APPS = "CollectApps";
-    public static final String APP_COLLECTION = "PeerAppCollection";
-    public static final String AUTO_UNINSTALL = "AutoUninstall";
 
     public static final String STUDENT_OFF_TASK_ALERT = "OffTask:";
     public static final String STUDENT_NO_OVERLAY = "Overlay:";
@@ -109,7 +102,6 @@ public class Controller {
     private final VRAccessibilityManager vrAccessibilityManager;
 
     private final NetworkManager networkManager;
-    private AppUpdateManager appUpdateManager;
     private final FileTransferManager fileTransferManager;
     private final PermissionManager permissionManager;
     private final AuthenticationManager authenticationManager;
@@ -119,7 +111,6 @@ public class Controller {
     private final AppManager appLaunchAdapter;
     private final ConnectedLearnersAdapter connectedLearnersAdapter;
     private final DispatchManager dispatcher;
-    private final AppInstaller lumiAppInstaller;
 
     /**
      *
@@ -139,7 +130,6 @@ public class Controller {
         vrEmbedVideoPlayer = new VREmbedVideoPlayer(main);
         appLaunchAdapter = new AppManager(main);
         fileTransferManager = new FileTransferManager(main);
-        lumiAppInstaller = new AppInstaller(main);
         connectedLearnersAdapter = new ConnectedLearnersAdapter(main, new ArrayList<>(), dialogManager.alertsAdapter);
     }
 
@@ -328,8 +318,5 @@ public class Controller {
     }
     public DialogManager getDialogManager() {
         return dialogManager;
-    }
-    public AppInstaller getLumiAppInstaller() {
-        return lumiAppInstaller;
     }
 }

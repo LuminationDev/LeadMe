@@ -3,8 +3,6 @@ package com.lumination.leadme.linkpreview;
 import android.os.AsyncTask;
 import android.util.Log;
 
-import com.lumination.leadme.managers.WebManager;
-
 import org.jsoup.Connection;
 import org.jsoup.HttpStatusException;
 import org.jsoup.Jsoup;
@@ -32,13 +30,9 @@ public class TextCrawler {
 
     private LinkPreviewCallback callback;
     private AsyncTask getCodeTask;
-    private WebManager web;
-    private String lastUrl;
-
     private UrlExtractionStrategy urlExtractionStrategy;
 
-    public TextCrawler(WebManager web) {
-        this.web=web;
+    public TextCrawler() {
     }
 
     public void makePreview(LinkPreviewCallback callback, String url) {
@@ -47,7 +41,6 @@ public class TextCrawler {
     }
 
     public void makePreview(LinkPreviewCallback callback, String url, ImagePickingStrategy imagePickingStrategy) {
-        lastUrl=url;
         this.callback = callback;
         cancel();
         getCodeTask = createPreviewGenerator(imagePickingStrategy).execute(url);

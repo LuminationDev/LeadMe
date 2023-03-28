@@ -2,7 +2,6 @@ package com.lumination.leadme.managers;
 
 import static com.lumination.leadme.LeadMeMain.UIHandler;
 
-import android.net.nsd.NsdServiceInfo;
 import android.os.Build;
 import android.os.Parcel;
 import android.util.Log;
@@ -33,8 +32,6 @@ public class NearbyPeersManager {
     public static Leader selectedLeader;
     public static String myID;
     public static String myName;
-
-    private static NsdServiceInfo manInfo = null;
 
     /**
      * Constructor which initiates the nsdManager class.
@@ -158,7 +155,6 @@ public class NearbyPeersManager {
             disconnectStudent(endpointId);
         } else {
             LeadMeMain.runOnUI(() -> {
-                ArrayList<ConnectedPeer> temp = new ArrayList<>();
                 LeadMeMain.getInstance().showLeaderWaitMsg(true);
                 LeadMeMain.getInstance().setUIDisconnected();
             });
