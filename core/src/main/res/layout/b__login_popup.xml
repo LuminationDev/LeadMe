@@ -466,6 +466,7 @@
                     style="?android:attr/borderlessButtonStyle"
                     android:layout_width="@dimen/standard_btn_width"
                     android:layout_height="@dimen/standard_btn_height"
+                    android:layout_marginBottom="10dp"
                     android:layout_gravity="center_horizontal"
                     android:accessibilityTraversalAfter="@id/back_btn"
                     android:accessibilityTraversalBefore="@id/login_pin_entry"

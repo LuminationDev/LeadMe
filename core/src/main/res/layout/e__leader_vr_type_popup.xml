@@ -57,7 +57,22 @@
             android:background="@drawable/bg_active"
             android:clickable="true"
             android:fontFamily="@font/poppins_semibold"
-            android:text="@string/videos"
+            android:text="@string/video"
+            android:textColor="@color/leadme_white"
+            android:textSize="16sp"
+            android:focusable="true" />
+
+        <Button
+            android:id="@+id/select_link_source_btn"
+            style="?android:attr/borderlessButtonStyle"
+            android:layout_width="@dimen/standard_btn_width"
+            android:layout_height="@dimen/standard_btn_height"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="10dp"
+            android:background="@drawable/bg_active"
+            android:clickable="true"
+            android:fontFamily="@font/poppins_semibold"
+            android:text="@string/link"
             android:textColor="@color/leadme_white"
             android:textSize="16sp"
             android:focusable="true" />
@@ -72,7 +87,7 @@
             android:background="@drawable/bg_active"
             android:clickable="true"
             android:fontFamily="@font/poppins_semibold"
-            android:text="@string/photos"
+            android:text="@string/photo"
             android:textColor="@color/leadme_white"
             android:textSize="16sp"
             android:focusable="true" />

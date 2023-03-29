@@ -1171,7 +1171,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         layoutParams = appGrid.getLayoutParams();
         layoutParams.height = appGrid.getMeasuredHeight(); //this is in pixels
         appGrid.setLayoutParams(layoutParams);
-        ((GridView) appLauncherScreen.findViewById(R.id.fav_list_grid)).setAdapter(Controller.getInstance().getAppManager().getFavouritesManager());
+        ((GridView) appLauncherScreen.findViewById(R.id.fav_list_grid)).setAdapter(Controller.getInstance().getFavouritesManager().getAppFavouritesAdapter());
         (appLauncherScreen.findViewById(R.id.current_task_layout)).setVisibility(View.GONE);
         (appLauncherScreen.findViewById(R.id.text_current_task)).setVisibility(View.GONE);
 
