@@ -87,7 +87,7 @@ public class WebManager {
         Integer[] push_imgs = {R.drawable.controls_view, R.drawable.controls_play};
         LumiSpinnerAdapter push_adapter = new LumiSpinnerAdapter(main, R.layout.row_push_spinner, lockSpinnerItems, push_imgs);
         lockSpinner.setAdapter(push_adapter);
-        lockSpinner.setSelection(0); //default to locked
+        lockSpinner.setSelection(1); //default to locked
         favCheckbox = previewDialogView.findViewById(R.id.fav_checkbox);
 
         setupPreviewDialog();
@@ -284,20 +284,11 @@ public class WebManager {
             urlTitle = " ";
         }
 
-        //update lock status
-        if (locked) {
-            if(selectedOnly) {
-                DispatchManager.sendActionToSelected(Controller.ACTION_TAG, Controller.LOCK_TAG, NearbyPeersManager.getSelectedPeerIDsOrAll());
-            }else{
-                DispatchManager.sendActionToSelected(Controller.ACTION_TAG, Controller.LOCK_TAG, NearbyPeersManager.getAllPeerIDs());
-            }
-        } else {
-            //unlocked if selected
-            if(selectedOnly) {
-                DispatchManager.sendActionToSelected(Controller.ACTION_TAG, Controller.UNLOCK_TAG, NearbyPeersManager.getSelectedPeerIDsOrAll());
-            }else{
-                DispatchManager.sendActionToSelected(Controller.ACTION_TAG, Controller.UNLOCK_TAG, NearbyPeersManager.getAllPeerIDs());
-            }
+        //unlocked if selected
+        if (selectedOnly) {
+            DispatchManager.sendActionToSelected(Controller.ACTION_TAG, Controller.UNLOCK_TAG, NearbyPeersManager.getSelectedPeerIDsOrAll());
+        }else{
+            DispatchManager.sendActionToSelected(Controller.ACTION_TAG, Controller.UNLOCK_TAG, NearbyPeersManager.getAllPeerIDs());
         }
 
         //push the right instruction to the receivers
@@ -313,21 +304,11 @@ public class WebManager {
 
     public void pushURL(String url, String urlTitle) {
         Log.d(TAG, "pushURL: ");
-        //update lock status
-        if (lockSpinner.getSelectedItem().toString().startsWith("View")) {
-            //locked by default
-            if(LeadMeMain.selectedOnly) {
-                DispatchManager.sendActionToSelected(Controller.ACTION_TAG, Controller.LOCK_TAG, NearbyPeersManager.getSelectedPeerIDsOrAll());
-            }else{
-                DispatchManager.sendActionToSelected(Controller.ACTION_TAG, Controller.LOCK_TAG, NearbyPeersManager.getAllPeerIDs());
-            }
-        } else {
-            //unlocked if selected
-            if(LeadMeMain.selectedOnly) {
-                DispatchManager.sendActionToSelected(Controller.ACTION_TAG, Controller.UNLOCK_TAG, NearbyPeersManager.getSelectedPeerIDsOrAll());
-            }else{
-                DispatchManager.sendActionToSelected(Controller.ACTION_TAG, Controller.UNLOCK_TAG, NearbyPeersManager.getAllPeerIDs());
-            }
+        //unlocked if selected
+        if(LeadMeMain.selectedOnly) {
+            DispatchManager.sendActionToSelected(Controller.ACTION_TAG, Controller.UNLOCK_TAG, NearbyPeersManager.getSelectedPeerIDsOrAll());
+        }else{
+            DispatchManager.sendActionToSelected(Controller.ACTION_TAG, Controller.UNLOCK_TAG, NearbyPeersManager.getAllPeerIDs());
         }
 
         //push the right instruction to the receivers
@@ -479,7 +460,7 @@ public class WebManager {
         Log.d(TAG, "showYouTubePreview: ");
         SearchManager.isYouTube = true;
         //first position is 'locked' - default for YouTube
-        lockSpinner.setSelection(0);
+        lockSpinner.setSelection(1);
         buildAndShowPreviewDialog(url);
     }
 
@@ -503,7 +484,7 @@ public class WebManager {
         pushURL = url;
 
         if (SearchManager.isYouTube) {
-            lockSpinner.setSelection(0); //default to locked
+            lockSpinner.setSelection(1); //default to locked
             pushTitle = favouritesManager.getYouTubeFavouritesAdapter().getTitle(url);
             previewDialogView.findViewById(R.id.preview_youtube).setVisibility(View.VISIBLE);
             previewDialogView.findViewById(R.id.preview_web).setVisibility(View.GONE);
@@ -603,7 +584,13 @@ public class WebManager {
             if (url.length() == 0) {
                 return;
             }
-            showPreview(url);
+
+            websiteLaunchDialog.dismiss();
+            Controller.getInstance().getDialogManager().createContentLaunchChoiceDialog(
+                    "URL Launch",
+                    url,
+                    LeadMeMain.isGuide
+            );
         });
 
         websiteLaunchDialogView.findViewById(R.id.back_btn).setOnClickListener(v -> {

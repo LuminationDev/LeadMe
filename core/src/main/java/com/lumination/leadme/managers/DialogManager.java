@@ -9,6 +9,7 @@ import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
+import android.os.Handler;
 import android.util.Log;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
@@ -25,9 +26,11 @@ import androidx.core.content.res.ResourcesCompat;
 import com.alimuzaffar.lib.pin.PinEntryEditText;
 import com.lumination.leadme.LeadMeMain;
 import com.lumination.leadme.R;
+import com.lumination.leadme.accessibility.VRAccessibilityManager;
 import com.lumination.leadme.adapters.ConnectedLearnersAdapter;
 import com.lumination.leadme.adapters.StudentAlertsAdapter;
 import com.lumination.leadme.controller.Controller;
+import com.lumination.leadme.services.NetworkService;
 import com.lumination.leadme.utilities.FileUtilities;
 
 import java.util.ArrayList;
@@ -1186,5 +1189,78 @@ public class DialogManager {
         if (Controller.getInstance().getWebManager() != null) {
             Controller.getInstance().getWebManager().cleanUp();
         }
+    }
+
+    /**
+     * Present the user with a choice to push selected content through the VR Player or the default
+     * option.
+     * @param linkTitle A string which displays what is about to be pushed.
+     * @param link A string of the URL which is about to be launched.
+     * @param leader A boolean representing if the popup is being opened by a teacher.
+     */
+    public void createContentLaunchChoiceDialog(String linkTitle, String link, boolean leader) {
+        View contentLaunchChoice = View.inflate(main, R.layout.e__app_push_selection, null);
+        AlertDialog contentLaunchChoiceDialog = new AlertDialog.Builder(main)
+                .setView(contentLaunchChoice)
+                .create();
+
+        //Set the app title
+        TextView title = contentLaunchChoice.findViewById(R.id.push_app_title);
+        title.setText(linkTitle);
+
+        //Configure the button effects
+        Button vrPlayerBtn = contentLaunchChoice.findViewById(R.id.vr_player_btn);
+        vrPlayerBtn.setOnClickListener(v -> {
+            contentLaunchChoiceDialog.dismiss();
+            dialogShowing = false;
+
+            if(leader) {
+                Controller.getInstance().getVrEmbedLinkPlayer().openPreview(link);
+            } else {
+                CuratedContentManager.curatedContentScreen.findViewById(R.id.back_btn).setOnClickListener(view -> main.leadmeAnimator.setDisplayedChild(main.ANIM_LEARNER_INDEX));
+                //Launch the VR Player application
+                Controller.getInstance().getAppManager().launchLocalApp(
+                        "com.lumination.VRPlayer",
+                        "VRPlayer",
+                        true,
+                        false,
+                        "false",
+                        null);
+
+                //Wait while the VR Player is opening then send through the source lin
+                new Handler().postDelayed(() -> {
+                    //Send through the source message
+                    //Modify the link so that we don't split it accidentally
+                    String safeURL = link.replace(':', '|');
+
+                    NetworkService.receiveMessage("ACTION," + DispatchManager.encodeMessage(
+                            "Action",
+                            Controller.VR_PLAYER_TAG + ":" + VRAccessibilityManager.CUE_SET_SOURCE + ":" + safeURL + ":" + 0 + ":" + "Link"));
+                }, 3000);
+            }
+        });
+
+        Button defaultBtn = contentLaunchChoice.findViewById(R.id.default_btn);
+        defaultBtn.setOnClickListener(v -> {
+            contentLaunchChoiceDialog.dismiss();
+            dialogShowing = false;
+
+            if(leader) {
+                WebManager webManager = new WebManager(main);
+                webManager.showPreview(link);
+            } else {
+                CuratedContentManager.curatedContentScreen.findViewById(R.id.back_btn).setOnClickListener(view -> main.leadmeAnimator.setDisplayedChild(main.ANIM_LEARNER_INDEX));
+                NetworkService.receiveMessage("ACTION," + DispatchManager.encodeMessage("Action", Controller.LAUNCH_URL + link + ":::" + title));
+            }
+        });
+
+        Button backBtn = contentLaunchChoice.findViewById(R.id.back_btn);
+        backBtn.setOnClickListener(v -> {
+            contentLaunchChoiceDialog.dismiss();
+            dialogShowing = false;
+        });
+
+        contentLaunchChoiceDialog.setOnDismissListener(dialog -> hideSystemUI());
+        contentLaunchChoiceDialog.show();
     }
 }

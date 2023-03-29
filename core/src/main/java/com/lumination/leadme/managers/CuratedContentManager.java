@@ -89,20 +89,16 @@ public class CuratedContentManager {
         if (curatedContentItem.img_url != null) {
             UrlImageViewHelper.setUrlDrawable(imageView, curatedContentItem.img_url);
         }
+
         Button selectItem = curatedContentScreenSingle.findViewById(R.id.select_item);
-        selectItem.setOnClickListener(new View.OnClickListener() {
-              @Override
-              public void onClick(View view) {
-                  if (LeadMeMain.isGuide) {
-                      WebManager webManager = new WebManager(main);
-                      webManager.showPreview(curatedContentItem.link);
-                  } else {
-                      CuratedContentManager.curatedContentScreen.findViewById(R.id.back_btn).setOnClickListener(v -> main.leadmeAnimator.setDisplayedChild(main.ANIM_LEARNER_INDEX));
-                      NetworkService.receiveMessage("ACTION," + DispatchManager.encodeMessage("Action", Controller.LAUNCH_URL + curatedContentItem.link + ":::" + curatedContentItem.title));
-                  }
-              }
-          }
+        selectItem.setOnClickListener(view ->
+                Controller.getInstance().getDialogManager().createContentLaunchChoiceDialog(
+                        curatedContentItem.title,
+                        curatedContentItem.link,
+                        LeadMeMain.isGuide
+                )
         );
+
         if (!LeadMeMain.isGuide) {
             selectItem.setText("Watch");
         }
