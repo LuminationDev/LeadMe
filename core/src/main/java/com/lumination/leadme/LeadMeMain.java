@@ -221,13 +221,11 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     private static final int ANIM_LEADER_INDEX = 3;
     private static final int ANIM_APP_LAUNCH_INDEX = 4;
     private static final int ANIM_OPTIONS_INDEX = 5;
-    protected static final int ANIM_MULTI_INDEX = 6;
-    public static final int ANIM_CURATED_CONTENT_LAUNCH_INDEX = 7;
-    private static final int ANIM_CURATED_CONTENT_SINGLE_LAUNCH_INDEX = 8;
+    public static final int ANIM_CURATED_CONTENT_LAUNCH_INDEX = 6;
+    private static final int ANIM_CURATED_CONTENT_SINGLE_LAUNCH_INDEX = 7;
 
     public View waitingForLearners, appLauncherScreen;
     public View splashscreen, startLearner, mainLearner, startLeader, mainLeader, optionsScreen, switcherView;
-    public View multiAppManager;
     private TextView learnerWaitingText;
     public Button alertsBtn;
     private Button leader_toggle, learner_toggle;
@@ -1068,7 +1066,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         optionsScreen = View.inflate(context, R.layout.d__options_menu, null);
         appLauncherScreen = View.inflate(context, R.layout.d__app_list, null);
         learnerWaitingText = startLearner.findViewById(R.id.waiting_text);
-        multiAppManager = View.inflate(context, R.layout.d__app_manager_list, null);
         CuratedContentManager.curatedContentScreen = View.inflate(context, R.layout.d__curated_content_list, null);
         CuratedContentManager.curatedContentScreenSingle = View.inflate(context, R.layout.curated_content_single, null);
     }
@@ -1418,7 +1415,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         leadmeAnimator.addView(mainLeader);
         leadmeAnimator.addView(appLauncherScreen);
         leadmeAnimator.addView(optionsScreen);
-        leadmeAnimator.addView(multiAppManager);
         leadmeAnimator.addView(CuratedContentManager.curatedContentScreen);
         leadmeAnimator.addView(CuratedContentManager.curatedContentScreenSingle);
     }
@@ -1466,18 +1462,11 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         mainLeader.findViewById(R.id.menu_btn).setOnClickListener(menuListener);
         mainLearner.findViewById(R.id.menu_btn).setOnClickListener(menuListener);
         appLauncherScreen.findViewById(R.id.menu_btn).setOnClickListener(menuListener);
-        multiAppManager.findViewById(R.id.menu_btn).setOnClickListener(menuListener);
 
 
         //set up back buttons
         appLauncherScreen.findViewById(R.id.back_btn).setOnClickListener(view -> leadmeAnimator.setDisplayedChild(ANIM_LEADER_INDEX));
         CuratedContentManager.curatedContentScreen.findViewById(R.id.back_btn).setOnClickListener(view -> leadmeAnimator.setDisplayedChild(isGuide ? ANIM_LEADER_INDEX : ANIM_LEARNER_INDEX));
-
-        //multi installer screen back button
-        multiAppManager.findViewById(R.id.back_btn).setOnClickListener(view -> {
-            //display LeadMe main page
-            leadmeAnimator.setDisplayedChild(ANIM_LEADER_INDEX);
-        });
 
         //set up options screen
         optionsScreen.findViewById(R.id.back_btn).setOnClickListener(v -> {

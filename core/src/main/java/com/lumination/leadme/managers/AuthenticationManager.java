@@ -201,7 +201,7 @@ public class AuthenticationManager {
     public void buildloginsignup(int page, boolean signinVerif) {
         showSystemUI();
         View loginView = View.inflate(main, R.layout.b__login_signup, null);
-        LinearLayout[] layoutPages = {loginView.findViewById(R.id.rego_code), loginView.findViewById(R.id.terms_of_use), loginView.findViewById(R.id.signup_page)
+        LinearLayout[] layoutPages = {loginView.findViewById(R.id.terms_of_use), loginView.findViewById(R.id.signup_page)
                 , loginView.findViewById(R.id.email_verification)
                 , loginView.findViewById(R.id.set_pin), loginView.findViewById(R.id.account_created)};
         Button next = loginView.findViewById(R.id.signup_enter);
@@ -215,15 +215,6 @@ public class AuthenticationManager {
             //TODO perhaps change this later?
             main.composeEmail(email,"LeadMe Support: Signup Issue");
         });
-
-        //page 0
-//        EditText loginCode = loginView.findViewById(R.id.rego_code_box);
-//        TextView regoLost = loginView.findViewById(R.id.rego_lost_code);
-//        regoLost.setOnClickListener(v -> {
-//            String[] email = {"dev@lumination.com.au"};
-//            main.composeEmail(email,"LeadMe Support: Signup Code Request");
-//        });
-        //TextView regoError = loginView.findViewById(R.id.rego_code_error);
 
         //page 2
         TextView signupError = loginView.findViewById(R.id.signup_error);
@@ -624,7 +615,6 @@ public class AuthenticationManager {
                         userDet.put("name", name);
                         userDet.put("email", email);
                         userDet.put("marketing", marketing);
-                        //userDet.put("rego_code", regoCode);
 
                         db.collection("users").document(mAuth.getCurrentUser().getUid()).get().addOnCompleteListener(task1 -> {
                             if (task1.getResult().exists()) {
