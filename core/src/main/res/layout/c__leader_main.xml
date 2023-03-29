@@ -269,30 +269,6 @@
                         android:text="Lock"/>
                 </LinearLayout>
             </LinearLayout>
-
-<!--            Only for intended internal use-->
-            <LinearLayout
-                android:id="@+id/installer_core_btn"
-                style="@style/LeaderButton"
-                android:orientation="vertical"
-                android:visibility="gone">
-                <LinearLayout
-                    style="@style/LeaderButton__IconWrapper">
-                    <LinearLayout
-                        style="@style/LeaderButton__Icon"
-                        android:background="@drawable/alert_downloading"/>
-                </LinearLayout>
-                <LinearLayout
-                    style="@style/LeaderButton__Text">
-                    <TextView
-                        style="@style/LeaderButton__Text__Eyebrow"
-                        android:text="PUSH"/>
-                    <TextView
-                        style="@style/LeaderButton__Text__Lead"
-                        android:text="App Installer"/>
-                </LinearLayout>
-            </LinearLayout>
-
         </LinearLayout>
     </HorizontalScrollView>
 

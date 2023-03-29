@@ -19,7 +19,6 @@ import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.core.content.res.ResourcesCompat;
 
@@ -49,7 +48,6 @@ public class DialogManager {
     private View confirmPushDialogView,
             loginDialogView,
             toggleBtnView,
-            manView,
             permissionDialogView,
             requestDialogView;
 
@@ -60,7 +58,6 @@ public class DialogManager {
             studentAlertsDialog,
             loginDialog,
             recallPrompt,
-            manualDialog,
             permissionDialog,
             requestDialog,
             fileTypeDialog,
@@ -232,6 +229,14 @@ public class DialogManager {
             dialogShowing = false;
             LeadMeMain.defaultVideo = true;
             Controller.getInstance().getVrEmbedVideoPlayer().showPlaybackPreview();
+        });
+
+        Button linkBtn = vrContentType.findViewById(R.id.select_link_source_btn);
+        linkBtn.setOnClickListener(v -> {
+            vrContentTypeDialog.dismiss();
+            dialogShowing = false;
+            LeadMeMain.defaultVideo = true;
+            Controller.getInstance().getVrEmbedLinkPlayer().showPlaybackPreview();
         });
 
         Button photoBtn = vrContentType.findViewById(R.id.select_photo_source_btn);
@@ -426,7 +431,6 @@ public class DialogManager {
         });
     }
 
-
     /**
      * Displays an alert box, notifying the guide that there are files missing on a learner devices.
      * Will wait x seconds before showing the allow button as to check if any other devices report
@@ -562,15 +566,6 @@ public class DialogManager {
         }
     }
 
-    public void showWaitingDialog() {
-        if (waitingDialog == null) {
-            setupWaitingDialog();
-        }
-
-        waitingDialog.show();
-        dialogShowing = true;
-    }
-
     /**
      * Display an AlertDialog for first time users with a link to the online manual.
      */
@@ -674,7 +669,7 @@ public class DialogManager {
         if (isSavedOnly) {
             LeadMeMain.UIHandler.postDelayed(() -> {
                 hideConfirmPushDialog();
-                Controller.getInstance().getWebManager().launchUrlYtFavourites();
+                Controller.getInstance().getFavouritesManager().launchUrlYtFavourites(FavouritesManager.LAUNCHTYPE_WEB);
             }, 1500);
         } else {
             LeadMeMain.UIHandler.postDelayed(this::hideConfirmPushDialog, 1500);
@@ -908,15 +903,6 @@ public class DialogManager {
         toggleSelectedBtn.setVisibility(ConnectedLearnersAdapter.someoneIsSelected()
                 && (NearbyPeersManager.getSelectedPeerIDs().size() < NearbyPeersManager.getAllPeerIDs().size())
                 ? View.VISIBLE : View.GONE);
-    }
-
-    /**
-     * Displays an AlertDialog whilst a peer is connecting to a guide.
-     */
-    public void showWaitingForConnectDialog() {
-        loginDialog.dismiss();
-        showWaitingDialog();
-        dialogShowing = true;
     }
 
     /**
@@ -1196,9 +1182,6 @@ public class DialogManager {
         }
         if (recallPrompt != null) {
             recallPrompt.dismiss();
-        }
-        if  (Controller.getInstance().getLumiAppInstaller().installDialog != null) {
-            Controller.getInstance().getLumiAppInstaller().installDialog.dismiss();
         }
         if (Controller.getInstance().getWebManager() != null) {
             Controller.getInstance().getWebManager().cleanUp();

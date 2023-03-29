@@ -208,7 +208,6 @@ public class StudentAlertsAdapter extends BaseAdapter {
     }
 
     private String lastClickedID = "";
-    ArrayList<View> nullViews = new ArrayList<>();
     String[] Types = {"Disconnected",
             "Last App Didn't Launch",
             "Accessibility is Disabled",

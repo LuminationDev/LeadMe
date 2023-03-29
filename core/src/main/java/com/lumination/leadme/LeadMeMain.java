@@ -3,7 +3,6 @@ package com.lumination.leadme;
 import android.accessibilityservice.AccessibilityService;
 import android.accessibilityservice.GestureDescription;
 import android.annotation.SuppressLint;
-import android.app.Activity;
 import android.app.ActivityManager;
 import android.app.AlertDialog;
 import android.content.BroadcastReceiver;
@@ -57,7 +56,6 @@ import android.widget.EditText;
 import android.widget.GridView;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.Switch;
 import android.widget.TextSwitcher;
@@ -77,7 +75,6 @@ import androidx.lifecycle.OnLifecycleEvent;
 import com.BoardiesITSolutions.FileDirectoryPicker.OpenFilePicker;
 import com.alimuzaffar.lib.pin.PinEntryEditText;
 import com.google.android.gms.tasks.Task;
-import com.lumination.leadme.BuildConfig;
 import com.google.firebase.auth.AuthCredential;
 import com.google.firebase.auth.EmailAuthProvider;
 import com.google.firebase.auth.FirebaseAuth;
@@ -92,7 +89,6 @@ import com.lumination.leadme.accessibility.LumiAccessibilityConnector;
 import com.lumination.leadme.adapters.ConnectedLearnersAdapter;
 import com.lumination.leadme.managers.AppManager;
 import com.lumination.leadme.managers.FirebaseManager;
-import com.lumination.leadme.managers.Leader;
 import com.lumination.leadme.managers.NearbyPeersManager;
 import com.lumination.leadme.managers.NetworkManager;
 import com.lumination.leadme.managers.PermissionManager;
@@ -103,9 +99,6 @@ import com.lumination.leadme.services.NetworkService;
 import com.lumination.leadme.utilities.FileUtilities;
 import com.lumination.leadme.utilities.OnboardingGestureDetector;
 
-import org.w3c.dom.Text;
-
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Objects;
@@ -147,7 +140,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
     //Turn the updated content on or off - still need to manually switch the layout in c__leader_main.xml
     public static final boolean FLAG_UPDATES = false;
-    public static final boolean FLAG_INSTALLER = false;
 
     public Drawable leadMeIcon;
 
@@ -229,13 +221,11 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     private static final int ANIM_LEADER_INDEX = 3;
     private static final int ANIM_APP_LAUNCH_INDEX = 4;
     private static final int ANIM_OPTIONS_INDEX = 5;
-    protected static final int ANIM_MULTI_INDEX = 6;
-    public static final int ANIM_CURATED_CONTENT_LAUNCH_INDEX = 7;
-    private static final int ANIM_CURATED_CONTENT_SINGLE_LAUNCH_INDEX = 8;
+    public static final int ANIM_CURATED_CONTENT_LAUNCH_INDEX = 6;
+    private static final int ANIM_CURATED_CONTENT_SINGLE_LAUNCH_INDEX = 7;
 
     public View waitingForLearners, appLauncherScreen;
     public View splashscreen, startLearner, mainLearner, startLeader, mainLeader, optionsScreen, switcherView;
-    public View multiAppManager;
     private TextView learnerWaitingText;
     public Button alertsBtn;
     private Button leader_toggle, learner_toggle;
@@ -259,7 +249,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     //Auto app installer
     public static Boolean autoInstallApps = false; //if true, missing apps on student devices get installed automatically
     public static Boolean managingAutoInstaller = false; //track if installing applications so recall can be skipped
-    public static Boolean installingApps = null; //track if installing or uninstalling application
     public Switch autoToggle = null;
 
     private ImageView currentTaskIcon;
@@ -567,7 +556,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
                 Log.w(TAG, "gesture completed");
                 //activate the event once the tap completes
-                getLumiAccessibilityConnector().gestureInProgress = false;
                 getLumiAccessibilityConnector().manageAccessibilityEvent(null, null);
             });
         }
@@ -584,7 +572,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
             runOnUI(() -> {
                 Log.w(TAG, "gesture cancelled");
-                getLumiAccessibilityConnector().gestureInProgress = false;
                 //activate the event once the tap completes
                 getLumiAccessibilityConnector().manageAccessibilityEvent(null, null);
             });
@@ -600,7 +587,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     }
 
     public void tapBounds(int x, int y) {
-        getLumiAccessibilityConnector().gestureInProgress = true;
         Log.e(TAG, "ATTEMPTING TAP! " + x + ", " + y);
         if (accessibilityService == null) {
             return;
@@ -920,10 +906,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         decorView.setSystemUiVisibility(newUiOptions);
     }
 
-    public String getUUID() {
-        return sessionUUID;
-    }
-
     private int lastDisplayedIndex = -1;
 
     @Override
@@ -1084,7 +1066,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         optionsScreen = View.inflate(context, R.layout.d__options_menu, null);
         appLauncherScreen = View.inflate(context, R.layout.d__app_list, null);
         learnerWaitingText = startLearner.findViewById(R.id.waiting_text);
-        multiAppManager = View.inflate(context, R.layout.d__app_manager_list, null);
         CuratedContentManager.curatedContentScreen = View.inflate(context, R.layout.d__curated_content_list, null);
         CuratedContentManager.curatedContentScreenSingle = View.inflate(context, R.layout.curated_content_single, null);
     }
@@ -1190,7 +1171,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         layoutParams = appGrid.getLayoutParams();
         layoutParams.height = appGrid.getMeasuredHeight(); //this is in pixels
         appGrid.setLayoutParams(layoutParams);
-        ((GridView) appLauncherScreen.findViewById(R.id.fav_list_grid)).setAdapter(Controller.getInstance().getAppManager().getFavouritesManager());
+        ((GridView) appLauncherScreen.findViewById(R.id.fav_list_grid)).setAdapter(Controller.getInstance().getFavouritesManager().getAppFavouritesAdapter());
         (appLauncherScreen.findViewById(R.id.current_task_layout)).setVisibility(View.GONE);
         (appLauncherScreen.findViewById(R.id.text_current_task)).setVisibility(View.GONE);
 
@@ -1319,20 +1300,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             }
         });
 
-        //multi install button
-        if(LeadMeMain.FLAG_INSTALLER) {
-            LinearLayout installer = mainLeader.findViewById(R.id.installer_core_btn);
-            installer.setOnTouchListener(touchListener);
-            installer.setVisibility(View.VISIBLE);
-            installer.setOnClickListener(view -> {
-                if (autoInstallApps) {
-                    Controller.getInstance().getLumiAppInstaller().showMultiInstaller(layoutParams);
-                } else {
-                    Controller.getInstance().getDialogManager().showWarningDialog("Auto Installer", "Auto installing has not been enabled.");
-                }
-            });
-        }
-
         if(LeadMeMain.FLAG_UPDATES) {
 
             //Lock/Unlock button
@@ -1448,7 +1415,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         leadmeAnimator.addView(mainLeader);
         leadmeAnimator.addView(appLauncherScreen);
         leadmeAnimator.addView(optionsScreen);
-        leadmeAnimator.addView(multiAppManager);
         leadmeAnimator.addView(CuratedContentManager.curatedContentScreen);
         leadmeAnimator.addView(CuratedContentManager.curatedContentScreenSingle);
     }
@@ -1496,22 +1462,11 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         mainLeader.findViewById(R.id.menu_btn).setOnClickListener(menuListener);
         mainLearner.findViewById(R.id.menu_btn).setOnClickListener(menuListener);
         appLauncherScreen.findViewById(R.id.menu_btn).setOnClickListener(menuListener);
-        multiAppManager.findViewById(R.id.menu_btn).setOnClickListener(menuListener);
 
 
         //set up back buttons
         appLauncherScreen.findViewById(R.id.back_btn).setOnClickListener(view -> leadmeAnimator.setDisplayedChild(ANIM_LEADER_INDEX));
         CuratedContentManager.curatedContentScreen.findViewById(R.id.back_btn).setOnClickListener(view -> leadmeAnimator.setDisplayedChild(isGuide ? ANIM_LEADER_INDEX : ANIM_LEARNER_INDEX));
-
-        //multi installer screen back button
-        multiAppManager.findViewById(R.id.back_btn).setOnClickListener(view -> {
-            //display LeadMe main page
-            leadmeAnimator.setDisplayedChild(ANIM_LEADER_INDEX);
-            //cancel the multi install
-            Controller.getInstance().getLumiAppInstaller().multiInstalling = false;
-            //reset any selected apps
-            Controller.getInstance().getLumiAppInstaller().resetAppSelection();
-        });
 
         //set up options screen
         optionsScreen.findViewById(R.id.back_btn).setOnClickListener(v -> {
@@ -1768,14 +1723,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
     public void showCuratedContentSingleScreen() {
         leadmeAnimator.setDisplayedChild(ANIM_CURATED_CONTENT_SINGLE_LAUNCH_INDEX);
-    }
-
-    public void showMultiAppInstallerScreen() {
-        leadmeAnimator.setDisplayedChild(ANIM_MULTI_INDEX);
-    }
-
-    public void exitCurrentView() {
-        leadmeAnimator.setDisplayedChild(ANIM_LEADER_INDEX);
     }
 
     public ProgressBar setProgressTimer(int Time) {
@@ -2124,10 +2071,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         optionsScreen.findViewById(R.id.how_to_use_btn).setVisibility(enabled);
         optionsScreen.findViewById(R.id.help_support_btn).setVisibility(enabled);
         transferToggle.setVisibility(enabled);
-
-        if(LeadMeMain.FLAG_INSTALLER) {
-            autoToggle.setVisibility(enabled);
-        }
     }
 
     /**

@@ -28,6 +28,7 @@ public class VRAccessibilityManager {
     public static final int CUE_RWD = 4;
     public static final int CUE_PROJECTION = 5;
     public static final int CUE_SET_SOURCE = 6;
+    public static final int CUE_RESET_SCENE = 7;
 
     private final LeadMeMain main;
 
@@ -81,6 +82,10 @@ public class VRAccessibilityManager {
                 setSource(info);
                 break;
 
+            case CUE_RESET_SCENE:
+                newIntent("reset");
+                break;
+
             default:
                 Log.e(TAG, "Action unknown");
                 break;
@@ -114,7 +119,10 @@ public class VRAccessibilityManager {
         String fileType = split[2];
 
         String absFilepath;
-        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+        if(split[2].equals("Link")) {
+            absFilepath = split[0];
+        }
+        else if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             Uri source = FileUtilities.searchStorage(main, split[0]);
 
             if(source == null) {

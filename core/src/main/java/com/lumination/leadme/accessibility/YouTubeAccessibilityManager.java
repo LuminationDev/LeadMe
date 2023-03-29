@@ -461,16 +461,6 @@ public class YouTubeAccessibilityManager {
     private String pushTitle = "";
     private String pushURL = "";
 
-    public void resetState() {
-        //Log.d(TAG, "resetState: ");
-        Log.w(TAG, "Clearing CUED ACTIONS!");
-        cuedActions.clear();
-        pushURL = "";
-        pushTitle = "";
-        videoPlayStarted = false;
-        main.getLumiAccessibilityConnector().gestureInProgress = false;
-    }
-
     public void cueYouTubeAction(String actionStr) {
         //Log.d(TAG, "cueYouTubeAction: ");
         if (NearbyPeersManager.isConnectedAsGuide()) {
@@ -513,22 +503,6 @@ public class YouTubeAccessibilityManager {
             });
         }
     }
-
-    //these are not case sensitive, and will return partial matches
-    private static final String[] keyYouTubePhrases = {
-            "Play video",
-            "Pause video",
-            "Enter virtual reality mode",
-            "Watch in VR",
-            "More options",
-            "Autoplay is on",
-            "Enter fullscreen",
-            "Move device to explore video",
-            "Cancel"
-            //"Exit fullscreen"
-            //"Action menu"
-            //"Expand Mini Player"
-    };
 
     private static final String[] popupPhrases = {
             "Continue",

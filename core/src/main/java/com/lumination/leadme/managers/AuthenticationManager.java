@@ -5,8 +5,6 @@ import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
-import android.text.Editable;
-import android.text.TextWatcher;
 import android.util.Log;
 import android.view.View;
 import android.webkit.WebView;
@@ -16,12 +14,10 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
-import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.VideoView;
 
-import androidx.annotation.NonNull;
 import androidx.core.content.res.ResourcesCompat;
 
 import com.alimuzaffar.lib.pin.PinEntryEditText;
@@ -205,7 +201,7 @@ public class AuthenticationManager {
     public void buildloginsignup(int page, boolean signinVerif) {
         showSystemUI();
         View loginView = View.inflate(main, R.layout.b__login_signup, null);
-        LinearLayout[] layoutPages = {loginView.findViewById(R.id.rego_code), loginView.findViewById(R.id.terms_of_use), loginView.findViewById(R.id.signup_page)
+        LinearLayout[] layoutPages = {loginView.findViewById(R.id.terms_of_use), loginView.findViewById(R.id.signup_page)
                 , loginView.findViewById(R.id.email_verification)
                 , loginView.findViewById(R.id.set_pin), loginView.findViewById(R.id.account_created)};
         Button next = loginView.findViewById(R.id.signup_enter);
@@ -220,15 +216,6 @@ public class AuthenticationManager {
             main.composeEmail(email,"LeadMe Support: Signup Issue");
         });
 
-        //page 0
-//        EditText loginCode = loginView.findViewById(R.id.rego_code_box);
-//        TextView regoLost = loginView.findViewById(R.id.rego_lost_code);
-//        regoLost.setOnClickListener(v -> {
-//            String[] email = {"dev@lumination.com.au"};
-//            main.composeEmail(email,"LeadMe Support: Signup Code Request");
-//        });
-        //TextView regoError = loginView.findViewById(R.id.rego_code_error);
-
         //page 2
         TextView signupError = loginView.findViewById(R.id.signup_error);
         EditText signupName = loginView.findViewById(R.id.signup_name);
@@ -242,8 +229,6 @@ public class AuthenticationManager {
         marketingCheck.setChecked(Marketing);
         //page 1
         TextView errorText = loginView.findViewById(R.id.tou_readtext);
-        ScrollView touScroll = loginView.findViewById(R.id.tou_scrollView);
-        TextView terms = loginView.findViewById(R.id.tou_terms);
         CheckBox touAgree = loginView.findViewById(R.id.tou_check);
         //page 3
         VideoView animation = loginView.findViewById(R.id.email_animation);
@@ -251,7 +236,6 @@ public class AuthenticationManager {
         TextView pinError = loginView.findViewById(R.id.pin_error_text);
         ImageView pinErrorImg = loginView.findViewById(R.id.pin_error_image);
         //page 5
-        TextView accountText = loginView.findViewById(R.id.account_createdtext);
         for (int i = 0; i < layoutPages.length; i++) {
             if (i != page) {
                 layoutPages[i].setVisibility(View.GONE);
@@ -546,14 +530,6 @@ public class AuthenticationManager {
         }
     }
 
-    private void firebaseRemoveUser(FirebaseUser currentUser) {
-        db.collection("users").document(currentUser.getUid()).delete().addOnCompleteListener(task -> {
-            if(task.isSuccessful()){
-                currentUser.delete();
-            }
-        });
-    }
-
     private void authCheck() {
         if(mAuth.getCurrentUser() == null) {
             scheduledExecutorService.shutdown();
@@ -639,7 +615,6 @@ public class AuthenticationManager {
                         userDet.put("name", name);
                         userDet.put("email", email);
                         userDet.put("marketing", marketing);
-                        //userDet.put("rego_code", regoCode);
 
                         db.collection("users").document(mAuth.getCurrentUser().getUid()).get().addOnCompleteListener(task1 -> {
                             if (task1.getResult().exists()) {
@@ -773,14 +748,6 @@ public class AuthenticationManager {
     }
 
     /**
-     * Get the email of the account holder of the currently logged in user.
-     * @return A String representing the current user's email.
-     */
-    public String getCurrentAuthEmail() {
-        return mAuth.getCurrentUser().getEmail();
-    }
-
-    /**
      * Get this classes instance of the google sign in client.
      * @return An instance of the google sign in client.
      */
@@ -800,13 +767,6 @@ public class AuthenticationManager {
      * */
     private void hideSystemUI() {
         main.hideSystemUI();
-    }
-
-    /**
-     * Calls the openKeyboard from the LeadMe main activity.
-     * */
-    private void openKeyboard() {
-        main.openKeyboard();
     }
 
     /**

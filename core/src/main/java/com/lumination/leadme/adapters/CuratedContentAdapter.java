@@ -27,12 +27,10 @@ public class CuratedContentAdapter extends BaseAdapter {
     public ArrayList<CuratedContentItem> curatedContentList = new ArrayList<>();
     private LayoutInflater mInflater;
     private LeadMeMain main;
-    private View list_view;
 
-    public CuratedContentAdapter(LeadMeMain main, View list_view) {
+    public CuratedContentAdapter(LeadMeMain main) {
         this.main = main;
         this.mInflater = LayoutInflater.from(main);
-        this.list_view = list_view;
     }
 
     @Override

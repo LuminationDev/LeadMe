@@ -410,14 +410,6 @@ public class VREmbedPhotoPlayer {
     }
 
     /**
-     * Launches the custom VR Player.
-     * @param peerSet A set of strings representing the learner ID's to send the action to.
-     */
-    public void launchVR(Set<String> peerSet) {
-        Controller.getInstance().getAppManager().launchApp(packageName, appName, false, "false", true, peerSet);
-    }
-
-    /**
      * Relaunches the last VR experience with the selected video source.
      * @param peerSet A set of strings representing the learner ID's to send the action to.
      */
@@ -449,14 +441,6 @@ public class VREmbedPhotoPlayer {
         changeProjectionBtn.setOnClickListener(v ->
             popupWindow.showAsDropDown(v,-200,-100)
         );
-    }
-
-    /**
-     * Opens the video controller for the custom VR player. Only available if the video path has
-     * already been set/saved in the LeadMe main.
-     */
-    public void openVideoController() {
-        showVideoController();
     }
 
     private void showVideoController() {

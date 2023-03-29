@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+
+<html style="height:100%">
+    <body style="margin: 0; padding: 0; height:100%;">
+        <!-- 1. The <iframe> (and video player) will replace this <div> tag. -->
+        <div
+            id="player"
+            style="margin: 0; padding: 0; width:100%; height:100%;">
+
+            <video id="video_stream" width="100%" height="auto" name="media"><source src="PLACEHOLDER_SOURCE" type="video/mp4"></video>
+        </div>
+        
+        <script>
+          var player;
+          var mytimer;
+          // 1. Wait for the page to load then assign the player object
+          player = document.getElementById("video_stream");
+
+          player.addEventListener('loadeddata', function() {
+            var playerTotalTime = player.duration;
+            Android.setTotalTime(parseInt(playerTotalTime));
+          }, false);
+
+          function seekTo(url, time){
+            player.currentTime = time
+          }
+
+          function showAndroidToast(toast) {
+            Android.showToast(toast);
+          }
+
+          function playVideo() {
+            showAndroidToast("Play!");
+            player.play();
+            Android.playVideo();
+          }
+
+          function pauseVideo() {
+            showAndroidToast("Pause!");
+            player.pause();
+            Android.pauseVideo();
+          }
+
+          function stopVideo() {
+            showAndroidToast("Stop!");
+            player.stop();
+            Android.pauseVideo();
+          }
+
+        </script>
+    </body>
+</html>

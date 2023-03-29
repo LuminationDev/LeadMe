@@ -13,7 +13,6 @@ import com.google.android.gms.nearby.connection.Payload;
 import com.lumination.leadme.adapters.ConnectedLearnersAdapter;
 import com.lumination.leadme.connections.ConnectedPeer;
 import com.lumination.leadme.LeadMeMain;
-import com.lumination.leadme.R;
 import com.lumination.leadme.controller.Controller;
 import com.lumination.leadme.services.FileTransferService;
 import com.lumination.leadme.services.NetworkService;

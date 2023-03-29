@@ -18,7 +18,6 @@ import androidx.test.espresso.util.TreeIterables;
 import androidx.test.rule.ActivityTestRule;
 import androidx.test.rule.GrantPermissionRule;
 
-import com.google.api.Authentication;
 import com.lumination.leadme.controller.Controller;
 
 import org.hamcrest.Description;
