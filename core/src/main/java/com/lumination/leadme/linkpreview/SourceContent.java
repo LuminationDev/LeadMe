@@ -12,6 +12,7 @@ public class SourceContent {
     private String description = "";
     private String url = "";
     private String finalUrl = "";
+    private HashMap<String, String> metaTags = new HashMap<String, String>();
 
     private List<String> images = new ArrayList<String>();
 
@@ -100,6 +101,13 @@ public class SourceContent {
      */
     public void setFinalUrl(String finalUrl) {
         this.finalUrl = finalUrl;
+    }
+
+    /**
+     * @return the metaTags
+     */
+    public HashMap<String, String> getMetaTags() {
+        return metaTags;
     }
 
     /**

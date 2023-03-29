@@ -614,7 +614,7 @@ public class FavouritesAdapter extends BaseAdapter {
             if (tmpCrawler != null) {
                 tmpCrawler.cancel(); //cancel the old
             }
-            tmpCrawler = new TextCrawler(Controller.getInstance().getWebManager()); //make a freshie
+            tmpCrawler = new TextCrawler(); //make a freshie
 
 
             gettingPreviews.add(tmpUrl); //storing it here means we only try once per url
