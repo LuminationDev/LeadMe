@@ -2375,6 +2375,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             appToast = Toast.makeText(context, "Returning to " + getResources().getString(R.string.app_title), Toast.LENGTH_SHORT);
             appToast.show();
         }
+        leadmeAnimator.setDisplayedChild(ANIM_LEARNER_INDEX);
     }
 
     public void lockFromMainAction() {
