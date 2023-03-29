@@ -1,6 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<selector xmlns:android="http://schemas.android.com/apk/res/android">
-    <item>
-        <inset android:drawable="@drawable/core_xray" android:insetLeft="8dp" />
-    </item>
-</selector>

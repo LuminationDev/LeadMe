@@ -120,14 +120,6 @@ public class AppManager extends BaseAdapter {
         return null;
     }
 
-    /**
-     * Refresh the local app list in case something has been installed during the current session.
-     */
-    public List<String> refreshAppList() {
-        listApps();
-        return this.appNameList;
-    }
-
     public void relaunchLast() {
         relaunchLast(LeadMeMain.currentTaskPackageName, LeadMeMain.currentTaskName, LeadMeMain.currentTaskType, LeadMeMain.currentTaskURL, LeadMeMain.currentTaskURLTitle);
     }
@@ -181,10 +173,6 @@ public class AppManager extends BaseAdapter {
 
                 //prepare to install, which includes temporarily turning off
                 //overlay to allow capture of accessibility events
-            } else if (LeadMeMain.autoInstallApps && LeadMeMain.FLAG_INSTALLER) {
-                Controller.getInstance().getLumiAppInstaller().autoInstall(packageName, appName, install, multipleInstall);
-                return;
-
             }
             else {
                 DispatchManager.sendActionToSelected(Controller.ACTION_TAG,
@@ -254,10 +242,6 @@ public class AppManager extends BaseAdapter {
         DispatchManager.requestRemoteAppOpen(Controller.APP_TAG, packageName, appName, lockTag, install, peerSet);
     }
 
-    public static boolean isStreaming = false;
-    public static boolean isVR = true;
-    public static boolean videoInit = false;
-
 
     @Override
     public int getCount() {
@@ -289,8 +273,6 @@ public class AppManager extends BaseAdapter {
             convertView.setTag(viewHolder);
         }
 
-        ImageView selectedIndicator = convertView.findViewById(R.id.selected_indicator);
-
         final ViewHolder viewHolder = (ViewHolder) convertView.getTag();
         viewHolder.myTextView.setText(appName);
         viewHolder.myIcon.setContentDescription(appName); //for screen readers
@@ -301,12 +283,7 @@ public class AppManager extends BaseAdapter {
 
             convertView.setOnClickListener(v -> {
                 Log.i(TAG, "Launching " + appName + " from " + packageName);
-
-                if(Controller.getInstance().getLumiAppInstaller().multiInstalling) { //selecting apps to install - first so Within can be selected
-                    Controller.getInstance().getLumiAppInstaller().selectToInstall(selectedIndicator, appName + "//" + packageName);
-                } else {
-                    Controller.getInstance().getDialogManager().showAppPushDialog(appName, appIcon, packageName);
-                }
+                Controller.getInstance().getDialogManager().showAppPushDialog(appName, appIcon, packageName);
             });
 
             convertView.setLongClickable(true);

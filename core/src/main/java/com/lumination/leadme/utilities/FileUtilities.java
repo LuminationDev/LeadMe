@@ -196,7 +196,6 @@ public class FileUtilities {
             if (isExternalStorageDocument(uri)) {
                 final String docId = DocumentsContract.getDocumentId(uri);
                 final String[] split = docId.split(":");
-                final String type = split[0];
 
                 String fullPath = getPathFromExtSD(split);
                 if (fullPath != "") {
@@ -250,7 +249,6 @@ public class FileUtilities {
                     }
                 } else {
                     final String id = DocumentsContract.getDocumentId(uri);
-                    final boolean isOreo = Build.VERSION.SDK_INT >= Build.VERSION_CODES.O;
                     if (id.startsWith("raw:")) {
                         return id.replaceFirst("raw:", "");
                     }
@@ -379,10 +377,8 @@ public class FileUtilities {
         // and display it.
 
         int nameIndex = returnCursor.getColumnIndex(OpenableColumns.DISPLAY_NAME);
-        int sizeIndex = returnCursor.getColumnIndex(OpenableColumns.SIZE);
         returnCursor.moveToFirst();
         String name = (returnCursor.getString(nameIndex));
-        String size = (Long.toString(returnCursor.getLong(sizeIndex)));
         File file = new File(context.getCacheDir(), name);
         try {
             InputStream inputStream = context.getContentResolver().openInputStream(uri);
@@ -418,10 +414,8 @@ public class FileUtilities {
         // and display it.
 
         int nameIndex = returnCursor.getColumnIndex(OpenableColumns.DISPLAY_NAME);
-        int sizeIndex = returnCursor.getColumnIndex(OpenableColumns.SIZE);
         returnCursor.moveToFirst();
         String name = (returnCursor.getString(nameIndex));
-        String size = (Long.toString(returnCursor.getLong(sizeIndex)));
         File file = new File(context.getFilesDir(), name);
         try {
             InputStream inputStream = context.getContentResolver().openInputStream(uri);

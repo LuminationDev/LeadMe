@@ -195,7 +195,6 @@ public class PermissionManager {
     public void checkMiscPermissions() {
         //Log.d(TAG, "Checking Misc Permissions.");
         waitingForPermission = true;
-        String rationaleMsg = "Please turn on the following permissions to connect with a Leader and ensure LeadMe functions correctly.";
 
         TedPermission.with(main)
                 .setPermissionListener(miscPermissionListener)

@@ -57,8 +57,6 @@ public class YouTubeEmbedPlayer {
     private static final int VR_MODE = 1;
     private static final int FULLSCRN_MODE = 0;
 
-    //variables to store what the latest request was
-    private static boolean showCaptions = false;
     private static int videoCurrentPlayState = UNSTARTED;
     private static int videoCurrentDisplayMode = FULLSCRN_MODE; //VR, FS, STD
 
@@ -88,7 +86,6 @@ public class YouTubeEmbedPlayer {
     private View youtubeInternetUnavailableMsg;
     private View youtubeVideoControls;
 
-    private View lockSpinnerParent;
     private Spinner lockSpinner;
     private String[] lockSpinnerItems;
     private AlertDialog playbackSettingsDialog;
@@ -143,47 +140,6 @@ public class YouTubeEmbedPlayer {
     }
 
     private boolean init = false;
-
-    @JavascriptInterface
-    public void updateState(int state) {
-        Log.d(TAG, "[GUIDE] Video state is now: " + state + " // " + currentTime);
-        videoCurrentPlayState = state;
-        //make sure student state is updated too
-        if (!init && (state == VIDEO_CUED || state == PLAYING)) {
-            String str = extractTime(attemptedURL);
-            if (!str.isEmpty()) {
-                lastStartFrom = Integer.parseInt(str);
-            } else {
-                lastStartFrom = 1;
-            }
-            setNewTime(lastStartFrom);
-            init = true;
-        }
-
-        if (state == PLAYING) {
-            //if this is the first state switch guide to buttons
-            if(firstTouch) {
-                firstTouch = false;
-                buttonHighlights(PLAYING);
-            }
-
-            DispatchManager.sendActionToSelected(Controller.ACTION_TAG,
-                    Controller.VID_ACTION_TAG + YouTubeAccessibilityManager.CUE_PLAY,
-                    NearbyPeersManager.getSelectedPeerIDsOrAll());
-
-        } else if (state == PAUSED) {
-            DispatchManager.sendActionToSelected(Controller.ACTION_TAG,
-                    Controller.VID_ACTION_TAG + YouTubeAccessibilityManager.CUE_PAUSE,
-                    NearbyPeersManager.getSelectedPeerIDsOrAll());
-        }
-    }
-
-    @JavascriptInterface
-    public void captionsLoaded() {
-        //Toast.makeText(main, "Captions loaded / API change", Toast.LENGTH_SHORT).show();
-        //turn them back on to stay in sync with students
-        //controllerWebView.loadUrl("javascript:hideCaptions()");
-    }
 
     boolean pageLoaded = false;
 
@@ -299,9 +255,6 @@ public class YouTubeEmbedPlayer {
             resetControllerState();
             hideVideoController();
         });
-
-        //set up basic controls
-        View basicControls = videoControllerDialogView.findViewById(R.id.basic_controls);
 
         ImageView vrIcon = videoControllerDialogView.findViewById(R.id.vr_mode_icon);
         vrModeBtn = (Switch) videoControllerDialogView.findViewById(R.id.vr_mode_toggle);
@@ -583,7 +536,6 @@ public class YouTubeEmbedPlayer {
 
     private void resetControllerState() {
         Log.e(TAG, "Resetting controller!! " + webManager.lastWasGuideView + " vs " + attemptedURL);
-        showCaptions = false;
         videoCurrentDisplayMode = FULLSCRN_MODE;
         currentTime = -1;
         totalTime = -1;
@@ -687,17 +639,6 @@ public class YouTubeEmbedPlayer {
 
     int totalTime = -1;
 
-    @JavascriptInterface
-    public void setTotalTime(String value) {
-        int tmpTotal = Integer.parseInt(value);
-        if (tmpTotal > 0) {
-            //Log.d(TAG, "[GUIDE] TOTAL time is now: " + value + " // " + attemptedURL);// + ", " + extractedTime);
-            totalTime = tmpTotal;
-            LeadMeMain.runOnUI(() -> totalTimeText.setText(intToTime(totalTime)));
-        }
-    }
-
-
     //////////////////
 
     private void createPlaybackSettingsPopup() {
@@ -759,8 +700,6 @@ public class YouTubeEmbedPlayer {
         youtubePreviewWebView.getSettings().setJavaScriptEnabled(true); // enable javascript
         youtubePreviewWebView.getSettings().setJavaScriptCanOpenWindowsAutomatically(true);
         youtubePreviewWebView.addJavascriptInterface(this, "Android");
-
-        lockSpinnerParent = youtubeSettingsDialogView.findViewById(R.id.lock_spinner);
         lockSpinner = (Spinner) youtubeSettingsDialogView.findViewById(R.id.push_spinner);
         lockSpinnerItems = new String[2];
         lockSpinnerItems[0] = "View only";

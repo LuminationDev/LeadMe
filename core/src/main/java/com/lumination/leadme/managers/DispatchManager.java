@@ -1,7 +1,6 @@
 package com.lumination.leadme.managers;
 
 import android.app.AlertDialog;
-import android.net.Uri;
 import android.os.Parcel;
 import android.util.Log;
 import android.view.View;
@@ -21,9 +20,9 @@ import com.lumination.leadme.controller.Controller;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
+import java.util.Base64;
 import java.util.HashSet;
-import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 public class DispatchManager {
@@ -35,8 +34,6 @@ public class DispatchManager {
     public static String appNameRepush;
     public static String lockTagRepush;
     public static String extraRepush;
-    public static boolean streamingRepush;
-    public static boolean vrModeRepush;
     public static String mActionTag=null, mAction=null;
     public static int lastEvent =0;
 
@@ -155,6 +152,21 @@ public class DispatchManager {
         NearbyPeersManager.sendToSelected(Payload.fromBytes(bytes), selectedPeerIDs);
     }
 
+    public static String encodeMessage(String actionTag, String action) {
+        Parcel p = Parcel.obtain();
+        byte[] bytes;
+        p.writeString(actionTag);
+        p.writeString(action);
+        bytes = p.marshall();
+
+        p.unmarshall(bytes, 0, Objects.requireNonNull(bytes).length);
+        p.setDataPosition(0);
+        byte[] b = p.marshall();
+        p.recycle();
+
+        return Base64.getEncoder().encodeToString(b);
+    }
+
     public synchronized boolean readAction(byte[] bytes) {
         if(main.setProgressTimer(-1)!=null){
             main.setProgressTimer(-1).setVisibility(View.INVISIBLE);
@@ -176,18 +188,6 @@ public class DispatchManager {
         if (actionTag != null && actionTag.equals(Controller.ACTION_TAG)) {
 
             switch (action) {
-                case Controller.XRAY_ON:
-                    dispatchAction.turnOnXray();
-                    break;
-
-                case Controller.XRAY_OFF:
-                    dispatchAction.turnOffXray();
-                    break;
-
-                case Controller.XRAY_REQUEST:
-                    dispatchAction.requestXray();
-                    break;
-
                 case Controller.PING_ACTION:
                     dispatchAction.stillAlivePing(action);
                     break;
@@ -254,23 +254,11 @@ public class DispatchManager {
                     } else if(action.startsWith(Controller.UPDATE_DEVICE_MESSAGE)) {
                         dispatchAction.updateDeviceMessage(action);
 
-                    } else if(action.startsWith(Controller.MULTI_INSTALL)) {
-                        dispatchAction.multiInstall(action);
-
                     } else if(action.startsWith(Controller.APP_NOT_INSTALLED)) {
                         dispatchAction.applicationNotInstalled(action);
 
                     } else if (action.startsWith(Controller.AUTO_INSTALL_FAILED)) {
                         dispatchAction.autoInstallFail(action);
-
-                    } else if(action.startsWith(Controller.COLLECT_APPS)) {
-                        dispatchAction.collectApplications();
-
-                    } else if(action.startsWith(Controller.APP_COLLECTION)) {
-                        dispatchAction.applicationCollection(action);
-
-                    } else if(action.startsWith(Controller.AUTO_UNINSTALL)) {
-                        dispatchAction.uninstallApplication(action);
 
                     } else if (action.startsWith(Controller.DISCONNECTION)) {
                         dispatchAction.disconnectLearner(action);
@@ -281,6 +269,8 @@ public class DispatchManager {
                     } else if (action.startsWith(Controller.LAUNCH_YT)) {
                         dispatchAction.launchYoutube(action);
 
+                    } else if (action.startsWith(Controller.OPEN_CURATED_CONTENT)) {
+                        dispatchAction.openCuratedContent();
                     } else {
                         dispatchAction.askPermission(action);
                         dispatchAction.updatePeerStatus(action);
@@ -474,26 +464,6 @@ public class DispatchManager {
      * Action functions associated with the dispatch manager class.
      */
     private class Actions {
-        /**
-         * Detect if the screen capture service for a learner device is granted permission. Ask for
-         * permission if not, otherwise connect to the server and start sending images.
-         */
-        private void turnOnXray() {
-            if(!ScreenSharingManager.permissionGranted){
-                Controller.getInstance().getScreenSharingManager().startService(true);
-                return;
-            }
-
-            Controller.getInstance().getScreenSharingManager().connectToServer();
-        }
-
-        /**
-         * Stop sending images to the screenCap server.
-         */
-        private void turnOffXray() {
-            Controller.getInstance().getScreenSharingManager().stopMonitoring();
-        }
-
         /**
          * Ping a device ID to establish if the socket connection is still alive.
          * @param action A string of the incoming action, it contains the ID of the peer relating
@@ -756,20 +726,6 @@ public class DispatchManager {
         }
 
         /**
-         * Start the auto installer function with the supplied application package names.
-         * @param action A string of the incoming action, it contains an array of applications to
-         *               install.
-         */
-        private void multiInstall(String action) {
-            String[] split = action.split(":"); //get the instructions
-            String applications = split[2]; //get the array of apps currently in string form
-            //change the string array into an array
-            String[] appArray = applications.replace("[","").replace("]","").split(",");
-            String[] firstApp = appArray[0].split("//");
-            Controller.getInstance().getLumiAppInstaller().autoInstall(firstApp[0], firstApp[1], split[1], appArray);
-        }
-
-        /**
          * Notifies the guide that a pushed application is not on the learner devices. Adds that learner
          * to the peers to install array and asks if the guide wants to install the applications.
          * @param action A string of the incoming action, it contains the missing apps name, package
@@ -781,13 +737,6 @@ public class DispatchManager {
             Log.d(TAG, "Application needed on peer: " + split[3]);
 
             Controller.getInstance().getConnectedLearnersAdapter().appLaunchFail(split[3], appNameRepush);
-
-            if(LeadMeMain.FLAG_INSTALLER) {
-                Controller.getInstance().getLumiAppInstaller().peersToInstall.add(split[3]);
-
-                //open a dialog to confirm if wanting to install apps
-                Controller.getInstance().getLumiAppInstaller().applicationsToInstallWarning(split[1], split[2], false); //should auto update number of devices need as the action come in
-            }
         }
 
         /**
@@ -802,49 +751,6 @@ public class DispatchManager {
 
             //in this case, student will be back in LeadMe, so update icon too
             Controller.getInstance().getConnectedLearnersAdapter().updateIcon(split[2], AppManager.getAppIcon(LeadMeMain.leadMePackageName));
-        }
-
-        /**
-         * Collect all applications (package name & app name) installed on a connected device
-         */
-        private void collectApplications() {
-            List<String> applicationInfo = new ArrayList<>(Controller.getInstance().getAppManager().refreshAppList());
-
-            //send back to the leader - placeholder for now
-            sendActionToSelected(Controller.ACTION_TAG, Controller.APP_COLLECTION + ":" + applicationInfo,
-                    NearbyPeersManager.getSelectedPeerIDs());
-        }
-
-        /**
-         * Guide is receiving a list of applications that a connected learner has.
-         * @param action A string of the incoming action, it contains an array of all the applications
-         *               installed.
-         */
-        private void applicationCollection(String action) {
-            String[] split = action.split(":"); //get the app array
-            String applications = split[1]; //get the array of apps currently in string form
-            //change the string array into an array
-            String[] appArray = applications.replace("[", "").replace("]", "").split(",");
-
-            Collections.addAll(Controller.getInstance().getLumiAppInstaller().peerApplications, appArray);
-            Controller.getInstance().getLumiAppInstaller().populateUninstall();
-        }
-
-        /**
-         * Uninstalls the applications that have been received in the action on a device.
-         * Note: Currently not achievable as there is a Android UI button that has to manually be
-         * pressed within the Play Store.
-         * @param action A string of the incoming action, it contains an array of all the applications
-         *               that are to be uninstalled.
-         */
-        private void uninstallApplication(String action) {
-            String[] split = action.split(":"); //get the instructions
-            String applications = split[2]; //get the array of apps currently in string form
-            //change the string array into an array
-            String[] appArray = applications.replace("[","").replace("]","").split(",");
-            Collections.addAll(Controller.getInstance().getLumiAppInstaller().appsToManage, appArray);
-
-            Controller.getInstance().getLumiAppInstaller().runUninstaller();
         }
 
         /**
@@ -881,6 +787,12 @@ public class DispatchManager {
             Log.w(TAG, action + "||" + split[1] + ", " + split[2] + ", " + split[3] + "|");
         }
 
+        private void openCuratedContent() {
+            CuratedContentManager.setupCuratedContent(main);
+            main.showCuratedContentScreen();
+            main.appLauncherScreen.findViewById(R.id.app_scroll_view).scrollTo(0, 0);
+        }
+
         /**
          * Ask learners to turn on a specific permission.
          * @param action A string of the incoming action, it contains the permission that is requested.
@@ -894,15 +806,6 @@ public class DispatchManager {
             } else if(action.startsWith(Controller.AUTO_INSTALL)) {
                 askForPeerPermission(Controller.AUTO_INSTALL, Boolean.parseBoolean(split[1]));
             }
-        }
-
-        /**
-         * Ask a learner to turn on the screen sharing service. Is only activated if the service is
-         * not accepted initially or the service is terminated during a session through the
-         * student alerts area.
-         */
-        private void requestXray() {
-            Controller.getInstance().getScreenSharingManager().startService(false);
         }
 
         /**
@@ -928,13 +831,6 @@ public class DispatchManager {
                     LeadMeMain.updatePeerStatus(split[2], ConnectedPeer.STATUS_SUCCESS, Controller.STUDENT_NO_INTERNET);
                 } else {
                     LeadMeMain.updatePeerStatus(split[2], ConnectedPeer.STATUS_WARNING, Controller.STUDENT_NO_INTERNET);
-                }
-
-            } else if(action.startsWith(Controller.STUDENT_NO_XRAY)){
-                if (split[1].equalsIgnoreCase("OK")) {
-                    LeadMeMain.updatePeerStatus(split[2], ConnectedPeer.STATUS_SUCCESS, Controller.STUDENT_NO_XRAY);
-                } else {
-                    LeadMeMain.updatePeerStatus(split[2], ConnectedPeer.STATUS_WARNING, Controller.STUDENT_NO_XRAY);
                 }
 
             } else if (action.startsWith(Controller.STUDENT_NO_ACCESSIBILITY)) {

@@ -79,9 +79,9 @@ dependencies {
     implementation 'com.github.scottyab:showhidepasswordedittext:0.8'
 
     //for screenshots
-    implementation 'eu.bolt:screenshotty:1.0.3'
-    implementation 'com.github.karanvs:hiddenshot:v1.2'
     implementation 'com.github.Nikoloutsos:KLoadingSpin:1.1.0'
+
+    implementation 'org.jsoup:jsoup:1.15.4'
 
     //for firebase
     implementation platform('com.google.firebase:firebase-bom:26.7.0')

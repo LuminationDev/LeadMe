@@ -13,7 +13,6 @@ import com.google.android.gms.nearby.connection.Payload;
 import com.lumination.leadme.adapters.ConnectedLearnersAdapter;
 import com.lumination.leadme.connections.ConnectedPeer;
 import com.lumination.leadme.LeadMeMain;
-import com.lumination.leadme.R;
 import com.lumination.leadme.controller.Controller;
 import com.lumination.leadme.services.FileTransferService;
 import com.lumination.leadme.services.NetworkService;
@@ -114,6 +113,10 @@ public class NetworkManager {
 
             default:
                 Log.d(TAG, "messageReceivedFromServer: Invalid message type");
+                for (int i = 0; i < inputList.size(); i++) {
+                    Log.d(TAG, inputList.get(i));
+                }
+
                 break;
         }
     }
@@ -338,7 +341,6 @@ public class NetworkManager {
         Log.d(TAG, "updateParent: client: " + clientID + " has lost connection");
         cleanUpTransfer(clientID);
         currentClients.remove(clientID);
-        Controller.getInstance().getXrayManager().removePeerFromMap(String.valueOf(clientID));
         LeadMeMain.runOnUI(() -> {
             if (ConnectedLearnersAdapter.getMatchingPeer(String.valueOf(clientID)) != null) {
                 if (ConnectedLearnersAdapter.getMatchingPeer(String.valueOf(clientID)).getStatus() != ConnectedPeer.STATUS_ERROR) {
@@ -418,16 +420,6 @@ public class NetworkManager {
             FileTransferManager.transfers.remove(ID);
             FileTransferService.removeRequest(ID);
         }
-    }
-
-    /**
-     * Stop the screenSharingService from sending images to the guide.
-     * @param ID An int representing the learner that needs to stop sending images.
-     */
-    public void stopMonitoring(String ID) {
-        ArrayList<String> selected = new ArrayList<>();
-        selected.add(ID);
-        sendToSelectedClients("STOP", "MONITOR", selected);
     }
 
     /**

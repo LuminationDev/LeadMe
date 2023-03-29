@@ -223,7 +223,7 @@ public class NetworkService extends Service {
         final int notificationId = (int) System.currentTimeMillis();
         NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(this, CHANNEL_ID);
         Notification notification = notificationBuilder.setOngoing(true)
-                .setSmallIcon(R.drawable.core_xray)
+                .setSmallIcon(R.drawable.leadme_icon)
                 .setContentTitle("NetworkService is running in the foreground")
                 .setPriority(NotificationManager.IMPORTANCE_MIN)
                 .setCategory(Notification.CATEGORY_SERVICE)

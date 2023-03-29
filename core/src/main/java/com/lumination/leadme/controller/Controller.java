@@ -1,9 +1,7 @@
 package com.lumination.leadme.controller;
 
 import android.app.Activity;
-import android.content.Context;
 import android.content.Intent;
-import android.net.wifi.WifiManager;
 import android.text.TextUtils;
 import android.util.Log;
 
@@ -12,11 +10,9 @@ import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.tasks.Task;
-import com.google.android.play.core.appupdate.AppUpdateManager;
 import com.lumination.leadme.LeadMeMain;
 import com.lumination.leadme.accessibility.VRAccessibilityManager;
 import com.lumination.leadme.adapters.ConnectedLearnersAdapter;
-import com.lumination.leadme.adapters.LeaderSelectAdapter;
 import com.lumination.leadme.managers.AppManager;
 import com.lumination.leadme.managers.AuthenticationManager;
 import com.lumination.leadme.managers.DialogManager;
@@ -27,14 +23,10 @@ import com.lumination.leadme.managers.FirebaseManager;
 import com.lumination.leadme.managers.NearbyPeersManager;
 import com.lumination.leadme.managers.NetworkManager;
 import com.lumination.leadme.managers.PermissionManager;
-import com.lumination.leadme.managers.ScreenSharingManager;
 import com.lumination.leadme.managers.WebManager;
-import com.lumination.leadme.managers.XrayManager;
 import com.lumination.leadme.players.VREmbedLinkPlayer;
 import com.lumination.leadme.players.VREmbedPhotoPlayer;
 import com.lumination.leadme.players.VREmbedVideoPlayer;
-import com.lumination.leadme.utilities.AppInstaller;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -78,35 +70,27 @@ public class Controller {
     public static final String LAUNCH_URL = "Launch:::";
     public static final String LAUNCH_YT = "YT:::";
     public static final String LAUNCH_ACCESS = "LaunchAccess";
+    public static final String OPEN_CURATED_CONTENT = "OpenCuratedContent";
 
     public static final String PERMISSION_DENIED = "PermissionDenied";
     public static final String FILE_TRANSFER = "FileTransfer";
     public static final String UPDATE_DEVICE_MESSAGE = "UpdateDeviceMessage";
 
-    public static final String MULTI_INSTALL = "MultiInstall";
     public static final String AUTO_INSTALL = "AutoInstalling";
     public static final String AUTO_INSTALL_FAILED = "AutoInstallFail:";
     public static final String AUTO_INSTALL_ATTEMPT = "AutoInstallAttempt:";
     public static final String APP_NOT_INSTALLED = "AppNotInstalled";
-    public static final String COLLECT_APPS = "CollectApps";
-    public static final String APP_COLLECTION = "PeerAppCollection";
-    public static final String AUTO_UNINSTALL = "AutoUninstall";
 
     public static final String STUDENT_OFF_TASK_ALERT = "OffTask:";
     public static final String STUDENT_NO_OVERLAY = "Overlay:";
     public static final String STUDENT_NO_ACCESSIBILITY = "Access:";
     public static final String STUDENT_NO_INTERNET = "Internet:";
-    public static final String STUDENT_NO_XRAY = "Xray:";
     public static final String PERMISSION_TRANSFER_DENIED = "Transfer:";
     public static final String PERMISSION_AUTOINSTALL_DENIED = "AutoInstaller:";
     public static final String LAUNCH_SUCCESS = "Success:";
 
     public static final String SESSION_UUID_TAG = "SessionUUID";
     public static final String SESSION_VR_TAG = "SessionFirstVR";
-
-    public static final String XRAY_REQUEST = "XrayRequest";
-    public static final String XRAY_ON = "XrayOn";
-    public static final String XRAY_OFF = "XrayOff";
 
     public static final String NAME_CHANGE = "NameChange:";
     public static final String NAME_REQUEST = "NameRequest:";
@@ -121,7 +105,6 @@ public class Controller {
     private final VRAccessibilityManager vrAccessibilityManager;
 
     private final NetworkManager networkManager;
-    private AppUpdateManager appUpdateManager;
     private final FileTransferManager fileTransferManager;
     private final PermissionManager permissionManager;
     private final AuthenticationManager authenticationManager;
@@ -131,11 +114,7 @@ public class Controller {
     private final DialogManager dialogManager;
     private final AppManager appLaunchAdapter;
     private final ConnectedLearnersAdapter connectedLearnersAdapter;
-    private final LeaderSelectAdapter leaderSelectAdapter;
     private final DispatchManager dispatcher;
-    private final XrayManager xrayManager;
-    private final AppInstaller lumiAppInstaller;
-    private final ScreenSharingManager screenSharingManager;
 
     /**
      *
@@ -143,7 +122,6 @@ public class Controller {
     public Controller() {
         controllerInstance = this;
         LeadMeMain main = LeadMeMain.getInstance();
-        screenSharingManager = new ScreenSharingManager(main);
         networkManager = new NetworkManager();
         permissionManager = new PermissionManager(main);
         authenticationManager = new AuthenticationManager(main);
@@ -152,15 +130,12 @@ public class Controller {
         dispatcher = new DispatchManager(main);
         favouritesManager = new FavouritesManager(main);
         webManager = new WebManager(main);
-        leaderSelectAdapter = new LeaderSelectAdapter(main);
         vrAccessibilityManager = new VRAccessibilityManager(main);
         vrEmbedPhotoPlayer = new VREmbedPhotoPlayer(main);
         vrEmbedVideoPlayer = new VREmbedVideoPlayer(main);
         vrEmbedLinkPlayer = new VREmbedLinkPlayer(main);
         appLaunchAdapter = new AppManager(main);
-        xrayManager = new XrayManager(main, LeadMeMain.getInstance().xrayScreen);
         fileTransferManager = new FileTransferManager(main);
-        lumiAppInstaller = new AppInstaller(main);
         connectedLearnersAdapter = new ConnectedLearnersAdapter(main, new ArrayList<>(), dialogManager.alertsAdapter);
     }
 
@@ -198,15 +173,6 @@ public class Controller {
             LeadMeMain.getInstance().setandDisplayStudentOnBoard(0);
         }
         //permissionManager.requestBatteryOptimisation();
-    }
-
-    /**
-     * Handle the screen capture starting data and result.
-     * @param resultCode An integer representing if the result was successful or not.
-     * @param data An intent representing the screen capture details.
-     */
-    public void screenCapture(int resultCode, Intent data) {
-        screenSharingManager.handleResultReturn(resultCode, data);
     }
 
     /**
@@ -334,7 +300,6 @@ public class Controller {
     public ConnectedLearnersAdapter getConnectedLearnersAdapter() {
         return connectedLearnersAdapter;
     }
-    public ScreenSharingManager getScreenSharingManager() { return screenSharingManager; }
     public VRAccessibilityManager getVRAccessibilityManager() {
         return vrAccessibilityManager;
     }
@@ -352,9 +317,6 @@ public class Controller {
     public NearbyPeersManager getNearbyManager() {
         return nearbyManager;
     }
-    public LeaderSelectAdapter getLeaderSelectAdapter() {
-        return leaderSelectAdapter;
-    }
     public AppManager getAppManager() {
         return appLaunchAdapter;
     }
@@ -366,9 +328,5 @@ public class Controller {
     }
     public DialogManager getDialogManager() {
         return dialogManager;
-    }
-    public XrayManager getXrayManager() { return xrayManager; }
-    public AppInstaller getLumiAppInstaller() {
-        return lumiAppInstaller;
     }
 }

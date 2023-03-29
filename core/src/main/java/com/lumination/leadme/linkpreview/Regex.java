@@ -43,31 +43,4 @@ public class Regex {
 
         return matches;
     }
-
-    public static List<String> pregMatchAllImages(String content, String pattern) {
-
-        List<String> matches = new ArrayList<String>();
-        Matcher matcher = Pattern.compile(pattern).matcher(content);
-
-        while (matcher.find()) {
-            matches.add(TextCrawler.extendedTrim(matcher.group(3))
-                    + matcher.group(4));
-        }
-
-        return matches;
-    }
-
-    public static List<String> pregMatchAllExtraImages(String content,
-                                                       String pattern) {
-
-        List<String> matches = new ArrayList<String>();
-        Matcher matcher = Pattern.compile(pattern).matcher(content);
-
-        while (matcher.find()) {
-            matches.add(TextCrawler.extendedTrim(matcher.group(3))
-                    + matcher.group(4));
-        }
-
-        return matches;
-    }
 }

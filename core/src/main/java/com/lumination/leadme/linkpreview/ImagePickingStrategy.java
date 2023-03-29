@@ -12,8 +12,6 @@ import java.util.List;
  */
 public interface ImagePickingStrategy {
 
-    void setImageQuantity(int imageQuantity);
-
     int getImageQuantity();
 
     List<String> getImages(AsyncTask asyncTask, Document doc, HashMap<String, String> metaTags);

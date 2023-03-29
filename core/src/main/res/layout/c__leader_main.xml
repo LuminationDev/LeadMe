@@ -78,6 +78,17 @@
             android:textSize="25sp"
             android:paddingStart="20dp"
             android:paddingEnd="20dp"/>
+        <View android:layout_height="0in" android:layout_width="0dp" android:layout_weight="1"></View>
+        <TextView
+            android:id="@+id/room_code"
+            android:layout_width="wrap_content"
+            android:layout_height="50dp"
+            android:fontFamily="@font/poppins_semibold"
+            android:gravity="center_vertical"
+            android:text="Room Code:"
+            android:textColor="@color/leadme_dark_grey"
+            android:textSize="25sp"
+            android:paddingEnd="20dp"/>
     </LinearLayout>
 
     <HorizontalScrollView
@@ -170,27 +181,6 @@
             </LinearLayout>
 
             <LinearLayout
-                android:id="@+id/xray_core_btn"
-                style="@style/LeaderButton"
-                android:orientation="vertical">
-                <LinearLayout
-                    style="@style/LeaderButton__IconWrapper">
-                    <LinearLayout
-                        style="@style/LeaderButton__Icon"
-                        android:background="@drawable/core_xray_with_inset"/>
-                </LinearLayout>
-                <LinearLayout
-                    style="@style/LeaderButton__Text">
-                    <TextView
-                        style="@style/LeaderButton__Text__Eyebrow"
-                        android:text="VIEW"/>
-                    <TextView
-                        style="@style/LeaderButton__Text__Lead"
-                        android:text="X-Ray"/>
-                </LinearLayout>
-            </LinearLayout>
-
-            <LinearLayout
                 android:id="@+id/vr_core_btn"
                 style="@style/LeaderButton"
                 android:orientation="vertical">
@@ -279,30 +269,6 @@
                         android:text="Lock"/>
                 </LinearLayout>
             </LinearLayout>
-
-<!--            Only for intended internal use-->
-            <LinearLayout
-                android:id="@+id/installer_core_btn"
-                style="@style/LeaderButton"
-                android:orientation="vertical"
-                android:visibility="gone">
-                <LinearLayout
-                    style="@style/LeaderButton__IconWrapper">
-                    <LinearLayout
-                        style="@style/LeaderButton__Icon"
-                        android:background="@drawable/alert_downloading"/>
-                </LinearLayout>
-                <LinearLayout
-                    style="@style/LeaderButton__Text">
-                    <TextView
-                        style="@style/LeaderButton__Text__Eyebrow"
-                        android:text="PUSH"/>
-                    <TextView
-                        style="@style/LeaderButton__Text__Lead"
-                        android:text="App Installer"/>
-                </LinearLayout>
-            </LinearLayout>
-
         </LinearLayout>
     </HorizontalScrollView>
 

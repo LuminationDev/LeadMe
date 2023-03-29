@@ -2,8 +2,11 @@ package com.lumination.leadme.managers;
 
 import android.content.pm.PackageManager;
 import android.util.Log;
+import android.view.View;
+import android.widget.TextView;
 
-import com.google.common.net.InetAddresses;
+import androidx.annotation.NonNull;
+
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -12,16 +15,16 @@ import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.lumination.leadme.LeadMeMain;
+import com.lumination.leadme.R;
 import com.lumination.leadme.adapters.ConnectedLearnersAdapter;
-import com.lumination.leadme.connections.ConnectedPeer;
 import com.lumination.leadme.controller.Controller;
-import com.lumination.leadme.services.FirebaseService;
 import com.lumination.leadme.services.NetworkService;
 
 import java.net.InetAddress;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.util.ArrayList;
+import java.util.Random;
+import java.util.UUID;
 
 /**
  * Class create specifically to interact with Firebase, not to handle authentication but to make
@@ -33,13 +36,12 @@ public class FirebaseManager {
     private static final FirebaseFirestore db = FirebaseFirestore.getInstance();
 
     private static String serverIP = ""; //needs to be "" so that the learner can see check against
-    private static String publicIP;
+    public static String roomCode;
     private static String localIpAddress;
-    public static DatabaseReference roomsReference;
+    private static String uuid;
     public static DatabaseReference roomReference;
     public static DatabaseReference learnerReference;
     public static DatabaseReference messagesReference;
-    public static ValueEventListener roomsListener;
     public static ValueEventListener learnerReceiveMessageListener;
     public static ValueEventListener leaderReceivingLearnerMessageListener;
     public static ValueEventListener addLearnerListener;
@@ -75,15 +77,19 @@ public class FirebaseManager {
 
     public static void connectToLeader()
     {
-        NearbyPeersManager.setID(getLocalIpAddress().replace(".", "_"));
+        NearbyPeersManager.setID(getUuid());
         DatabaseReference database = getDatabase();
-        roomReference = database.child(waitForPublic(false).replace(".", "_")).child("rooms").child(NetworkService.getLeaderIPAddress().getHostAddress().replace(".", "_"));
-        messagesReference = database.child(waitForPublic(false).replace(".", "_")).child("messages").child(NetworkService.getLeaderIPAddress().getHostAddress().replace(".", "_"));
+        roomReference = database.child(roomCode).child("room");
+        messagesReference = database.child(roomCode).child("messages").child(NearbyPeersManager.selectedLeader.getID());
 
         learnerReceiveMessageListener = new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 // Get Post object and use the values to update the UI
+                if (!dataSnapshot.exists()) {
+                    NetworkManager.receivedDisconnect();
+                    return;
+                }
                 if (dataSnapshot.getValue() != null && dataSnapshot.getValue().toString().length() > 0) {
                     NetworkService.receiveMessage(dataSnapshot.getValue().toString());
 
@@ -96,49 +102,101 @@ public class FirebaseManager {
             }
         };
 
-        messagesReference.child("learners").child(getLocalIpAddress().replace(".", "_")).child("currentMessage").setValue("");
-        messagesReference.child("learners").child(getLocalIpAddress().replace(".", "_")).child("currentMessage").onDisconnect().setValue("DISCONNECT," + getLocalIpAddress().replace(".", "_"));
-        learnerReference = messagesReference.child("learners").child(getLocalIpAddress().replace(".", "_"));
-        messagesReference.child("learners").child(getLocalIpAddress().replace(".", "_")).child("leaderMessage").setValue("");
+        messagesReference.child("learners").child(getUuid().replace(".", "_")).child("currentMessage").setValue("");
+        messagesReference.child("learners").child(getUuid().replace(".", "_")).child("currentMessage").onDisconnect().setValue("DISCONNECT," + getUuid().replace(".", "_"));
+        learnerReference = messagesReference.child("learners").child(getUuid().replace(".", "_"));
+        messagesReference.child("learners").child(getUuid().replace(".", "_")).child("leaderMessage").setValue("");
 
         messagesReference.child("currentMessage").addValueEventListener(learnerReceiveMessageListener);
-        messagesReference.child("learners").child(getLocalIpAddress().replace(".", "_")).child("leaderMessage").addValueEventListener(learnerReceiveMessageListener);
+        messagesReference.child("learners").child(getUuid().replace(".", "_")).child("leaderMessage").addValueEventListener(learnerReceiveMessageListener);
     }
 
     public static void connectAsLeader(String name)
     {
         DatabaseReference database = getDatabase();
-        database.child(waitForPublic(true).replace(".", "_")).child("rooms").child(getLocalIpAddress().replace(".", "_")).child("id").setValue(getLocalIpAddress());
-        roomReference = database.child(waitForPublic(false).replace(".", "_")).child("rooms").child(getLocalIpAddress().replace(".", "_"));
-        messagesReference = database.child(waitForPublic(false).replace(".", "_")).child("messages").child(getLocalIpAddress().replace(".", "_"));
-        messagesReference.child("learners").child("id").setValue(getLocalIpAddress());
-        messagesReference.child("currentMessage").setValue("");
-        roomReference.child("leaderName").setValue(name);
 
-        roomReference.onDisconnect().removeValue();
-        messagesReference.child("currentMessage").onDisconnect().setValue("DISCONNECT,DISCONNECT");
-        messagesReference.child("learners").removeValue();
-
-        addLearnerListener = new ValueEventListener() {
+        String tempRoomCode = generateRoomCode(4);
+        database.child(tempRoomCode).child("room").addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                // Get Post object and use the values to update the UI
-                Log.e(TAG, dataSnapshot.toString());
-                if (dataSnapshot.getChildrenCount() != ConnectedLearnersAdapter.mData.size()) {
-                    for (DataSnapshot data:dataSnapshot.getChildren()) {
-                        if (!data.getKey().equals("id") &&
-                                (data.child("leaderMessage").getValue() == null || !data.child("leaderMessage").getValue().toString().startsWith("DISCONNECT"))) {
-                            NetworkManager.addLearnerIfNotExists(data.getKey());
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                if(dataSnapshot.exists()){
+                    connectAsLeader(name);
+                } else {
+                    roomCode = tempRoomCode;
+
+                    /*
+                    The next two lines shouldn't be in here, but the app is already such a mess, that here they are
+                     */
+                    TextView title = LeadMeMain.getInstance().mainLeader.findViewById(R.id.room_code);
+                    title.setText("Room code: " + roomCode);
+
+                    database.child(roomCode).child("room").child("id").setValue(getUuid());
+                    roomReference = database.child(roomCode).child("room");
+                    messagesReference = database.child(roomCode).child("messages").child(getUuid().replace(".", "_"));
+                    messagesReference.child("learners").child("id").setValue(getUuid());
+                    messagesReference.child("currentMessage").setValue("");
+                    roomReference.child("leaderName").setValue(name);
+                    roomReference.child("localIpAddress").setValue(getLocalIpAddress());
+
+                    database.child(roomCode).onDisconnect().removeValue();
+                    messagesReference.child("learners").removeValue();
+
+                    addLearnerListener = new ValueEventListener() {
+                        @Override
+                        public void onDataChange(DataSnapshot dataSnapshot) {
+                            // Get Post object and use the values to update the UI
+                            Log.e(TAG, dataSnapshot.toString());
+                            if (dataSnapshot.getChildrenCount() != ConnectedLearnersAdapter.mData.size()) {
+                                for (DataSnapshot data:dataSnapshot.getChildren()) {
+                                    if (!data.getKey().equals("id") &&
+                                            (data.child("leaderMessage").getValue() == null || !data.child("leaderMessage").getValue().toString().startsWith("DISCONNECT"))) {
+                                        NetworkManager.addLearnerIfNotExists(data.getKey());
+                                    }
+                                }
+                            }
                         }
-                    }
+
+                        @Override
+                        public void onCancelled(DatabaseError databaseError) {
+                        }
+                    };
+                    messagesReference.child("learners").addValueEventListener(addLearnerListener);
                 }
             }
 
             @Override
-            public void onCancelled(DatabaseError databaseError) {
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+                // todo - throw an error
             }
-        };
-        messagesReference.child("learners").addValueEventListener(addLearnerListener);
+        });
+    }
+
+    public static void retrieveLeaderDetails(LeadMeMain main, TextView errorText)
+    {
+        errorText.setVisibility(View.GONE);
+        DatabaseReference database = getDatabase();
+        database.child(roomCode).child("room").addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if (snapshot.exists()) {
+                    Leader leader = new Leader(
+                            (String) snapshot.child("leaderName").getValue(),
+                            (String) snapshot.child("id").getValue(),
+                            (String) snapshot.child("ipAddress").getValue()
+                    );
+                    Controller.getInstance().getNearbyManager().setSelectedLeader(leader);
+                    main.showLoginDialog();
+                } else {
+                    errorText.setVisibility(View.VISIBLE);
+                    errorText.setText("Room not found. Try again");
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                Log.e("AAA", "cancelled");
+            }
+        });
     }
 
     public static void handleLearnerConnectingToLeader(String clientId)
@@ -171,12 +229,12 @@ public class FirebaseManager {
     public static void handleDisconnect(boolean isGuide) {
         if (messagesReference != null) {
             if (!isGuide) {
-                messagesReference.child("learners").child(getLocalIpAddress().replace(".", "_")).child("currentMessage").onDisconnect().cancel();
-                messagesReference.child("learners").child(getLocalIpAddress().replace(".", "_")).removeValue();
+                messagesReference.child("learners").child(getUuid().replace(".", "_")).child("currentMessage").onDisconnect().cancel();
+                messagesReference.child("learners").child(getUuid().replace(".", "_")).removeValue();
             }
             if (learnerReceiveMessageListener != null) {
                 messagesReference.child("currentMessage").removeEventListener(learnerReceiveMessageListener);
-                messagesReference.child("learners").child(getLocalIpAddress().replace(".", "_")).child("leaderMessage").removeEventListener(learnerReceiveMessageListener);
+                messagesReference.child("learners").child(getUuid().replace(".", "_")).child("leaderMessage").removeEventListener(learnerReceiveMessageListener);
             }
             if (addLearnerListener != null) {
                 messagesReference.child("learners").removeEventListener(addLearnerListener);
@@ -194,129 +252,31 @@ public class FirebaseManager {
         }
     }
 
-    /**
-     * A call to firebase to retrieve any leaders registered to a peer's publicIP address. If there
-     * are no records the function will repeat every x seconds where x is an integer (waitForGuide).
-     * Will only return leaders who have been active within a certain period of time (inactiveUser).
-     * If the public IP address is present but the certain leader hasn't logged on yet, a listener is
-     * attached to wait for any chances in the firebase.
-     * */
-    public static void retrieveLeaders() {
-        waitForPublic(true);
+    private static String generateRoomCode(int length) {
+        // Define the characters that can be used to generate the string
+        String characters = "0123456789";
 
-        Log.d(TAG, "retrieveLeaders: " + publicIP);
+        // Create a new Random object
+        Random random = new Random();
 
-        if (publicIP == null || publicIP.length() == 0) {
-            Log.d(TAG, "PublicIP address not found");
-            Controller.getInstance().getDialogManager().showWarningDialog("Public IP", "Public IP address not found" +
-                    "\n firewall may be blocking the query.");
-            return;
-        } else if (!InetAddresses.isInetAddress(publicIP)) {
-            Log.d(TAG, "PublicIP address not valid");
-            publicIP = null;
-            Controller.getInstance().getDialogManager().showWarningDialog("Public IP", "Public IP address not valid" +
-                    "\n firewall may be blocking the query.");
-            return;
+        // Create a StringBuilder to store the random string
+        StringBuilder sb = new StringBuilder();
+
+        // Generate the random string
+        for (int i = 0; i < length; i++) {
+            int index = random.nextInt(characters.length());
+            char randomChar = characters.charAt(index);
+            sb.append(randomChar);
         }
 
-        //if a user has logged in as a guide then this function should not be triggered anymore
-        if(LeadMeMain.isGuide) {
-            return;
-        }
-
-        DatabaseReference database = FirebaseDatabase.getInstance("https://leafy-rope-301003-default-rtdb.asia-southeast1.firebasedatabase.app/").getReference();
-        roomsReference = database.child(waitForPublic(false).replace(".", "_")).child("rooms");
-        if (roomsListener != null) {
-            FirebaseManager.roomsReference.removeEventListener(FirebaseManager.roomsListener);
-        }
-        roomsListener = new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                // Get Post object and use the values to update the UI
-                Log.e(TAG, dataSnapshot.toString());
-                Controller.getInstance().getLeaderSelectAdapter().setLeaderList(new ArrayList<>());
-                if (dataSnapshot.getChildrenCount() != ConnectedLearnersAdapter.mData.size()) {
-                    for (DataSnapshot data:dataSnapshot.getChildren()) {
-                        if (data.child("leaderName").getValue() != null) {
-                            LeadMeMain.runOnUI(() -> {
-                                Controller.getInstance().getLeaderSelectAdapter().addLeader(
-                                        new ConnectedPeer(
-                                                data.child("leaderName").getValue().toString(),
-                                                data.getKey().replace("_", ".")));
-
-                                LeadMeMain.getInstance().showLeaderWaitMsg(false);
-                            });
-                        }
-                    }
-                }
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-                // Getting Post failed, log a message
-                Log.e(TAG, "loadPost:onCancelled", databaseError.toException());
-            }
-        };
-        roomsReference.addValueEventListener(roomsListener);
+        return sb.toString();
     }
 
-    /**
-     * Attempt to get the public IP address of the current device (router address)
-     */
-    private static String waitForPublic(boolean refreshIpAddress) {
-        if (publicIP != null && !refreshIpAddress) {
-            return  publicIP;
+    public static String getUuid() {
+        if (uuid == null) {
+            uuid = UUID.randomUUID().toString();
         }
-        Thread getPublic = new Thread(() -> {
-            publicIP = getPublicIP();
-        });
-
-        getPublic.start();
-
-        try {
-            getPublic.join();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        return publicIP;
-    }
-
-    public static String getLocalIpAddress() {
-        if (localIpAddress != null && localIpAddress.length() > 0) {
-            return localIpAddress;
-        }
-        try  {
-            localIpAddress = InetAddress.getByAddress(
-                    ByteBuffer
-                            .allocate(Integer.BYTES)
-                            .order(ByteOrder.LITTLE_ENDIAN)
-                            .putInt(LeadMeMain.wifiManager.getConnectionInfo().getIpAddress())
-                            .array()
-            ).getHostAddress();
-        } catch (java.io.IOException e) {
-            e.printStackTrace();
-        }
-
-        return localIpAddress;
-    }
-
-    //Call https://api.ipify.org to simply get the public IP address
-    private static String getPublicIP() {
-        String internalPublicIp = "";
-        try  {
-            java.util.Scanner s = new java.util.Scanner(
-                    new java.net.URL(
-                            "https://api.ipify.org")
-                            .openStream(), "UTF-8")
-                    .useDelimiter("\\A");
-            internalPublicIp = s.next();
-            Log.d(TAG, "getPublicIP: got public");
-        } catch (java.io.IOException e) {
-            e.printStackTrace();
-            Log.d(TAG, "getPublicIP: didn't get public");
-        }
-
-        return internalPublicIp;
+        return uuid;
     }
 
     /**
@@ -380,5 +340,24 @@ public class FirebaseManager {
                 Controller.getInstance().getDialogManager().showUpdateDialog();
             }
         }
+    }
+
+    public static String getLocalIpAddress() {
+        if (localIpAddress != null && localIpAddress.length() > 0) {
+            return localIpAddress;
+        }
+        try  {
+            localIpAddress = InetAddress.getByAddress(
+                    ByteBuffer
+                            .allocate(Integer.BYTES)
+                            .order(ByteOrder.LITTLE_ENDIAN)
+                            .putInt(LeadMeMain.wifiManager.getConnectionInfo().getIpAddress())
+                            .array()
+            ).getHostAddress();
+        } catch (java.io.IOException e) {
+            e.printStackTrace();
+        }
+
+        return localIpAddress;
     }
 }

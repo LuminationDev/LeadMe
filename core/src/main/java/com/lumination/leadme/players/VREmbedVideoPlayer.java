@@ -526,14 +526,6 @@ public class VREmbedVideoPlayer {
     }
 
     /**
-     * Launches the custom VR Player.
-     * @param peerSet A set of strings representing the learner ID's to send the action to.
-     */
-    public void launchVR(Set<String> peerSet) {
-        Controller.getInstance().getAppManager().launchApp(packageName, appName, false, "false", true, peerSet);
-    }
-
-    /**
      * Relaunches the last VR experience with the selected video source.
      * @param peerSet A set of strings representing the learner ID's to send the action to.
      */
@@ -585,15 +577,6 @@ public class VREmbedVideoPlayer {
             DispatchManager.sendActionToSelected(Controller.ACTION_TAG, Controller.VID_UNMUTE_TAG,
                     NearbyPeersManager.getSelectedPeerIDsOrAll())
         );
-    }
-
-    /**
-     * Opens the video controller for the custom VR player. Only available if the video path has
-     * already been set/saved in the LeadMe main.
-     */
-    public void openVideoController() {
-        controllerVideoView.seekTo(1); //to not show a black screen
-        showVideoController();
     }
 
     private void showVideoController() {
@@ -725,28 +708,6 @@ public class VREmbedVideoPlayer {
 //        main.getDispatcher().sendActionToSelected(LeadMeMain.ACTION_TAG,
 //                LeadMeMain.VR_PLAYER_TAG + ":" + VRAccessibilityManager.CUE_STOP,
 //                main.getNearbyManager().getSelectedPeerIDsOrAll());
-    }
-
-    private void fwdVideo() {
-        //Fastforward local video
-        buttonHighlights(VRAccessibilityManager.CUE_FWD);
-        //fwd();
-
-        //Send action to peers to fastforward
-        DispatchManager.sendActionToSelected(Controller.ACTION_TAG,
-                Controller.VR_PLAYER_TAG + ":" + VRAccessibilityManager.CUE_FWD,
-                NearbyPeersManager.getSelectedPeerIDsOrAll());
-    }
-
-    private void rwdVideo() {
-        //Rewind local video
-        buttonHighlights(VRAccessibilityManager.CUE_RWD);
-        //rwd();
-
-        //Send action to peers to rewind
-        DispatchManager.sendActionToSelected(Controller.ACTION_TAG,
-                Controller.VR_PLAYER_TAG + ":" + VRAccessibilityManager.CUE_RWD,
-                NearbyPeersManager.getSelectedPeerIDsOrAll());
     }
 
     //change video control icon colour

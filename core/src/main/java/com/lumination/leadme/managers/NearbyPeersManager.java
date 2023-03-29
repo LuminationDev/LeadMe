@@ -2,7 +2,6 @@ package com.lumination.leadme.managers;
 
 import static com.lumination.leadme.LeadMeMain.UIHandler;
 
-import android.net.nsd.NsdServiceInfo;
 import android.os.Build;
 import android.os.Parcel;
 import android.util.Log;
@@ -27,20 +26,19 @@ import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 
+
 public class NearbyPeersManager {
     private static final String TAG = "NearbyPeersManager";
-    public static ConnectedPeer selectedLeader;
+    public static Leader selectedLeader;
     public static String myID;
     public static String myName;
-
-    private static NsdServiceInfo manInfo = null;
 
     /**
      * Constructor which initiates the nsdManager class.
      */
     public NearbyPeersManager() { }
 
-    public void setSelectedLeader(ConnectedPeer peer) {
+    public void setSelectedLeader(Leader peer) {
         selectedLeader = peer;
     }
 
@@ -57,7 +55,12 @@ public class NearbyPeersManager {
 
         Log.e(TAG, "Teacher: " + Name);
 
-        NetworkService.setLeaderIPAddress(manInfo.getHost());
+        try {
+            NetworkService.setLeaderIPAddress(InetAddress.getByName(selectedLeader.getIpAddress()));
+        } catch (UnknownHostException e) {
+            e.printStackTrace();
+        }
+
         LeadMeMain.getInstance().findViewById(R.id.client_main).setVisibility(View.VISIBLE);
         LeadMeMain.getInstance().setLeaderName(Name);
 
@@ -66,29 +69,12 @@ public class NearbyPeersManager {
         UIHandler.postDelayed(() ->
                 NetworkService.sendToServer(getName(), "NAME"),
             500);
-
-        FirebaseManager.roomsReference.removeEventListener(FirebaseManager.roomsListener);
         return;
     }
 
-    public static void connectToManualLeader(String leaderName, String IpAddress) {
-        Log.d(TAG, "connectToManualLeader: " + IpAddress);
+    public static void connectToManualLeader() {
+        Log.d(TAG, "connectToManualLeader: " + selectedLeader.getIpAddress());
         LeadMeMain.getInstance().backgroundExecutor.submit(() -> {
-            NsdServiceInfo info = new NsdServiceInfo();
-            InetAddress inetAddress = null;
-            try {
-                inetAddress = InetAddress.getByName(IpAddress);
-            } catch (UnknownHostException e) {
-                e.printStackTrace();
-            }
-
-            info.setHost(inetAddress);
-            info.setPort(54321);
-            info.setServiceName(leaderName + "#Teacher#" + IpAddress);
-            info.setServiceType("_http._tcp.");
-            Log.d(TAG, "run: "+info);
-            manInfo = info;
-            selectedLeader = new ConnectedPeer(leaderName, IpAddress);
             LeadMeMain.runOnUI(NearbyPeersManager::connectToSelectedLeader);
         });
     }
@@ -134,7 +120,7 @@ public class NearbyPeersManager {
      * @return A string that represents the ID of the current user.
      */
     public static String getID() {
-        return FirebaseManager.getLocalIpAddress().replace(".", "_");
+        return FirebaseManager.getUuid();
     }
 
     /**
@@ -169,10 +155,6 @@ public class NearbyPeersManager {
             disconnectStudent(endpointId);
         } else {
             LeadMeMain.runOnUI(() -> {
-                Controller.getInstance().getScreenSharingManager().clientToServerSocket = null;
-                Controller.getInstance().getScreenSharingManager().stopService(); //stop the screen sharing service
-                ArrayList<ConnectedPeer> temp = new ArrayList<>();
-                Controller.getInstance().getLeaderSelectAdapter().setLeaderList(temp);
                 LeadMeMain.getInstance().showLeaderWaitMsg(true);
                 LeadMeMain.getInstance().setUIDisconnected();
             });

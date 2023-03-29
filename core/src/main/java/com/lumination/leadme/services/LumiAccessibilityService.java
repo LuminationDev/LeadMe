@@ -16,8 +16,6 @@ import com.lumination.leadme.accessibility.LumiAccessibilityReceiver;
 public class LumiAccessibilityService extends android.accessibilityservice.AccessibilityService {
 
     private final static String TAG = "LumiAccessService";
-    private static final String CHANNEL_ID = "access_service";
-    private static final String CHANNEL_NAME = "Access_service";
 
     public final static String BROADCAST_ACTION = "com.lumination.leadme.BROADCAST_ACTION";
     public final static String INFO_TAG = "LumiBroadcastInfo";
@@ -161,9 +159,5 @@ public class LumiAccessibilityService extends android.accessibilityservice.Acces
             Log.e(TAG, "Failed to broadcast from accessibility: " + event + ", " + getRootInActiveWindow());
             e.printStackTrace();
         }
-    }
-
-    public void updateOnBoard(LeadMeMain main){
-        main.setandDisplayStudentOnBoard(1);
     }
 }

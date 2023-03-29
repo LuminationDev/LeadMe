@@ -2,7 +2,6 @@ package com.lumination.leadme.connections;
 
 import android.graphics.drawable.Drawable;
 
-import com.lumination.leadme.LeadMeMain;
 import com.lumination.leadme.controller.Controller;
 import com.lumination.leadme.models.Endpoint;
 
@@ -23,8 +22,6 @@ public class ConnectedPeer {
     public static final int STATUS_INSTALLED = 9;
 
     public static final int PRIORITY_TOP = 2;
-    public static final int PRIORITY_HIGH = 1;
-    public static final int PRIORITY_STD = 0;
     private int priority = 0;
 
     private String buddyName;
@@ -43,17 +40,10 @@ public class ConnectedPeer {
     private boolean overlayEnabled = true;
     private boolean internetEnabled = true;
     private boolean lastAppLaunchSucceeded = true;
-    private boolean xray = true;
     private boolean transfer = true;
     private boolean installer = true;
 
     private static Endpoint myEndpoint;
-
-    //FOR TESTING ONLY//
-    public ConnectedPeer(String name, String id) {
-        this.buddyName = name;
-        this.id = id;
-    }
 
     //CORRECT CONSTRUCTOR/
     public ConnectedPeer(Endpoint endpoint) {
@@ -105,10 +95,6 @@ public class ConnectedPeer {
                 hiddenAlerts.remove("onTask");
                 onTask = success;
                 break;
-            case Controller.STUDENT_NO_XRAY:
-                hiddenAlerts.remove("xrayOn");
-                xray=success;
-                break;
             case Controller.PERMISSION_TRANSFER_DENIED:
                 hiddenAlerts.remove("transferOn");
                 transfer=success;
@@ -147,9 +133,6 @@ public class ConnectedPeer {
         if (!internetEnabled && !hiddenAlerts.contains("internetOn")) {
             res += "• No internet connection\n";
         }
-        if(!xray && !hiddenAlerts.contains("xrayOn")){
-            res += "• Xray permission is disabled\n";
-        }
         if(!transfer && !hiddenAlerts.contains("transferOn")) {
             res += "• Transfer permission is disabled\n";
         }
@@ -186,34 +169,6 @@ public class ConnectedPeer {
             //update warning status
             status = newStatus;
         }
-    }
-
-    //helpful for debugging
-    public static String statusToString(int status) {
-        switch (status) {
-            case STATUS_LOCK:
-                return "locked";
-
-            case STATUS_UNLOCK:
-                return "unlocked";
-
-            case STATUS_BLACKOUT:
-                return "screen blocked";
-
-            case STATUS_ERROR:
-                return "disconnected";
-
-            case STATUS_WARNING:
-                return "warning";
-
-            case STATUS_INSTALLING:
-                return "installing";
-
-            case STATUS_SUCCESS:
-                return "success";
-        }
-
-        return "unknown";
     }
 
     public boolean hasWarning() {
@@ -257,13 +212,6 @@ public class ConnectedPeer {
                 hiddenAlerts.add("internetOn");
             } else {
                 hiddenAlerts.remove("internetOn");
-            }
-        }
-        if(!xray){
-            if(hide){
-                hiddenAlerts.add("xrayOn");
-            } else {
-                hiddenAlerts.remove("xrayOn");
             }
         }
         if(!transfer){
