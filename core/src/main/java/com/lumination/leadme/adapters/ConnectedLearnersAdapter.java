@@ -9,7 +9,6 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.ViewParent;
 import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.CompoundButton;
@@ -52,7 +51,6 @@ public class ConnectedLearnersAdapter extends BaseAdapter {
     private final LayoutInflater mInflater;
     private final LeadMeMain main;
     private View studentDisconnectedView;
-    private View studentLogoutView;
     public StudentAlertsAdapter alertsAdapter;
 
     public ConnectedLearnersAdapter(LeadMeMain main, List<ConnectedPeer> data, StudentAlertsAdapter alertsAdapter) {
@@ -327,42 +325,6 @@ public class ConnectedLearnersAdapter extends BaseAdapter {
         }
     }
 
-
-    private String lastPromptedID = "";
-
-    public void showLogoutPrompt(String peerID) {
-        lastPromptedID = peerID;
-        if (studentLogoutView == null) {
-            studentLogoutView = View.inflate(main, R.layout.e__logout_student_popup, null);
-            Button ok_btn = studentLogoutView.findViewById(R.id.ok_btn);
-            Button back_btn = studentLogoutView.findViewById(R.id.back_btn);
-
-            ok_btn.setOnClickListener(v12 -> {
-                Log.d(TAG, "[Logout] Removing student: " + lastPromptedID);
-
-                removeStudent(lastPromptedID);
-                refresh();
-                Controller.getInstance().getNetworkManager().removeClient(lastPromptedID);
-
-                logoutPrompt.dismiss();
-                if (mData.size() <= 0) {
-                    main.exitCurrentView();
-                }
-            });
-
-            back_btn.setOnClickListener(v1 -> logoutPrompt.dismiss());
-        }
-
-        if (logoutPrompt == null) {
-            logoutPrompt = new AlertDialog.Builder(main)
-                    .setView(studentLogoutView)
-                    .show();
-            logoutPrompt.setOnDismissListener(dialog -> main.hideSystemUI());
-        } else {
-            logoutPrompt.show();
-        }
-    }
-
     @Override
     public Object getItem(int position) {
         return mData.get(position);
@@ -375,7 +337,6 @@ public class ConnectedLearnersAdapter extends BaseAdapter {
 
 
     AlertDialog disconnectPrompt;
-    AlertDialog logoutPrompt;
     private String lastClickedID = "";
 
     @Override

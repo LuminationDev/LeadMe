@@ -2,12 +2,12 @@ apply plugin: 'com.android.application'
 apply plugin: 'com.google.gms.google-services'
 apply plugin: 'com.google.firebase.crashlytics'
 
-def keyStorePropertiesFile = rootProject.file("keystore.properties")
-def keyStoreProperties = new Properties()
-keyStoreProperties.load(new FileInputStream(keyStorePropertiesFile))
+//def keyStorePropertiesFile = rootProject.file("keystore.properties")
+//def keyStoreProperties = new Properties()
+//keyStoreProperties.load(new FileInputStream(keyStorePropertiesFile))
 
 android {
-    compileSdkVersion 30
+    compileSdkVersion 33
     buildToolsVersion '30.0.3'
 
     defaultConfig {
@@ -15,33 +15,33 @@ android {
         versionCode 23
         versionName "1.21"
         minSdkVersion 27
-        targetSdkVersion 30
+        targetSdkVersion 33
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
 
-    signingConfigs {
-        release {
-            keyAlias keyStoreProperties['releaseKeyAlias']
-            keyPassword keyStoreProperties['releaseKeyPassword']
-            storeFile keyStoreProperties['releaseKeyStore'] ? file(keyStoreProperties['releaseKeyStore']) : null
-            storePassword keyStoreProperties['releaseStorePassword']
-        }
-    }
+//    signingConfigs {
+//        release {
+//            keyAlias keyStoreProperties['releaseKeyAlias']
+//            keyPassword keyStoreProperties['releaseKeyPassword']
+//            storeFile keyStoreProperties['releaseKeyStore'] ? file(keyStoreProperties['releaseKeyStore']) : null
+//            storePassword keyStoreProperties['releaseStorePassword']
+//        }
+//    }
 
-    buildTypes {
-//        debug {
+//    buildTypes {
+////        debug {
+////            minifyEnabled true
+////            shrinkResources true
+////            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
+////        }
+//
+//        release {
+//            signingConfig signingConfigs.release
 //            minifyEnabled true
 //            shrinkResources true
 //            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
 //        }
-
-        release {
-            signingConfig signingConfigs.release
-            minifyEnabled true
-            shrinkResources true
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
-        }
-    }
+//    }
 
     dataBinding {
         enabled true
@@ -80,6 +80,8 @@ dependencies {
 
     //for screenshots
     implementation 'com.github.Nikoloutsos:KLoadingSpin:1.1.0'
+
+    implementation 'org.jsoup:jsoup:1.15.4'
 
     //for firebase
     implementation platform('com.google.firebase:firebase-bom:26.7.0')

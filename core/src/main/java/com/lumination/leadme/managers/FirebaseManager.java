@@ -7,9 +7,6 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
-import com.google.common.net.InetAddresses;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -20,16 +17,12 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.lumination.leadme.LeadMeMain;
 import com.lumination.leadme.R;
 import com.lumination.leadme.adapters.ConnectedLearnersAdapter;
-import com.lumination.leadme.connections.ConnectedPeer;
 import com.lumination.leadme.controller.Controller;
-import com.lumination.leadme.services.FirebaseService;
 import com.lumination.leadme.services.NetworkService;
 
 import java.net.InetAddress;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.sql.Array;
-import java.util.ArrayList;
 import java.util.Random;
 import java.util.UUID;
 

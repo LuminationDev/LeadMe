@@ -27,12 +27,10 @@ public class CuratedContentAdapter extends BaseAdapter {
     public ArrayList<CuratedContentItem> curatedContentList = new ArrayList<>();
     private LayoutInflater mInflater;
     private LeadMeMain main;
-    private View list_view;
 
-    public CuratedContentAdapter(LeadMeMain main, View list_view) {
+    public CuratedContentAdapter(LeadMeMain main) {
         this.main = main;
         this.mInflater = LayoutInflater.from(main);
-        this.list_view = list_view;
     }
 
     @Override
@@ -74,6 +72,7 @@ public class CuratedContentAdapter extends BaseAdapter {
 
         binding.setCuratedContentItem(item);
         CheckBox fav = result.findViewById(R.id.fav_checkbox_curated_content);
+        fav.setVisibility(LeadMeMain.isGuide ? View.VISIBLE : View.GONE);
 
         boolean isInFavourites = CuratedContentManager.isInFavourites(item.link, item.type);
         fav.setOnCheckedChangeListener(null);

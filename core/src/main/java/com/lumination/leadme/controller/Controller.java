@@ -10,7 +10,6 @@ import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.tasks.Task;
-import com.google.android.play.core.appupdate.AppUpdateManager;
 import com.lumination.leadme.LeadMeMain;
 import com.lumination.leadme.accessibility.VRAccessibilityManager;
 import com.lumination.leadme.adapters.ConnectedLearnersAdapter;
@@ -18,16 +17,16 @@ import com.lumination.leadme.managers.AppManager;
 import com.lumination.leadme.managers.AuthenticationManager;
 import com.lumination.leadme.managers.DialogManager;
 import com.lumination.leadme.managers.DispatchManager;
+import com.lumination.leadme.managers.FavouritesManager;
 import com.lumination.leadme.managers.FileTransferManager;
 import com.lumination.leadme.managers.FirebaseManager;
 import com.lumination.leadme.managers.NearbyPeersManager;
 import com.lumination.leadme.managers.NetworkManager;
 import com.lumination.leadme.managers.PermissionManager;
 import com.lumination.leadme.managers.WebManager;
+import com.lumination.leadme.players.VREmbedLinkPlayer;
 import com.lumination.leadme.players.VREmbedPhotoPlayer;
 import com.lumination.leadme.players.VREmbedVideoPlayer;
-import com.lumination.leadme.utilities.AppInstaller;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -71,19 +70,16 @@ public class Controller {
     public static final String LAUNCH_URL = "Launch:::";
     public static final String LAUNCH_YT = "YT:::";
     public static final String LAUNCH_ACCESS = "LaunchAccess";
+    public static final String OPEN_CURATED_CONTENT = "OpenCuratedContent";
 
     public static final String PERMISSION_DENIED = "PermissionDenied";
     public static final String FILE_TRANSFER = "FileTransfer";
     public static final String UPDATE_DEVICE_MESSAGE = "UpdateDeviceMessage";
 
-    public static final String MULTI_INSTALL = "MultiInstall";
     public static final String AUTO_INSTALL = "AutoInstalling";
     public static final String AUTO_INSTALL_FAILED = "AutoInstallFail:";
     public static final String AUTO_INSTALL_ATTEMPT = "AutoInstallAttempt:";
     public static final String APP_NOT_INSTALLED = "AppNotInstalled";
-    public static final String COLLECT_APPS = "CollectApps";
-    public static final String APP_COLLECTION = "PeerAppCollection";
-    public static final String AUTO_UNINSTALL = "AutoUninstall";
 
     public static final String STUDENT_OFF_TASK_ALERT = "OffTask:";
     public static final String STUDENT_NO_OVERLAY = "Overlay:";
@@ -105,20 +101,20 @@ public class Controller {
     //Managers and players
     private final VREmbedPhotoPlayer vrEmbedPhotoPlayer;
     private final VREmbedVideoPlayer vrEmbedVideoPlayer;
+    private final VREmbedLinkPlayer vrEmbedLinkPlayer;
     private final VRAccessibilityManager vrAccessibilityManager;
 
     private final NetworkManager networkManager;
-    private AppUpdateManager appUpdateManager;
     private final FileTransferManager fileTransferManager;
     private final PermissionManager permissionManager;
     private final AuthenticationManager authenticationManager;
     private final NearbyPeersManager nearbyManager;
+    private final FavouritesManager favouritesManager;
     private final WebManager webManager;
     private final DialogManager dialogManager;
     private final AppManager appLaunchAdapter;
     private final ConnectedLearnersAdapter connectedLearnersAdapter;
     private final DispatchManager dispatcher;
-    private final AppInstaller lumiAppInstaller;
 
     /**
      *
@@ -132,13 +128,14 @@ public class Controller {
         dialogManager = new DialogManager(main);
         nearbyManager = new NearbyPeersManager();
         dispatcher = new DispatchManager(main);
+        favouritesManager = new FavouritesManager(main);
         webManager = new WebManager(main);
         vrAccessibilityManager = new VRAccessibilityManager(main);
         vrEmbedPhotoPlayer = new VREmbedPhotoPlayer(main);
         vrEmbedVideoPlayer = new VREmbedVideoPlayer(main);
+        vrEmbedLinkPlayer = new VREmbedLinkPlayer(main);
         appLaunchAdapter = new AppManager(main);
         fileTransferManager = new FileTransferManager(main);
-        lumiAppInstaller = new AppInstaller(main);
         connectedLearnersAdapter = new ConnectedLearnersAdapter(main, new ArrayList<>(), dialogManager.alertsAdapter);
     }
 
@@ -309,6 +306,7 @@ public class Controller {
     public FileTransferManager getFileTransferManager() { return fileTransferManager; }
     public VREmbedVideoPlayer getVrEmbedVideoPlayer() { return vrEmbedVideoPlayer; }
     public VREmbedPhotoPlayer getVrEmbedPhotoPlayer() { return vrEmbedPhotoPlayer; }
+    public VREmbedLinkPlayer getVrEmbedLinkPlayer() { return vrEmbedLinkPlayer; }
     public PermissionManager getPermissionsManager() {
         return permissionManager;
     }
@@ -322,13 +320,13 @@ public class Controller {
     public AppManager getAppManager() {
         return appLaunchAdapter;
     }
+    public FavouritesManager getFavouritesManager() {
+        return favouritesManager;
+    }
     public WebManager getWebManager() {
         return webManager;
     }
     public DialogManager getDialogManager() {
         return dialogManager;
-    }
-    public AppInstaller getLumiAppInstaller() {
-        return lumiAppInstaller;
     }
 }

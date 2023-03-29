@@ -25,11 +25,11 @@ import androidx.databinding.ViewDataBinding;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.slider.LabelFormatter;
 import com.google.android.material.slider.RangeSlider;
-import com.google.api.Distribution;
 import com.google.firebase.crashlytics.FirebaseCrashlytics;
 import com.koushikdutta.urlimageviewhelper.UrlImageViewHelper;
 import com.lumination.leadme.BR;
 import com.lumination.leadme.adapters.CuratedContentAdapter;
+import com.lumination.leadme.adapters.FavouritesAdapter;
 import com.lumination.leadme.controller.Controller;
 import com.lumination.leadme.linkpreview.LinkPreviewCallback;
 import com.lumination.leadme.linkpreview.SourceContent;
@@ -38,6 +38,7 @@ import com.lumination.leadme.models.CuratedContentItem;
 import com.lumination.leadme.models.CuratedContentType;
 import com.lumination.leadme.LeadMeMain;
 import com.lumination.leadme.R;
+import com.lumination.leadme.services.NetworkService;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -72,8 +73,8 @@ public class CuratedContentManager {
 
     public static CuratedContentAdapter curatedContentAdapterSearch;
 
-    private static FavouritesManager urlFavouritesManager;
-    private static FavouritesManager videoFavouritesManager;
+    private static FavouritesAdapter urlFavouritesManager;
+    private static FavouritesAdapter videoFavouritesManager;
     private static LeadMeMain main;
 
     public static View curatedContentScreen;
@@ -92,11 +93,19 @@ public class CuratedContentManager {
         selectItem.setOnClickListener(new View.OnClickListener() {
               @Override
               public void onClick(View view) {
-                WebManager webManager = new WebManager(main);
-                webManager.showPreview(curatedContentItem.link);
+                  if (LeadMeMain.isGuide) {
+                      WebManager webManager = new WebManager(main);
+                      webManager.showPreview(curatedContentItem.link);
+                  } else {
+                      CuratedContentManager.curatedContentScreen.findViewById(R.id.back_btn).setOnClickListener(v -> main.leadmeAnimator.setDisplayedChild(main.ANIM_LEARNER_INDEX));
+                      NetworkService.receiveMessage("ACTION," + DispatchManager.encodeMessage("Action", Controller.LAUNCH_URL + curatedContentItem.link + ":::" + curatedContentItem.title));
+                  }
               }
           }
         );
+        if (!LeadMeMain.isGuide) {
+            selectItem.setText("Watch");
+        }
 
         View.OnClickListener back = new View.OnClickListener() {
             @Override
@@ -124,6 +133,7 @@ public class CuratedContentManager {
             CheckBox fav = listItem.findViewById(R.id.fav_checkbox_curated_content);
             fav.setChecked(checked);
         });
+        checkBox.setVisibility(LeadMeMain.isGuide ? View.VISIBLE : View.GONE);
 
         main.showCuratedContentSingleScreen();
     }
@@ -137,7 +147,7 @@ public class CuratedContentManager {
         CuratedContentManager.curatedContentBinding.setLifecycleOwner(main);
         CuratedContentManager.curatedContentBinding.setVariable(BR.curatedContentList, CuratedContentManager.filteredCuratedContentList);
         ListView curatedContentListView = CuratedContentManager.curatedContentScreen.findViewById(R.id.curated_content_list);
-        CuratedContentManager.curatedContentAdapter = new CuratedContentAdapter(main, curatedContentScreen.findViewById(R.id.curated_content_list));
+        CuratedContentManager.curatedContentAdapter = new CuratedContentAdapter(main);
         curatedContentListView.setAdapter(CuratedContentManager.curatedContentAdapter);
         CuratedContentManager.curatedContentAdapter.curatedContentList = CuratedContentManager.filteredCuratedContentList;
         CuratedContentManager.curatedContentAdapter.notifyDataSetChanged();
@@ -150,6 +160,15 @@ public class CuratedContentManager {
                 CuratedContentItem current = CuratedContentManager.filteredCuratedContentList.get(i);
                 CuratedContentManager.showCuratedContentSingle(main, current, view);
             }
+        });
+
+        if (!LeadMeMain.isGuide) {
+            curatedContentScreen.findViewById(R.id.action_bar).setVisibility(View.GONE);
+        }
+
+        curatedContentScreen.findViewById(R.id.push_button).setOnClickListener(view -> {
+            DispatchManager.sendActionToSelected(Controller.ACTION_TAG,
+                    Controller.OPEN_CURATED_CONTENT, NearbyPeersManager.getAllPeerIDs());
         });
 
         curatedContentScreen.findViewById(R.id.filter_button).setOnClickListener(view -> {
@@ -205,8 +224,8 @@ public class CuratedContentManager {
         ccSubjects.add(0, "Please select");
         CuratedContentManager.curatedContentSubjects = ccSubjects;
 
-        CuratedContentManager.urlFavouritesManager = Controller.getInstance().getWebManager().getUrlFavouritesManager();
-        CuratedContentManager.videoFavouritesManager = Controller.getInstance().getWebManager().getYouTubeFavouritesManager();
+        CuratedContentManager.urlFavouritesManager = Controller.getInstance().getFavouritesManager().getUrlFavouritesAdapter();
+        CuratedContentManager.videoFavouritesManager = Controller.getInstance().getFavouritesManager().getYouTubeFavouritesAdapter();
         CuratedContentManager.main = LeadMeMain.getInstance();
         if (CuratedContentManager.curatedContentAdapter != null) {
             LeadMeMain.runOnUI(() -> {
@@ -346,7 +365,7 @@ public class CuratedContentManager {
 
         });
 
-        CuratedContentManager.curatedContentAdapterSearch = new CuratedContentAdapter(main, searchSheetDialog.findViewById(R.id.curated_content_list));
+        CuratedContentManager.curatedContentAdapterSearch = new CuratedContentAdapter(main);
 
         searchInput.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override
@@ -568,7 +587,7 @@ public class CuratedContentManager {
     };
 
     public static void getPreviewImages (LeadMeMain main, String url) {
-        TextCrawler textCrawler = new TextCrawler(Controller.getInstance().getWebManager());
+        TextCrawler textCrawler = new TextCrawler();
         textCrawler.makePreview(previewImageCallback, url);
     }
 }
