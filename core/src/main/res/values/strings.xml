@@ -215,5 +215,6 @@
     <string name="video">Video</string>
     <string name="photo">Photo</string>
     <string name="loading_video">Loading video...</string>
+    <string name="vr_player">VR Player</string>
 
 </resources>

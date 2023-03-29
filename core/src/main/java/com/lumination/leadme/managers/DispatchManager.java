@@ -108,13 +108,13 @@ public class DispatchManager {
         tagRepush = tag;
         packageNameRepush = packageName;
         appNameRepush = appName;
-        lockTagRepush = lockTag;
+        lockTagRepush = "false"; //override the supplied value
         Parcel p = Parcel.obtain();
         byte[] bytes;
         p.writeString(tag);
         p.writeString(packageName);
         p.writeString(appName);
-        p.writeString(lockTag);
+        p.writeString("false"); //override the supplied value
         p.writeString(install);
         p.writeString("");
         p.writeString("");
