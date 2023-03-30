@@ -224,10 +224,10 @@ public class DispatchManager {
 
                     } else if (action.startsWith(Controller.LOGOUT_TAG)) {
                         dispatchAction.logout(action);
-
+                    } else if (action.startsWith(Controller.UNLOCK_TAG)) {
+                        dispatchAction.unlockDevice();
                     } else if (action.startsWith(Controller.BLACKOUT_TAG)) {
                         dispatchAction.blackout();
-
                     } else if (action.startsWith(Controller.TRANSFER_ERROR)) {
                         dispatchAction.transferError(action);
 
