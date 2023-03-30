@@ -61,6 +61,7 @@ public class CuratedContentManager {
 
     public static List<Float> currentYearSelection = null;
     public static int currentRadioSelection = -1;
+    public static String currentRadioText = "";
     public static String currentSubjectSelection = null;
     public static ArrayList<String> curatedContentSubjects;
 
@@ -163,8 +164,22 @@ public class CuratedContentManager {
         }
 
         curatedContentScreen.findViewById(R.id.push_button).setOnClickListener(view -> {
+
+            String filterString = "";
+            if (currentYearSelection != null && currentYearSelection.size() == 2) {
+                filterString += ":::year:";
+                filterString += (String.valueOf((currentYearSelection.get(0))) + ":" + String.valueOf((currentYearSelection.get(1))));
+            }
+            if (currentRadioText != null && currentRadioText.length() > 0) {
+                filterString += (":::radio:" + currentRadioText);
+            }
+            if (currentSubjectSelection != null && currentSubjectSelection.length() > 0) {
+                filterString += (":::subject:" + currentSubjectSelection);
+            }
+
+
             DispatchManager.sendActionToSelected(Controller.ACTION_TAG,
-                    Controller.OPEN_CURATED_CONTENT, NearbyPeersManager.getAllPeerIDs());
+                    Controller.OPEN_CURATED_CONTENT + filterString, NearbyPeersManager.getAllPeerIDs());
         });
 
         curatedContentScreen.findViewById(R.id.filter_button).setOnClickListener(view -> {
@@ -231,6 +246,51 @@ public class CuratedContentManager {
         }
     }
 
+    public static void applyFilters () {
+        LinearLayout filterInfo = curatedContentScreen.findViewById(R.id.no_results_info);
+
+        CuratedContentManager.filteredCuratedContentList = (ArrayList<CuratedContentItem>) CuratedContentManager.curatedContentList.clone();
+        if (currentSubjectSelection != null && !currentSubjectSelection.equals("Please select")) {
+            CuratedContentManager.filterCuratedContentBySubject(CuratedContentManager.filteredCuratedContentList, currentSubjectSelection);
+        }
+        if (currentRadioText != null) {
+            switch (currentRadioText) {
+                case "Youtube":
+                    CuratedContentManager.filterCuratedContentByType(CuratedContentManager.filteredCuratedContentList, CuratedContentType.YOUTUBE);
+                    break;
+                case "Website":
+                    CuratedContentManager.filterCuratedContentByType(CuratedContentManager.filteredCuratedContentList, CuratedContentType.LINK);
+                    break;
+            }
+        }
+        if (currentYearSelection != null && currentYearSelection.size() == 2) {
+            CuratedContentManager.filterCuratedContentByYear(CuratedContentManager.filteredCuratedContentList, Math.round(currentYearSelection.get(0)), Math.round(currentYearSelection.get(1)));
+        }
+        CuratedContentManager.curatedContentBinding.setVariable(BR.curatedContentList, CuratedContentManager.filteredCuratedContentList);
+        CuratedContentManager.curatedContentAdapter.curatedContentList = CuratedContentManager.filteredCuratedContentList;
+        CuratedContentManager.curatedContentAdapter.notifyDataSetChanged();
+        TextView filterHeading = curatedContentScreen.findViewById(R.id.filter_heading);
+        TextView filterSubheading = curatedContentScreen.findViewById(R.id.filter_subheading);
+        //display of results
+        if (CuratedContentManager.filteredCuratedContentList.size() > 0) {
+            filterInfo.setVisibility(View.GONE);
+            curatedContentScreen.findViewById(R.id.curated_content_list);
+        }
+        //no results found
+        else {
+            if (curatedContentList.size() > 0) {
+                filterInfo.setVisibility(View.VISIBLE);
+                filterHeading.setText("No Results Found!");
+                filterSubheading.setText("Sorry, that filter combination has no results. Please try different criteria.");
+            }
+            else {
+                filterInfo.setVisibility(View.GONE);
+                filterHeading.setText("What are you searching for?");
+                filterSubheading.setText("Search through our curated content for classrooms!");
+            }
+        }
+    }
+
     private static void showFilters (LeadMeMain main) {
         final BottomSheetDialog filterSheetDialog = new BottomSheetDialog(main, R.style.BottomSheetDialogTransparentBackground);
         filterSheetDialog.setContentView(R.layout.filter_sheet_layout);
@@ -287,9 +347,11 @@ public class CuratedContentManager {
             if (radioSelection != null) {
                 switch (radioSelection) {
                     case "Youtube":
+                        CuratedContentManager.currentRadioText = "Youtube";
                         CuratedContentManager.filterCuratedContentByType(CuratedContentManager.filteredCuratedContentList, CuratedContentType.YOUTUBE);
                         break;
                     case "Website":
+                        CuratedContentManager.currentRadioText = "Website";
                         CuratedContentManager.filterCuratedContentByType(CuratedContentManager.filteredCuratedContentList, CuratedContentType.LINK);
                         break;
                 }
@@ -331,6 +393,7 @@ public class CuratedContentManager {
             curatedContentAdapter.notifyDataSetChanged();
             CuratedContentManager.currentYearSelection = null;
             CuratedContentManager.currentRadioSelection = -1;
+            CuratedContentManager.currentRadioText = "";
             CuratedContentManager.currentSubjectSelection = null;
             filterSheetDialog.hide();
             filterInfo.setVisibility(View.GONE);
@@ -440,6 +503,9 @@ public class CuratedContentManager {
         curatedContent.removeIf(curatedContentItem -> {
             String[] ccYears = curatedContentItem.years.split(",");
             for (int i = 0; i < ccYears.length; i++) {
+                if (ccYears[i].equals("-")) {
+                    return false;
+                }
                 int currentValue = ccYears[i].equals("R") ? 0 : Integer.parseInt(ccYears[i].trim());
                 if (currentValue >= lower && currentValue <= upper) {
                     return false;
