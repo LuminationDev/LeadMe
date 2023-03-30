@@ -359,21 +359,6 @@ public class TextCrawler {
     }
 
     /**
-     * Takes a valid url string and returns a URLConnection object for the url.
-     */
-    private HttpURLConnection connectURL(String strURL) {
-        HttpURLConnection conn = null;
-        try {
-            URL inputURL = new URL(strURL);
-            conn = connectURL(inputURL);
-        } catch (MalformedURLException e) {
-            System.out.println("Please input a valid URL");
-            e.printStackTrace();
-        }
-        return conn;
-    }
-
-    /**
      * Takes a valid url and returns a URLConnection object for the url.
      */
     private HttpURLConnection connectURL(URL inputURL) {

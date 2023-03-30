@@ -50,9 +50,6 @@ public class YouTubeEmbedPlayer {
     private boolean firstTouch; //track if the guide has started the video
     private boolean adsFinished; //track if students are still watching ads
 
-    //track the peers for ad control
-    int peersAdControl = 0;
-
     private final TextView internetUnavailableMsg;
     private TextView youtubePreviewTitle;
     private Button youtubePreviewPushBtn;
@@ -168,16 +165,6 @@ public class YouTubeEmbedPlayer {
      * @return A boolean representing if the ads have finished.
      */
     private boolean peerWaitingForAds() {
-//        if(peersAdControl >= main.getConnectedLearnersAdapter().mData.size()) {
-//            main.getDialogManager().showWarningDialog("Waiting for Ads","Student devices are still \n" +
-//                    "waiting for ads to finish.");
-//        } else {
-//            adsFinished = true;
-//        }
-//
-        //Above is disabled for now, if a single student is not signed in to youtube the guide
-        //will not be able to start the video.
-
         adsFinished = true;
         return !adsFinished;
     }
@@ -305,10 +292,8 @@ public class YouTubeEmbedPlayer {
     private void resetControllerState() {
         Log.e(TAG, "Resetting controller!! " + webManager.lastWasGuideView + " vs " + attemptedURL);
         currentTime = -1;
-        totalTime = -1;
         firstTouch = true;
         adsFinished = false;
-        peersAdControl = 0;
     }
 
     public void dismissDialogs() {
@@ -376,8 +361,6 @@ public class YouTubeEmbedPlayer {
 
 
     float currentTime = 0;
-
-    int totalTime = -1;
 
     //////////////////
 

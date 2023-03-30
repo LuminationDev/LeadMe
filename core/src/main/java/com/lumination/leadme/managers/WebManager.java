@@ -720,10 +720,6 @@ public class WebManager {
         return finalURL;
     }
 
-    public YouTubeEmbedPlayer getYouTubeEmbedPlayer() {
-        return youTubeEmbedPlayer;
-    }
-
     public void launchYouTube(String url, String urlTitle, boolean updateTask) {
         Log.w(TAG, "Launching: " + url + ", " + urlTitle);
         String cleanURL = cleanYouTubeURL(url);
