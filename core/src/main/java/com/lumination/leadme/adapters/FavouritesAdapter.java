@@ -660,20 +660,11 @@ public class FavouritesAdapter extends BaseAdapter {
                 Log.d(TAG, "Showing preview" + url);
                 FavouritesManager.adding_to_fav = false;
 
-                //This will be a callback to what has implemented it
-                switch (FavouritesManager.currentType) {
-                    case FavouritesManager.LAUNCHTYPE_WEB:
-                        Controller.getInstance().getWebManager().showPreview(url);
-                        break;
-
-                    case FavouritesManager.LAUNCHTYPE_VR:
-                        Controller.getInstance().getVrEmbedLinkPlayer().openPreview(url);
-                        break;
-
-                    default:
-                        Log.d(TAG, "Unknown display type");
-                }
-
+                Controller.getInstance().getDialogManager().createContentLaunchChoiceDialog(
+                        title,
+                        url,
+                        LeadMeMain.isGuide
+                );
             }
             manager.hideFavDialog();
         });
