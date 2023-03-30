@@ -25,9 +25,6 @@ public class TextCrawler {
     public static final int ALL = -1;
     public static final int NONE = -2;
 
-    private final String HTTP_PROTOCOL = "http://";
-    private final String HTTPS_PROTOCOL = "https://";
-
     private LinkPreviewCallback callback;
     private AsyncTask getCodeTask;
     private UrlExtractionStrategy urlExtractionStrategy;
@@ -287,33 +284,6 @@ public class TextCrawler {
     }
 
     /**
-     * Returns the cannoncial url
-     */
-    private String cannonicalPage(String url) {
-
-        String cannonical = "";
-        if (url.startsWith(HTTP_PROTOCOL)) {
-            url = url.substring(HTTP_PROTOCOL.length());
-        } else if (url.startsWith(HTTPS_PROTOCOL)) {
-            url = url.substring(HTTPS_PROTOCOL.length());
-        }
-
-        int urlLength = url.length();
-        for (int i = 0; i < urlLength; i++) {
-            if (getCodeTask.isCancelled()) {
-                break;
-            }
-            if (url.charAt(i) != '/')
-                cannonical += url.charAt(i);
-            else
-                break;
-        }
-
-        return cannonical;
-
-    }
-
-    /**
      * Strips the tags from an element
      */
     private String stripTags(String content) {
@@ -386,44 +356,6 @@ public class TextCrawler {
         String result = Regex.pregMatch(content, Regex.METATAG_CONTENT_PATTERN,
                 1);
         return htmlDecode(result);
-    }
-
-    /**
-     * Unshortens a short url
-     */
-    private String unshortenUrl(final String originURL) {
-        if (!originURL.startsWith(HTTP_PROTOCOL) && !originURL.startsWith(HTTPS_PROTOCOL)) {
-            return "";
-        }
-
-        HttpURLConnection urlConn = connectURL(originURL);
-        urlConn.getHeaderFields();
-
-        final URL finalUrl = urlConn.getURL();
-        urlConn.disconnect(); //disconnect before connecting with new URL
-
-        urlConn = connectURL(finalUrl);
-        urlConn.getHeaderFields();
-
-        final URL shortURL = urlConn.getURL();
-
-        String finalResult = shortURL.toString();
-
-        while (!shortURL.sameFile(finalUrl)) {
-            boolean isEndlesslyRedirecting = false;
-            if (shortURL.getHost().equals(finalUrl.getHost())) {
-                if (shortURL.getPath().equals(finalUrl.getPath())) {
-                    isEndlesslyRedirecting = true;
-                }
-            }
-            if (isEndlesslyRedirecting) {
-                break;
-            } else {
-                finalResult = unshortenUrl(shortURL.toString());
-            }
-        }
-
-        return finalResult;
     }
 
     /**

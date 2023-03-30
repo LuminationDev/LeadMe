@@ -32,7 +32,6 @@ public class DispatchManager {
     public static String tagRepush;
     public static String packageNameRepush;
     public static String appNameRepush;
-    public static String lockTagRepush;
     public static String extraRepush;
     public static String mActionTag=null, mAction=null;
     public static int lastEvent =0;
@@ -44,11 +43,11 @@ public class DispatchManager {
     }
 
     public static void repushApp(Set<String> selectedPeerIDs) {
-        Log.w(TAG, "REPUSH: " + tagRepush + ", " + packageNameRepush + ", " + appNameRepush + ", " + lockTagRepush + ", " + extraRepush);
+        Log.w(TAG, "REPUSH: " + tagRepush + ", " + packageNameRepush + ", " + appNameRepush + ", " + extraRepush);
         LeadMeMain.getInstance().recallToLeadMe();
         switch(lastEvent){
             case 2:
-                requestRemoteAppOpen(tagRepush, packageNameRepush, appNameRepush, lockTagRepush, "false", selectedPeerIDs);
+                requestRemoteAppOpen(tagRepush, packageNameRepush, appNameRepush, "false", selectedPeerIDs);
                 break;
             case 3:
                 sendActionToSelected(mActionTag,mAction,selectedPeerIDs);
@@ -97,24 +96,21 @@ public class DispatchManager {
      * @param tag A string ....
      * @param packageName A string representing if the package is within.
      * @param appName A string representing the name of the application 'Within'.
-     * @param lockTag A string representing if the learner devices should be in lock or play mode.
      * @param install A string representing if the application needs to be installed on a device.
      * @param selectedPeerIDs A set of strings that represents the selected peers.
      */
-    public static void requestRemoteAppOpen(String tag, String packageName, String appName, String lockTag, String install, Set<String> selectedPeerIDs) {
+    public static void requestRemoteAppOpen(String tag, String packageName, String appName, String install, Set<String> selectedPeerIDs) {
         LeadMeMain.getInstance().setProgressTimer(2000);
         Log.d(TAG, "requestRemoteAppOpen: ");
         lastEvent=2;
         tagRepush = tag;
         packageNameRepush = packageName;
         appNameRepush = appName;
-        lockTagRepush = lockTag;
         Parcel p = Parcel.obtain();
         byte[] bytes;
         p.writeString(tag);
         p.writeString(packageName);
         p.writeString(appName);
-        p.writeString(lockTag);
         p.writeString(install);
         p.writeString("");
         p.writeString("");
@@ -122,7 +118,7 @@ public class DispatchManager {
         p.recycle();
         writeMessageToSelected(bytes, selectedPeerIDs);
 
-        LeadMeMain.getInstance().updateLastTask(AppManager.getAppIcon(packageName), AppManager.getAppName(packageName), packageName, lockTag);
+        LeadMeMain.getInstance().updateLastTask(AppManager.getAppIcon(packageName), AppManager.getAppName(packageName), packageName);
     }
 
     public synchronized void alertLogout() {
@@ -200,10 +196,6 @@ public class DispatchManager {
                     dispatchAction.endSession();
                     break;
 
-                case Controller.LAUNCH_ACCESS:
-                    dispatchAction.requestAccessibility();
-                    break;
-
                 case Controller.NAME_REQUEST:
                     dispatchAction.issueNameChange();
                     break;
@@ -224,26 +216,14 @@ public class DispatchManager {
                     } else if (action.startsWith(Controller.VID_UNMUTE_TAG)) {
                         dispatchAction.unMuteLearner();
 
-                    } else if (action.startsWith(Controller.VID_ACTION_TAG)) {
-                        dispatchAction.youtubeAction(action);
-
                     } else if (action.startsWith(Controller.VR_PLAYER_TAG)) {
                         dispatchAction.vrPlayerAction(action);
 
                     } else if(action.startsWith(Controller.FILE_REQUEST_TAG)) {
                         dispatchAction.requestFile(action);
 
-                    } else if (action.startsWith(Controller.STUDENT_FINISH_ADS)) {
-                        dispatchAction.adsFinished();
-
                     } else if (action.startsWith(Controller.LOGOUT_TAG)) {
                         dispatchAction.logout(action);
-
-                    } else if (action.startsWith(Controller.LOCK_TAG)) {
-                        dispatchAction.lockDevice();
-
-                    } else if (action.startsWith(Controller.UNLOCK_TAG)) {
-                        dispatchAction.unlockDevice();
 
                     } else if (action.startsWith(Controller.BLACKOUT_TAG)) {
                         dispatchAction.blackout();
@@ -305,37 +285,21 @@ public class DispatchManager {
         final String tag = p.readString();
         final String packageName = p.readString();
         final String appName = p.readString();
-        final String lockTag = p.readString();
         final String extra = p.readString(); //represents the Within URI or the Install function
         final String streaming = p.readString();
         final String vrMode = p.readString();
 
         p.recycle();
 
-        Log.d(TAG, "Received in OpenApp!: " + tag + ", " + packageName + ", " + appName + ", " + lockTag + ", " + extra + ", " + streaming + ", " + vrMode + " vs " + AppManager.lastApp);
+        Log.d(TAG, "Received in OpenApp!: " + tag + ", " + packageName + ", " + appName + ", " + extra + ", " + streaming + ", " + vrMode + " vs " + AppManager.lastApp);
         if (tag != null && tag.equals(Controller.APP_TAG)) {
-            if (lockTag.equals(Controller.LOCK_TAG)) {
-                dispatchAction.lockDevice();
-
-            } else if (lockTag.equals(Controller.UNLOCK_TAG)) {
-                //I've been selected to toggle student lock
-//                main.blackout(false);
-//                disableInteraction(ConnectedPeer.STATUS_UNLOCK);
-//                sendActionToSelected(LeadMeMain.ACTION_TAG, LeadMeMain.LAUNCH_SUCCESS + "LOCKOFF" + ":" + main.getNearbyManager().getID() + ":" + main.leadMePackageName,
-//                        main.getNearbyManager().getAllPeerIDs());
-
-                //TODO this is slightly different so test before thoroughly before fully implementing
-                dispatchAction.unlockDevice();
-            }
+            dispatchAction.unlockDevice();
 
             boolean appInForeground = main.isAppVisibleInForeground();
             Log.w(TAG, "[2] No URI, reset state!");
-            main.getLumiAccessibilityConnector().resetState();
 
             if (!appInForeground) {
                 Log.d(TAG, "NEED FOCUS!");
-                //only needed if it's not what we've already got open
-                //TODO make this more robust, check if it's actually running
                 launchAppOnFocus = new String[2];
                 launchAppOnFocus[0] = packageName;
                 launchAppOnFocus[1] = appName;
@@ -497,13 +461,6 @@ public class DispatchManager {
         }
 
         /**
-         * Request that a connected learner device turn on their accessibility settings.
-         */
-        private void requestAccessibility() {
-            Controller.getInstance().getPermissionsManager().requestAccessibilitySettingsOn();
-        }
-
-        /**
          * Initiates a name change for a connected peer by the guide. Renaming the learner on the
          * guides device as well as the learners.
          */
@@ -587,16 +544,6 @@ public class DispatchManager {
         }
 
         /**
-         * Cue up an accessibility action for the youtube controller sent by the guide.
-         * @param action A string of the incoming action, it contains action to be taken.
-         */
-        private void youtubeAction(String action) {
-            Log.d(TAG, "GOT SOMETHING VID RELATED");
-            String[] split = action.split(":");
-            main.getLumiAccessibilityConnector().cueYouTubeAction(split[1]);
-        }
-
-        /**
          * Cue up an accessibility action for the custom VR player controller sent by the guide.
          * @param action A string of the incoming action, it contains action to be taken.
          */
@@ -651,13 +598,6 @@ public class DispatchManager {
         }
 
         /**
-         * Alerts the guide that a peer's ads have finished on youtube.
-         */
-        private void adsFinished() {
-            Controller.getInstance().getWebManager().getYouTubeEmbedPlayer().addPeerReady();
-        }
-
-        /**
          * Logs out .... ?
          * @param action A string of the incoming action, it contains action to be taken.
          */
@@ -686,7 +626,6 @@ public class DispatchManager {
             //I've been selected to toggle student lock
             main.blackout(false);
             disableInteraction(ConnectedPeer.STATUS_UNLOCK);
-            main.getLumiAccessibilityConnector().manageAccessibilityEvent(null,null);
             sendActionToSelected(Controller.ACTION_TAG,
                     Controller.LAUNCH_SUCCESS + "LOCKOFF"
                             + ":" + NearbyPeersManager.getID()
@@ -783,7 +722,7 @@ public class DispatchManager {
          */
         private void launchYoutube(String action) {
             String[] split = action.split(":::", 4);
-            Controller.getInstance().getWebManager().launchYouTube(split[1], split[2], split[3].equals("true"), true);
+            Controller.getInstance().getWebManager().launchYouTube(split[1], split[2], true);
             Log.w(TAG, action + "||" + split[1] + ", " + split[2] + ", " + split[3] + "|");
         }
 

@@ -166,6 +166,7 @@ public class FirebaseManager {
 
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
+                Log.e(TAG, databaseError + "");
                 // todo - throw an error
             }
         });

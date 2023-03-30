@@ -461,7 +461,6 @@ public class ConnectedLearnersAdapter extends BaseAdapter {
         View Settings = View.inflate(main, R.layout.d__student_settings, null);
         TextView Name = Settings.findViewById(R.id.student_set_name);
         TextView EditName = Settings.findViewById(R.id.student_set_edit_name);
-        Switch ViewToggle = Settings.findViewById(R.id.student_set_view_toggle);
         Switch BlockToggle = Settings.findViewById(R.id.student_set_block_toggle);
         TextView Disconnect = Settings.findViewById(R.id.student_set_disconnect);
         Button Close = Settings.findViewById(R.id.student_set_close);
@@ -471,37 +470,6 @@ public class ConnectedLearnersAdapter extends BaseAdapter {
                 .setView(Settings)
                 .show();
 
-
-        ViewToggle.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                if(isChecked){
-                    ViewToggle.setText("View Mode ON");
-                    ImageViewCompat.setImageTintList(Settings.findViewById(R.id.student_set_view_icon), ColorStateList.valueOf(ContextCompat.getColor(main, R.color.leadme_blue)));
-                    ((TextView) Settings.findViewById(R.id.student_set_view_text)).setText("*Touch screens diabled");
-                    Set<String> student = new ArraySet<>();
-                    student.add(peer.getID());
-                    if(!BlockToggle.isChecked()){
-                        DispatchManager.sendActionToSelected(Controller.ACTION_TAG, Controller.LOCK_TAG, student);
-                    }
-
-//                    stream=false;
-                }else{
-                    ImageViewCompat.setImageTintList(Settings.findViewById(R.id.student_set_view_icon), ColorStateList.valueOf(ContextCompat.getColor(main, R.color.leadme_medium_grey)));
-                    ((TextView) Settings.findViewById(R.id.student_set_view_text)).setText("*Touch screens enabled");
-                    ViewToggle.setText("View Mode OFF");
-                    Set<String> student = new ArraySet<>();
-                    student.add(peer.getID());
-                    if(!BlockToggle.isChecked()) {
-                        DispatchManager.sendActionToSelected(Controller.ACTION_TAG, Controller.UNLOCK_TAG, student);
-                    }else {
-                        DispatchManager.sendActionToSelected(Controller.ACTION_TAG, Controller.BLACKOUT_TAG, student);
-                    }
-//                    stream=true;
-                }
-
-            }
-        });
         BlockToggle.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
@@ -519,18 +487,9 @@ public class ConnectedLearnersAdapter extends BaseAdapter {
                     BlockToggle.setText("Blocked Mode OFF");
                     Set<String> student = new ArraySet<>();
                     student.add(peer.getID());
-                    if(ViewToggle.isChecked()){
-                        DispatchManager.sendActionToSelected(Controller.ACTION_TAG, Controller.LOCK_TAG, student);
-                    }else {
-                        DispatchManager.sendActionToSelected(Controller.ACTION_TAG, Controller.UNLOCK_TAG, student);
-                    }
                 }
             }
         });
-
-        if(peer.locked){
-            ViewToggle.setChecked(true);
-        }
 
         if(peer.blackedOut){
             BlockToggle.setChecked(true);

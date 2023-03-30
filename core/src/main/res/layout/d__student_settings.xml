@@ -59,67 +59,6 @@
         android:visibility="visible">
 
         <ImageView
-            android:id="@+id/student_set_view_icon"
-            android:layout_width="50dp"
-            android:layout_height="40dp"
-            android:layout_weight="0"
-            android:gravity="center_horizontal"
-            android:src="@drawable/controls_view"
-            android:tint="@color/leadme_medium_grey" />
-
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_weight="0"
-            android:orientation="vertical">
-
-            <Switch
-                android:id="@+id/student_set_view_toggle"
-                android:layout_width="220dp"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_horizontal|center_vertical"
-                android:layout_marginStart="10dp"
-                android:layout_marginEnd="10dp"
-                android:layout_weight="0"
-                android:checked="false"
-                android:fontFamily="@font/poppins_semibold"
-                android:gravity="left|center_vertical"
-                android:includeFontPadding="false"
-                android:showText="false"
-                android:switchMinWidth="50dp"
-                android:switchPadding="10dp"
-                android:text="View Only OFF"
-                android:textSize="16sp"
-                android:thumb="@drawable/toggle_thumb"
-                android:track="@drawable/toggle_track" />
-
-            <TextView
-                android:id="@+id/student_set_view_text"
-                android:layout_width="210dp"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_horizontal"
-                android:layout_weight="0"
-                android:text="*Touch screens enabled" />
-        </LinearLayout>
-
-    </LinearLayout>
-
-    <ImageView
-        android:layout_width="match_parent"
-        android:layout_height="1dp"
-        android:layout_marginTop="10dp"
-        android:layout_marginBottom="10dp"
-        android:background="@color/leadme_medium_grey" />
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:gravity="center_horizontal"
-        android:orientation="horizontal"
-        android:paddingBottom="10dp"
-        android:visibility="visible">
-
-        <ImageView
             android:id="@+id/student_set_block_icon"
             android:layout_width="50dp"
             android:layout_height="40dp"

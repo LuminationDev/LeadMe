@@ -93,8 +93,6 @@ public class VREmbedLinkPlayer {
     private boolean firstTouch; //track if the guide has started the video
     private final ImageView playBtn, pauseBtn;
 
-    Switch viewModeToggle;
-
     private final LeadMeMain main;
     private final ScheduledExecutorService scheduledExecutorService = new ScheduledThreadPoolExecutor(1);
 
@@ -354,23 +352,6 @@ public class VREmbedLinkPlayer {
                     video.loadUrl("javascript:seekTo(\"" + attemptedURL + "\", " + 1 + ")")
             );
         }
-
-        TextView touchDesc = videoControllerDialogView.findViewById(R.id.touch_screen_desc);
-        viewModeToggle = videoControllerDialogView.findViewById(R.id.view_mode_toggle);
-        viewModeToggle.setChecked(true);
-        viewModeToggle.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            if(isChecked){
-                viewModeToggle.setText(R.string.view_mode_on);
-                touchDesc.setText(R.string.touch_screens_disabled);
-                ImageViewCompat.setImageTintList(videoControllerDialogView.findViewById(R.id.view_mode_icon), ColorStateList.valueOf(ContextCompat.getColor(main, R.color.leadme_blue)));
-                main.lockFromMainAction();
-            }else{
-                ImageViewCompat.setImageTintList(videoControllerDialogView.findViewById(R.id.view_mode_icon), ColorStateList.valueOf(ContextCompat.getColor(main, R.color.leadme_medium_grey)));
-                touchDesc.setText(R.string.touch_screens_enabled);
-                viewModeToggle.setText(R.string.view_mode_off);
-                main.unlockFromMainAction();
-            }
-        });
     }
 
     //Sets up the UI for selecting where to start the video from.
@@ -809,7 +790,6 @@ public class VREmbedLinkPlayer {
         //Set the source for the peers device
         setVideoSource(startFromTime);
 
-        //viewModeToggle.setChecked(true);
         WebView video = videoControllerDialogView.findViewById(R.id.video_stream_videoview);
         LeadMeMain.runOnUI(() ->
             video.loadUrl("javascript:seekTo(\"" + attemptedURL + "\", " + startFromTime + ")")

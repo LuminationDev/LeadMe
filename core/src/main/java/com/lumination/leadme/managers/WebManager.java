@@ -46,7 +46,6 @@ public class WebManager {
     private AlertDialog websiteLaunchDialog, previewDialog;
     private final View websiteLaunchDialogView;
     private final View previewDialogView;
-    public boolean launchingVR = false, enteredVR = false;
     public boolean lastWasGuideView = false;
 
     private ImageView previewImage;
@@ -255,57 +254,27 @@ public class WebManager {
         pushURL = "";
     }
 
-    public String getLaunchTitle() {
-        return pushTitle;
-    }
-
-    private boolean freshPlay = true;
-
-    public boolean isFreshPlay() {
-        return freshPlay;
-    }
-
-    public void setFreshPlay(boolean freshPlay) {
-        Log.d(TAG, "setFreshPlay: ");
-        this.freshPlay = freshPlay;
-        if (freshPlay) {
-            //also reset the state
-            main.getLumiAccessibilityConnector().resetState();
-        }
-    }
-
-    public void pushYouTube(String url, String urlTitle, int startFrom, boolean locked, boolean vrOn, boolean selectedOnly) {
+    public void pushYouTube(String url, String urlTitle, boolean locked, boolean selectedOnly) {
         Log.d(TAG, "pushYouTube: ");
         pushURL = url;
         pushTitle = urlTitle;
-        main.getLumiAccessibilityConnector().resetState();
 
         if (urlTitle.isEmpty()) {
             urlTitle = " ";
         }
 
-        //update lock status
-        if (locked) {
-            if(selectedOnly) {
-                DispatchManager.sendActionToSelected(Controller.ACTION_TAG, Controller.LOCK_TAG, NearbyPeersManager.getSelectedPeerIDsOrAll());
-            }else{
-                DispatchManager.sendActionToSelected(Controller.ACTION_TAG, Controller.LOCK_TAG, NearbyPeersManager.getAllPeerIDs());
-            }
-        } else {
-            //unlocked if selected
-            if(selectedOnly) {
-                DispatchManager.sendActionToSelected(Controller.ACTION_TAG, Controller.UNLOCK_TAG, NearbyPeersManager.getSelectedPeerIDsOrAll());
-            }else{
-                DispatchManager.sendActionToSelected(Controller.ACTION_TAG, Controller.UNLOCK_TAG, NearbyPeersManager.getAllPeerIDs());
-            }
+        if(selectedOnly) {
+            DispatchManager.sendActionToSelected(Controller.ACTION_TAG, Controller.UNLOCK_TAG, NearbyPeersManager.getSelectedPeerIDsOrAll());
+        }else{
+            DispatchManager.sendActionToSelected(Controller.ACTION_TAG, Controller.UNLOCK_TAG, NearbyPeersManager.getAllPeerIDs());
         }
 
         //push the right instruction to the receivers
         if(selectedOnly) {
-            DispatchManager.sendActionToSelected(Controller.ACTION_TAG, Controller.LAUNCH_YT + url + "&start=" + startFrom + ":::" + urlTitle + ":::" + vrOn,
+            DispatchManager.sendActionToSelected(Controller.ACTION_TAG, Controller.LAUNCH_YT + url + ":::" + urlTitle + ":::",
                     NearbyPeersManager.getSelectedPeerIDsOrAll());
         }else{
-            DispatchManager.sendActionToSelected(Controller.ACTION_TAG, Controller.LAUNCH_YT + url + "&start=" + startFrom + ":::" + urlTitle + ":::" + vrOn,
+            DispatchManager.sendActionToSelected(Controller.ACTION_TAG, Controller.LAUNCH_YT + url + ":::" + urlTitle + ":::",
                     NearbyPeersManager.getAllPeerIDs());
         }
     }
@@ -317,9 +286,9 @@ public class WebManager {
         if (lockSpinner.getSelectedItem().toString().startsWith("View")) {
             //locked by default
             if(LeadMeMain.selectedOnly) {
-                DispatchManager.sendActionToSelected(Controller.ACTION_TAG, Controller.LOCK_TAG, NearbyPeersManager.getSelectedPeerIDsOrAll());
+                DispatchManager.sendActionToSelected(Controller.ACTION_TAG, Controller.UNLOCK_TAG, NearbyPeersManager.getSelectedPeerIDsOrAll());
             }else{
-                DispatchManager.sendActionToSelected(Controller.ACTION_TAG, Controller.LOCK_TAG, NearbyPeersManager.getAllPeerIDs());
+                DispatchManager.sendActionToSelected(Controller.ACTION_TAG, Controller.UNLOCK_TAG, NearbyPeersManager.getAllPeerIDs());
             }
         } else {
             //unlocked if selected
@@ -353,9 +322,7 @@ public class WebManager {
         Log.d(TAG, "launchWebsite: ");
         pushTitle = urlTitle;
         pushURL = url;
-        freshPlay = true;
         lastWasGuideView = false;
-        main.getLumiAccessibilityConnector().resetState();
 
         main.backgroundExecutor.submit(() -> {
             if (!Controller.getInstance().getPermissionsManager().isInternetConnectionAvailable()) {
@@ -761,7 +728,7 @@ public class WebManager {
         return youTubeEmbedPlayer;
     }
 
-    public void launchYouTube(String url, String urlTitle, boolean vrOn, boolean updateTask) {
+    public void launchYouTube(String url, String urlTitle, boolean updateTask) {
         Log.w(TAG, "Launching: " + url + ", " + urlTitle);
         String cleanURL = cleanYouTubeURL(url);
         if (cleanURL.equals(pushURL)) {
@@ -769,10 +736,8 @@ public class WebManager {
             return;
         }
 
-        freshPlay = true;
         pushURL = cleanURL;
         pushTitle = urlTitle;
-        main.getLumiAccessibilityConnector().resetState();
 
         main.backgroundExecutor.submit(() -> {
             if (!Controller.getInstance().getPermissionsManager().isInternetConnectionAvailable()) {
@@ -787,10 +752,9 @@ public class WebManager {
             }
         });
 
-        launchingVR = vrOn; //activate auto-VR mode
         final String youTubePackageName = AppManager.youtubePackage;
 
-        Log.w(TAG, "CLEAN YOUTUBE: " + pushURL + " || " + launchingVR);
+        Log.w(TAG, "CLEAN YOUTUBE: " + pushURL + " || ");
 
         if (pushURL.isEmpty()) {
             //TODO not sure if this is the right spot to exit on fail
@@ -837,7 +801,6 @@ public class WebManager {
 
     private void scheduleActivityLaunch(Intent appIntent) {
         Log.d(TAG, "scheduleActivityLaunch: ");
-        freshPlay = true;
         if (!main.isAppVisibleInForeground()) {
             Log.w(TAG, "Need focus, scheduling for later " + appIntent + ", " + main + ", " + main.getLifecycle().getCurrentState());
             LeadMeMain.appIntentOnFocus = appIntent;

@@ -61,8 +61,6 @@ public class VREmbedPhotoPlayer {
     private View vrplayerSettingsDialogView;
     private View vrplayerPhotoControls, vrplayerNoVideo;
 
-    Switch viewModeToggle;
-
     private final LeadMeMain main;
 
     public VREmbedPhotoPlayer(LeadMeMain main) {
@@ -164,9 +162,6 @@ public class VREmbedPhotoPlayer {
         //vrplayerPreviewPhotoView.setVideoPath(path);
 
         noPhotoChosen(false);
-
-        //setting the preview video
-        setupPhotoPreview(vrplayerPreviewPhotoView);
     }
 
     /**
@@ -196,8 +191,6 @@ public class VREmbedPhotoPlayer {
         noPhotoChosen(false);
 
         vrplayerPreviewPhotoView.setVisibility(View.VISIBLE);
-        //setting the preview video
-        setupPhotoPreview(vrplayerPreviewPhotoView);
     }
 
     /**
@@ -219,31 +212,6 @@ public class VREmbedPhotoPlayer {
         cursor.close();
 
         return displayName;
-    }
-
-    /**
-     * Sets the video source and moves it to the top of the UI as some phones will display it behind
-     * the pop up dialog.
-    */
-    private void setupPhotoPreview(ImageView photo) {
-        //photo.setZOrderOnTop(true);
-
-        TextView touchDesc = photoControllerDialogView.findViewById(R.id.touch_screen_desc);
-        viewModeToggle = photoControllerDialogView.findViewById(R.id.view_mode_toggle);
-        viewModeToggle.setChecked(true);
-        viewModeToggle.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            if(isChecked){
-                viewModeToggle.setText(R.string.view_mode_on);
-                touchDesc.setText(R.string.touch_screens_disabled);
-                ImageViewCompat.setImageTintList(photoControllerDialogView.findViewById(R.id.view_mode_icon), ColorStateList.valueOf(ContextCompat.getColor(main, R.color.leadme_blue)));
-                main.lockFromMainAction();
-            }else{
-                ImageViewCompat.setImageTintList(photoControllerDialogView.findViewById(R.id.view_mode_icon), ColorStateList.valueOf(ContextCompat.getColor(main, R.color.leadme_medium_grey)));
-                touchDesc.setText(R.string.touch_screens_enabled);
-                viewModeToggle.setText(R.string.view_mode_off);
-                main.unlockFromMainAction();
-            }
-        });
     }
 
     //Sets up the UI for selecting where to start the video from.
@@ -303,13 +271,8 @@ public class VREmbedPhotoPlayer {
         playbackSettingsDialog.dismiss();
 
         if(Controller.isMiUiV9()) {
-            //setting the playback video controller
-            setupPhotoPreview(controllerImageView);
-
             controllerImageView.setImageURI(Uri.parse(LeadMeMain.vrPath));
         } else {
-            //setting the playback video controller
-            setupPhotoPreview(controllerImageView);
 
             controllerImageView.setImageURI(LeadMeMain.vrURI);
         }
@@ -343,14 +306,8 @@ public class VREmbedPhotoPlayer {
     private void openPreview(String title) {
         if(LeadMeMain.vrURI != null || LeadMeMain.vrPath != null) {
             if(Controller.isMiUiV9()) {
-                //setting the playback video controller
-                setupPhotoPreview(vrplayerPreviewPhotoView);
-
                 controllerImageView.setImageURI(Uri.parse(LeadMeMain.vrPath));
             } else {
-                //setting the playback video controller
-                setupPhotoPreview(vrplayerPreviewPhotoView);
-
                 controllerImageView.setImageURI(LeadMeMain.vrURI);
             }
         }

@@ -19,7 +19,6 @@ import com.gun0912.tedpermission.TedPermission;
 import com.lumination.leadme.LeadMeMain;
 import com.lumination.leadme.R;
 import com.lumination.leadme.controller.Controller;
-import com.lumination.leadme.services.LumiAccessibilityService;
 
 import java.net.InetAddress;
 import java.util.ArrayList;
@@ -34,40 +33,13 @@ public class PermissionManager {
     private final PermissionListener miscPermissionListener;
     private final ArrayList<String> rejectedPermissions = new ArrayList<>();
 
-    private final String app_title;
+
     private boolean overlayPermissionGranted = false, nearbyPermissionsGranted = false, storagePermissionsGranted = false;
     public static boolean waitingForPermission = false;
-    public static boolean needsRecall = false;
 
     public PermissionManager(LeadMeMain main) {
         super();
         this.main = main;
-        app_title = main.getString(R.string.app_title_with_brand);
-
-//        overlayPermissionListener = new PermissionListener() {
-//
-//            @Override
-//            public void onPermissionGranted() {
-//                overlayPermissionGranted = true; //all granted
-//                waitingForPermission = false; //no longer waiting
-//
-//                Log.d(TAG, "Overlay Permission GRANTED! ");// + main.getNearbyManager().isConnectedAsFollower() + ", " + main.getNearbyManager().isConnectedAsGuide());
-//                main.performNextAction();
-//                if(main.ServerIP.length()>0){
-//                    main.setandDisplayStudentOnBoard(3);
-//                }else{
-//                    main.setandDisplayStudentOnBoard(2);
-//                }
-//            }
-//
-//            @Override
-//            public void onPermissionDenied(List<String> deniedPermissions) {
-//                Log.d(TAG, "Overlay Permission DENIED!");
-//                overlayPermissionGranted = false; //not all granted
-//                waitingForPermission = false; //no longer waiting
-//            }
-//        };
-
         nearbyPermissionListener = new PermissionListener() {
             @Override
             public void onPermissionGranted() {
@@ -130,11 +102,6 @@ public class PermissionManager {
         overlayPermissionGranted = Settings.canDrawOverlays(main);
 
         Log.e(TAG, "Overlay Permission: " + overlayPermissionGranted);
-        /*(main.checkSelfPermission(Manifest.permission.SYSTEM_ALERT_WINDOW) == PackageManager.PERMISSION_GRANTED ||*/
-
-//        Log.d(TAG, "IsOverlayPermissionGranted? "
-//                + (main.checkSelfPermission(Manifest.permission.SYSTEM_ALERT_WINDOW) == PackageManager.PERMISSION_GRANTED)
-//                + ", " + Settings.canDrawOverlays(main) + ", " + main.overlayView);
 
         if (!overlayPermissionGranted && NearbyPeersManager.isConnectedAsFollower()) {
             //alert the teacher that the student may not be lockable
@@ -166,28 +133,11 @@ public class PermissionManager {
 
     public void checkOverlayPermissions() {
         Log.d(TAG, "Checking Overlay Permissions. Currently " + overlayPermissionGranted + ", " + rejectedPermissions);
-        //TCP connection did not like interacting after the TedPermission had been used - not entirely sure why this occurred?
-//        if (!isOverlayPermissionGranted()) {
-//            waitingForPermission = true;
-//            Log.d(TAG, "Checking Overlay Permissions #2 " + waitingForPermission);
-//            main.closeKeyboard();
-//            TedPermission.with(main)
-//                    .setPermissionListener(overlayPermissionListener)
-//                    .setPermissions(Manifest.permission.SYSTEM_ALERT_WINDOW)
-//                    .check();
-//        }
-//        else if (!isAccessibilityGranted()) {
-//            requestAccessibilitySettingsOn();
-//        }
-
         if (!isOverlayPermissionGranted()) {
             Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION);
             intent.setData(Uri.parse("package:" + main.getPackageName()));
             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_NO_HISTORY | Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS);
             main.startActivityForResult(intent, LeadMeMain.OVERLAY_ON);
-        }
-        else if (!isAccessibilityGranted()) {
-            requestAccessibilitySettingsOn();
         }
     }
 
@@ -235,84 +185,6 @@ public class PermissionManager {
                 .setDeniedMessage(rationaleMsg)
                 .setPermissions(Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE)
                 .check();
-    }
-
-    public void requestAccessibilitySettingsOn() {
-        LeadMeMain.canAskForAccessibility = true;
-        Toast toast = Toast.makeText(main, "Please turn on Accessibility for " + app_title, Toast.LENGTH_SHORT);
-        toast.show();
-
-        Intent intent = new Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS);
-        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_NO_HISTORY | Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS);
-        main.startActivityForResult(intent, LeadMeMain.ACCESSIBILITY_ON);
-
-        pingForAccess();
-    }
-
-    private void pingForAccess() {
-        LeadMeMain.UIHandler.post(() -> {
-            while (waitingForPermission && !isAccessibilityGranted()) {
-                try {
-                    Thread.sleep(500);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
-
-            //once all other settings are enabled, return to LeadMe
-            //Log.d(TAG, "ACCESSIBILITY search complete.");
-            LeadMeMain.canAskForAccessibility = false;
-            if (needsRecall) {
-                main.recallToLeadMe();
-            }
-        });
-    }
-
-    //this functionality is intended for testing, not control flow
-    //in future, find a better way to do it for production case
-    public boolean isMyServiceRunning(Class<?> serviceClass) {
-        ActivityManager manager = (ActivityManager) main.getSystemService(Context.ACTIVITY_SERVICE);
-        for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
-            if (serviceClass.getName().equals(service.service.getClassName())) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    public boolean isAccessibilityGranted() {
-
-        //TODO if this could be set by Meraki then it should be possible
-        //Settings.Secure.putString(main.getContentResolver(), Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES, "com.lumination.leadme/com.lumination.leadme.services.LumiAccessibilityService");
-
-        ComponentName expectedComponentName = new ComponentName(main, LumiAccessibilityService.class);
-
-        String enabledServicesSetting = Settings.Secure.getString(main.getContentResolver(), Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES);
-        if (enabledServicesSetting == null) {
-            return false;
-        }
-
-        String[] services = enabledServicesSetting.split(":");
-
-        //Log.d(TAG, "Searching for: " + expectedComponentName);
-        for (String componentNameString : services) {
-            Log.d(TAG, "\t>> " + componentNameString);
-            ComponentName enabledService = ComponentName.unflattenFromString(componentNameString);
-
-            if (enabledService != null && enabledService.equals(expectedComponentName)) {
-                Log.i(TAG, "***ACCESSIBILITY IS ENABLED, IS IT RUNNING? (" + isMyServiceRunning(LumiAccessibilityService.class) + ") ***");
-                needsRecall = true;
-                waitingForPermission = false;
-                DispatchManager.alertGuidePermissionGranted(Controller.STUDENT_NO_ACCESSIBILITY, true);
-                return true;
-            }
-        }
-
-        DispatchManager.alertGuidePermissionGranted(Controller.STUDENT_NO_ACCESSIBILITY, false);
-
-        Log.i(TAG, "***ACCESSIBILITY IS DISABLED***");
-        waitingForPermission = false;
-        return false;
     }
 
     private boolean successfulPing = false;
@@ -368,20 +240,5 @@ public class PermissionManager {
 
         return result;
     }
-
-    //doubtful that this will get past play's review so commented for now
-//    public void requestBatteryOptimisation(){
-//        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-//            Intent intent = new Intent();
-//            String packageName = main.getPackageName();
-//            PowerManager pm = (PowerManager) main.getSystemService(main.POWER_SERVICE);
-//            if (!pm.isIgnoringBatteryOptimizations(packageName)) {
-//                intent.setAction(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS);
-//                intent.setData(Uri.parse("package:" + packageName));
-//                main.startActivity(intent);
-//            }
-//        }
-//    }
-
 }
 

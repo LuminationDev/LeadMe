@@ -72,8 +72,6 @@ public class VREmbedVideoPlayer {
 
     private final ImageView playBtn, pauseBtn;
 
-    Switch viewModeToggle;
-
     private final LeadMeMain main;
 
     public VREmbedVideoPlayer(LeadMeMain main) {
@@ -258,23 +256,6 @@ public class VREmbedVideoPlayer {
             //display the first frame instead of black space
             video.seekTo(1);
         }
-
-        TextView touchDesc = videoControllerDialogView.findViewById(R.id.touch_screen_desc);
-        viewModeToggle = videoControllerDialogView.findViewById(R.id.view_mode_toggle);
-        viewModeToggle.setChecked(true);
-        viewModeToggle.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            if(isChecked){
-                viewModeToggle.setText(R.string.view_mode_on);
-                touchDesc.setText(R.string.touch_screens_disabled);
-                ImageViewCompat.setImageTintList(videoControllerDialogView.findViewById(R.id.view_mode_icon), ColorStateList.valueOf(ContextCompat.getColor(main, R.color.leadme_blue)));
-                main.lockFromMainAction();
-            }else{
-                ImageViewCompat.setImageTintList(videoControllerDialogView.findViewById(R.id.view_mode_icon), ColorStateList.valueOf(ContextCompat.getColor(main, R.color.leadme_medium_grey)));
-                touchDesc.setText(R.string.touch_screens_enabled);
-                viewModeToggle.setText(R.string.view_mode_off);
-                main.unlockFromMainAction();
-            }
-        });
     }
 
     //Sets up the UI for selecting where to start the video from.
@@ -597,7 +578,6 @@ public class VREmbedVideoPlayer {
                 //resetControllerState(); //reset here?
             });
         }
-        //viewModeToggle.setChecked(true);
         VideoView video = videoControllerDialogView.findViewById(R.id.video_stream_videoview);
         video.seekTo(startFromTime * 1000);
 

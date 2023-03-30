@@ -572,43 +572,6 @@
             </LinearLayout>
 
             <LinearLayout
-                android:id="@+id/lock_selected_btn"
-                style="@style/EmptyStyle"
-                android:layout_width="wrap_content"
-                android:layout_height="58dp"
-                android:layout_marginStart="10dp"
-                android:layout_marginTop="10dp"
-                android:layout_marginEnd="10dp"
-                android:layout_marginBottom="10dp"
-                android:layout_weight="1"
-                android:background="@drawable/rounded_btn_white"
-                android:elevation="5dp"
-                android:gravity="center_horizontal"
-                android:orientation="horizontal"
-                android:visibility="gone">
-
-                <ImageView
-                    android:id="@+id/lock_icon"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center"
-                    android:layout_marginStart="5dp"
-                    android:src="@drawable/controls_view" />
-
-                <TextView
-                    android:id="@+id/lock_text"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center"
-                    android:layout_marginStart="8dp"
-                    android:fontFamily="@font/poppins_semibold"
-                    android:includeFontPadding="false"
-                    android:text="@string/lock"
-                    android:textColor="@color/light"
-                    android:textSize="14sp" />
-            </LinearLayout>
-
-            <LinearLayout
                 android:id="@+id/block_selected_btn"
                 style="@style/EmptyStyle"
                 android:layout_width="wrap_content"
