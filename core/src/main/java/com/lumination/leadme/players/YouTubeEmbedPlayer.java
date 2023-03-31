@@ -3,6 +3,7 @@ package com.lumination.leadme.players;
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.net.http.SslError;
+import android.text.format.DateUtils;
 import android.util.Log;
 import android.view.View;
 import android.webkit.JavascriptInterface;
@@ -18,6 +19,7 @@ import android.widget.CheckBox;
 import android.widget.Spinner;
 import android.widget.Switch;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.lumination.leadme.LeadMeMain;
 import com.lumination.leadme.R;
@@ -37,6 +39,7 @@ public class YouTubeEmbedPlayer {
     //static variables
     private static final int UNSTARTED = -1;
     private static final int PLAYING = 1;
+    private static final int FULLSCRN_MODE = 0;
 
     private static int videoCurrentPlayState = UNSTARTED;
 
@@ -66,8 +69,11 @@ public class YouTubeEmbedPlayer {
 
     private WebView activeWebView = null;
 
+    private TextView totalTimeText, elapsedTimeText;
+
     private final WebManager webManager;
     private final LeadMeMain main;
+    Switch viewModeToggle;
 
     /**
      * USEFUL LINKS
@@ -96,6 +102,29 @@ public class YouTubeEmbedPlayer {
 
         setupGuideVideoControllerWebClient();
         setupGuideVideoControllerButtons();
+    }
+
+    /**
+     * Show a toast from the web page
+     */
+    @JavascriptInterface
+    public void showToast(String toast) {
+        Toast.makeText(main, toast, Toast.LENGTH_LONG).show();
+    }
+
+    private boolean init = false;
+
+    @JavascriptInterface
+    public void updateState(int state) {
+        Log.d(TAG, "[GUIDE] Video state is now: " + state + " // " + currentTime);
+        videoCurrentPlayState = state;
+    }
+
+    @JavascriptInterface
+    public void captionsLoaded() {
+        //Toast.makeText(main, "Captions loaded / API change", Toast.LENGTH_SHORT).show();
+        //turn them back on to stay in sync with students
+        //controllerWebView.loadUrl("javascript:hideCaptions()");
     }
 
     boolean pageLoaded = false;
@@ -361,6 +390,37 @@ public class YouTubeEmbedPlayer {
 
 
     float currentTime = 0;
+
+    @JavascriptInterface
+    public void setCurrentTime(String value) {
+        Log.d(TAG, "[GUIDE] Video time is now: " + value + " // " + totalTime);
+
+        //TODO if needed
+        int tmpCurr = Integer.parseInt(value);
+        if (tmpCurr > -1) {
+            currentTime = tmpCurr;
+        }
+        LeadMeMain.runOnUI(() -> {
+            elapsedTimeText.setText(intToTime((int) currentTime));
+        });
+    }
+
+    private String intToTime(int duration) {
+        return DateUtils.formatElapsedTime(duration);
+    }
+
+    int totalTime = -1;
+
+    @JavascriptInterface
+    public void setTotalTime(String value) {
+        int tmpTotal = Integer.parseInt(value);
+        if (tmpTotal > 0) {
+            //Log.d(TAG, "[GUIDE] TOTAL time is now: " + value + " // " + attemptedURL);// + ", " + extractedTime);
+            totalTime = tmpTotal;
+            LeadMeMain.runOnUI(() -> totalTimeText.setText(intToTime(totalTime)));
+        }
+    }
+
 
     //////////////////
 
