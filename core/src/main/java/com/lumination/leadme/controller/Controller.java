@@ -54,7 +54,6 @@ public class Controller {
     public static final String RETURN_TAG = "Recall";
     public static final String YOUR_ID_IS = "YourID:";
 
-    public static final String LOCK_TAG = "Lock";
     public static final String UNLOCK_TAG = "Unlock";
     public static final String BLACKOUT_TAG = "Blackout";
 
@@ -62,10 +61,8 @@ public class Controller {
     public static final String TRANSFER_ERROR = "TransferError";
     public static final String VR_PLAYER_TAG = "VRPlayer";
     public static final String FILE_REQUEST_TAG = "FileRequest";
-    public static final String STUDENT_FINISH_ADS = "AdsFinished";
     public static final String VID_MUTE_TAG = "VidMute";
     public static final String VID_UNMUTE_TAG = "VidUnmute";
-    public static final String VID_ACTION_TAG = "Vid:";
 
     public static final String LAUNCH_URL = "Launch:::";
     public static final String LAUNCH_YT = "YT:::";
@@ -158,21 +155,6 @@ public class Controller {
         } else {
             LeadMeMain.getInstance().setandDisplayStudentOnBoard(1);
         }
-    }
-
-    /**
-     * Check if the accessibility settings have been turned on.
-     * @param resultCode An integer representing if the result was successful or not.
-     */
-    public void accessibilityOn(int resultCode) {
-        Log.d(TAG, "Returning from ACCESS ON with " + resultCode + " (" + LeadMeMain.isGuide + ")");
-        PermissionManager.waitingForPermission = false;
-        if (getPermissionsManager().isAccessibilityGranted()) {
-            LeadMeMain.getInstance().setandDisplayStudentOnBoard(1);
-        } else {
-            LeadMeMain.getInstance().setandDisplayStudentOnBoard(0);
-        }
-        //permissionManager.requestBatteryOptimisation();
     }
 
     /**

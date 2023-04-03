@@ -104,13 +104,6 @@ public class SourceContent {
     }
 
     /**
-     * @return the metaTags
-     */
-    public HashMap<String, String> getMetaTags() {
-        return metaTags;
-    }
-
-    /**
      * @param metaTags the metaTags to set
      */
     public void setMetaTags(HashMap<String, String> metaTags) {

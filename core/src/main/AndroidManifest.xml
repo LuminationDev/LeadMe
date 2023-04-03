@@ -81,12 +81,6 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <receiver android:name=".accessibility.LumiAccessibilityReceiver"
-            android:exported="false">
-            <intent-filter>
-                <action android:name="com.lumination.leadme.BROADCAST_ACTION" />
-            </intent-filter>
-        </receiver>
         <service
             android:enabled="true"
             android:name=".services.FirebaseService"
@@ -104,22 +98,6 @@
             android:name=".services.FileTransferService"
             android:foregroundServiceType="dataSync"
             android:stopWithTask="true">
-        </service>
-        <service
-            android:name=".services.LumiAccessibilityService"
-            android:label="@string/app_title_with_brand"
-            android:configChanges="orientation"
-            android:stopWithTask="true"
-            android:accessibilityFeedbackType="feedbackGeneric"
-            android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE"
-            android:exported="false">
-            <intent-filter>
-                <action android:name="android.accessibilityservice.AccessibilityService" />
-            </intent-filter>
-
-            <meta-data
-                android:name="android.accessibilityservice"
-                android:resource="@xml/accessibility_service_config" />
         </service>
     </application>
 

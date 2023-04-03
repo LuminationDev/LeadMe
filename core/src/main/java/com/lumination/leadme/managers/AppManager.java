@@ -137,7 +137,7 @@ public class AppManager extends BaseAdapter {
                 break;
 
             case "YouTube":
-                Controller.getInstance().getWebManager().launchYouTube(url, urlTitle, false, Controller.getInstance().getWebManager().getYouTubeEmbedPlayer().isVROn());
+                Controller.getInstance().getWebManager().launchYouTube(url, urlTitle, false);
                 break;
 
             case "Website":
@@ -231,15 +231,8 @@ public class AppManager extends BaseAdapter {
             launchLocalApp(packageName, appName, true, false, install, null);
         }
 
-        //update lock status
-        String lockTag = Controller.LOCK_TAG;
-        if (lockSpinner.getSelectedItemPosition() == 1 && !VRPlayer) {
-            //locked by default, unlocked if selected
-            lockTag = Controller.UNLOCK_TAG;
-        }
-
         //send launch request
-        DispatchManager.requestRemoteAppOpen(Controller.APP_TAG, packageName, appName, lockTag, install, peerSet);
+        DispatchManager.requestRemoteAppOpen(Controller.APP_TAG, packageName, appName, install, peerSet);
     }
 
 

@@ -102,11 +102,6 @@ public class SearchManager {
         }
     }
 
-    public void buildAndShowSearchDialog(int type) {
-        searchType=type;
-        buildAndShowSearchDialog();
-    }
-
     @SuppressLint("SetJavaScriptEnabled")
     private void buildAndShowSearchDialog() {
         Log.d(TAG, "buildAndShowSearchDialog: ");

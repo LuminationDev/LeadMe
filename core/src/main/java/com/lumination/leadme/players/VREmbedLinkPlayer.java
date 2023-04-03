@@ -93,8 +93,6 @@ public class VREmbedLinkPlayer {
     private boolean firstTouch; //track if the guide has started the video
     private final ImageView playBtn, pauseBtn;
 
-    Switch viewModeToggle;
-
     private final LeadMeMain main;
     private final ScheduledExecutorService scheduledExecutorService = new ScheduledThreadPoolExecutor(1);
 
@@ -354,23 +352,6 @@ public class VREmbedLinkPlayer {
                     video.loadUrl("javascript:seekTo(\"" + attemptedURL + "\", " + 1 + ")")
             );
         }
-
-        TextView touchDesc = videoControllerDialogView.findViewById(R.id.touch_screen_desc);
-        viewModeToggle = videoControllerDialogView.findViewById(R.id.view_mode_toggle);
-        viewModeToggle.setChecked(true);
-        viewModeToggle.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            if(isChecked){
-                viewModeToggle.setText(R.string.view_mode_on);
-                touchDesc.setText(R.string.touch_screens_disabled);
-                ImageViewCompat.setImageTintList(videoControllerDialogView.findViewById(R.id.view_mode_icon), ColorStateList.valueOf(ContextCompat.getColor(main, R.color.leadme_blue)));
-                main.lockFromMainAction();
-            }else{
-                ImageViewCompat.setImageTintList(videoControllerDialogView.findViewById(R.id.view_mode_icon), ColorStateList.valueOf(ContextCompat.getColor(main, R.color.leadme_medium_grey)));
-                touchDesc.setText(R.string.touch_screens_enabled);
-                viewModeToggle.setText(R.string.view_mode_off);
-                main.unlockFromMainAction();
-            }
-        });
     }
 
     //Sets up the UI for selecting where to start the video from.
@@ -609,36 +590,11 @@ public class VREmbedLinkPlayer {
         return DateUtils.formatElapsedTime(duration);
     }
 
-    @JavascriptInterface
-    public void setTotalTime(String value) {
-        int tmpTotal = Integer.parseInt(value);
-        if (tmpTotal > 0) {
-            //Log.d(TAG, "[GUIDE] TOTAL time is now: " + value + " // " + attemptedURL);// + ", " + extractedTime);
-            totalTime = tmpTotal;
-            LeadMeMain.runOnUI(() -> totalTimeText.setText(intToTime(totalTime)));
-        }
-    }
-
     //static variables
     private static final int UNSTARTED = -1;
     private static final int PLAYING = 1;
 
     private static int videoCurrentPlayState = UNSTARTED;
-
-
-    @JavascriptInterface
-    public void updateState(int state) {
-        Log.d(TAG, "[GUIDE] Video state is now: " + state + " // " + currentTime);
-        videoCurrentPlayState = state;
-
-        if (state == PLAYING) {
-            //if this is the first state switch guide to buttons
-            if (firstTouch) {
-                firstTouch = false;
-                playVideo();
-            }
-        }
-    }
 
     //CONTROL FUNCTIONS
     //Used when re-pushing the application as the appName will already be set
@@ -721,23 +677,6 @@ public class VREmbedLinkPlayer {
         vrplayerVideoControls.setVisibility(show ? View.GONE : View.VISIBLE);
     }
 
-    /**
-     * Launches the custom VR Player.
-     * @param peerSet A set of strings representing the learner ID's to send the action to.
-     */
-    public void launchVR(Set<String> peerSet) {
-        Controller.getInstance().getAppManager().launchApp(packageName, appName, false, "false", true, peerSet);
-    }
-
-    /**
-     * Relaunches the last VR experience with the selected video source.
-     * @param peerSet A set of strings representing the learner ID's to send the action to.
-     */
-    public void relaunchVR(Set<String> peerSet) {
-        Controller.getInstance().getAppManager().launchApp(packageName, appName, false, "false", true, peerSet);
-        setVideoSource(startFromTime);
-    }
-
     private void setupGuideVideoControllerButtons() {
         videoControllerDialogView.findViewById(R.id.new_video_btn).setOnClickListener(v -> {
             resetControllerState();
@@ -776,17 +715,6 @@ public class VREmbedLinkPlayer {
         );
     }
 
-    /**
-     * Opens the video controller for the custom VR player. Only available if the video path has
-     * already been set/saved in the LeadMe main.
-     */
-    public void openVideoController() {
-        LeadMeMain.runOnUI(() ->
-                controllerWebView.loadUrl("javascript:seekTo(\"" + attemptedURL + "\", " + startFromTime + ")")
-        );
-        showVideoController();
-    }
-
     private void showVideoController() {
         LeadMeMain.runOnUI(() -> {
             main.closeKeyboard();
@@ -809,7 +737,6 @@ public class VREmbedLinkPlayer {
         //Set the source for the peers device
         setVideoSource(startFromTime);
 
-        //viewModeToggle.setChecked(true);
         WebView video = videoControllerDialogView.findViewById(R.id.video_stream_videoview);
         LeadMeMain.runOnUI(() ->
             video.loadUrl("javascript:seekTo(\"" + attemptedURL + "\", " + startFromTime + ")")
