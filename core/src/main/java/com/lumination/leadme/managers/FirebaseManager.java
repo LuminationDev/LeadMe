@@ -48,7 +48,7 @@ public class FirebaseManager {
 
     private static DatabaseReference getDatabase()
     {
-        return FirebaseDatabase.getInstance("https://leafy-rope-301003-default-rtdb.asia-southeast1.firebasedatabase.app/").getReference();
+        return FirebaseDatabase.getInstance("https://leafy-rope-301003-default-rtdb.asia-southeast1.firebasedatabase.app/").getReference().child("v2");
     }
 
     public static void sendAllLearnerMessage(String message)
