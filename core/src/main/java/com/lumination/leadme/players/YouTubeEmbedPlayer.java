@@ -393,16 +393,6 @@ public class YouTubeEmbedPlayer {
 
     @JavascriptInterface
     public void setCurrentTime(String value) {
-        Log.d(TAG, "[GUIDE] Video time is now: " + value + " // " + totalTime);
-
-        //TODO if needed
-        int tmpCurr = Integer.parseInt(value);
-        if (tmpCurr > -1) {
-            currentTime = tmpCurr;
-        }
-        LeadMeMain.runOnUI(() -> {
-            elapsedTimeText.setText(intToTime((int) currentTime));
-        });
     }
 
     private String intToTime(int duration) {
