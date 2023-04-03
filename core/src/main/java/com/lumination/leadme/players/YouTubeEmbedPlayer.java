@@ -413,12 +413,6 @@ public class YouTubeEmbedPlayer {
 
     @JavascriptInterface
     public void setTotalTime(String value) {
-        int tmpTotal = Integer.parseInt(value);
-        if (tmpTotal > 0) {
-            //Log.d(TAG, "[GUIDE] TOTAL time is now: " + value + " // " + attemptedURL);// + ", " + extractedTime);
-            totalTime = tmpTotal;
-            LeadMeMain.runOnUI(() -> totalTimeText.setText(intToTime(totalTime)));
-        }
     }
 
 
