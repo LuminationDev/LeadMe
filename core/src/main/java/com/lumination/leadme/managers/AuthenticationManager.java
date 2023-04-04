@@ -5,6 +5,8 @@ import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.View;
 import android.webkit.WebView;
@@ -14,10 +16,12 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
+import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.VideoView;
 
+import androidx.annotation.NonNull;
 import androidx.core.content.res.ResourcesCompat;
 
 import com.alimuzaffar.lib.pin.PinEntryEditText;
@@ -229,6 +233,8 @@ public class AuthenticationManager {
         marketingCheck.setChecked(Marketing);
         //page 1
         TextView errorText = loginView.findViewById(R.id.tou_readtext);
+        ScrollView touScroll = loginView.findViewById(R.id.tou_scrollView);
+        TextView terms = loginView.findViewById(R.id.tou_terms);
         CheckBox touAgree = loginView.findViewById(R.id.tou_check);
         //page 3
         VideoView animation = loginView.findViewById(R.id.email_animation);
@@ -236,6 +242,7 @@ public class AuthenticationManager {
         TextView pinError = loginView.findViewById(R.id.pin_error_text);
         ImageView pinErrorImg = loginView.findViewById(R.id.pin_error_image);
         //page 5
+        TextView accountText = loginView.findViewById(R.id.account_createdtext);
         for (int i = 0; i < layoutPages.length; i++) {
             if (i != page) {
                 layoutPages[i].setVisibility(View.GONE);
@@ -312,7 +319,7 @@ public class AuthenticationManager {
 //                });
 //                break;
 
-            case 1:
+            case 0:
                 hideSystemUI();
                 LeadMeMain.UIHandler.postDelayed(this::hideSystemUI, 500);
                 errorText.setVisibility(View.GONE);
@@ -343,7 +350,7 @@ public class AuthenticationManager {
 
                 next.setOnClickListener(v -> {
                     if (touAgree.isChecked()) {
-                        buildloginsignup(2);
+                        buildloginsignup(1);
                     } else {
                         errorText.setVisibility(View.VISIBLE);
                     }
@@ -356,7 +363,7 @@ public class AuthenticationManager {
                 //back.setOnClickListener(v -> buildloginsignup(0));
                 break;
 
-            case 2:
+            case 1:
                 showSystemUI();
                 signupError.setVisibility(View.GONE);
                 marketingCheck.setOnCheckedChangeListener((buttonView, isChecked) -> closeKeyboard());
@@ -399,12 +406,12 @@ public class AuthenticationManager {
                 });
 
                 back.setOnClickListener(v -> {
-                    buildloginsignup(1);
+                    buildloginsignup(0);
                     hideSystemUI();
                 });
                 break;
 
-            case 3:
+            case 2:
                 LeadMeMain.UIHandler.postDelayed(this::hideSystemUI, 500);
 
                 next.setVisibility(View.GONE);
@@ -456,7 +463,7 @@ public class AuthenticationManager {
                 });
                 break;
 
-            case 4:
+            case 3:
                 next.setVisibility(View.VISIBLE);
                 pinError.setText("Your email has been verified");
                 pinError.setTextColor(main.getColor(R.color.leadme_black));
@@ -530,6 +537,14 @@ public class AuthenticationManager {
         }
     }
 
+    private void firebaseRemoveUser(FirebaseUser currentUser) {
+        db.collection("users").document(currentUser.getUid()).delete().addOnCompleteListener(task -> {
+            if(task.isSuccessful()){
+                currentUser.delete();
+            }
+        });
+    }
+
     private void authCheck() {
         if(mAuth.getCurrentUser() == null) {
             scheduledExecutorService.shutdown();
@@ -543,7 +558,7 @@ public class AuthenticationManager {
             } else {
                 currentUser = mAuth.getCurrentUser();
                 scheduledExecutorService.shutdown();
-                LeadMeMain.runOnUI(() -> buildloginsignup(4));
+                LeadMeMain.runOnUI(() -> buildloginsignup(3));
             }
         });
     }
@@ -633,7 +648,7 @@ public class AuthenticationManager {
                                     });
                         });
 
-                        buildloginsignup(3);
+                        buildloginsignup(2);
                     } else {
                         // If sign in fails, display a message to the user.
                         Log.w(TAG, "createUserWithEmail:failure", task.getException());
@@ -664,7 +679,7 @@ public class AuthenticationManager {
                         if (!currentUser.isEmailVerified()) {
                             //not clearing
                             Controller.getInstance().getDialogManager().cleanUpDialogs();
-                            buildloginsignup(3, false);
+                            buildloginsignup(2, false);
                         } else {
                             db.collection("users").document(mAuth.getCurrentUser().getUid()).get()
                                     .addOnCompleteListener((OnCompleteListener<DocumentSnapshot>) task1 -> {
@@ -675,7 +690,7 @@ public class AuthenticationManager {
                                     Controller.getInstance().getDialogManager().setIndeterminateBar(View.GONE);
                                     if (task1.getResult().get("pin") == null ) {
                                         Controller.getInstance().getDialogManager().cleanUpDialogs();
-                                        buildloginsignup(4, false);
+                                        buildloginsignup(3, false);
                                         return;
                                     }
 
@@ -748,6 +763,14 @@ public class AuthenticationManager {
     }
 
     /**
+     * Get the email of the account holder of the currently logged in user.
+     * @return A String representing the current user's email.
+     */
+    public String getCurrentAuthEmail() {
+        return mAuth.getCurrentUser().getEmail();
+    }
+
+    /**
      * Get this classes instance of the google sign in client.
      * @return An instance of the google sign in client.
      */
@@ -767,6 +790,13 @@ public class AuthenticationManager {
      * */
     private void hideSystemUI() {
         main.hideSystemUI();
+    }
+
+    /**
+     * Calls the openKeyboard from the LeadMe main activity.
+     * */
+    private void openKeyboard() {
+        main.openKeyboard();
     }
 
     /**

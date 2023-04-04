@@ -1021,7 +1021,7 @@ public class DialogManager {
                 return;
             }
 
-            Controller.getInstance().getAuthenticationManager().buildloginsignup(1);
+            Controller.getInstance().getAuthenticationManager().buildloginsignup(0);
         });
 
         backBtn.setOnClickListener(v -> loginDialog.dismiss());

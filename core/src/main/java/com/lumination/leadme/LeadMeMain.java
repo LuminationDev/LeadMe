@@ -1332,7 +1332,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                 Controller.getInstance().getDialogManager().showWarningDialog("Currently Offline", "No internet access detected. Please connect to continue.");
                 return;
             }
-            Controller.getInstance().getAuthenticationManager().buildloginsignup(1);
+            Controller.getInstance().getAuthenticationManager().buildloginsignup(0);
         });
 
         optionsScreen.findViewById(R.id.on_boarding).setOnClickListener(view -> buildAndDisplayOnBoard(false));
@@ -1839,10 +1839,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         if (isGuide) {
             //display main guide view
             leadmeAnimator.setDisplayedChild(ANIM_LEADER_INDEX);
-
-            //update options
-            TextView title = mainLeader.findViewById(R.id.leader_title);
-            title.setText("Hi " + name + "!");
 
             optionsScreen.findViewById(R.id.connected_only_view).setVisibility(View.VISIBLE);
             ((TextView) optionsScreen.findViewById(R.id.user_name)).setText(name);
