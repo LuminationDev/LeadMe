@@ -1338,7 +1338,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         optionsScreen.findViewById(R.id.on_boarding).setOnClickListener(view -> buildAndDisplayOnBoard(false));
 
         optionsScreen.findViewById(R.id.how_to_use_btn).setOnClickListener(view -> {
-            Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://drive.google.com/file/d/1LrbQ5I1jlf-OQyIgr2q3Tg3sCo00x5lu/view"));
+            Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://drive.google.com/viewerng/viewer?embedded=true&url=https://github.com/LuminationDev/public/raw/main/LeadMeEdu-FirstTimeSetup.pdf"));
             startActivity(browserIntent);
         });
 
@@ -2510,7 +2510,8 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                 OnBoard = null;
             });
             OnBoard.findViewById(R.id.onboard_moreinfo_btn).setOnClickListener(view -> {
-                Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://drive.google.com/file/d/1GGU7GeR4Ibq60-6bcc2F_bd698CKRFvZ/view"));
+
+                Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://drive.google.com/viewerng/viewer?embedded=true&url=https://github.com/LuminationDev/public/raw/main/LeadMeEdu-CheatSheet.pdf"));
                 startActivity(browserIntent);
             });
         }
@@ -2561,7 +2562,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             TextView support = OnBoardPerm.findViewById(R.id.onboardperm_support);
 
             support.setOnClickListener(view -> {
-                Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://drive.google.com/file/d/1LrbQ5I1jlf-OQyIgr2q3Tg3sCo00x5lu/view"));
+                Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://drive.google.com/viewerng/viewer?embedded=true&url=https://github.com/LuminationDev/public/raw/main/LeadMeEdu-FirstTimeSetup.pdf"));
                 startActivity(browserIntent);
             });
 
