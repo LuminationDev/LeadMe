@@ -14,13 +14,45 @@
         android:gravity="center"
         android:orientation="vertical">
 
+        <ImageView
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:layout_gravity="center"
+            android:layout_marginTop="30dp"
+            android:scaleType="fitCenter"
+            android:src="@drawable/icon_fav_star_check" />
+
+
+        <TextView
+            android:layout_width="300dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:fontFamily="@font/poppins_semibold"
+            android:gravity="center"
+            android:text="Step 1 Success"
+            android:textSize="24sp" />
+
+        <TextView
+            android:layout_width="350dp"
+            android:layout_height="wrap_content"
+            android:fontFamily="@font/poppins_regular"
+            android:gravity="center"
+            android:text="Usage information has been switched on for LeadMe. Continue to Step 2." />
+
+        <ImageView
+            android:layout_width="350dp"
+            android:layout_height="2dp"
+            android:layout_marginTop="20dp"
+            android:layout_marginBottom="20dp"
+            android:src="@drawable/bg_disabled" />
+
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="80dp"
+            android:layout_marginTop="10dp"
             android:fontFamily="@font/poppins_semibold"
             android:gravity="center"
-            android:text="Enable App Overlay"
+            android:text="Step 02: App Overlay"
             android:textSize="24sp" />
 
         <LinearLayout

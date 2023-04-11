@@ -112,13 +112,14 @@ public class Controller {
     private final AppManager appLaunchAdapter;
     private final ConnectedLearnersAdapter connectedLearnersAdapter;
     private final DispatchManager dispatcher;
+    public final LeadMeMain main;
 
     /**
      *
      */
     public Controller() {
         controllerInstance = this;
-        LeadMeMain main = LeadMeMain.getInstance();
+        main = LeadMeMain.getInstance();
         networkManager = new NetworkManager();
         permissionManager = new PermissionManager(main);
         authenticationManager = new AuthenticationManager(main);

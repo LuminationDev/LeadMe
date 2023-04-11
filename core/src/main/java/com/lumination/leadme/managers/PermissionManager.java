@@ -2,6 +2,7 @@ package com.lumination.leadme.managers;
 
 import android.Manifest;
 import android.app.ActivityManager;
+import android.app.AppOpsManager;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
@@ -34,7 +35,7 @@ public class PermissionManager {
     private final ArrayList<String> rejectedPermissions = new ArrayList<>();
 
 
-    private boolean overlayPermissionGranted = false, nearbyPermissionsGranted = false, storagePermissionsGranted = false;
+    private boolean overlayPermissionGranted = false, nearbyPermissionsGranted = false, storagePermissionsGranted = false, usageGranted = false;
     public static boolean waitingForPermission = false;
 
     public PermissionManager(LeadMeMain main) {
@@ -116,6 +117,19 @@ public class PermissionManager {
         }
 
         return overlayPermissionGranted;
+    }
+
+    public void requestUsageStatsPermission() {
+        Intent intent = new Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        main.startActivity(intent);
+    }
+
+    public boolean isUsageStatsPermissionGranted() {
+        AppOpsManager appOps = (AppOpsManager) LeadMeMain.getInstance().getBaseContext().getSystemService(Context.APP_OPS_SERVICE);
+        int mode = appOps.checkOpNoThrow(AppOpsManager.OPSTR_GET_USAGE_STATS, android.os.Process.myUid(), "com.lumination.leadme");
+        usageGranted = mode == AppOpsManager.MODE_ALLOWED;
+        return usageGranted;
     }
 
     public boolean isNearbyPermissionsGranted() {

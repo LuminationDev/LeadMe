@@ -31,6 +31,7 @@ import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
 import android.os.PowerManager;
+import android.provider.Settings;
 import android.text.Editable;
 import android.text.Html;
 import android.text.TextWatcher;
@@ -513,6 +514,20 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     @OnLifecycleEvent(Lifecycle.Event.ON_RESUME)
     public void onLifecycleResume() {
         super.onResume();
+
+        if (OnBoardStudentInProgress) {
+            if (Controller.getInstance().getPermissionsManager().isUsageStatsPermissionGranted() && !Controller.getInstance().getPermissionsManager().isOverlayPermissionGranted()) {
+                setandDisplayStudentOnBoard(1);
+            } else if (Controller.getInstance().getPermissionsManager().isUsageStatsPermissionGranted() && Controller.getInstance().getPermissionsManager().isOverlayPermissionGranted()) {
+                if(FirebaseManager.getServerIP().length() > 0){
+                    setandDisplayStudentOnBoard(3);
+                }else {
+                    setandDisplayStudentOnBoard(2);
+                }
+            }
+        }
+
+
         if (OnBoard != null) {
             VideoView video = OnBoard.findViewById(R.id.animation_view);
             video.start();
@@ -1446,6 +1461,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
         //prepare elements for leader main view
         waitingForLearners = mainLeader.findViewById(R.id.no_students_connected);
+        waitingForLearners.setVisibility(View.VISIBLE);
 
         setUpControlButtons();
 
@@ -1776,11 +1792,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
      * Reset the application on logout so restart has a fresh slate to being with.
      */
     private void logoutResetController() {
-        Log.d(TAG, "Resetting controller");
-        //I dont like this but sometimes sending it once doesn't work....
-        Controller.getInstance().getDispatcher().alertLogout(); //need to send this before resetting 'isGuide'
-        Controller.getInstance().getDispatcher().alertLogout(); //need to send this before resetting 'isGuide'
-
         //Purposely block to make sure all students receive the disconnect command
         try {
             Thread.sleep(1000);
@@ -1809,11 +1820,11 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         }
         if (leaderLearnerSwitcher.getDisplayedChild() == SWITCH_LEADER_INDEX) {
             initiateLeaderAdvertising();
-
         } else {
             //getPermissionsManager().checkOverlayPermissions(); //TODO Experimental - add flag
-
-            if (!Controller.getInstance().getPermissionsManager().isOverlayPermissionGranted()) {
+            if (!Controller.getInstance().getPermissionsManager().isUsageStatsPermissionGranted()) {
+                setandDisplayStudentOnBoard(0);
+            } else if (!Controller.getInstance().getPermissionsManager().isOverlayPermissionGranted()) {
                 setandDisplayStudentOnBoard(1);
             } else if (Controller.getInstance().getPermissionsManager().isOverlayPermissionGranted()) {
                 if(!isManual) {
@@ -2557,7 +2568,26 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         Log.d(TAG, "setandDisplayStudentOnBoard: " + page);
         OnBoardStudentInProgress = true;
         hideSystemUIStudent();
-        if (page == 1) {
+        if (page == 0) {
+            View OnBoardPerm = View.inflate(this, R.layout.c__onboarding_student, null);
+            TextView support = OnBoardPerm.findViewById(R.id.onboardperm_support);
+            Button okPermission = OnBoardPerm.findViewById(R.id.onboardperm_ok_btn);
+            Button cancelPermission = OnBoardPerm.findViewById(R.id.onboardperm_cancel_btn);
+            okPermission.setOnClickListener(v -> Controller.getInstance().getPermissionsManager().requestUsageStatsPermission());
+
+            support.setOnClickListener(view -> {
+                Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://drive.google.com/file/d/1LrbQ5I1jlf-OQyIgr2q3Tg3sCo00x5lu/view"));
+                startActivity(browserIntent);
+            });
+
+            cancelPermission.setOnClickListener(view -> {
+                leadmeAnimator.setDisplayedChild(ANIM_START_SWITCH_INDEX);
+                this.setContentView(leadmeAnimator);
+            });
+
+            this.setContentView(OnBoardPerm);
+
+        } else if (page == 1) {
             View OnBoardPerm = View.inflate(this, R.layout.c__onboarding_student_2, null);
             TextView support = OnBoardPerm.findViewById(R.id.onboardperm_support);
 

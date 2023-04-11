@@ -89,6 +89,9 @@ public class FirebaseManager {
 
                     Log.e(TAG, dataSnapshot.getValue().toString());
                 }
+                if (dataSnapshot.getKey().equals("currentMessage") && dataSnapshot.getValue() == null) {
+                    NetworkManager.receivedDisconnect();
+                }
             }
 
             @Override
@@ -244,6 +247,8 @@ public class FirebaseManager {
             }
             roomReference = null;
         }
+        getDatabase().child(roomCode).removeValue();
+        NetworkManager.reset();
     }
 
     private static String generateRoomCode(int length) {
