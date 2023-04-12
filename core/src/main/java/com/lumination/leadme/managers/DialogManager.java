@@ -580,7 +580,7 @@ public class DialogManager {
                 .show();
 
         firstDialog.findViewById(R.id.open_guide).setOnClickListener(v -> {
-            Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://drive.google.com/file/d/1LrbQ5I1jlf-OQyIgr2q3Tg3sCo00x5lu/view"));
+            Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://drive.google.com/viewerng/viewer?embedded=true&url=https://github.com/LuminationDev/public/raw/main/LeadMeEdu-FirstTimeSetup.pdf"));
             main.startActivity(browserIntent);
             //todo link to guide
         });
@@ -1021,7 +1021,7 @@ public class DialogManager {
                 return;
             }
 
-            Controller.getInstance().getAuthenticationManager().buildloginsignup(1);
+            Controller.getInstance().getAuthenticationManager().buildloginsignup(0);
         });
 
         backBtn.setOnClickListener(v -> loginDialog.dismiss());

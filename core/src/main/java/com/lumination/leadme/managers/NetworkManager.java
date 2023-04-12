@@ -372,6 +372,12 @@ public class NetworkManager {
         p.recycle();
     }
 
+    public static void reset() {
+        currentClients.clear();
+        LeadMeMain.runOnUI(() -> LeadMeMain.getInstance().waitingForLearners.setVisibility(View.VISIBLE));
+        LeadMeMain.getInstance().showConnectedStudents(true);
+    }
+
     /**
      * Add messages to the message queue which is then checked by each student thread.
      */
@@ -383,9 +389,7 @@ public class NetworkManager {
         }
         if (currentClients.size() == selectedClientIDs.size()) {
             if(type.equals("DISCONNECT")) {
-                currentClients.clear();
-                LeadMeMain.runOnUI(() -> LeadMeMain.getInstance().waitingForLearners.setVisibility(View.VISIBLE));
-                LeadMeMain.getInstance().showConnectedStudents(true);
+                reset();
             }
             NetworkService.sendToAllClients(message, type);
             UIHandler.postDelayed(() ->

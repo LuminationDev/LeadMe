@@ -250,7 +250,7 @@ public class DispatchManager {
                         dispatchAction.launchYoutube(action);
 
                     } else if (action.startsWith(Controller.OPEN_CURATED_CONTENT)) {
-                        dispatchAction.openCuratedContent();
+                        dispatchAction.openCuratedContent(action);
                     } else {
                         dispatchAction.askPermission(action);
                         dispatchAction.updatePeerStatus(action);
@@ -726,8 +726,33 @@ public class DispatchManager {
             Log.w(TAG, action + "||" + split[1] + ", " + split[2] + ", " + split[3] + "|");
         }
 
-        private void openCuratedContent() {
+        private void openCuratedContent(String action) {
             CuratedContentManager.setupCuratedContent(main);
+            CuratedContentManager.currentYearSelection = null;
+            CuratedContentManager.currentRadioText = "";
+            CuratedContentManager.currentSubjectSelection = null;
+            String[] split = action.split(":::");
+            for (String s:split) {
+                if (s.startsWith("year:")) {
+                    String[] years = s.split(":");
+                    if (years.length == 3) {
+                        CuratedContentManager.currentYearSelection = new ArrayList<Float>(Arrays.asList(Float.parseFloat(years[1]), Float.parseFloat(years[2])));
+                    }
+                }
+                if (s.startsWith("radio:")) {
+                    String[] pair = s.split(":");
+                    if (pair.length == 2) {
+                        CuratedContentManager.currentRadioText = pair[1];
+                    }
+                }
+                if (s.startsWith("subject:")) {
+                    String[] pair = s.split(":");
+                    if (pair.length == 2) {
+                        CuratedContentManager.currentSubjectSelection = pair[1];
+                    }
+                }
+            }
+            CuratedContentManager.applyFilters();
             main.showCuratedContentScreen();
             main.appLauncherScreen.findViewById(R.id.app_scroll_view).scrollTo(0, 0);
         }

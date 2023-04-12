@@ -29,6 +29,7 @@ import com.lumination.leadme.connections.ConnectedPeer;
 import com.lumination.leadme.LeadMeMain;
 import com.lumination.leadme.controller.Controller;
 import com.lumination.leadme.managers.DispatchManager;
+import com.lumination.leadme.managers.FirebaseManager;
 import com.lumination.leadme.managers.NetworkManager;
 import com.lumination.leadme.R;
 import com.lumination.leadme.services.NetworkService;
@@ -111,6 +112,7 @@ public class ConnectedLearnersAdapter extends BaseAdapter {
         Log.d(TAG, "Removing from mData! " + found);
         if (found != null) {
             //remove old one so we keep the newest version
+            FirebaseManager.removeLearner(id);
             mData.remove(found);
             Log.d(TAG, "Now have " + mData.size());
         }

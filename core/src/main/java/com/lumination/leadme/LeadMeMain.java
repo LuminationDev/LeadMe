@@ -31,6 +31,7 @@ import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
 import android.os.PowerManager;
+import android.provider.Settings;
 import android.text.Editable;
 import android.text.Html;
 import android.text.TextWatcher;
@@ -513,6 +514,20 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     @OnLifecycleEvent(Lifecycle.Event.ON_RESUME)
     public void onLifecycleResume() {
         super.onResume();
+
+        if (OnBoardStudentInProgress) {
+            if (Controller.getInstance().getPermissionsManager().isUsageStatsPermissionGranted() && !Controller.getInstance().getPermissionsManager().isOverlayPermissionGranted()) {
+                setandDisplayStudentOnBoard(1);
+            } else if (Controller.getInstance().getPermissionsManager().isUsageStatsPermissionGranted() && Controller.getInstance().getPermissionsManager().isOverlayPermissionGranted()) {
+                if(FirebaseManager.getServerIP().length() > 0){
+                    setandDisplayStudentOnBoard(3);
+                }else {
+                    setandDisplayStudentOnBoard(2);
+                }
+            }
+        }
+
+
         if (OnBoard != null) {
             VideoView video = OnBoard.findViewById(R.id.animation_view);
             video.start();
@@ -1332,13 +1347,13 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                 Controller.getInstance().getDialogManager().showWarningDialog("Currently Offline", "No internet access detected. Please connect to continue.");
                 return;
             }
-            Controller.getInstance().getAuthenticationManager().buildloginsignup(1);
+            Controller.getInstance().getAuthenticationManager().buildloginsignup(0);
         });
 
         optionsScreen.findViewById(R.id.on_boarding).setOnClickListener(view -> buildAndDisplayOnBoard(false));
 
         optionsScreen.findViewById(R.id.how_to_use_btn).setOnClickListener(view -> {
-            Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://drive.google.com/file/d/1LrbQ5I1jlf-OQyIgr2q3Tg3sCo00x5lu/view"));
+            Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://drive.google.com/viewerng/viewer?embedded=true&url=https://github.com/LuminationDev/public/raw/main/LeadMeEdu-FirstTimeSetup.pdf"));
             startActivity(browserIntent);
         });
 
@@ -1446,6 +1461,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
         //prepare elements for leader main view
         waitingForLearners = mainLeader.findViewById(R.id.no_students_connected);
+        waitingForLearners.setVisibility(View.VISIBLE);
 
         setUpControlButtons();
 
@@ -1776,11 +1792,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
      * Reset the application on logout so restart has a fresh slate to being with.
      */
     private void logoutResetController() {
-        Log.d(TAG, "Resetting controller");
-        //I dont like this but sometimes sending it once doesn't work....
-        Controller.getInstance().getDispatcher().alertLogout(); //need to send this before resetting 'isGuide'
-        Controller.getInstance().getDispatcher().alertLogout(); //need to send this before resetting 'isGuide'
-
         //Purposely block to make sure all students receive the disconnect command
         try {
             Thread.sleep(1000);
@@ -1809,11 +1820,11 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         }
         if (leaderLearnerSwitcher.getDisplayedChild() == SWITCH_LEADER_INDEX) {
             initiateLeaderAdvertising();
-
         } else {
             //getPermissionsManager().checkOverlayPermissions(); //TODO Experimental - add flag
-
-            if (!Controller.getInstance().getPermissionsManager().isOverlayPermissionGranted()) {
+            if (!Controller.getInstance().getPermissionsManager().isUsageStatsPermissionGranted()) {
+                setandDisplayStudentOnBoard(0);
+            } else if (!Controller.getInstance().getPermissionsManager().isOverlayPermissionGranted()) {
                 setandDisplayStudentOnBoard(1);
             } else if (Controller.getInstance().getPermissionsManager().isOverlayPermissionGranted()) {
                 if(!isManual) {
@@ -1839,10 +1850,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         if (isGuide) {
             //display main guide view
             leadmeAnimator.setDisplayedChild(ANIM_LEADER_INDEX);
-
-            //update options
-            TextView title = mainLeader.findViewById(R.id.leader_title);
-            title.setText("Hi " + name + "!");
 
             optionsScreen.findViewById(R.id.connected_only_view).setVisibility(View.VISIBLE);
             ((TextView) optionsScreen.findViewById(R.id.user_name)).setText(name);
@@ -2514,7 +2521,8 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                 OnBoard = null;
             });
             OnBoard.findViewById(R.id.onboard_moreinfo_btn).setOnClickListener(view -> {
-                Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://drive.google.com/file/d/1GGU7GeR4Ibq60-6bcc2F_bd698CKRFvZ/view"));
+
+                Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://drive.google.com/viewerng/viewer?embedded=true&url=https://github.com/LuminationDev/public/raw/main/LeadMeEdu-CheatSheet.pdf"));
                 startActivity(browserIntent);
             });
         }
@@ -2560,12 +2568,31 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         Log.d(TAG, "setandDisplayStudentOnBoard: " + page);
         OnBoardStudentInProgress = true;
         hideSystemUIStudent();
-        if (page == 1) {
+        if (page == 0) {
+            View OnBoardPerm = View.inflate(this, R.layout.c__onboarding_student, null);
+            TextView support = OnBoardPerm.findViewById(R.id.onboardperm_support);
+            Button okPermission = OnBoardPerm.findViewById(R.id.onboardperm_ok_btn);
+            Button cancelPermission = OnBoardPerm.findViewById(R.id.onboardperm_cancel_btn);
+            okPermission.setOnClickListener(v -> Controller.getInstance().getPermissionsManager().requestUsageStatsPermission());
+
+            support.setOnClickListener(view -> {
+                Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://drive.google.com/file/d/1LrbQ5I1jlf-OQyIgr2q3Tg3sCo00x5lu/view"));
+                startActivity(browserIntent);
+            });
+
+            cancelPermission.setOnClickListener(view -> {
+                leadmeAnimator.setDisplayedChild(ANIM_START_SWITCH_INDEX);
+                this.setContentView(leadmeAnimator);
+            });
+
+            this.setContentView(OnBoardPerm);
+
+        } else if (page == 1) {
             View OnBoardPerm = View.inflate(this, R.layout.c__onboarding_student_2, null);
             TextView support = OnBoardPerm.findViewById(R.id.onboardperm_support);
 
             support.setOnClickListener(view -> {
-                Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://drive.google.com/file/d/1LrbQ5I1jlf-OQyIgr2q3Tg3sCo00x5lu/view"));
+                Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://drive.google.com/viewerng/viewer?embedded=true&url=https://github.com/LuminationDev/public/raw/main/LeadMeEdu-FirstTimeSetup.pdf"));
                 startActivity(browserIntent);
             });
 

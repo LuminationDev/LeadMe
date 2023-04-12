@@ -50,7 +50,7 @@
             android:layout_marginTop="10dp"
             android:fontFamily="@font/poppins_semibold"
             android:gravity="center"
-            android:text="Step 01: Accessibility"
+            android:text="Step 01: Usage Information"
             android:textSize="24sp" />
 
         <LinearLayout
@@ -96,7 +96,7 @@
                     android:layout_height="wrap_content"
                     android:fontFamily="@font/poppins_regular"
                     android:gravity="left"
-                    android:text="Within the Accessibility page, find ‘Downloaded Services’ (may also be labelled ‘Downloaded Apps’, or ‘Services’)" />
+                    android:text="Within the Usage access page, select 'LeadMe'" />
             </LinearLayout>
 
             <LinearLayout
@@ -116,27 +116,7 @@
                     android:layout_height="wrap_content"
                     android:fontFamily="@font/poppins_regular"
                     android:gravity="left"
-                    android:text="Select ‘LeadMe Learning’" />
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:orientation="horizontal">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:fontFamily="@font/poppins_regular"
-                    android:gravity="left"
-                    android:text=" • " />
-
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:fontFamily="@font/poppins_regular"
-                    android:gravity="left"
-                    android:text="Switch accessibility ON" />
+                    android:text="Switch 'permit usage access' ON" />
             </LinearLayout>
 
             <LinearLayout

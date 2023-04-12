@@ -4,21 +4,32 @@ import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.Service;
+import android.app.usage.UsageStats;
+import android.app.usage.UsageStatsManager;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Binder;
+import android.os.Handler;
 import android.os.IBinder;
 import android.util.Log;
+import android.view.WindowManager;
 
 import androidx.core.app.NotificationCompat;
 
+import com.lumination.leadme.LeadMeMain;
 import com.lumination.leadme.R;
+import com.lumination.leadme.controller.Controller;
+import com.lumination.leadme.managers.DispatchManager;
 import com.lumination.leadme.managers.FirebaseManager;
+import com.lumination.leadme.managers.NearbyPeersManager;
 import com.lumination.leadme.models.Learner;
 import com.lumination.leadme.managers.NetworkManager;
 
 import java.net.InetAddress;
 import java.util.HashMap;
+import java.util.List;
+import java.util.SortedMap;
+import java.util.TreeMap;
 
 /**
  * Responsible for handling network connection between a leader and a learner.
@@ -27,6 +38,9 @@ public class NetworkService extends Service {
     private static final String TAG = "NetworkService";
     private static final String CHANNEL_ID = "network_service";
     private static final String CHANNEL_NAME = "Network_Service";
+    private static Thread thread;
+    private static Handler handler;
+    private static Runnable runnable;
 
     private static InetAddress leaderIPAddress;
     public static boolean isGuide = false;
@@ -212,6 +226,39 @@ public class NetworkService extends Service {
         return START_STICKY;
     }
 
+    private void func() {
+        if (!NearbyPeersManager.isConnectedAsFollower()) {
+            return;
+        }
+        String currentApp = "NULL";
+        UsageStatsManager usm = (UsageStatsManager)getSystemService(Service.USAGE_STATS_SERVICE);
+        long time = System.currentTimeMillis();
+        List<UsageStats> appList = usm.queryUsageStats(UsageStatsManager.INTERVAL_DAILY,  time - 1000*1000, time);
+        if (appList != null && appList.size() > 0) {
+            SortedMap<Long, UsageStats> mySortedMap = new TreeMap<Long, UsageStats>();
+            for (UsageStats usageStats : appList) {
+                if (!usageStats.getPackageName().equals("com.lumination.leadme")) {
+                    mySortedMap.put(usageStats.getLastTimeUsed(), usageStats);
+                }
+            }
+            if (mySortedMap != null && !mySortedMap.isEmpty()) {
+                currentApp = mySortedMap.get(mySortedMap.lastKey()).getPackageName();
+            }
+        }
+        WindowManager wm = (WindowManager) getSystemService(Context.WINDOW_SERVICE);
+        wm.getDefaultDisplay().getDisplayId();
+
+        if (!currentApp.equals(LeadMeMain.currentTaskPackageName) &&
+                LeadMeMain.currentTaskPackageName != null &&
+                !LeadMeMain.currentTaskPackageName.equals("") &&
+                !LeadMeMain.currentTaskPackageName.equals("com.lumination.leadme")) {
+            if (!currentApp.equals("com.miui.home")) {
+                DispatchManager.alertGuideStudentOffTask();
+            }
+            Controller.getInstance().getAppManager().relaunchLast();
+        }
+    }
+
     public void startForeground() {
         NotificationChannel channel = new NotificationChannel(CHANNEL_ID,
                 CHANNEL_NAME,
@@ -228,6 +275,15 @@ public class NetworkService extends Service {
                 .setPriority(NotificationManager.IMPORTANCE_MIN)
                 .setCategory(Notification.CATEGORY_SERVICE)
                 .build();
+
+        handler = new Handler();
+        handler.postDelayed(runnable = new Runnable() {
+            public void run() {
+                func();
+                handler.postDelayed(this, 1000);
+            }
+        }, 1000);
+
         startForeground(notificationId, notification);
     }
 
@@ -242,6 +298,7 @@ public class NetworkService extends Service {
      * server is not running in the background if the application is closed.
      */
     private void stopAllFunction() {
+        handler.removeCallbacks(runnable);
         if(isGuide) {
             resetClientIDs();
         }

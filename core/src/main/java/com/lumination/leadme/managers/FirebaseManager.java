@@ -40,7 +40,6 @@ public class FirebaseManager {
     private static String localIpAddress;
     private static String uuid;
     public static DatabaseReference roomReference;
-    public static DatabaseReference learnerReference;
     public static DatabaseReference messagesReference;
     public static ValueEventListener learnerReceiveMessageListener;
     public static ValueEventListener leaderReceivingLearnerMessageListener;
@@ -48,7 +47,7 @@ public class FirebaseManager {
 
     private static DatabaseReference getDatabase()
     {
-        return FirebaseDatabase.getInstance("https://leafy-rope-301003-default-rtdb.asia-southeast1.firebasedatabase.app/").getReference();
+        return FirebaseDatabase.getInstance("https://leafy-rope-301003-default-rtdb.asia-southeast1.firebasedatabase.app/").getReference().child("v2");
     }
 
     public static void sendAllLearnerMessage(String message)
@@ -69,10 +68,10 @@ public class FirebaseManager {
 
     public static void sendLeaderMessage(String message)
     {
-        if (learnerReference == null) {
+        if (messagesReference == null) {
             return;
         }
-        learnerReference.child("currentMessage").setValue(message);
+        messagesReference.child("learners").child(getUuid().replace(".", "_")).child("currentMessage").setValue(message);
     }
 
     public static void connectToLeader()
@@ -85,15 +84,13 @@ public class FirebaseManager {
         learnerReceiveMessageListener = new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                // Get Post object and use the values to update the UI
-                if (!dataSnapshot.exists()) {
-                    NetworkManager.receivedDisconnect();
-                    return;
-                }
                 if (dataSnapshot.getValue() != null && dataSnapshot.getValue().toString().length() > 0) {
                     NetworkService.receiveMessage(dataSnapshot.getValue().toString());
 
                     Log.e(TAG, dataSnapshot.getValue().toString());
+                }
+                if (dataSnapshot.getKey().equals("currentMessage") && dataSnapshot.getValue() == null) {
+                    NetworkManager.receivedDisconnect();
                 }
             }
 
@@ -104,8 +101,6 @@ public class FirebaseManager {
 
         messagesReference.child("learners").child(getUuid().replace(".", "_")).child("currentMessage").setValue("");
         messagesReference.child("learners").child(getUuid().replace(".", "_")).child("currentMessage").onDisconnect().setValue("DISCONNECT," + getUuid().replace(".", "_"));
-        learnerReference = messagesReference.child("learners").child(getUuid().replace(".", "_"));
-        messagesReference.child("learners").child(getUuid().replace(".", "_")).child("leaderMessage").setValue("");
 
         messagesReference.child("currentMessage").addValueEventListener(learnerReceiveMessageListener);
         messagesReference.child("learners").child(getUuid().replace(".", "_")).child("leaderMessage").addValueEventListener(learnerReceiveMessageListener);
@@ -130,10 +125,11 @@ public class FirebaseManager {
                     TextView title = LeadMeMain.getInstance().mainLeader.findViewById(R.id.room_code);
                     title.setText("Room code: " + roomCode);
 
-                    database.child(roomCode).child("room").child("id").setValue(getUuid());
+                    String id = Controller.getInstance().getAuthenticationManager().getCurrentAuthUser().getUid();
+                    database.child(roomCode).child("room").child("id").setValue(id);
                     roomReference = database.child(roomCode).child("room");
-                    messagesReference = database.child(roomCode).child("messages").child(getUuid().replace(".", "_"));
-                    messagesReference.child("learners").child("id").setValue(getUuid());
+                    messagesReference = database.child(roomCode).child("messages").child(id);
+                    messagesReference.child("learners").child("id").setValue(id);
                     messagesReference.child("currentMessage").setValue("");
                     roomReference.child("leaderName").setValue(name);
                     roomReference.child("localIpAddress").setValue(getLocalIpAddress());
@@ -149,7 +145,7 @@ public class FirebaseManager {
                             if (dataSnapshot.getChildrenCount() != ConnectedLearnersAdapter.mData.size()) {
                                 for (DataSnapshot data:dataSnapshot.getChildren()) {
                                     if (!data.getKey().equals("id") &&
-                                            (data.child("leaderMessage").getValue() == null || !data.child("leaderMessage").getValue().toString().startsWith("DISCONNECT"))) {
+                                            (!data.child("leaderMessage").exists() || data.child("leaderMessage").getValue() == null || !data.child("leaderMessage").getValue().toString().startsWith("DISCONNECT"))) {
                                         NetworkManager.addLearnerIfNotExists(data.getKey());
                                     }
                                 }
@@ -251,6 +247,8 @@ public class FirebaseManager {
             }
             roomReference = null;
         }
+        getDatabase().child(roomCode).removeValue();
+        NetworkManager.reset();
     }
 
     private static String generateRoomCode(int length) {
