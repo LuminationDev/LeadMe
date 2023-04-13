@@ -361,12 +361,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             Log.d(TAG, "Permission return - request nearby");
             Controller.getInstance().getPermissionsManager().checkNearbyPermissions();
             return;
-
-        }
-
-        if (!Controller.getInstance().getPermissionsManager().isStoragePermissionsGranted()) {
-            Log.d(TAG, "Permission return - request storage");
-            Controller.getInstance().getPermissionsManager().checkStoragePermission();
         }
     }
 
@@ -516,14 +510,14 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         super.onResume();
 
         if (OnBoardStudentInProgress) {
-            if (Controller.getInstance().getPermissionsManager().isUsageStatsPermissionGranted() && !Controller.getInstance().getPermissionsManager().isOverlayPermissionGranted()) {
+            if (!Controller.getInstance().getPermissionsManager().isUsageStatsPermissionGranted()) {
+                setandDisplayStudentOnBoard(0);
+            } else if (!Controller.getInstance().getPermissionsManager().isOverlayPermissionGranted()) {
                 setandDisplayStudentOnBoard(1);
-            } else if (Controller.getInstance().getPermissionsManager().isUsageStatsPermissionGranted() && Controller.getInstance().getPermissionsManager().isOverlayPermissionGranted()) {
-                if(FirebaseManager.getServerIP().length() > 0){
-                    setandDisplayStudentOnBoard(3);
-                }else {
-                    setandDisplayStudentOnBoard(2);
-                }
+            } else if (!Controller.getInstance().getPermissionsManager().isStoragePermissionsGranted()) {
+                setandDisplayStudentOnBoard(2);
+            } else {
+                setandDisplayStudentOnBoard(3);
             }
         }
 
@@ -905,7 +899,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
         //file transfer sharedpreferences
         if (sharedPreferences.contains(Controller.FILE_TRANSFER)) {
-            fileTransferEnabled = sharedPreferences.getBoolean(Controller.FILE_TRANSFER, false);
+            fileTransferEnabled = sharedPreferences.getBoolean(Controller.FILE_TRANSFER, false) && Controller.getInstance().getPermissionsManager().isStoragePermissionsGranted();
         }
 
         if (fileTransferEnabled == null) {
@@ -1392,6 +1386,9 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             if(isChecked) {
                 //showWarningDialog("Auto Install", "Tell the leader something helpful.");
                 Toast.makeText(context, "File transfer is now enabled.", Toast.LENGTH_SHORT).show();
+                if (!Controller.getInstance().getPermissionsManager().isStoragePermissionsGranted()) {
+                    Controller.getInstance().getPermissionsManager().getStoragePermissions();
+                }
             }
 
             SharedPreferences.Editor editor = sharedPreferences.edit();
@@ -1470,10 +1467,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
         if (!Controller.getInstance().getPermissionsManager().isNearbyPermissionsGranted()) {
             Controller.getInstance().getPermissionsManager().checkNearbyPermissions();
-        }
-
-        if (!Controller.getInstance().getPermissionsManager().isStoragePermissionsGranted()) {
-            Controller.getInstance().getPermissionsManager().checkStoragePermission();
         }
     }
 
@@ -1661,9 +1654,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         if (!Controller.getInstance().getPermissionsManager().isNearbyPermissionsGranted()) {
             learnerWaitingText.setText(getResources().getString(R.string.enable_location_to_connect));
             Controller.getInstance().getPermissionsManager().checkNearbyPermissions();
-        } else if (!Controller.getInstance().getPermissionsManager().isStoragePermissionsGranted()) {
-            learnerWaitingText.setText(getResources().getString(R.string.enable_storage));
-            Controller.getInstance().getPermissionsManager().checkStoragePermission();
         } else if (!NearbyPeersManager.isConnectedAsFollower()) {
             learnerWaitingText.setText("Enter a room code to join a class");
         }
@@ -1826,12 +1816,10 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                 setandDisplayStudentOnBoard(0);
             } else if (!Controller.getInstance().getPermissionsManager().isOverlayPermissionGranted()) {
                 setandDisplayStudentOnBoard(1);
-            } else if (Controller.getInstance().getPermissionsManager().isOverlayPermissionGranted()) {
-                if(!isManual) {
-                    setandDisplayStudentOnBoard(2);
-                }else{
-                    setandDisplayStudentOnBoard(3);
-                }
+            } else if (!Controller.getInstance().getPermissionsManager().isStoragePermissionsGranted()) {
+                setandDisplayStudentOnBoard(2);
+            } else {
+                setandDisplayStudentOnBoard(3);
             }
         }
 
@@ -2604,11 +2592,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                 scheduledCheck = scheduledExecutorService.scheduleAtFixedRate(() -> {
                     if (Controller.getInstance().getPermissionsManager().isOverlayPermissionGranted()) {
                         runOnUiThread(() -> {
-                            if(FirebaseManager.getServerIP().length()>0){
-                                setandDisplayStudentOnBoard(3);
-                            }else{
-                                setandDisplayStudentOnBoard(2);
-                            }
+                            setandDisplayStudentOnBoard(2);
                         });
                         scheduledCheck.cancel(true);
                     }
@@ -2617,6 +2601,41 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                     setandDisplayStudentOnBoard(2);
                 }
                 Controller.getInstance().getPermissionsManager().checkOverlayPermissions();
+            });
+
+            cancelPermission.setOnClickListener(view -> {
+                leadmeAnimator.setDisplayedChild(ANIM_START_SWITCH_INDEX);
+                this.setContentView(leadmeAnimator);
+            });
+            this.setContentView(OnBoardPerm);
+
+        } else if (page == 2) {
+            View OnBoardPerm = View.inflate(this, R.layout.c__onboarding_student_3, null);
+            TextView support = OnBoardPerm.findViewById(R.id.onboardperm_support);
+
+            support.setOnClickListener(view -> {
+                Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://drive.google.com/viewerng/viewer?embedded=true&url=https://github.com/LuminationDev/public/raw/main/LeadMeEdu-FirstTimeSetup.pdf"));
+                startActivity(browserIntent);
+            });
+
+            Button okPermission = OnBoardPerm.findViewById(R.id.onboardperm_ok_btn);
+            Button cancelPermission = OnBoardPerm.findViewById(R.id.onboardperm_cancel_btn);
+
+            okPermission.setOnClickListener(view -> {
+                Log.d(TAG, "setStudentOnBoard: checking");
+                scheduledCheck = scheduledExecutorService.scheduleAtFixedRate(() -> {
+                    if (Controller.getInstance().getPermissionsManager().isStoragePermissionsGranted()) {
+                        runOnUiThread(() -> {
+                            setandDisplayStudentOnBoard(3);
+                        });
+                        scheduledCheck.cancel(true);
+                    }
+                },100,200,TimeUnit.MILLISECONDS);
+                if (Controller.getInstance().getPermissionsManager().isStoragePermissionsGranted()) {
+                    setandDisplayStudentOnBoard(3);
+                } else {
+                    Controller.getInstance().getPermissionsManager().getStoragePermissions();
+                }
             });
 
             cancelPermission.setOnClickListener(view -> {
@@ -2943,8 +2962,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             //trying to connect to other LeadMe users
             Controller.getInstance().getPermissionsManager().checkNearbyPermissions();
 
-        } else if (!Controller.getInstance().getPermissionsManager().isStoragePermissionsGranted()) {
-            Controller.getInstance().getPermissionsManager().checkStoragePermission();
         } else {
             //don't need to wait, so just login
             initPermissions = true; //only prompt once here
