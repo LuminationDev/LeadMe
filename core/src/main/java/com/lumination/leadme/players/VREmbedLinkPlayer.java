@@ -907,7 +907,7 @@ public class VREmbedLinkPlayer {
     private boolean buttonMessages() {
         boolean stopFunction = false;
         if(firstTouch) {
-            showToast("Tap the youtube play button to enable controls.");
+            showToast("Tap the video player play button to enable controls.");
             stopFunction = true;
         }
         return stopFunction;
