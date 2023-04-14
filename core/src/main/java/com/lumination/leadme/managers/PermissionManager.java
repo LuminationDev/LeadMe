@@ -11,6 +11,8 @@ import android.net.ConnectivityManager;
 import android.net.NetworkCapabilities;
 import android.net.NetworkInfo;
 import android.net.Uri;
+import android.os.Build;
+import android.os.Environment;
 import android.provider.Settings;
 import android.util.Log;
 import android.widget.Toast;
@@ -140,8 +142,12 @@ public class PermissionManager {
     }
 
     public boolean isStoragePermissionsGranted() {
-        storagePermissionsGranted = main.checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED &&
-                main.checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            storagePermissionsGranted =  Environment.isExternalStorageManager();
+        } else {
+            storagePermissionsGranted = main.checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED &&
+                    main.checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED;
+        }
         return storagePermissionsGranted;
     }
 
@@ -190,15 +196,21 @@ public class PermissionManager {
      * Checking if the device has READ_EXTERNAL storage permission on . This is used for the file transfer
      * function as well as the VR controller.
      */
-    public void checkStoragePermission() {
+    public void getStoragePermissions() {
         waitingForPermission = true;
         String rationaleMsg = "Please enable Storage permissions so Guides can select and transfer videos.";
 
-        TedPermission.with(main)
-                .setPermissionListener(storagePermissionListener)
-                .setDeniedMessage(rationaleMsg)
-                .setPermissions(Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE)
-                .check();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            Intent intent = new Intent(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION);
+            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            main.startActivity(intent);
+        } else {
+            TedPermission.with(main)
+                    .setPermissionListener(storagePermissionListener)
+                    .setDeniedMessage(rationaleMsg)
+                    .setPermissions(Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                    .check();
+        }
     }
 
     private boolean successfulPing = false;
