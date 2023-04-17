@@ -392,24 +392,7 @@ public class DialogManager {
             hideSystemUI();
         });
 
-        Button allowBtn = requestDialogView.findViewById(R.id.allow_btn);
         Button blockBtn = requestDialogView.findViewById(R.id.block_btn);
-
-        allowBtn.setOnClickListener(v -> {
-            if(Controller.isMiUiV9()) {
-                Controller.getInstance().getFileTransferManager().startFileServer(LeadMeMain.vrPath, true);
-            } else {
-                Controller.getInstance().getFileTransferManager().startFileServer(LeadMeMain.vrURI, true);
-            }
-
-            Set<String> peerSet = new HashSet<>();
-            for(String ID : LeadMeMain.fileRequests) {
-                peerSet.add(String.valueOf(ID));
-            }
-
-            DispatchManager.sendActionToSelected(Controller.ACTION_TAG, Controller.RETURN_TAG, peerSet);
-            requestDialog.dismiss();
-        });
 
         blockBtn.setOnClickListener(v -> {
             LeadMeMain.fileRequests = new HashSet<>();
@@ -448,14 +431,11 @@ public class DialogManager {
         if(requestDialog.isShowing()) {
             //in case a guide switched on auto installer and transfer quickly
             requestDialogMessage.setText(LeadMeMain.fileRequests.size() + " learners do not have the video. " +
-                    "\nDo you want to transfer it?" +
-                    "\nFile transfer is an experimental feature. You may experience some issues while using it."); //update the text if there are more requests
+                    "\nPlease transfer any required videos before starting your lesson");
         } else {
             requestDialogMessage.setText(LeadMeMain.fileRequests.size() + " learner does not have the video. " +
-                    "\nDo you want to transfer it?" +
-                    "\nFile transfer is an experimental feature. You may experience some issues while using it.");
-
-            waitForOthers(requestDialogView.findViewById(R.id.allow_btn), delay);
+                    "\nPlease transfer any required videos before starting your lesson");
+            waitForOthers(requestDialogView.findViewById(R.id.block_btn), delay);
         }
 
         requestDialog.show();

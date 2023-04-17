@@ -102,7 +102,6 @@ public class Controller {
     private final VRAccessibilityManager vrAccessibilityManager;
 
     private final NetworkManager networkManager;
-    private final FileTransferManager fileTransferManager;
     private final PermissionManager permissionManager;
     private final AuthenticationManager authenticationManager;
     private final NearbyPeersManager nearbyManager;
@@ -133,7 +132,6 @@ public class Controller {
         vrEmbedVideoPlayer = new VREmbedVideoPlayer(main);
         vrEmbedLinkPlayer = new VREmbedLinkPlayer(main);
         appLaunchAdapter = new AppManager(main);
-        fileTransferManager = new FileTransferManager(main);
         connectedLearnersAdapter = new ConnectedLearnersAdapter(main, new ArrayList<>(), dialogManager.alertsAdapter);
     }
 
@@ -205,27 +203,6 @@ public class Controller {
     }
 
     /**
-     * Set the file choice for the file transfer protocol.
-     * @param resultCode An integer representing if the result was successful or not.
-     * @param data An intent representing the chosen file details.
-     */
-    public void transferFileChoice(int resultCode, Intent data) {
-        if (resultCode == Activity.RESULT_OK) {
-            if(data != null)  {
-                FileTransferManager.setFileType("File");
-
-                if(isMiUiV9()) {
-                    String selectedFile = data.getStringExtra(DirectoryPicker.BUNDLE_SELECTED_FILE);
-                    Log.e(TAG, "Selected file: " + selectedFile);
-                    getFileTransferManager().startFileServer(selectedFile, false);
-                } else {
-                    getFileTransferManager().startFileServer(data.getData(), false);
-                }
-            }
-        }
-    }
-
-    /**
      * Detect what version of MIUI is running on a Xiaomi device. As version below 10 carry an inherent
      * OS processing issue relating to launching file picker intents.
      * @return A boolean representing if the MIUI version is 9.5 or below.
@@ -286,7 +263,6 @@ public class Controller {
     public VRAccessibilityManager getVRAccessibilityManager() {
         return vrAccessibilityManager;
     }
-    public FileTransferManager getFileTransferManager() { return fileTransferManager; }
     public VREmbedVideoPlayer getVrEmbedVideoPlayer() { return vrEmbedVideoPlayer; }
     public VREmbedPhotoPlayer getVrEmbedPhotoPlayer() { return vrEmbedPhotoPlayer; }
     public VREmbedLinkPlayer getVrEmbedLinkPlayer() { return vrEmbedLinkPlayer; }

@@ -342,20 +342,6 @@ public class DispatchManager {
         String msg;
 
         switch(permission) {
-            case Controller.FILE_TRANSFER:
-                if(enable) {
-                    msg = "Guide wants to enable \nfile transfer services.";
-                } else {
-                    LeadMeMain.fileTransferEnabled = false;
-                    return;
-                }
-
-                if(LeadMeMain.fileTransferEnabled) {
-                    return;
-                }
-
-                break;
-
             case Controller.AUTO_INSTALL:
                 if(enable) {
                     msg = "Guide wants to enable \nauto installing of applications.";
@@ -386,10 +372,6 @@ public class DispatchManager {
     public static void permissionAllowed(String permission, Boolean allowed) {
         if(allowed) {
             switch (permission) {
-                case Controller.FILE_TRANSFER:
-                    LeadMeMain.fileTransferEnabled = true;
-                    break;
-
                 case Controller.AUTO_INSTALL:
                     LeadMeMain.autoInstallApps = true;
                     break;
@@ -652,7 +634,6 @@ public class DispatchManager {
          */
         private void transferError(String action) {
             String[] split = action.split(":");
-            Controller.getInstance().getFileTransferManager().removePeer(split[1], split[2]);
         }
 
         /**
@@ -764,10 +745,7 @@ public class DispatchManager {
         private void askPermission(String action) {
             String[] split = action.split(":");
 
-            if(action.startsWith(Controller.FILE_TRANSFER)) {
-                askForPeerPermission(Controller.FILE_TRANSFER, Boolean.parseBoolean(split[1]));
-
-            } else if(action.startsWith(Controller.AUTO_INSTALL)) {
+            if(action.startsWith(Controller.AUTO_INSTALL)) {
                 askForPeerPermission(Controller.AUTO_INSTALL, Boolean.parseBoolean(split[1]));
             }
         }
@@ -805,14 +783,7 @@ public class DispatchManager {
                 }
 
             } else if (action.startsWith(Controller.PERMISSION_DENIED)) {
-                if (split[3].equals(Controller.FILE_TRANSFER)) {
-                    if (split[1].equalsIgnoreCase("OK")) {
-                        LeadMeMain.updatePeerStatus(split[2], ConnectedPeer.STATUS_SUCCESS, Controller.PERMISSION_TRANSFER_DENIED);
-                    } else {
-                        LeadMeMain.updatePeerStatus(split[2], ConnectedPeer.STATUS_INSTALLED, null);
-                        LeadMeMain.updatePeerStatus(split[2], ConnectedPeer.STATUS_WARNING, Controller.PERMISSION_TRANSFER_DENIED);
-                    }
-                } else if (split[3].equals(Controller.AUTO_INSTALL)) {
+                if (split[3].equals(Controller.AUTO_INSTALL)) {
                     if (split[1].equalsIgnoreCase("OK")) {
                         LeadMeMain.updatePeerStatus(split[2], ConnectedPeer.STATUS_SUCCESS, Controller.PERMISSION_AUTOINSTALL_DENIED);
                     } else {

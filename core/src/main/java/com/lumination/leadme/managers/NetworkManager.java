@@ -14,7 +14,6 @@ import com.lumination.leadme.adapters.ConnectedLearnersAdapter;
 import com.lumination.leadme.connections.ConnectedPeer;
 import com.lumination.leadme.LeadMeMain;
 import com.lumination.leadme.controller.Controller;
-import com.lumination.leadme.services.FileTransferService;
 import com.lumination.leadme.services.NetworkService;
 import com.lumination.leadme.models.Client;
 import com.lumination.leadme.models.Endpoint;
@@ -195,10 +194,6 @@ public class NetworkManager {
      */
     private static void receivedFile(String input) {
         List<String> inputList2 = Arrays.asList(input.split(":"));
-        if (LeadMeMain.fileTransferEnabled) {
-            FileTransferManager.setFileType(inputList2.get(2));
-            Controller.getInstance().getFileTransferManager().receivingFile(NetworkService.getLeaderIPAddress(), Integer.parseInt(inputList2.get(1)));
-        }
     }
 
     /**
@@ -422,20 +417,6 @@ public class NetworkManager {
         if(FileTransferManager.selected != null && FileTransferManager.transfers != null) {
             FileTransferManager.selected.remove(ID);
             FileTransferManager.transfers.remove(ID);
-            FileTransferService.removeRequest(ID);
         }
-    }
-
-    /**
-     * File transfer case.
-     * @param ID        An int representing the client that the file is being sent to.
-     * @param localPort An int representing the port to use for the transfer server.
-     * @param fileType  A string representing the type of file that is being transferred.
-     */
-    public static void sendFile(String ID, int localPort, String fileType) {
-        Log.e(TAG, "Sending file to: " + ID);
-        ArrayList<String> selected = new ArrayList<>();
-        selected.add(ID);
-        sendToSelectedClients("SEND:" + localPort + ":" + fileType, "FILE", selected);
     }
 }
