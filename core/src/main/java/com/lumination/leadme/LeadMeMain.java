@@ -153,7 +153,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     public static final int FINE_LOC_ON = 3;
     public static final int RC_SIGN_IN = 4;
     public static final int VR_FILE_CHOICE = 5;
-    public static final int TRANSFER_FILE_CHOICE = 6;
 
     // The SensorManager gives us access to sensors on the device.
     public SensorManager mSensorManager;
@@ -238,9 +237,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
     public static Set<ConnectedPeer> selectedLearners = new ArraySet<>();
 
-    //File transfer
-    public static Boolean fileTransferEnabled = false; //hard coded so have to enable each session
-    public Switch transferToggle = null;
     public static HashSet<String> fileRequests = new HashSet<>(); //array to hold learner ID's that are requesting a file
 
     //Auto app installer
@@ -302,10 +298,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
             case VR_FILE_CHOICE:
                 Controller.getInstance().vrFileChoice(resultCode, data);
-                break;
-
-            case TRANSFER_FILE_CHOICE:
-                Controller.getInstance().transferFileChoice(resultCode, data);
                 break;
 
             default:
@@ -896,18 +888,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             editor.putBoolean(Controller.AUTO_INSTALL, autoInstallApps);
             editor.apply();
         }
-
-        //file transfer sharedpreferences
-        if (sharedPreferences.contains(Controller.FILE_TRANSFER)) {
-            fileTransferEnabled = sharedPreferences.getBoolean(Controller.FILE_TRANSFER, false) && Controller.getInstance().getPermissionsManager().isStoragePermissionsGranted();
-        }
-
-        if (fileTransferEnabled == null) {
-            SharedPreferences.Editor editor = sharedPreferences.edit();
-            fileTransferEnabled = false;
-            editor.putBoolean(Controller.AUTO_INSTALL, fileTransferEnabled);
-            editor.apply();
-        }
     }
 
     /**
@@ -1080,38 +1060,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
         checkAddtionalPreferences();
 
-        //file transfer button
-        mainLeader.findViewById(R.id.file_core_btn).setOnTouchListener(touchListener);
-        mainLeader.findViewById(R.id.file_core_btn).setOnClickListener(view -> {
-            if (!ConnectedLearnersAdapter.someoneIsSelected()) {
-                Toast.makeText(context, "Peers need to be selected.", Toast.LENGTH_LONG).show();
-                return;
-            }
-
-            if (fileTransferEnabled) {
-                View confirmationView = View.inflate(LeadMeMain.getInstance(), R.layout.e__file_transfer_experimental_confirmation, null);
-                AlertDialog confirmationDialog = new AlertDialog.Builder(LeadMeMain.getInstance())
-                        .setView(confirmationView)
-                        .show();
-                Button okButton = confirmationView.findViewById(R.id.ok_btn);
-                Button backButton = confirmationView.findViewById(R.id.back_btn);
-                okButton.setOnClickListener(w -> {
-                    if (Controller.isMiUiV9()) {
-                        alternateFileChoice(TRANSFER_FILE_CHOICE);
-                    } else {
-                        FileUtilities.browseFiles(this, TRANSFER_FILE_CHOICE);
-                    }
-                    confirmationDialog.dismiss();
-                });
-                backButton.setOnClickListener(w -> {
-                    confirmationDialog.dismiss();
-                });
-
-            } else {
-                Controller.getInstance().getDialogManager().showWarningDialog("File Transfer", "File transfer has not been enabled.");
-            }
-        });
-
         //Custom VR button
         mainLeader.findViewById(R.id.vr_core_btn).setOnTouchListener(touchListener);
         mainLeader.findViewById(R.id.vr_core_btn).setOnClickListener(view -> {
@@ -1179,57 +1127,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         Intent intent = new Intent(this, OpenFilePicker.class);
         startActivityForResult(intent, ActivityType);
     }
-
-//    /**
-//     * Detect what version of MIUI is running on a Xiaomi device. As version below 10 carry an inherent
-//     * OS processing issue relating to launching file picker intents.
-//     * @return A boolean representing if the MIUI version is 9.5 or below.
-//     */
-//    public static boolean isMiUiV9() {
-//        String version = getSystemProperty();
-//
-//        //If empty then it is a different type of phone
-//        if(TextUtils.isEmpty(version)) {
-//            return false;
-//        }
-//
-//        //Version number comes through as integers or doubles depending on the version
-//        //ranging from 8, 9.5, 11.5, 12 etc..
-//        //All Xiaomi devices above SE8, i.e Note 8/9 can update to MIUI 12. So only MIUI versions
-//        //at or below 10 need to use the alternate file picker.
-//        String[] num = new String[0];
-//        if (version != null) {
-//            num = version.split("V");
-//        }
-//        int versionNum = Integer.parseInt(num[1]);
-//
-//        return versionNum <= 10;
-//    }
-//
-//    private static String getSystemProperty() {
-//        String propName = "ro.miui.ui.version.name";
-//        String line;
-//        BufferedReader input = null;
-//        try {
-//            java.lang.Process p = Runtime.getRuntime().exec("getprop " + propName);
-//            input = new BufferedReader(new InputStreamReader(p.getInputStream()), 1024);
-//            line = input.readLine();
-//            input.close();
-//        } catch (IOException ex) {
-//            return null;
-//        } finally {
-//            if (input != null) {
-//                try {
-//                    input.close();
-//                } catch (IOException e) {
-//                    e.printStackTrace();
-//                }
-//            }
-//        }
-//
-//        Log.d(TAG, "MIUI version: " + line);
-//        return line;
-//    }
 
     /**
      * Set up start switcher and main animator.
@@ -1375,30 +1272,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             //send action to student devices to change the auto install setting
             DispatchManager.sendActionToSelected(Controller.ACTION_TAG, Controller.AUTO_INSTALL + ":"
                     + autoInstallApps, NearbyPeersManager.getSelectedPeerIDsOrAll());
-        });
-
-        //change the shared preferences for the file transfer setting
-        transferToggle = optionsScreen.findViewById(R.id.file_transfer);
-        transferToggle.setVisibility(View.GONE); //disable until logged in
-        transferToggle.setChecked(fileTransferEnabled);
-        transferToggle.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            //Tell the leader what is happening when it is turned on
-            if(isChecked) {
-                //showWarningDialog("Auto Install", "Tell the leader something helpful.");
-                Toast.makeText(context, "File transfer is now enabled.", Toast.LENGTH_SHORT).show();
-                if (!Controller.getInstance().getPermissionsManager().isStoragePermissionsGranted()) {
-                    Controller.getInstance().getPermissionsManager().getStoragePermissions();
-                }
-            }
-
-            SharedPreferences.Editor editor = sharedPreferences.edit();
-            fileTransferEnabled = isChecked;
-            editor.putBoolean(Controller.FILE_TRANSFER, fileTransferEnabled);
-            editor.apply();
-
-            //send action to student devices to change the file transfer settings?
-            DispatchManager.sendActionToSelected(Controller.ACTION_TAG, Controller.FILE_TRANSFER + ":"
-                    + fileTransferEnabled, NearbyPeersManager.getSelectedPeerIDsOrAll());
         });
 
         optionsScreen.findViewById(R.id.logout_btn).setOnClickListener(view -> {
@@ -1794,7 +1667,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         NetworkService.resetClientIDs();
         Controller.getInstance().getConnectedLearnersAdapter().resetOnLogout();
         setUIDisconnected();
-        Controller.getInstance().getFileTransferManager().stopService();
         NetworkManager.stopService();
         showSplashScreen();
         moveAwayFromSplashScreen();
@@ -1892,7 +1764,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         optionsScreen.findViewById(R.id.on_boarding).setVisibility(enabled);
         optionsScreen.findViewById(R.id.how_to_use_btn).setVisibility(enabled);
         optionsScreen.findViewById(R.id.help_support_btn).setVisibility(enabled);
-        transferToggle.setVisibility(enabled);
     }
 
     /**
@@ -2262,18 +2133,8 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
      * @param message An integer representing the string table value of the text to be set.
      */
     public void setDeviceStatusMessage(int message) {
-        if(!fileTransferEnabled && message == R.string.waiting_for_transfer) {
-            DispatchManager.sendActionToSelected(Controller.ACTION_TAG,
-                    Controller.TRANSFER_ERROR
-                            + ":" + NearbyPeersManager.myID
-                            + ":File transfer not enabled",
-                    NearbyPeersManager.getSelectedPeerIDsOrAll());
-
-            DispatchManager.permissionDenied(Controller.FILE_TRANSFER);
-        } else {
-            TextView peerDeviceStatus = mainLearner.findViewById(R.id.connected_txt);
-            runOnUiThread(() -> peerDeviceStatus.setText(getApplicationContext().getString(message)));
-        }
+        TextView peerDeviceStatus = mainLearner.findViewById(R.id.connected_txt);
+        runOnUiThread(() -> peerDeviceStatus.setText(getApplicationContext().getString(message)));
     }
 
     boolean mIsRestoredToTop = false;

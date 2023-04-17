@@ -347,28 +347,6 @@ public class StudentAlertsAdapter extends BaseAdapter {
                         Set<String> selectedPeerIDs = new HashSet<>(ids);
                         DispatchManager.sendActionToSelected(Controller.ACTION_TAG, Controller.LAUNCH_ACCESS,selectedPeerIDs);
                     }
-                } else if(alertBtn.getText().equals("Enable Transfer")) {
-                    ArrayList<String> ids = new ArrayList<>();
-                    for (int i = 0; i < AlertsByCategories.get(6).size(); i++) {
-                        ids.add(String.valueOf(AlertsByCategories.get(6).get(i).getID()));
-                    }
-
-                    if (ids.size() > 0) {
-                        Set<String> selectedPeerIDs = new HashSet<>(ids);
-                        DispatchManager.sendActionToSelected(Controller.ACTION_TAG, Controller.FILE_TRANSFER + ":"
-                                + true, selectedPeerIDs);
-                    }
-                } else if(alertBtn.getText().equals("Enable Installer")) {
-                    ArrayList<String> ids = new ArrayList<>();
-                    for (int i = 0; i < AlertsByCategories.get(7).size(); i++) {
-                        ids.add(String.valueOf(AlertsByCategories.get(7).get(i).getID()));
-                    }
-
-                    if (ids.size() > 0) {
-                        Set<String> selectedPeerIDs = new HashSet<>(ids);
-                        DispatchManager.sendActionToSelected(Controller.ACTION_TAG, Controller.AUTO_INSTALL + ":"
-                                + true, selectedPeerIDs);
-                    }
                 }
             }
         });

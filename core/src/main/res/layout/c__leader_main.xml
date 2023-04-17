@@ -199,28 +199,6 @@
                         android:text="VR\nPlayer"/>
                 </LinearLayout>
             </LinearLayout>
-
-            <LinearLayout
-                android:id="@+id/file_core_btn"
-                style="@style/LeaderButton"
-                android:orientation="vertical">
-                <LinearLayout
-                    style="@style/LeaderButton__IconWrapper">
-                    <LinearLayout
-                        style="@style/LeaderButton__Icon"
-                        android:background="@drawable/icon_transfer"/>
-                </LinearLayout>
-                <LinearLayout
-                    style="@style/LeaderButton__Text">
-                    <TextView
-                        style="@style/LeaderButton__Text__Eyebrow"
-                        android:text="PUSH"/>
-                    <TextView
-                        style="@style/LeaderButton__Text__Lead"
-                        android:text="File Transfer"/>
-                </LinearLayout>
-            </LinearLayout>
-
             <!--            Move to a better position when implemented-->
             <LinearLayout
                 android:id="@+id/end_core_btn"

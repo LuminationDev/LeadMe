@@ -98,12 +98,6 @@
             android:foregroundServiceType="connectedDevice"
             android:stopWithTask="true">
         </service>
-        <service
-            android:enabled="true"
-            android:name=".services.FileTransferService"
-            android:foregroundServiceType="dataSync"
-            android:stopWithTask="true">
-        </service>
     </application>
 
     <queries>

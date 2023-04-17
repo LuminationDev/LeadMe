@@ -155,8 +155,6 @@ public class ConnectedLearnersAdapter extends BaseAdapter {
         final Runnable runnable = () -> {
             DispatchManager.sendActionToSelected(Controller.ACTION_TAG, Controller.AUTO_INSTALL + ":"
                     + LeadMeMain.autoInstallApps, newPeer);
-            DispatchManager.sendActionToSelected(Controller.ACTION_TAG, Controller.FILE_TRANSFER + ":"
-                    + LeadMeMain.fileTransferEnabled, newPeer);
 
             scheduler.shutdown();
         };
