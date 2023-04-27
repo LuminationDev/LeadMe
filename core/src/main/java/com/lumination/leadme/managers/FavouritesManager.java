@@ -75,7 +75,6 @@ public class FavouritesManager {
         });
 
         webYouTubeFavView.findViewById(R.id.yt_add_btn).setOnClickListener(v -> {
-            SearchManager.isYouTube = true;
             adding_to_fav = true;
             Log.w(TAG, "YouTube add!");
             Controller.getInstance().getWebManager().showWebLaunchDialog(adding_to_fav);
@@ -83,7 +82,6 @@ public class FavouritesManager {
         });
 
         webYouTubeFavView.findViewById(R.id.url_add_btn).setOnClickListener(v -> {
-            SearchManager.isYouTube = false;
             adding_to_fav = true;
             Log.w(TAG, "URL add!");
             Controller.getInstance().getWebManager().showWebLaunchDialog(adding_to_fav);

@@ -180,6 +180,7 @@ public class CuratedContentManager {
 
             DispatchManager.sendActionToSelected(Controller.ACTION_TAG,
                     Controller.OPEN_CURATED_CONTENT + filterString, NearbyPeersManager.getAllPeerIDs());
+            Controller.getInstance().getDialogManager().showConfirmPushDialog(false, FavouritesManager.adding_to_fav);
         });
 
         curatedContentScreen.findViewById(R.id.filter_button).setOnClickListener(view -> {

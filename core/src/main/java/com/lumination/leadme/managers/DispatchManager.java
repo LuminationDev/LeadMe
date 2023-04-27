@@ -1,5 +1,7 @@
 package com.lumination.leadme.managers;
 
+import static com.lumination.leadme.LeadMeMain.UIHandler;
+
 import android.app.AlertDialog;
 import android.os.Parcel;
 import android.util.Log;
@@ -250,7 +252,11 @@ public class DispatchManager {
                         dispatchAction.launchYoutube(action);
 
                     } else if (action.startsWith(Controller.OPEN_CURATED_CONTENT)) {
-                        dispatchAction.openCuratedContent(action);
+                        LeadMeMain.getInstance().recallToLeadMe();
+                        UIHandler.postDelayed(() -> {
+                            dispatchAction.openCuratedContent(action);
+                        }, 1000);
+
                     } else {
                         dispatchAction.askPermission(action);
                         dispatchAction.updatePeerStatus(action);
@@ -308,7 +314,7 @@ public class DispatchManager {
             } else {
                 Log.d(TAG, "HAVE FOCUS!");
                 launchAppOnFocus = null; //reset
-                LeadMeMain.UIHandler.post(() -> Controller.getInstance().getAppManager().launchLocalApp(packageName, appName, true, false, extra, null));
+                UIHandler.post(() -> Controller.getInstance().getAppManager().launchLocalApp(packageName, appName, true, false, extra, null));
 
             }
             return true;

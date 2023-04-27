@@ -67,7 +67,8 @@ public class DialogManager {
             updateDialog,
             vrContentTypeDialog,
             firstTimeVRDialog,
-            vrInstallDialog;
+            vrInstallDialog,
+            imageTooBigDialog;
 
     private TextView appPushMessageView,
             warningDialogTitle,
@@ -135,6 +136,7 @@ public class DialogManager {
         setupVRFirstTime();
         setupFileTypes();
         setupRequestDialog();
+        setupImageTooBigDialog();
     }
 
     //SETUP FUNCTIONS
@@ -154,6 +156,23 @@ public class DialogManager {
         waitingDialog.setCancelable(false);
 
         waitingDialog.setOnDismissListener(dialog -> LeadMeMain.getInstance().hideSystemUI());
+    }
+
+    private void setupImageTooBigDialog() {
+        View imageDialogView = View.inflate(main, R.layout.image_too_big_dialog, null);
+        Button closeBtn = imageDialogView.findViewById(R.id.close_btn);
+        closeBtn.setOnClickListener(v -> {
+            dialogShowing = false;
+            imageTooBigDialog.dismiss();
+        });
+
+        imageTooBigDialog = new AlertDialog.Builder(main)
+                .setView(imageDialogView)
+                .create();
+
+        imageTooBigDialog.setCancelable(false);
+
+        imageTooBigDialog.setOnDismissListener(dialog -> LeadMeMain.getInstance().hideSystemUI());
     }
 
     private void setupAppPushDialog() {
@@ -613,6 +632,13 @@ public class DialogManager {
         }
     }
 
+    public void showImageTooBigDialog() {
+        if (imageTooBigDialog == null) {
+            setupImageTooBigDialog();
+        }
+        imageTooBigDialog.show();
+    }
+
     /**
      * Show confirmation for an application being pushed to learners.
      * @param isApp A boolean determining if the push is for an app or website.
@@ -919,8 +945,6 @@ public class DialogManager {
 
         dialogShowing = (waitingDialog != null && waitingDialog.isShowing()) || (loginDialog != null && loginDialog.isShowing());
         Log.d(TAG, "Are they showing now?? " + (waitingDialog != null && waitingDialog.isShowing()) + " || " + (loginDialog != null && loginDialog.isShowing()));
-
-
     }
 
     private void setupLoginDialogView() {
@@ -1154,6 +1178,9 @@ public class DialogManager {
         if (waitingDialog != null) {
             waitingDialog.dismiss();
         }
+        if (imageTooBigDialog != null) {
+            imageTooBigDialog.dismiss();
+        }
         if (warningDialog != null) {
             warningDialog.dismiss();
         }
@@ -1227,7 +1254,7 @@ public class DialogManager {
 
             if(leader) {
                 WebManager webManager = new WebManager(main);
-                webManager.showPreview(link);
+                webManager.showPreview(link, true);
             } else {
                 CuratedContentManager.curatedContentScreen.findViewById(R.id.back_btn).setOnClickListener(view -> main.leadmeAnimator.setDisplayedChild(main.ANIM_LEARNER_INDEX));
                 NetworkService.receiveMessage("ACTION," + DispatchManager.encodeMessage("Action", Controller.LAUNCH_URL + link + ":::" + title));
