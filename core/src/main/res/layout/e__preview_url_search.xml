@@ -105,44 +105,6 @@
             android:layout_marginEnd="10dp"
             android:gravity="center_horizontal|fill_horizontal"
             android:orientation="horizontal">
-
-            <androidx.cardview.widget.CardView
-                android:layout_width="65dp"
-                android:layout_height="50dp"
-                android:layout_margin="5dp"
-                android:layout_marginStart="-10dp"
-                app:cardBackgroundColor="@color/leadme_white"
-                app:cardCornerRadius="10dp"
-                app:cardElevation="5dp"
-                app:layout_gravity="center_vertical">
-
-                <ImageView
-                    android:id="@+id/down_arrow"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="start|center_vertical"
-                    android:paddingStart="5dp"
-                    android:src="@drawable/down_arrow" />
-
-                <Spinner
-                    android:id="@+id/search_spinner"
-                    android:layout_width="80dp"
-                    android:layout_height="70dp"
-                    android:layout_marginStart="-5dp"
-                    android:layout_marginTop="-10dp"
-                    android:background="@color/leadme_white"
-                    android:dropDownWidth="wrap_content"
-                    android:gravity="top"
-                    android:padding="0dp"
-                    android:popupBackground="@drawable/rounded_popup_white"
-                    android:popupElevation="5dp"
-                    android:popupTheme="@style/popupStyle"
-                    android:spinnerMode="dropdown"
-                    android:theme="@style/MatchSpinnerTheme"
-                    android:translationZ="-10dp"
-                    tools:listitem="@layout/row_search_spinner" />
-            </androidx.cardview.widget.CardView>
-
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"

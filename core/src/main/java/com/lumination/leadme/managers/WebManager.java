@@ -47,6 +47,7 @@ public class WebManager {
     private final View websiteLaunchDialogView;
     private final View previewDialogView;
     public boolean lastWasGuideView = false;
+    private boolean launch = false;
 
     private ImageView previewImage;
     private TextView previewTitle;
@@ -116,7 +117,6 @@ public class WebManager {
                 hidePreviewDialog();
                 String searchTerm = sourceContent.getUrl().replace("http://", "").replace("https://", "").replace("www.", "").replace(".com/", "");
                 Log.d(TAG, "UnknownHostHandler: search: " + searchTerm);
-                SearchManager.isYouTube = false;
                 searchManager.setErrorPreview(searchTerm);
             } else {
                 // Populate your preview layout with the results of sourceContent.
@@ -144,20 +144,11 @@ public class WebManager {
                 try {
                     UrlImageViewHelper.setUrlDrawable(previewImage, icon, (imageView, loadedBitmap, url, loadedFromCache) -> {
 
-                        if (SearchManager.isYouTube) {
-                            favouritesManager.getYouTubeFavouritesAdapter().updateTitle(url, previewTitle.getText().toString());
-                            youTubeEmbedPlayer.updateTitle(previewTitle.getText().toString());
-                        } else {
-                            favouritesManager.getUrlFavouritesAdapter().updateTitle(url, previewTitle.getText().toString());
-                        }
+                        favouritesManager.getUrlFavouritesAdapter().updateTitle(url, previewTitle.getText().toString());
 
                         if (loadedBitmap != null) {
                             previewImage.setVisibility(View.VISIBLE); //show image
-                            if (SearchManager.isYouTube) {
-                                favouritesManager.getYouTubeFavouritesAdapter().updatePreview(url, previewImage.getDrawable());
-                            } else {
-                                favouritesManager.getUrlFavouritesAdapter().updatePreview(url, previewImage.getDrawable());
-                            }
+                            favouritesManager.getUrlFavouritesAdapter().updatePreview(url, previewImage.getDrawable());
 
                         } else {
                             Log.d(TAG, "onPos: ERROR URL not valid");
@@ -202,22 +193,29 @@ public class WebManager {
         previewPushBtn.setOnClickListener(v -> {
             //save to favourites if needed
             if (/*FavouritesManager.adding_to_fav ||*/ saveWebToFav.isChecked()) {
-                if (SearchManager.isYouTube) {
-                    favouritesManager.getYouTubeFavouritesAdapter().addCurrentPreviewToFavourites(getPushURL(), getPreviewTitle(), getPreviewImage());
-                } else {
-                    favouritesManager.getUrlFavouritesAdapter().addCurrentPreviewToFavourites(getPushURL(), getPreviewTitle(), getPreviewImage());
-                }
+                favouritesManager.getUrlFavouritesAdapter().addCurrentPreviewToFavourites(getPushURL(), getPreviewTitle(), getPreviewImage());
             }
 
             //if we're not only saving to favourites, push it to learners
             if (!FavouritesManager.adding_to_fav) {
                 //retrieve appropriate list of receivers
-                pushURL(pushURL, pushTitle);
+                if (websiteLaunchDialog != null) {
+                    websiteLaunchDialog.dismiss();
+                }
+                if (launch) {
+                    pushURL(pushURL, pushTitle);
+                    Controller.getInstance().getDialogManager().showConfirmPushDialog(false, FavouritesManager.adding_to_fav);
+                } else {
+                    Controller.getInstance().getDialogManager().createContentLaunchChoiceDialog(
+                            "URL Launch",
+                            pushURL,
+                            LeadMeMain.isGuide
+                    );
+                }
             }
 
             //clean up dialogs
             hidePreviewDialog();
-            Controller.getInstance().getDialogManager().showConfirmPushDialog(false, FavouritesManager.adding_to_fav);
             FavouritesManager.adding_to_fav = false;
 
             //reset
@@ -434,7 +432,6 @@ public class WebManager {
 
     private void showYouTubePreview(String url) {
         Log.d(TAG, "showYouTubePreview: ");
-        SearchManager.isYouTube = true;
         //first position is 'locked' - default for YouTube
         lockSpinner.setSelection(1);
         buildAndShowPreviewDialog(url);
@@ -442,7 +439,6 @@ public class WebManager {
 
     private void showWebsitePreview(String url) {
         Log.d(TAG, "showWebsitePreview: ");
-        SearchManager.isYouTube = false;
         //second position is 'unlocked' - default for website
         lockSpinner.setSelection(1);
         buildAndShowPreviewDialog(url);
@@ -459,17 +455,10 @@ public class WebManager {
 
         pushURL = url;
 
-        if (SearchManager.isYouTube) {
-            lockSpinner.setSelection(1); //default to locked
-            pushTitle = favouritesManager.getYouTubeFavouritesAdapter().getTitle(url);
-            previewDialogView.findViewById(R.id.preview_youtube).setVisibility(View.VISIBLE);
-            previewDialogView.findViewById(R.id.preview_web).setVisibility(View.GONE);
-        } else {
-            lockSpinner.setSelection(1); //default to unlocked
-            pushTitle = favouritesManager.getUrlFavouritesAdapter().getTitle(url);
-            previewDialogView.findViewById(R.id.preview_web).setVisibility(View.VISIBLE);
-            previewDialogView.findViewById(R.id.preview_youtube).setVisibility(View.GONE);
-        }
+        lockSpinner.setSelection(1); //default to unlocked
+        pushTitle = favouritesManager.getUrlFavouritesAdapter().getTitle(url);
+        previewDialogView.findViewById(R.id.preview_web).setVisibility(View.VISIBLE);
+        previewDialogView.findViewById(R.id.preview_youtube).setVisibility(View.GONE);
 
         if (pushTitle == null && !previewTitle.getText().toString().equals("Website title")) {
             pushTitle = previewTitle.getText().toString();
@@ -482,11 +471,6 @@ public class WebManager {
             LeadMeMain.runOnUI(() -> previewPushBtn.setText(main.getResources().getString(R.string.add_this_app_to_favourites)));
             favCheckbox.setChecked(true);
             favCheckbox.setVisibility(View.GONE);
-        } else if (SearchManager.isYouTube) {
-            LeadMeMain.runOnUI(() -> previewPushBtn.setText(main.getResources().getString(R.string.push_this_to_everyone)));
-            favCheckbox.setChecked(favouritesManager.getYouTubeFavouritesAdapter().isInFavourites(url));
-            youTubeEmbedPlayer.showPlaybackPreview(pushURL, pushTitle);
-            return;
         } else {
             LeadMeMain.runOnUI(() -> previewPushBtn.setText(main.getResources().getString(R.string.push_this_to_everyone)));
             favCheckbox.setChecked(favouritesManager.getUrlFavouritesAdapter().isInFavourites(url));
@@ -509,16 +493,11 @@ public class WebManager {
 
     public void showWebLaunchDialog(boolean isYT, boolean add_fav_mode) {
         Log.d(TAG, "showWebLaunchDialog: ");
-        SearchManager.isYouTube = isYT;
         showWebLaunchDialog(add_fav_mode);
     }
 
     public void showWebLaunchDialog(boolean add_fav_mode) {
         Log.d(TAG, "showWebLaunchDialog: ");
-        if (SearchManager.isYouTube && lastWasGuideView) {
-            youTubeEmbedPlayer.showVideoController(); //null, null);
-            return;
-        }
 
         if (websiteLaunchDialog == null) {
             websiteLaunchDialog = new AlertDialog.Builder(main)
@@ -561,12 +540,7 @@ public class WebManager {
                 return;
             }
 
-            websiteLaunchDialog.dismiss();
-            Controller.getInstance().getDialogManager().createContentLaunchChoiceDialog(
-                    "URL Launch",
-                    url,
-                    LeadMeMain.isGuide
-            );
+            showPreview(url);
         });
 
         websiteLaunchDialogView.findViewById(R.id.back_btn).setOnClickListener(v -> {
@@ -584,6 +558,12 @@ public class WebManager {
     }
 
     public void showPreview(String url) {
+        showPreview(url, false);
+    }
+
+
+    public void showPreview(String url, boolean launch) {
+        this.launch = launch;
         Log.d(TAG, "showPreview: ");
         Log.d(TAG, "showPreview: ");
         main.closeKeyboard();
@@ -613,15 +593,9 @@ public class WebManager {
                 hidePreviewDialog();
                 String searchTerm = url.replace("http://", "").replace("https://", "").replace("www.", "").replace(".com/", "");
                 Log.d(TAG, "UnknownHostHandler: search: " + searchTerm);
-                SearchManager.isYouTube = false;
                 searchManager.setErrorPreview(searchTerm);
                 return;
             }
-        }
-
-        String youTubeId = getYouTubeID(url);
-        if (!youTubeId.isEmpty()) {
-            SearchManager.isYouTube = true;
         }
 
         //hide preview image and title
@@ -637,13 +611,8 @@ public class WebManager {
 
         Drawable preview;
         String title;
-        if (SearchManager.isYouTube) {
-            title = favouritesManager.getYouTubeFavouritesAdapter().getTitle(url);
-            preview = favouritesManager.getYouTubeFavouritesAdapter().getPreview(url);
-        } else {
-            title = favouritesManager.getUrlFavouritesAdapter().getTitle(url);
-            preview = favouritesManager.getUrlFavouritesAdapter().getPreview(url);
-        }
+        title = favouritesManager.getUrlFavouritesAdapter().getTitle(url);
+        preview = favouritesManager.getUrlFavouritesAdapter().getPreview(url);
 
         if (preview == null || title == null) {
             //generate correct information
@@ -663,14 +632,8 @@ public class WebManager {
             previewImage.invalidate(); //refresh
         }
 
-        Log.w(TAG, "Is it a youtube preview? " + youTubeId);
-        if (!youTubeId.isEmpty()) {
-            hideWebsiteLaunchDialog();
-            showYouTubePreview(url);
-        } else {
-            hideWebsiteLaunchDialog();
-            showWebsitePreview(url);
-        }
+        hideWebsiteLaunchDialog();
+        showWebsitePreview(url);
     }
 
     @SuppressWarnings("SpellCheckingInspection")

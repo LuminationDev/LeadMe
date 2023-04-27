@@ -18,6 +18,7 @@ import android.widget.Toast;
 
 import androidx.core.content.ContextCompat;
 import androidx.core.widget.ImageViewCompat;
+import androidx.documentfile.provider.DocumentFile;
 
 import com.lumination.leadme.LeadMeMain;
 import com.lumination.leadme.R;
@@ -152,6 +153,13 @@ public class VREmbedPhotoPlayer {
         Log.e(TAG, path);
         Log.e(TAG, this.fileName);
 
+        int fileSize = Integer.parseInt(String.valueOf(file.length()/1024));
+        if (fileSize > 1000000) {
+            Log.e(TAG, "VR Image is way too big");
+            Controller.getInstance().getDialogManager().showImageTooBigDialog();
+            return;
+        }
+
         //In case a file is not chosen or there is an error
         if(path == null || this.fileName == null) {
             Log.e(TAG, "File is missing or path is incorrect");
@@ -182,6 +190,14 @@ public class VREmbedPhotoPlayer {
         //In case a file is not chosen or there is an error
         if(path == null || this.fileName == null) {
             Log.e(TAG, "File is missing or path is incorrect");
+            return;
+        }
+
+        DocumentFile file = DocumentFile.fromSingleUri(main.getApplicationContext(), path);
+        int fileSize = Integer.parseInt(String.valueOf(file.length()/1024));
+        if (fileSize > 1000000) {
+            Log.e(TAG, "VR Image is way too big");
+            Controller.getInstance().getDialogManager().showImageTooBigDialog();
             return;
         }
 

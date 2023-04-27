@@ -36,11 +36,6 @@ public class SearchManager {
 
     private final String TAG = "SearchManager";
 
-    public static boolean isYouTube = false;
-
-    private final Spinner searchSpinner;
-    private final String[] searchSpinnerItems;
-
     private AlertDialog searchDialog;
     private final AlertDialog originalDialog;
     private final View searchDialogView;
@@ -50,7 +45,6 @@ public class SearchManager {
 
     //private boolean searchYoutube = true;
     private final int SEARCH_WEB = 0;
-    private final int SEARCH_YOUTUBE = 1;
     private int searchType = SEARCH_WEB;
     private WebView searchWebView;
 
@@ -65,18 +59,6 @@ public class SearchManager {
             originalDialog.dismiss();
             buildAndShowSearchDialog();
         });
-
-        searchSpinner = (Spinner) searchDialogView.findViewById(R.id.search_spinner);
-        searchSpinnerItems = new String[2];
-        initialiseSpinner();
-    }
-
-    private void initialiseSpinner() {
-        searchSpinnerItems[0] = "Google search";
-        searchSpinnerItems[1] = "YouTube search";
-        Integer[] search_imgs = {R.drawable.search_google, R.drawable.search_yt};
-        LumiSpinnerAdapter search_adapter = new LumiSpinnerAdapter(main, R.layout.row_search_spinner, searchSpinnerItems, search_imgs);
-        searchSpinner.setAdapter(search_adapter);
     }
 
     public void setErrorPreview(String searchTerm) {
@@ -142,46 +124,9 @@ public class SearchManager {
             searchView.setMaxWidth(Integer.MAX_VALUE); //ensures it fills whole space on init
 
             if (searchView.getQuery().length() > 0) {
-                if (!isYouTube) {
-                    searchWebView.setVisibility(View.VISIBLE);
-                    //fixes the webpage loading in background
-                    searchWebView.loadUrl("https://www.google.com/search?q=" + searchView.getQuery());
-                }
-            }
-            if(searchType == SEARCH_YOUTUBE){
-                searchSpinner.setSelection(1);
-            }
-            searchSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-                @Override
-                public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                    Log.d(TAG, "Search mode: " + searchSpinnerItems[position]);
-
-                    if (searchSpinnerItems[position].startsWith("YouTube")) {
-                        ((TextView) searchDialogView.findViewById(R.id.web_search_title)).setText(R.string.search_youtube);
-                        searchType = SEARCH_YOUTUBE;
-
-                    } else if (searchSpinnerItems[position].startsWith("Google")) {
-                        ((TextView) searchDialogView.findViewById(R.id.web_search_title)).setText(R.string.search_web);
-                        searchType = SEARCH_WEB;
-
-                    }
-                    searchText(searchView.getQuery().toString());
-                }
-
-
-                @Override
-                public void onNothingSelected(AdapterView<?> parent) {
-                    //no action
-                }
-            });
-
-            switch(searchType){
-                case SEARCH_WEB:
-                    searchSpinner.setSelection(0);
-                    break;
-                case SEARCH_YOUTUBE:
-                    searchSpinner.setSelection(1);
-                    break;
+                searchWebView.setVisibility(View.VISIBLE);
+                //fixes the webpage loading in background
+                searchWebView.loadUrl("https://www.google.com/search?q=" + searchView.getQuery());
             }
 
             searchDialog.findViewById(R.id.back_btn).setOnClickListener(v -> {
@@ -195,20 +140,6 @@ public class SearchManager {
         } else {
             searchDialogView.findViewById(R.id.url_search_bar).requestFocus();
             searchDialog.show();
-        }
-
-
-        Log.w(TAG, "Is this from YouTube? " + isYouTube);
-
-        switch(searchType){
-            case SEARCH_WEB:
-                isYouTube=false;
-                searchSpinner.setSelection(0);
-                break;
-            case SEARCH_YOUTUBE:
-                isYouTube=true;
-                searchSpinner.setSelection(1);
-                break;
         }
         populateSearch();
     }
@@ -240,18 +171,7 @@ public class SearchManager {
         if (newText.length() > 0) {
             searchWebView.setVisibility(View.VISIBLE);
         }
-//
-        //filters the search results
-        if (searchType == SEARCH_YOUTUBE) {
-            searchWebView.loadUrl("https://www.google.com/search?q=" + newText + "&tbm=vid&as_sitesearch=youtube.com"); //for youtube
-            //swap the above line with the one below to index youtube's site directly
-            //NOTE - if this is used, will need to change triggers for when to show preview
-            // (currently loads preview for anything that doesn't begin with google.com)
-            //web.loadUrl("https://www.youtube.com/results?search_query="+newText);
-
-        } else {
-            searchWebView.loadUrl("https://www.google.com/search?q=" + newText);
-        }
+        searchWebView.loadUrl("https://www.google.com/search?q=" + newText);
 
 
         searchWebView.setWebViewClient(new WebViewClient() {
