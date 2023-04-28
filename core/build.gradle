@@ -2,9 +2,9 @@ apply plugin: 'com.android.application'
 apply plugin: 'com.google.gms.google-services'
 apply plugin: 'com.google.firebase.crashlytics'
 
-//def keyStorePropertiesFile = rootProject.file("keystore.properties")
-//def keyStoreProperties = new Properties()
-//keyStoreProperties.load(new FileInputStream(keyStorePropertiesFile))
+def keyStorePropertiesFile = rootProject.file("keystore.properties")
+def keyStoreProperties = new Properties()
+keyStoreProperties.load(new FileInputStream(keyStorePropertiesFile))
 
 android {
     compileSdkVersion 33
@@ -19,29 +19,29 @@ android {
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
 
-//    signingConfigs {
-//        release {
-//            keyAlias keyStoreProperties['releaseKeyAlias']
-//            keyPassword keyStoreProperties['releaseKeyPassword']
-//            storeFile keyStoreProperties['releaseKeyStore'] ? file(keyStoreProperties['releaseKeyStore']) : null
-//            storePassword keyStoreProperties['releaseStorePassword']
-//        }
-//    }
+    signingConfigs {
+        release {
+            keyAlias keyStoreProperties['releaseKeyAlias']
+            keyPassword keyStoreProperties['releaseKeyPassword']
+            storeFile keyStoreProperties['releaseKeyStore'] ? file(keyStoreProperties['releaseKeyStore']) : null
+            storePassword keyStoreProperties['releaseStorePassword']
+        }
+    }
 
-//    buildTypes {
-////        debug {
-////            minifyEnabled true
-////            shrinkResources true
-////            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
-////        }
-//
-//        release {
-//            signingConfig signingConfigs.release
+    buildTypes {
+//        debug {
 //            minifyEnabled true
 //            shrinkResources true
 //            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
 //        }
-//    }
+
+        release {
+            signingConfig signingConfigs.release
+            minifyEnabled true
+            shrinkResources true
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
+        }
+    }
 
     dataBinding {
         enabled true
