@@ -16,9 +16,8 @@
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
 <!--    <uses-permission android:name="android.permission.NFC" />-->
     <permission android:name="android.permission.GET_TASKS"/>
-    <uses-permission
-        android:name="android.permission.PACKAGE_USAGE_STATS"
-        tools:ignore="ProtectedPermissions" />
+    <permission android:name="android.permission.PACKAGE_USAGE_STATS"/>
+    <uses-permission android:name="android.permission.PACKAGE_USAGE_STATS" />
 
     <!-- needed for core activity management functions -->
     <uses-permission android:name="android.permission.REORDER_TASKS" />
@@ -74,6 +73,8 @@
         android:allowBackup="true">
         <meta-data android:name="google_analytics_adid_collection_enabled" android:value="false" />
         <meta-data android:name="io.sentry.dsn" android:value="https://dfcd6d087aa340319216257e583f49d6@o1294571.ingest.sentry.io/4503969052229632" />
+        <meta-data android:name="android.permission.PACKAGE_USAGE_STATS"
+            android:value="Our app is a learning management app that allows students to connect to a teachers classroom. This permission allows us to indicate to a teacher when a student may be off task, and to return them to their assigned task." />
         <activity
             android:name="com.lumination.leadme.LeadMeMain"
             android:screenOrientation="portrait"
