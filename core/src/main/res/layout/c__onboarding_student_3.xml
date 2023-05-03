@@ -37,7 +37,7 @@
             android:layout_height="wrap_content"
             android:fontFamily="@font/poppins_regular"
             android:gravity="center"
-            android:text="Overlay has been switched on for LeadMe. Continue to Step 2." />
+            android:text="Overlay has been switched on for LeadMe. Continue to Step 3." />
 
         <ImageView
             android:layout_width="350dp"

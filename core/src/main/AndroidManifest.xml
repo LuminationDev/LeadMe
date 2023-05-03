@@ -23,8 +23,6 @@
 
     <!-- needed for core activity management functions -->
     <uses-permission android:name="android.permission.REORDER_TASKS" />
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
-    <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
     <uses-permission android:name="android.permission.EXPAND_STATUS_BAR" />
 
@@ -34,7 +32,9 @@
     <permission android:name="android.permission.QUERY_ALL_PACKAGES"/>
 
     <!-- used for file transfer and VR controller -->
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32"/>
+    <uses-permission android:name="android.permission.READ_MEDIA_VIDEO"/>
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES"/>
 
     <!-- for screen monitoring service-->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
@@ -72,6 +72,9 @@
         android:largeHeap="true"
         android:networkSecurityConfig="@xml/network_security_config"
         android:requestLegacyExternalStorage="true"
+        android:screenOrientation="portrait"
+        android:alwaysRetainTaskState="true"
+        android:allowTaskReparenting="true"
         android:allowBackup="true">
         <meta-data android:name="google_analytics_adid_collection_enabled" android:value="false" />
         <meta-data android:name="io.sentry.dsn" android:value="https://dfcd6d087aa340319216257e583f49d6@o1294571.ingest.sentry.io/4503969052229632" />
@@ -89,6 +92,10 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <service
+            android:name=".services.ForegroundService"
+            android:enabled="true"
+            android:exported="true"/>
         <service
             android:enabled="true"
             android:name=".services.FirebaseService"

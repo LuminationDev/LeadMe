@@ -17,6 +17,8 @@ import android.provider.Settings;
 import android.util.Log;
 import android.widget.Toast;
 
+import androidx.annotation.RequiresApi;
+
 import com.gun0912.tedpermission.PermissionListener;
 import com.gun0912.tedpermission.TedPermission;
 import com.lumination.leadme.LeadMeMain;
@@ -32,12 +34,13 @@ public class PermissionManager {
     private final LeadMeMain main;
 //    private PermissionListener overlayPermissionListener;
     private final PermissionListener nearbyPermissionListener;
+    private final PermissionListener mediaPermissionListener;
     private final PermissionListener storagePermissionListener;
     private final PermissionListener miscPermissionListener;
     private final ArrayList<String> rejectedPermissions = new ArrayList<>();
 
 
-    private boolean overlayPermissionGranted = false, nearbyPermissionsGranted = false, storagePermissionsGranted = false, usageGranted = false;
+    private boolean overlayPermissionGranted = false, nearbyPermissionsGranted = false, storagePermissionsGranted = false, usageGranted = false, mediaPermissionsGranted = false;
     public static boolean waitingForPermission = false;
 
     public PermissionManager(LeadMeMain main) {
@@ -59,6 +62,28 @@ public class PermissionManager {
             @Override
             public void onPermissionDenied(List<String> deniedPermissions) {
                 nearbyPermissionsGranted = false; //not all granted
+                waitingForPermission = false; //no longer waiting
+                rejectedPermissions.clear();
+                rejectedPermissions.addAll(deniedPermissions);
+            }
+        };
+
+        mediaPermissionListener = new PermissionListener() {
+            @Override
+            public void onPermissionGranted() {
+                mediaPermissionsGranted = main.checkSelfPermission(Manifest.permission.READ_MEDIA_VIDEO) == PackageManager.PERMISSION_GRANTED &&
+                        main.checkSelfPermission(Manifest.permission.READ_MEDIA_IMAGES) == PackageManager.PERMISSION_GRANTED;
+                waitingForPermission = false; //no longer waiting
+
+                //Log.d(TAG, "Nearby permission granted? " + nearbyPermissionsGranted + ", " + main.checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) + ", " + main.checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION));
+                if (mediaPermissionsGranted) {
+                    main.performNextAction();
+                }
+            }
+
+            @Override
+            public void onPermissionDenied(List<String> deniedPermissions) {
+                mediaPermissionsGranted = false; //not all granted
                 waitingForPermission = false; //no longer waiting
                 rejectedPermissions.clear();
                 rejectedPermissions.addAll(deniedPermissions);
@@ -141,6 +166,13 @@ public class PermissionManager {
         return nearbyPermissionsGranted;
     }
 
+    public boolean isMediaPermissionsGranted() {
+        mediaPermissionsGranted = main.checkSelfPermission(Manifest.permission.READ_MEDIA_VIDEO) == PackageManager.PERMISSION_GRANTED &&
+                main.checkSelfPermission(Manifest.permission.READ_MEDIA_IMAGES) == PackageManager.PERMISSION_GRANTED;
+        //Log.d(TAG, "IsNearbyPermissionGranted? " + nearbyPermissionsGranted);
+        return mediaPermissionsGranted;
+    }
+
     public boolean isStoragePermissionsGranted() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             storagePermissionsGranted =  Environment.isExternalStorageManager();
@@ -189,6 +221,23 @@ public class PermissionManager {
                 .setPermissionListener(nearbyPermissionListener)
                 .setDeniedMessage(rationaleMsg)
                 .setPermissions(Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION)
+                .check();
+    }
+
+    /**
+     * Checking if the device has ACCESS_COARSE_LOCATION or ACCESS_FINE_LOCATION permission on. This
+     * is for finding nearby guides on a local network.
+     */
+    @RequiresApi(api = Build.VERSION_CODES.TIRAMISU)
+    public void checkMediaPermissions() {
+        //Log.d(TAG, "Checking Nearby Permissions. Currently " + nearbyPermissionsGranted + ", " + rejectedPermissions);
+        waitingForPermission = true;
+        String rationaleMsg = "Please enable media permissions to video VR content.";
+
+        TedPermission.with(main)
+                .setPermissionListener(mediaPermissionListener)
+                .setDeniedMessage(rationaleMsg)
+                .setPermissions(Manifest.permission.READ_MEDIA_VIDEO, Manifest.permission.READ_MEDIA_IMAGES)
                 .check();
     }
 
