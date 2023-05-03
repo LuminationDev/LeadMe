@@ -195,7 +195,7 @@ public class VREmbedPhotoPlayer {
 
         DocumentFile file = DocumentFile.fromSingleUri(main.getApplicationContext(), path);
         int fileSize = Integer.parseInt(String.valueOf(file.length()/1024));
-        if (fileSize > 1000000) {
+        if (fileSize > 5000) {
             Log.e(TAG, "VR Image is way too big");
             Controller.getInstance().getDialogManager().showImageTooBigDialog();
             return;

@@ -95,6 +95,7 @@ import com.lumination.leadme.managers.NetworkManager;
 import com.lumination.leadme.managers.PermissionManager;
 import com.lumination.leadme.managers.WebManager;
 import com.lumination.leadme.players.VREmbedVideoPlayer;
+import com.lumination.leadme.services.ForegroundService;
 import com.lumination.leadme.services.NetworkService;
 import com.lumination.leadme.utilities.FileUtilities;
 import com.lumination.leadme.utilities.OnboardingGestureDetector;
@@ -506,8 +507,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                 setandDisplayStudentOnBoard(0);
             } else if (!Controller.getInstance().getPermissionsManager().isOverlayPermissionGranted()) {
                 setandDisplayStudentOnBoard(1);
-            } else if (!Controller.getInstance().getPermissionsManager().isStoragePermissionsGranted()) {
-                setandDisplayStudentOnBoard(2);
             } else {
                 setandDisplayStudentOnBoard(3);
             }
@@ -1341,6 +1340,11 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         if (!Controller.getInstance().getPermissionsManager().isNearbyPermissionsGranted()) {
             Controller.getInstance().getPermissionsManager().checkNearbyPermissions();
         }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (!Controller.getInstance().getPermissionsManager().isMediaPermissionsGranted()) {
+                Controller.getInstance().getPermissionsManager().checkMediaPermissions();
+            }
+        }
     }
 
     /**
@@ -1688,8 +1692,6 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                 setandDisplayStudentOnBoard(0);
             } else if (!Controller.getInstance().getPermissionsManager().isOverlayPermissionGranted()) {
                 setandDisplayStudentOnBoard(1);
-            } else if (!Controller.getInstance().getPermissionsManager().isStoragePermissionsGranted()) {
-                setandDisplayStudentOnBoard(2);
             } else {
                 setandDisplayStudentOnBoard(3);
             }
@@ -2018,9 +2020,11 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         closeKeyboard();
         getLumiAccessibilityConnector().bringMainToFront(); //call each other until it works
 
-        Intent intent = new Intent(this, LeadMeMain.class);
-        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-        intent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+        Intent intent = new Intent(context, LeadMeMain.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK); // You need this if starting
+        //  the activity from a service
+        intent.setAction(Intent.ACTION_MAIN);
+        intent.addCategory(Intent.CATEGORY_LAUNCHER);
         startActivity(intent);
         AppManager.lastApp = intent.getPackage();
         activityManager.moveTaskToFront(getTaskId(), ActivityManager.MOVE_TASK_WITH_HOME);
@@ -2453,13 +2457,13 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
                 scheduledCheck = scheduledExecutorService.scheduleAtFixedRate(() -> {
                     if (Controller.getInstance().getPermissionsManager().isOverlayPermissionGranted()) {
                         runOnUiThread(() -> {
-                            setandDisplayStudentOnBoard(2);
+                            setandDisplayStudentOnBoard(3);
                         });
                         scheduledCheck.cancel(true);
                     }
                 },100,200,TimeUnit.MILLISECONDS);
                 if (Controller.getInstance().getPermissionsManager().isOverlayPermissionGranted()) {
-                    setandDisplayStudentOnBoard(2);
+                    setandDisplayStudentOnBoard(3);
                 }
                 Controller.getInstance().getPermissionsManager().checkOverlayPermissions();
             });
@@ -2512,6 +2516,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             setContentView(leadmeAnimator);
             OnBoardStudentInProgress = false;
             updateFollowerCurrentTaskToLeadMe();
+            startForegroundService(new Intent(this, ForegroundService.class));
 
             //Check if LeadMe has focus, only try to connect if in the application
             scheduledCheck = scheduledExecutorService.scheduleAtFixedRate(() -> {

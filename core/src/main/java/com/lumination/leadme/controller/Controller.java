@@ -149,7 +149,7 @@ public class Controller {
             if(FirebaseManager.getServerIP().length()>0){
                 LeadMeMain.getInstance().setandDisplayStudentOnBoard(3);
             } else {
-                LeadMeMain.getInstance().setandDisplayStudentOnBoard(2);
+                LeadMeMain.getInstance().setandDisplayStudentOnBoard(3);
             }
         } else {
             LeadMeMain.getInstance().setandDisplayStudentOnBoard(1);
