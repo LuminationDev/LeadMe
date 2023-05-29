@@ -1344,6 +1344,10 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
             if (!Controller.getInstance().getPermissionsManager().isMediaPermissionsGranted()) {
                 Controller.getInstance().getPermissionsManager().checkMediaPermissions();
             }
+        } else {
+            if (!Controller.getInstance().getPermissionsManager().isStoragePermissionsGranted()) {
+                Controller.getInstance().getPermissionsManager().getStoragePermissions();
+            }
         }
     }
 
@@ -1531,6 +1535,8 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         if (!Controller.getInstance().getPermissionsManager().isNearbyPermissionsGranted()) {
             learnerWaitingText.setText(getResources().getString(R.string.enable_location_to_connect));
             Controller.getInstance().getPermissionsManager().checkNearbyPermissions();
+        } else if (!Controller.getInstance().getPermissionsManager().isInternetConnectionAvailable()) {
+            learnerWaitingText.setText("No internet connection available");
         } else if (!NearbyPeersManager.isConnectedAsFollower()) {
             learnerWaitingText.setText("Enter a room code to join a class");
         }

@@ -232,7 +232,7 @@ public class PermissionManager {
     public void checkMediaPermissions() {
         //Log.d(TAG, "Checking Nearby Permissions. Currently " + nearbyPermissionsGranted + ", " + rejectedPermissions);
         waitingForPermission = true;
-        String rationaleMsg = "Please enable media permissions to video VR content.";
+        String rationaleMsg = "Please enable media permissions to view video VR content.";
 
         TedPermission.with(main)
                 .setPermissionListener(mediaPermissionListener)
@@ -249,17 +249,11 @@ public class PermissionManager {
         waitingForPermission = true;
         String rationaleMsg = "Please enable Storage permissions so Guides can select and transfer videos.";
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            Intent intent = new Intent(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION);
-            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            main.startActivity(intent);
-        } else {
-            TedPermission.with(main)
-                    .setPermissionListener(storagePermissionListener)
-                    .setDeniedMessage(rationaleMsg)
-                    .setPermissions(Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE)
-                    .check();
-        }
+        TedPermission.with(main)
+                .setPermissionListener(storagePermissionListener)
+                .setDeniedMessage(rationaleMsg)
+                .setPermissions(Manifest.permission.READ_EXTERNAL_STORAGE)
+                .check();
     }
 
     private boolean successfulPing = false;
