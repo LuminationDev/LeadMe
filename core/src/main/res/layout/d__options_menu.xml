@@ -265,7 +265,7 @@
             android:layout_marginTop="50dp"
             android:orientation="horizontal"
             android:visibility="visible"
-            tools:visibility="visible">
+            tools:visibility="gone">
 
             <ImageView
                 android:layout_width="wrap_content"
