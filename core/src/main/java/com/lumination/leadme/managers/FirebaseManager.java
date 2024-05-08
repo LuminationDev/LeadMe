@@ -247,7 +247,9 @@ public class FirebaseManager {
             }
             roomReference = null;
         }
-        getDatabase().child(roomCode).removeValue();
+        if (roomCode != null) {
+            getDatabase().child(roomCode).removeValue();
+        }
         NetworkManager.reset();
     }
 

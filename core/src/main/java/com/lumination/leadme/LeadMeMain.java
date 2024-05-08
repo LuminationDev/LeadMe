@@ -445,6 +445,17 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
         openKeyboard();
     }
 
+    public void showReauthDialog() {
+        Log.d(TAG, "Showing reauth dialog");
+        if (destroying) {
+            return;
+        }
+
+        Controller.getInstance().getDialogManager().dialogShowing = true;
+        Controller.getInstance().getDialogManager().getReauthDialog().show();
+        openKeyboard();
+    }
+
     @Override
     public void onAccuracyChanged(Sensor sensor, int accuracy) {
         //not needed
@@ -1284,6 +1295,12 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
 
         });
 
+        optionsScreen.findViewById(R.id.delete_account_btn).setOnClickListener(view -> {
+            if (isGuide || !NearbyPeersManager.isConnectedAsFollower()) {
+                showReauthDialog();
+            }
+        });
+
         optionsScreen.findViewById(R.id.options_endSess).setOnClickListener(view -> {
             if (isGuide || !NearbyPeersManager.isConnectedAsFollower()) {
                 logoutResetController();
@@ -1664,7 +1681,7 @@ public class LeadMeMain extends FragmentActivity implements Handler.Callback, Se
     /**
      * Reset the application on logout so restart has a fresh slate to being with.
      */
-    private void logoutResetController() {
+    public void logoutResetController() {
         //Purposely block to make sure all students receive the disconnect command
         try {
             Thread.sleep(1000);
