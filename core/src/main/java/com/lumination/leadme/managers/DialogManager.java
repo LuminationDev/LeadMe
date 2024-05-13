@@ -24,6 +24,9 @@ import android.widget.TextView;
 import androidx.core.content.res.ResourcesCompat;
 
 import com.alimuzaffar.lib.pin.PinEntryEditText;
+import com.google.firebase.auth.AuthCredential;
+import com.google.firebase.auth.EmailAuthProvider;
+import com.google.firebase.firestore.FirebaseFirestore;
 import com.lumination.leadme.LeadMeMain;
 import com.lumination.leadme.R;
 import com.lumination.leadme.accessibility.VRAccessibilityManager;
@@ -50,6 +53,7 @@ public class DialogManager {
 
     private View confirmPushDialogView,
             loginDialogView,
+            reauthDialogView,
             toggleBtnView,
             permissionDialogView,
             requestDialogView;
@@ -60,6 +64,7 @@ public class DialogManager {
             confirmPushDialog,
             studentAlertsDialog,
             loginDialog,
+            reauthDialog,
             recallPrompt,
             permissionDialog,
             requestDialog,
@@ -131,7 +136,9 @@ public class DialogManager {
         setupVRInstallDialog();
         setupAlertsViewDialog();
         setupLoginDialogView();
+        setupReauthDialogView();
         setupLoginDialog();
+        setupReauthDialog();
         setupRecallDialog();
         setupVRFirstTime();
         setupFileTypes();
@@ -979,6 +986,70 @@ public class DialogManager {
         forgotPin.setOnClickListener(v -> main.setAndDisplayPinReset(0));
     }
 
+    private void setupReauthDialogView() {
+        inflateReauthDialog();
+
+        reauthDialogView.findViewById(R.id.login_back).setOnClickListener(view -> {
+            hideReauthDialog(true);
+        });
+    }
+
+    private void setupReauthDialog() {
+        if (reauthDialog == null) {
+            reauthDialog = new AlertDialog.Builder(main)
+                    .setView(reauthDialogView)
+                    .create();
+        }
+
+        reauthDialog.setOnDismissListener(dialog -> hideSystemUI());
+        reauthDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+
+
+        EditText email = reauthDialogView.findViewById(R.id.login_email);
+        EditText password = reauthDialogView.findViewById(R.id.login_password);
+        Button enterBtn = reauthDialogView.findViewById(R.id.login_enter);
+        Button backBtn = reauthDialogView.findViewById(R.id.login_back);
+        TextView errorText = reauthDialogView.findViewById(R.id.error_text);
+
+
+        enterBtn.setOnClickListener(view -> {
+            main.setProgressSpinner(3000, reauthDialogView.findViewById(R.id.indeterminateBar));
+            errorText.setVisibility(View.GONE);
+            if(!password.getText().toString().isEmpty() && !email.getText().toString().isEmpty()) {
+                AuthCredential credential = EmailAuthProvider
+                        .getCredential(email.getText().toString(), password.getText().toString());
+                Controller.getInstance().getAuthenticationManager().getCurrentAuthUser().reauthenticate(credential).addOnSuccessListener(task -> {
+                    FirebaseFirestore.getInstance().collection("users").document(Controller.getInstance().getAuthenticationManager().getCurrentAuthUser().getUid()).delete().addOnSuccessListener(task1 -> {
+                        Controller.getInstance().getAuthenticationManager().getCurrentAuthUser().delete().addOnSuccessListener(task3 -> {
+                            main.optionsScreen.findViewById(R.id.options_leader).setVisibility(View.GONE);
+                            main.logoutResetController();
+                        }).addOnFailureListener(failTask -> {
+                            errorText.setVisibility(View.VISIBLE);
+                            errorText.setText("Deletion failed with message: " + failTask.getMessage());
+                        });
+                    }).addOnFailureListener(failTask -> {
+                        errorText.setVisibility(View.VISIBLE);
+                        errorText.setText("Deletion failed with message: " + failTask.getMessage());
+                    });
+                }).addOnFailureListener(failTask -> {
+                    errorText.setVisibility(View.VISIBLE);
+                    errorText.setText("Deletion failed with message: " + failTask.getMessage());
+                });
+            } else {
+                errorText.setVisibility(View.VISIBLE);
+                errorText.setText(R.string.check_details);
+            }
+        });
+
+        password.setOnFocusChangeListener((view, hasFocus) -> {
+            if (hasFocus) {
+                main.getInputManager().showSoftInput(view, InputMethodManager.SHOW_FORCED);
+            }
+        });
+
+        backBtn.setOnClickListener(v -> reauthDialog.dismiss());
+    }
+
     private void setupLoginDialog() {
         if (loginDialog == null) {
             loginDialog = new AlertDialog.Builder(main)
@@ -1050,11 +1121,34 @@ public class DialogManager {
     }
 
     /**
+     * Hide the login dialog if a user has cancelled the process halfway through.
+     * @param cancelled A boolean representing if the login has been cancelled.
+     */
+    public void hideReauthDialog(boolean cancelled) {
+        Log.d(TAG, "Hiding dialog box");
+        closeKeyboard();
+        hideSystemUI();
+
+        if (reauthDialog != null) {
+            dialogShowing = false;
+            reauthDialog.dismiss();
+        }
+    }
+
+    /**
      * Get the current instance of the loginDialog.
      * @return An AlertDialog instance of the loginDialog.
      */
     public AlertDialog getLoginDialog() {
         return loginDialog;
+    }
+
+    /**
+     * Get the current instance of the reauthDialog.
+     * @return An AlertDialog instance of the reauthDialog.
+     */
+    public AlertDialog getReauthDialog() {
+        return reauthDialog;
     }
 
     /**
@@ -1088,6 +1182,16 @@ public class DialogManager {
             //TODO temporary code to allow me to skip login while testing
             loginDialogView.findViewById(R.id.name_code_entry_view).setVisibility(View.VISIBLE);
             loginDialogView.findViewById(R.id.login_signup_view).setVisibility(View.GONE);
+        }
+        return nameView;
+    }
+
+    /**
+     * Get the name of the current user.
+     * */
+    public TextView inflateReauthDialog() {
+        if (reauthDialogView == null || nameView == null) {
+            reauthDialogView = View.inflate(main, R.layout.b__reauth_popup, null);
         }
         return nameView;
     }
@@ -1174,6 +1278,9 @@ public class DialogManager {
     public void cleanUpDialogs() {
         if (loginDialog != null) {
             loginDialog.dismiss();
+        }
+        if (reauthDialog != null) {
+            reauthDialog.dismiss();
         }
         if (waitingDialog != null) {
             waitingDialog.dismiss();
