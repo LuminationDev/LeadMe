@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/relativeLayout"
+    android:layout_width="fill_parent"
+    android:layout_height="50dp"
+    android:background="@color/transparent"
+    android:fillViewport="true"
+    android:gravity="start|top"
+    android:keepScreenOn="true"
+    android:visibility="invisible">
+
+
+    <ImageView
+        android:id="@+id/overlay_lock_icon"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="10dp"
+        android:layout_marginTop="10dp"
+        android:foregroundGravity="top|left"
+        android:src="@drawable/controls_view"
+        android:visibility="visible" />
+</RelativeLayout>

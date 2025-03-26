@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#"
+	xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://www.w3.org/2000/svg"
+	xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+	xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape" version="1.1" id="Layer_1" x="0px"
+	y="0px" viewBox="0 0 154.8 155" xml:space="preserve" sodipodi:docname="search_centred.svg"
+	width="154.8" height="155" inkscape:version="1.0.1 (3bc2e813f5, 2020-09-07)"><metadata
+   id="metadata94"><rdf:RDF><cc:Work
+       rdf:about=""><dc:format>image/svg+xml</dc:format><dc:type
+	rdf:resource="http://purl.org/dc/dcmitype/StillImage" /><dc:title></dc:title></cc:Work></rdf:RDF></metadata>
+	<defs id="defs92" />
+	<sodipodi:namedview pagecolor="#ffffff" bordercolor="#666666" borderopacity="1"
+		objecttolerance="10" gridtolerance="10" guidetolerance="10" inkscape:pageopacity="0"
+		inkscape:pageshadow="2" inkscape:window-width="1920" inkscape:window-height="1017"
+		id="namedview90" showgrid="false" fit-margin-top="0" fit-margin-left="0"
+		fit-margin-right="0" fit-margin-bottom="0" inkscape:zoom="3.4530592" inkscape:cx="200.95"
+		inkscape:cy="38.25" inkscape:window-x="-8" inkscape:window-y="-8"
+		inkscape:window-maximized="1" inkscape:current-layer="Layer_1"
+		inkscape:document-rotation="0" />
+	<style type="text/css" id="style53">
+	.st0{fill:#F4F495;}
+	.st1{fill:#7050A1;}
+	.st2{fill:#C36CC4;}
+	.st3{fill:#FFA896;}
+	.st4{fill:#E7B9E2;}
+	.st5{fill:#653A8E;}
+	.st6{fill:#B04EAD;}
+	.st7{fill:#E77985;}
+	.st8{fill:#3D3D5E;}
+	.st9{fill:#D8D2C0;}
+</style>
+
+
+	<g style="fill:none" id="g42" transform="matrix(4.583216,0,0,4.2200346,-5.4267922,2.2333882)"><circle
+     cx="14.8492"
+     cy="14.8492"
+     r="9.5"
+     transform="rotate(-45,14.8492,14.8492)"
+     stroke="#d6dceb"
+     stroke-width="2"
+     id="circle25" />
+		<circle cx="14.8492" cy="14.8492" r="5.5" transform="rotate(-45,14.8492,14.8492)"
+			stroke="#d6dceb" stroke-width="2" id="circle27" />
+		<rect x="19.799" y="23.334499" width="4" height="12" rx="1"
+			transform="rotate(-45,19.799,23.3345)" stroke="#d6dceb" stroke-width="2"
+			stroke-linejoin="round" id="rect29" /></g></svg>

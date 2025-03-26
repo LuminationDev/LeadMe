@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    package="com.lumination.leadme">
+
+    <uses-permission android:name="com.google.android.gms.permission.AD_ID" tools:node="remove" />
+
+    <!-- for nearby connections -->
+<!--    <uses-permission android:name="android.permission.BLUETOOTH" />-->
+<!--    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />-->
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+<!--    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />-->
+<!--    <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />-->
+    <uses-permission android:name="android.permission.CHANGE_WIFI_MULTICAST_STATE"/>
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.KILL_BACKGROUND_PROCESSES" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+<!--    <uses-permission android:name="android.permission.NFC" />-->
+    <permission android:name="android.permission.GET_TASKS"/>
+    <permission android:name="android.permission.PACKAGE_USAGE_STATS"/>
+    <uses-permission android:name="android.permission.PACKAGE_USAGE_STATS" />
+
+    <!-- needed for core activity management functions -->
+    <uses-permission android:name="android.permission.REORDER_TASKS" />
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+    <uses-permission android:name="android.permission.EXPAND_STATUS_BAR" />
+
+    <uses-permission android:name="android.permission.ACTION_MANAGE_OVERLAY_PERMISSION" />
+
+    <!--    Used for APP queries for API 30+-->
+    <permission android:name="android.permission.QUERY_ALL_PACKAGES"/>
+
+    <!-- used for file transfer and VR controller -->
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32"/>
+    <uses-permission android:name="android.permission.READ_MEDIA_VIDEO"/>
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES"/>
+
+    <!-- for screen monitoring service-->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+<!--    <uses-permission android:name="android.permission.ACCESS_MEDIA_LOCATION" />-->
+
+<!--    for avoiding background shut off-->
+<!--    <uses-permission  android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS"/>-->
+
+
+    <!-- for youtube -->
+    <uses-permission android:name="android.permission.INTERNET" />
+
+    <!-- for Play store updates - not sure if necessary -->
+<!--    <uses-permission android:name="android.permission.GET_ACCOUNTS"/>-->
+<!--    <uses-permission android:name="android.permission.USE_CREDENTIALS"/>-->
+
+<!--    &lt;!&ndash; Google Play filtering &ndash;&gt;-->
+<!--    <uses-feature-->
+<!--        android:name="android.hardware.wifi.direct"-->
+<!--        android:required="true" />-->
+<!--    <uses-feature-->
+<!--        android:name="android.hardware.nfc"-->
+<!--        android:required="true" />-->
+
+    <!-- hardware acceleration needed for YouTube playback in WebView -->
+    <application
+        tools:replace="android:label"
+        android:fullBackupOnly="true"
+        android:clearTaskOnLaunch="true"
+        android:icon="@mipmap/leadme_icon_round"
+        android:label="@string/app_title"
+        android:theme="@android:style/Theme.Holo.Light.NoActionBar.Fullscreen"
+        android:hardwareAccelerated="true"
+        android:usesCleartextTraffic="true"
+        android:largeHeap="true"
+        android:networkSecurityConfig="@xml/network_security_config"
+        android:requestLegacyExternalStorage="true"
+        android:screenOrientation="portrait"
+        android:alwaysRetainTaskState="true"
+        android:allowTaskReparenting="true"
+        android:allowBackup="true">
+        <meta-data android:name="google_analytics_adid_collection_enabled" android:value="false" />
+        <meta-data android:name="io.sentry.dsn" android:value="https://dfcd6d087aa340319216257e583f49d6@o1294571.ingest.sentry.io/4503969052229632" />
+        <meta-data android:name="android.permission.PACKAGE_USAGE_STATS"
+            android:value="Our app is a learning management app that allows students to connect to a teachers classroom. This permission allows us to indicate to a teacher when a student may be off task, and to return them to their assigned task." />
+        <activity
+            android:name="com.lumination.leadme.LeadMeMain"
+            android:screenOrientation="portrait"
+            android:label="@string/app_title"
+            android:windowSoftInputMode="adjustPan"
+            android:launchMode="singleTask"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <service
+            android:name=".services.ForegroundService"
+            android:enabled="true"
+            android:exported="true"/>
+        <service
+            android:enabled="true"
+            android:name=".services.FirebaseService"
+            android:foregroundServiceType="dataSync"
+            android:stopWithTask="true">
+        </service>
+        <service
+            android:enabled="true"
+            android:name=".services.NetworkService"
+            android:foregroundServiceType="connectedDevice"
+            android:stopWithTask="true">
+        </service>
+    </application>
+
+    <queries>
+        <intent>
+            <action android:name="android.intent.action.MAIN" />
+        </intent>
+    </queries>
+</manifest>

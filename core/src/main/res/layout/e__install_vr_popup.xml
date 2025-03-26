@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="wrap_content"
+    android:layout_centerInParent="true"
+    android:layout_centerHorizontal="true"
+    android:layout_centerVertical="true"
+    android:background="@drawable/rounded_popup_white"
+    android:gravity="center"
+    android:orientation="vertical"
+    android:padding="20dp"
+    android:showDividers="middle|beginning|end">
+
+    <ImageView
+        android:id="@+id/warning_icon"
+        android:layout_width="match_parent"
+        android:layout_height="90dp"
+        android:src="@drawable/leadme_icon"
+        android:contentDescription="@string/warning_icon" />
+
+    <TextView
+        android:id="@+id/warning_title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="30dp"
+        android:layout_marginBottom="20dp"
+        android:ellipsize="end"
+        android:fontFamily="@font/poppins_semibold"
+        android:gravity="center_horizontal"
+        android:text="@string/leadme_vr_player"
+        android:textColor="@color/leadme_black"
+        android:textSize="18sp" />
+
+    <TextView
+        android:id="@+id/warning_comment"
+        android:layout_width="300dp"
+        android:layout_height="wrap_content"
+        android:fontFamily="@font/poppins_regular"
+        android:gravity="center_horizontal"
+        android:text="@string/leadme_vr_install"
+        android:textColor="@color/leadme_black"
+        android:textSize="14sp" />
+
+    <LinearLayout
+        android:id="@+id/button_view"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="30dp"
+        android:orientation="vertical">
+
+        <Button
+            android:id="@+id/update_btn"
+            style="?android:attr/borderlessButtonStyle"
+            android:layout_width="@dimen/standard_btn_width"
+            android:layout_height="@dimen/standard_btn_height"
+            android:layout_gravity="center_horizontal"
+            android:background="@drawable/bg_active"
+            android:textColor="@color/leadme_white"
+            android:clickable="true"
+            android:fontFamily="@font/poppins_semibold"
+            android:text="@string/install"
+            android:textSize="16sp"
+            android:focusable="true" />
+
+        <Button
+            android:id="@+id/cancel_btn"
+            style="?android:attr/borderlessButtonStyle"
+            android:layout_marginTop="10dp"
+            android:layout_width="@dimen/standard_btn_width"
+            android:layout_height="@dimen/standard_btn_height"
+            android:layout_gravity="center_horizontal"
+            android:background="@drawable/bg_passive"
+            android:textColor="@color/leadme_black"
+            android:clickable="true"
+            android:fontFamily="@font/poppins_semibold"
+            android:text="@string/cancel"
+            android:textSize="16sp"
+            android:focusable="true" />
+    </LinearLayout>
+</LinearLayout>

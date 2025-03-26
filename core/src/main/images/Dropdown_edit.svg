@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#"
+    xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://www.w3.org/2000/svg"
+    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape" width="21" height="25"
+    viewBox="0 0 21 24.999998" fill="none" version="1.1" id="svg122"
+    sodipodi:docname="Dropdown_edit.svg" inkscape:version="1.0.1 (3bc2e813f5, 2020-09-07)">
+  <metadata id="metadata126">
+    <rdf:RDF>
+      <cc:Work rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <sodipodi:namedview pagecolor="#ffffff" bordercolor="#666666" borderopacity="1"
+      objecttolerance="10" gridtolerance="10" guidetolerance="10" inkscape:pageopacity="0"
+      inkscape:pageshadow="2" inkscape:window-width="1920" inkscape:window-height="1017"
+      id="namedview124" showgrid="false" inkscape:zoom="14.529412" inkscape:cx="10.15587"
+      inkscape:cy="12.431174" inkscape:window-x="-8" inkscape:window-y="-8"
+      inkscape:window-maximized="1" inkscape:current-layer="svg122" fit-margin-top="0"
+      fit-margin-left="0" fit-margin-right="0" fit-margin-bottom="0" units="px" />
+  <g clip-path="url(#clip0)" id="g85" transform="translate(-15,-15)">
+    <path id="rect75" style="fill:#ffffff"
+        d="m 21,15 h 9 c 3.324,0 6,2.676 6,6 v 13 c 0,3.324 -2.676,6 -6,6 h -9 c -3.324,0 -6,-2.676 -6,-6 V 21 c 0,-3.324 2.676,-6 6,-6 z" />
+  </g>
+  <defs id="defs120">
+    <filter id="filter0_d" x="0" y="0" width="51" height="55" filterUnits="userSpaceOnUse"
+        color-interpolation-filters="sRGB">
+      <feFlood flood-opacity="0" result="BackgroundImageFix" id="feFlood87" />
+      <feColorMatrix in="SourceAlpha" type="matrix"
+          values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" id="feColorMatrix89" />
+      <feOffset id="feOffset91" />
+      <feGaussianBlur stdDeviation="7.5" id="feGaussianBlur93" />
+      <feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.12 0"
+          id="feColorMatrix95" />
+      <feBlend mode="normal" in2="BackgroundImageFix" result="effect1_dropShadow" id="feBlend97" />
+      <feBlend mode="normal" in="SourceGraphic" in2="effect1_dropShadow" result="shape"
+          id="feBlend99" />
+    </filter>
+    <clipPath id="clip0">
+      <rect width="360" height="810" fill="#ffffff" transform="translate(-260,-63)" id="rect117"
+          x="0" y="0" />
+    </clipPath>
+  </defs>
+  <path d="m 10.259109,16.952857 -4.2505996,-6.2296 h 8.5011996 z" fill="#afb7cb" id="path79" />
+</svg>

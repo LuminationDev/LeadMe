@@ -1,0 +1,313 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:background="@color/leadme_white"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    app:layout_constraintBottom_toBottomOf="parent"
+    app:layout_constraintEnd_toEndOf="parent"
+    app:layout_constraintStart_toStartOf="parent"
+    app:layout_constraintTop_toTopOf="parent">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <VideoView
+            android:id="@+id/animation_view"
+            android:layout_width="250dp"
+            android:layout_height="250dp"
+            android:layout_gravity="bottom|center_horizontal"
+            android:layout_marginTop="20dp"
+            android:layout_marginBottom="10dp"
+            android:drawingCacheQuality="high"
+            tools:visibility="invisible" />
+
+        <!--        <TextView-->
+        <!--            android:id="@+id/onBoard_title"-->
+        <!--            android:layout_width="match_parent"-->
+        <!--            android:layout_height="wrap_content"-->
+        <!--            android:layout_margin="10dp"-->
+        <!--            android:fontFamily="@font/poppins_semibold"-->
+        <!--            android:gravity="center"-->
+        <!--            android:text="Welcome to LeadMe"-->
+        <!--            android:textSize="18sp" />-->
+
+        <TextSwitcher
+            android:id="@+id/onBoard_title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginBottom="30dp">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="10dp"
+                android:fontFamily="@font/poppins_semibold"
+                android:gravity="center"
+                android:text="Welcome to LeadMe"
+                android:textSize="18sp" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="10dp"
+                android:fontFamily="@font/poppins_semibold"
+                android:gravity="center"
+                android:text="Welcome to LeadMe"
+                android:textSize="18sp" />
+
+        </TextSwitcher>
+
+        <TextSwitcher
+            android:id="@+id/onBoard_content"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginBottom="20dp"
+            android:layout_weight="1">
+
+            <TextView
+                android:layout_width="300dp"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginLeft="20dp"
+                android:layout_marginRight="20dp"
+                android:fontFamily="@font/poppins_regular"
+                android:gravity="center_horizontal"
+                android:lines="5"
+                android:text="The class management tool that connects leaders and learners for a managed digital learning environment." />
+
+            <TextView
+                android:layout_width="250dp"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginLeft="30dp"
+                android:layout_marginRight="30dp"
+                android:layout_marginBottom="20dp"
+                android:fontFamily="@font/poppins_regular"
+                android:gravity="center_horizontal" />
+
+        </TextSwitcher>
+
+        <Button
+            android:id="@+id/watch_video"
+            android:visibility="gone"
+            style="?android:attr/borderlessButtonStyle"
+            android:layout_width="130dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:background="@drawable/bg_active"
+            android:clickable="true"
+            android:focusable="true"
+            android:fontFamily="@font/poppins_semibold"
+            android:text="Watch Video"
+            android:textAllCaps="false"
+            android:textColor="@color/leadme_white"
+            android:textSize="14sp" />
+
+        <!--        <TextView-->
+        <!--            android:id="@+id/onBoard_content"-->
+        <!--            android:layout_width="match_parent"-->
+        <!--            android:layout_height="wrap_content"-->
+        <!--            android:layout_marginBottom="20dp"-->
+        <!--            android:fontFamily="@font/poppins_regular"-->
+        <!--            android:gravity="center"-->
+        <!--            android:paddingLeft="25dp"-->
+        <!--            android:paddingRight="25dp"-->
+        <!--            android:paddingBottom="20dp"-->
+        <!--            android:text="The class management tool that connects leaders and learners for a managed digital learning environment." />-->
+
+
+        <!--        <ImageSwitcher-->
+        <!--            android:id="@+id/page_indicator"-->
+        <!--            android:layout_width="match_parent"-->
+        <!--            android:layout_height="wrap_content"-->
+        <!--            android:layout_gravity="center"-->
+        <!--            android:src="@drawable/ic_pages_1"-->
+        <!--            tools:visibility="gone">-->
+
+        <!--            <ImageView-->
+        <!--                android:id="@+id/imageView5"-->
+        <!--                android:layout_width="wrap_content"-->
+        <!--                android:layout_height="wrap_content"-->
+        <!--                android:layout_gravity="center"-->
+        <!--                app:srcCompat="@drawable/ic_pages_1" />-->
+
+        <!--            <ImageView-->
+        <!--                android:id="@+id/imageView6"-->
+        <!--                android:layout_width="wrap_content"-->
+        <!--                android:layout_height="wrap_content"-->
+        <!--                android:layout_gravity="center"-->
+        <!--                app:srcCompat="@drawable/ic_pages__2" />-->
+        <!--        </ImageSwitcher>-->
+
+        <LinearLayout
+            android:id="@+id/onboard_pages"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_margin="5dp"
+            android:orientation="horizontal"
+            android:padding="5dp">
+
+            <ImageView
+                android:id="@+id/onboard_btn_1"
+                android:layout_width="18dp"
+                android:layout_height="18dp"
+                android:layout_marginLeft="8dp"
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="8dp"
+                android:background="@color/leadme_white"
+                android:padding="4dp"
+                android:scaleType="fitXY"
+                android:src="@drawable/circle_btn"
+                android:tint="@color/leadme_blue"
+                tools:ignore="UseAppTint" />
+
+            <ImageView
+                android:id="@+id/onboard_btn_2"
+                android:layout_width="18dp"
+                android:layout_height="18dp"
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="8dp"
+                android:background="@color/leadme_white"
+                android:padding="4dp"
+                android:scaleType="fitXY"
+                android:src="@drawable/circle_btn"
+                android:tint="@color/leadme_medium_grey"
+                tools:ignore="UseAppTint" />
+
+            <ImageView
+                android:id="@+id/onboard_btn_3"
+                android:layout_width="18dp"
+                android:layout_height="18dp"
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="8dp"
+                android:background="@color/leadme_white"
+                android:padding="4dp"
+                android:scaleType="fitXY"
+                android:src="@drawable/circle_btn"
+                android:tint="@color/leadme_medium_grey"
+                tools:ignore="UseAppTint" />
+
+            <ImageView
+                android:id="@+id/onboard_btn_4"
+                android:layout_width="18dp"
+                android:layout_height="18dp"
+                android:layout_marginTop="8dp"
+
+                android:layout_marginBottom="8dp"
+                android:background="@color/leadme_white"
+                android:padding="4dp"
+                android:scaleType="fitXY"
+                android:src="@drawable/circle_btn"
+                android:tint="@color/leadme_medium_grey"
+                tools:ignore="UseAppTint" />
+
+            <ImageView
+                android:id="@+id/onboard_btn_5"
+                android:layout_width="18dp"
+                android:layout_height="18dp"
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="8dp"
+                android:background="@color/leadme_white"
+                android:padding="4dp"
+                android:scaleType="fitXY"
+                android:src="@drawable/circle_btn"
+                android:tint="@color/leadme_medium_grey"
+                tools:ignore="UseAppTint" />
+
+            <ImageView
+                android:id="@+id/onboard_btn_6"
+                android:layout_width="18dp"
+                android:layout_height="18dp"
+                android:layout_marginTop="8dp"
+                android:layout_marginRight="8dp"
+                android:layout_marginBottom="8dp"
+                android:background="@color/leadme_white"
+                android:padding="4dp"
+                android:scaleType="fitXY"
+                android:src="@drawable/circle_btn"
+                android:tint="@color/leadme_medium_grey"
+                tools:ignore="UseAppTint" />
+
+        </LinearLayout>
+
+        <ImageView
+            android:id="@+id/next_button"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:layout_gravity="center"
+            android:layout_margin="20dp"
+            android:background="@drawable/circle_btn"
+            android:elevation="5dp"
+            android:scaleType="center"
+            android:src="@drawable/ic_roundbutton_shadow"
+            android:visibility="visible"
+            app:shapeAppearanceOverlay="@style/circleImageView" />
+
+        <TextView
+            android:id="@+id/skip_intro"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_marginBottom="10dp"
+            android:fontFamily="@font/poppins_semibold"
+            android:text="Skip Intro"
+            android:textColor="@color/leadme_blue"
+            android:visibility="visible" />
+
+        <LinearLayout
+            android:id="@+id/onboard_buttons"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_margin="15dp"
+            android:paddingBottom="40dp"
+            android:orientation="vertical"
+            android:visibility="gone">
+
+            <Button
+                android:id="@+id/onboard_ok_btn"
+                style="?android:attr/borderlessButtonStyle"
+                android:layout_width="@dimen/standard_btn_width"
+                android:layout_height="@dimen/standard_btn_height"
+                android:layout_gravity="center_horizontal"
+                android:background="@drawable/bg_active"
+                android:clickable="true"
+                android:focusable="true"
+                android:fontFamily="@font/poppins_semibold"
+                android:text="Begin"
+                android:textAllCaps="false"
+                android:textColor="@color/leadme_white"
+                android:textSize="16sp" />
+
+            <Button
+                android:id="@+id/onboard_moreinfo_btn"
+                style="?android:attr/borderlessButtonStyle"
+                android:layout_width="@dimen/standard_btn_width"
+                android:layout_height="@dimen/standard_btn_height"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginTop="10dp"
+                android:background="@drawable/bg_passive"
+                android:clickable="true"
+                android:focusable="true"
+                android:fontFamily="@font/poppins_semibold"
+                android:text="Learn More"
+                android:textAllCaps="false"
+                android:textColor="@color/leadme_darkest_grey"
+                android:textSize="16sp" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>

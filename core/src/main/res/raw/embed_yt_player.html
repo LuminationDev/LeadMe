@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+
+<html style="height:100%">
+    <body style="margin: 0; padding: 0; height:100%;">
+        <!-- 1. The <iframe> (and video player) will replace this <div> tag. -->
+        <div
+                id="player"
+                style="margin: 0; padding: 0; width:100%; height:100%;"></div>
+
+        <script>
+
+          // 2. This code loads the IFrame Player API code asynchronously.
+          var tag = document.createElement('script');
+
+          tag.src = "https://www.youtube.com/iframe_api";
+          var firstScriptTag = document.getElementsByTagName('script')[0];
+          firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+
+          // 3. This function creates an <iframe> (and YouTube player)
+          //    after the API code downloads.
+          var player;
+          function onYouTubeIframeAPIReady() {
+            player = new YT.Player('player', {
+              videoId: 'PLACEHOLDER_ID',
+              playerVars: { 'start' : PLACEHOLDER_START, 'cc_load_policy': 1, 'cc_lang_pref':'en', 'controls': 0, 'modestbranding' : 1, 'rel' : 0 },
+              events: {
+                'onReady': onPlayerReady,
+                'onStateChange': onPlayerStateChange,
+                'onApiChange': onCaptionsLoaded
+              }
+            });
+          }
+
+           function onCaptionsLoaded(event) {
+            // undocumented call, may break in future
+            // essential to turn captions on/off programmatically
+            // otherwise only works after user manually taps video cc icon
+            if (typeof player.setOption === 'function') {
+              player.setOption('captions', 'track', {languageCode: 'en'})
+
+              // this allows caption default state to be OFF
+              // otherwise it'll always be on after the above call
+              if(captionState == true){
+                    player.loadModule("captions");  //Works for html5 ignored by AS3
+                    player.loadModule("cc");  //Works for AS3 ignored by html5
+               } else {
+                    player.unloadModule("captions");  //Works for html5 ignored by AS3
+                    player.unloadModule("cc");  //Works for AS3 ignored by html5
+               }
+            }
+          }
+
+          // 4. The API will call this function when the video player is ready.
+          function onPlayerReady(event) {
+            event.target.playVideo();
+          }
+
+
+
+          // 5. The API calls this function when the player's state changes.
+          var mytimer;
+          var playerCurrentTime;
+          function onPlayerStateChange(event) {
+            Android.updateState(event.data); //keeps everything in sync
+            if (event.data == YT.PlayerState.UNSTARTED){
+                var playerTotalTime = player.getDuration();
+                Android.setTotalTime(parseInt(playerTotalTime));
+
+            } else if (event.data == YT.PlayerState.ENDED) {
+               //let Java know where we got up to so UI can be updated
+               Android.setCurrentTime(parseInt(player.getCurrentTime()));
+               clearTimeout(mytimer);
+               stopVideo();
+
+            } else if (event.data == YT.PlayerState.PLAYING){
+                  mytimer = setInterval(function() {
+                    playerCurrentTime = player.getCurrentTime();
+                    //var playerTimeDifference = (playerCurrentTime / playerTotalTime) * 100;
+                    Android.setCurrentTime(parseInt(playerCurrentTime));
+                  }, 1000);
+			} else {
+			  clearTimeout(mytimer);
+			}       
+          }
+
+          function seekTo(url, time){
+            if(!player.getCurrentTime() || time > player.getCurrentTime()){
+                player.loadVideoByUrl(url, time);
+            } else {
+                player.seekTo(time, true);
+            }
+          }
+
+          var captionState = false;
+          function showCaptions(){
+            captionState = true;
+            player.loadModule("captions");  //Works for html5 ignored by AS3
+            player.loadModule("cc");  //Works for AS3 ignored by html5
+          }
+
+          function hideCaptions(){
+            captionState = false;
+            player.unloadModule("captions");  //Works for html5 ignored by AS3
+            player.unloadModule("cc");  //Works for AS3 ignored by html5
+          }
+
+          function showAndroidToast(toast) {
+            Android.showToast(toast);
+          }
+
+          function playVideo() {
+            showAndroidToast("Play!");
+            player.playVideo();
+            Android.playVideo();
+          }
+
+          function pauseVideo() {
+            showAndroidToast("Pause!");
+            player.pauseVideo();
+            Android.pauseVideo();
+          }
+
+          function stopVideo() {
+            showAndroidToast("Stop!");
+            player.stopVideo();
+            Android.pauseVideo();
+          }
+
+        </script>
+    </body>
+</html>

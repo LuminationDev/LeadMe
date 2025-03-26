@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="fill_parent"
+    android:layout_height="wrap_content"
+    android:layout_centerHorizontal="true"
+    android:layout_marginStart="5dp"
+    android:layout_marginEnd="5dp"
+    android:background="@color/leadme_bg_highlight"
+    android:gravity="center"
+    android:orientation="vertical"
+    app:layout_anchorGravity="center_horizontal">
+
+    <FrameLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content">
+
+        <ImageView
+            android:id="@+id/app_icon"
+            android:layout_width="@dimen/appicon_size"
+            android:layout_height="@dimen/appicon_size"
+            android:layout_gravity="center"
+            android:layout_marginTop="5dp"
+            android:layout_marginBottom="5dp"
+            android:contentDescription="@string/icon_desc"
+            android:elevation="5dp"
+            android:foregroundGravity="center"
+            android:outlineSpotShadowColor="@color/leadme_darkest_grey"
+            android:padding="2dp" />
+
+        <ImageView
+            android:id="@+id/selected_indicator"
+            android:layout_width="@dimen/appicon_size_overlay"
+            android:layout_height="@dimen/appicon_size_overlay"
+            android:layout_gravity="center"
+            android:backgroundTintMode="multiply"
+            android:foregroundGravity="center"
+            android:src="@drawable/student_select_border"
+            android:visibility="gone" />
+    </FrameLayout>
+
+    <TextView
+        android:id="@+id/app_name"
+        android:layout_width="wrap_content"
+        android:layout_height="40dp"
+        android:layout_marginTop="5dp"
+        android:layout_weight="1"
+        android:breakStrategy="simple"
+        android:ellipsize="end"
+        android:fontFamily="@font/poppins_semibold"
+        android:gravity="center_horizontal|top|center_vertical"
+        android:hyphenationFrequency="none"
+        android:textColor="@color/leadme_black"
+        android:textSize="12sp"
+        android:visibility="visible"
+        tools:visibility="visible" />
+
+</LinearLayout>

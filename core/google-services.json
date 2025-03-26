@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "55940532911",
+    "project_id": "leafy-rope-301003",
+    "storage_bucket": "leafy-rope-301003.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:55940532911:android:0d8b4a32ca283ba644e25a",
+        "android_client_info": {
+          "package_name": "com.lumination.leadme"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "55940532911-k4p6mqvo9gf6kfpgkredugaat9lj9d5b.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB5dbyScP1Ful_bs___SoHWpKVS6phQXpE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "55940532911-k4p6mqvo9gf6kfpgkredugaat9lj9d5b.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

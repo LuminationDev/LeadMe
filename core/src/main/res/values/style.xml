@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <style name="EmptyStyle"></style>
+
+    <style name="LeaderButton">
+        <item name="android:layout_width">82dp</item>
+        <item name="android:layout_marginLeft">15dp</item>
+        <item name="android:layout_height">115dp</item>
+        <item name="android:layout_marginTop">15dp</item>
+        <item name="android:layout_marginBottom">25dp</item>
+        <item name="android:background">@drawable/btn_square</item>
+        <item name="android:drawablePadding">-10dp</item>
+        <item name="android:elevation">5dp</item>
+        <item name="android:fontFamily">@font/poppins_semibold</item>
+        <item name="android:paddingTop">10dp</item>
+        <item name="android:textColor">@color/leadme_black</item>
+        <item name="android:textSize">12sp</item>
+        <item name="android:layout_gravity">center_horizontal|top</item>
+    </style>
+    <style name="LeaderButton__IconWrapper">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">40dp</item>
+        <item name="android:layout_gravity">center</item>
+    </style>
+    <style name="LeaderButton__Icon">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_gravity">center</item>
+    </style>
+    <style name="LeaderButton__Text">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:orientation">vertical</item>
+        <item name="android:paddingLeft">10dp</item>
+        <item name="android:paddingRight">10dp</item>
+        <item name="android:layout_marginTop">5dp</item>
+    </style>
+    <style name="LeaderButton__Text__Eyebrow">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textColor">@color/leadme_dark_grey</item>
+        <item name="android:fontFamily">@font/poppins</item>
+        <item name="android:textSize">10sp</item>
+    </style>
+    <style name="LeaderButton__Text__Lead">
+        <item name="android:layout_marginTop">-2dp</item>
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textColor">@color/leadme_black</item>
+        <item name="android:fontFamily">@font/poppins_semibold</item>
+        <item name="android:textSize">12sp</item>
+    </style>
+
+    <style name="LeadMeStyle" parent="">
+        <item name="android:editTextColor">@color/leadme_dark_grey</item>
+        <item name="android:textColorHint">@color/leadme_medium_grey</item>
+        <item name="android:fontFamily">@font/poppins_regular</item>
+        <item name="android:textSize">14sp</item>
+    </style>
+
+
+    <style name="LeadMeStyle_Search" parent="">
+        <item name="android:editTextColor">@color/leadme_dark_grey</item>
+        <item name="android:textColorHint">@color/leadme_medium_grey</item>
+        <item name="android:fontFamily">@font/poppins_regular</item>
+        <item name="android:textSize">16sp</item>
+        <item name="android:layout_gravity">center_vertical</item>
+        <item name="android:includeFontPadding">false</item>
+    </style>
+
+    <style name="MatchSpinnerStyle" parent="android:style/Widget.ListView.DropDown">
+        <item name="android:divider">@color/leadme_white</item>
+        <item name="android:dividerHeight">1dp</item>
+    </style>
+
+    <style name="MatchSpinnerTheme" parent="android:Theme.Holo.Light.NoActionBar.Fullscreen">
+        <item name="android:dropDownListViewStyle">@style/MatchSpinnerStyle</item>
+    </style>
+    <style name="popupStyle">
+        <item name="android:popupBackground">@drawable/rounded_popup_white</item>
+    </style>
+    <style name="LeadMeFloat" parent="android:Theme.Holo.Light">
+    </style>
+    <style name="circleImageView" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">50%</item>
+    </style>
+    <style name="DialogTheme" parent="android:Theme.Dialog">
+
+        <item name="android:layout_width">fill_parent</item>
+        <item name="android:layout_height">fill_parent</item>
+        <!-- No backgrounds, titles or window float -->
+        <item name="android:windowBackground">@null</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:windowIsFloating">false</item>
+    </style>
+    <style name="LeadMeSliderLabel" parent="@style/Widget.MaterialComponents.Tooltip">
+        <item name="backgroundTint">@color/leadme_light_grey</item>
+        <item name="android:background">@color/transparent</item>
+    </style>
+    <style name="BottomSheetDialogTransparentBackground" parent="Theme.Design.BottomSheetDialog">
+        <item name="bottomSheetStyle">@style/BottomSheetModalTransparentBackground</item>
+    </style>
+    <style name="BottomSheetModalTransparentBackground" parent="Widget.Design.BottomSheet.Modal">
+        <item name="android:background">@android:color/transparent</item>
+    </style>
+
+    <style name="ProjectionDropdown">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">match_parent</item>
+        <item name="android:orientation">horizontal</item>
+        <item name="android:paddingTop">15dp</item>
+        <item name="android:paddingBottom">15dp</item>
+        <item name="android:paddingStart">25dp</item>
+        <item name="android:paddingEnd">25dp</item>
+    </style>
+
+    <style name="ProjectionTextView">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_weight">1</item>
+        <item name="android:drawablePadding">15dp</item>
+        <item name="android:fontFamily">@font/poppins_regular</item>
+        <item name="android:textSize">14sp</item>
+    </style>
+</resources>

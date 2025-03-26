@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item android:drawable="@drawable/icon_square_check" android:state_checked="true" /> <!-- checked -->
+
+    <item android:drawable="@drawable/icon_square_uncheck" android:state_checked="false" /> <!-- unchecked -->
+
+    <item android:drawable="@drawable/icon_square_uncheck" android:state_focused="true" />    <!--on focus-->
+
+    <item android:drawable="@drawable/icon_square_uncheck" /> <!-- default -->
+
+</selector>

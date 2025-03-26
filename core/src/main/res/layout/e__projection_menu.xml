@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/dropdown_menu"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:background="@drawable/rounded_btn_white"
+    android:orientation="vertical"
+    android:visibility="visible">
+
+    <LinearLayout
+        style="@style/ProjectionDropdown">
+
+        <TextView
+            style="@style/ProjectionTextView"
+            android:text="@string/projection_types" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="2dp"
+        android:background="#c0c0c0"/>
+
+    <LinearLayout
+        android:id="@+id/mono_toggle"
+        style="@style/ProjectionDropdown">
+
+        <TextView
+            android:id="@+id/mono_text"
+            style="@style/ProjectionTextView"
+            android:drawableLeft="@drawable/ic_arrow"
+            android:text="@string/mono" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="2dp"
+        android:background="#c0c0c0"/>
+
+    <LinearLayout
+        android:id="@+id/eac_toggle"
+        style="@style/ProjectionDropdown">
+
+        <TextView
+            android:id="@+id/eac_text"
+            style="@style/ProjectionTextView"
+            android:drawableLeft="@drawable/icon_disconnect_peer"
+            android:text="@string/eac" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="2dp"
+        android:background="#c0c0c0"/>
+
+    <LinearLayout
+        android:id="@+id/eac3d_toggle"
+        style="@style/ProjectionDropdown">
+
+        <TextView
+            android:id="@+id/eac3d_text"
+            style="@style/ProjectionTextView"
+            android:drawableLeft="@drawable/icon_disconnect_peer"
+            android:text="@string/eac_3d" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="2dp"
+        android:background="#c0c0c0"/>
+
+    <LinearLayout
+        android:id="@+id/over_under_toggle"
+        style="@style/ProjectionDropdown">
+
+        <TextView
+            android:id="@+id/over_under_text"
+            style="@style/ProjectionTextView"
+            android:drawableLeft="@drawable/icon_disconnect_peer"
+            android:text="@string/over_under" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="2dp"
+        android:background="#c0c0c0"/>
+
+    <LinearLayout
+        android:id="@+id/side_by_side_toggle"
+        style="@style/ProjectionDropdown">
+
+        <TextView
+            android:id="@+id/side_by_side_text"
+            style="@style/ProjectionTextView"
+            android:drawableLeft="@drawable/icon_disconnect_peer"
+            android:text="@string/side_by_side" />
+    </LinearLayout>
+</LinearLayout>

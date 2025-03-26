@@ -1,0 +1,65 @@
+version: 2.1
+
+orbs:
+  android: circleci/android@2.1.2
+  node: circleci/node@5.0.2
+
+commands:
+  configure:
+    steps:
+      - checkout
+      - setup_remote_docker:
+          docker_layer_caching: true
+      - store_artifacts:
+          path: app/build/outputs/apk/release
+      - run:
+          name: Create keystore.properties
+          command: printf 'releaseKeyAlias=%s\nreleaseKeyPassword=%s\nreleaseKeyStore=%s\nreleaseStorePassword=%s' \ $RELEASE_KEY_ALIAS $RELEASE_KEY_PASSWORD $RELEASE_KEYSTORE $RELEASE_STORE_PASSWORD > keystore.properties
+      - run:
+          name: Create Google Play key
+          command: echo $GOOGLE_PLAY_KEY > google-play-key.json
+      - run:
+          name: Decode Android key store
+          command: cd core && echo $BASE64_KEYSTORE | base64 -d > keystore.jks && cd ..
+
+jobs:
+  deploy:
+    docker:
+      - image: cimg/android:2022.09.2
+    steps:
+      - configure
+      - run: fastlane deploy
+  build:
+    docker:
+      - image: cimg/android:2022.09.2
+    steps:
+      - configure
+      - run: fastlane build_test_apk
+      - store_artifacts:
+          path: core/build/outputs/apk/release
+
+workflows:
+  build_apk:
+    jobs:
+      - hold:
+          type: approval
+          filters:
+            branches:
+              only:
+                - development
+      - build:
+          requires:
+            - hold
+  deploy:
+    jobs:
+      - hold:
+          context: LeadMeDeployers
+          type: approval
+          filters:
+            branches:
+              only:
+                - development
+      - deploy:
+          requires:
+            - hold
+            

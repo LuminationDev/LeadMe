@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
+    <data>
+        <import type="com.lumination.leadme.models.CuratedContentType"></import>
+    </data>
+    <LinearLayout
+        android:background="@drawable/bg_leadme_light_grey_roundeduppercorners"
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <LinearLayout
+            android:background="@color/leadme_dark_grey"
+            android:layout_height="2dp"
+            android:layout_marginVertical="20dp"
+            android:layout_marginHorizontal="150dp"
+            android:layout_width="match_parent"/>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical">
+            <RelativeLayout
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="20dp">
+
+                <EditText
+                    android:id="@+id/search_input"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/bg_white_rounded"
+                    android:drawableLeft="@drawable/search_icon_simple_small"
+                    android:drawablePadding="10dp"
+                    android:hint="Search for topics or titles"
+                    android:imeOptions="actionDone"
+                    android:inputType="text"
+                    android:padding="15dp"
+                    android:textColor="@color/leadme_dark_grey"
+                    android:textColorHint="@color/leadme_medium_grey"></EditText>
+
+                <ImageButton
+                    android:id="@+id/search_clear"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:layout_alignParentRight="true"
+                    android:layout_margin="2.5dp"
+                    android:background="@drawable/circle_btn"
+                    android:src="@drawable/search_icon_delete_small"
+                    tools:ignore="SpeakableTextPresentCheck" />
+            </RelativeLayout>
+
+            <LinearLayout
+                android:id="@+id/search_info"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="center_horizontal"
+                android:orientation="vertical"
+                android:padding="45dp"
+                android:paddingTop="35dp"
+                android:paddingBottom="100dp">
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:background="@drawable/blue_circle_bg">
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        android:background="@drawable/search_icon_simple"></LinearLayout>
+                </LinearLayout>
+                <TextView
+                    android:id="@+id/search_heading"
+                    android:fontFamily="@font/poppins_semibold"
+                    android:textSize="24sp"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:textColor="@color/black"
+                    android:paddingVertical="10dp"
+                    android:text="What are you searching for?">
+                </TextView>
+                <TextView
+                    android:id="@+id/search_subheading"
+                    android:fontFamily="@font/poppins_regular"
+                    android:textSize="14sp"
+                    android:textColor="@color/leadme_darkest_grey"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:text="Search through our curated content for classrooms!">
+                </TextView>
+            </LinearLayout>
+            <ListView
+                android:id="@+id/curated_content_list"
+                android:layout_width="fill_parent"
+                android:layout_height="fill_parent"
+                android:background="@color/leadme_light_grey"
+                android:fontFamily="@font/poppins_regular"
+                android:gravity="center"
+                android:isScrollContainer="true"
+                android:scrollbarAlwaysDrawHorizontalTrack="false"
+                android:scrollbarStyle="insideInset"
+                android:scrollbars="vertical"
+                android:textColor="@color/leadme_light_grey"
+                android:visibility="visible"
+                tools:listitem="@layout/row_curated_content_item"></ListView>
+        </LinearLayout>
+    </LinearLayout>
+</layout>

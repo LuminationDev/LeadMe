@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/leadme_bg_highlight"
+    android:keepScreenOn="true"
+    android:orientation="vertical">
+
+    <ViewSwitcher
+
+        android:id="@+id/viewswitcher"
+        android:layout_width="fill_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+    </ViewSwitcher>
+
+    <View
+        android:id="@+id/view"
+        android:layout_width="fill_parent"
+        android:layout_height="20dp"
+        android:background="@drawable/shadow_gradient"
+        android:elevation="3dp" />
+
+    <LinearLayout
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:foregroundGravity="bottom"
+        android:gravity="bottom"
+        android:orientation="horizontal"
+        android:paddingStart="20dp"
+        android:paddingEnd="20dp"
+        android:showDividers="middle">
+
+        <Button
+            android:id="@+id/leader_btn"
+            android:layout_width="@dimen/standard_btn_width"
+            android:layout_height="wrap_content"
+            android:layout_gravity="top"
+            android:layout_marginStart="5dp"
+            android:layout_marginTop="10dp"
+            android:layout_marginBottom="10dp"
+            android:layout_weight="1"
+            android:background="@drawable/bg_active_right_leader"
+            android:clickable="true"
+            android:elevation="3dp"
+            android:enabled="true"
+            android:fontFamily="@font/poppins_semibold"
+            android:outlineSpotShadowColor="@color/leadme_darkest_grey"
+            android:text="@string/leader"
+            android:textAllCaps="false"
+            android:textColor="@color/accent"
+            android:textSize="18sp"
+            android:translationY="-2dp"
+            android:translationZ="0dp" />
+
+        <Button
+            android:id="@+id/learner_btn"
+            android:layout_width="@dimen/standard_btn_width"
+            android:layout_height="wrap_content"
+            android:layout_gravity="top"
+            android:layout_marginTop="10dp"
+            android:layout_marginEnd="5dp"
+            android:layout_marginBottom="10dp"
+            android:layout_weight="1"
+            android:background="@drawable/bg_passive_left_white"
+            android:clickable="true"
+            android:elevation="3dp"
+            android:enabled="true"
+            android:fontFamily="@font/poppins_semibold"
+            android:outlineSpotShadowColor="@color/leadme_darkest_grey"
+            android:text="@string/learner"
+            android:textAllCaps="false"
+            android:textColor="@color/medium"
+            android:textSize="18sp"
+            android:translationY="-2dp"
+            android:translationZ="0dp" />
+    </LinearLayout>
+
+</LinearLayout>

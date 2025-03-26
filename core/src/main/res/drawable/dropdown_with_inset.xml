@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!--item>
+        <shape android:shape="rectangle">
+            <solid android:color="@color/gradient_grey" />
+            <corners android:radius="7dp" />
+        </shape>
+    </item-->
+    <item>
+        <inset
+            android:drawable="@drawable/dropdown_indicator"
+            android:inset="10dp" />
+    </item>
+</layer-list>
