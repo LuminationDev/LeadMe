@@ -9,7 +9,10 @@ import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
 import android.view.View;
+import android.webkit.WebResourceRequest;
+import android.webkit.WebSettings;
 import android.webkit.WebView;
+import android.webkit.WebViewClient;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
@@ -325,7 +328,40 @@ public class AuthenticationManager {
                 errorText.setVisibility(View.GONE);
                 hasScrolled = true;
                 WebView TOF = loginView.findViewById(R.id.tof_webview);
-                TOF.getSettings().setJavaScriptEnabled(true);
+                // CWE-749: harden the Terms-Of-Use WebView. JavaScript is
+                // required for the Google Drive PDF viewer to render, so we
+                // keep it on but lock down everything else: file:// access
+                // disabled, only the viewer's expected hosts are allowed to
+                // navigate, anything else is dropped.
+                WebSettings tofSettings = TOF.getSettings();
+                tofSettings.setJavaScriptEnabled(true);
+                tofSettings.setAllowFileAccess(false);
+                tofSettings.setAllowContentAccess(false);
+                tofSettings.setAllowFileAccessFromFileURLs(false);
+                tofSettings.setAllowUniversalAccessFromFileURLs(false);
+                tofSettings.setSavePassword(false);
+                TOF.setWebViewClient(new WebViewClient() {
+                    @Override
+                    public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
+                        Uri url = request.getUrl();
+                        String scheme = url.getScheme();
+                        if (scheme == null || !(scheme.equals("https") || scheme.equals("http"))) {
+                            return true;
+                        }
+                        String host = url.getHost();
+                        if (host == null) {
+                            return true;
+                        }
+                        // Allow only the Google Drive viewer's own redirect
+                        // chain and the source PDF host.
+                        return !(host.equals("docs.google.com")
+                                || host.equals("drive.google.com")
+                                || host.equals("www.google.com")
+                                || host.equals("accounts.google.com")
+                                || host.equals("github.com")
+                                || host.equals("raw.githubusercontent.com"));
+                    }
+                });
                 String pdf = "https://github.com/LuminationDev/public/raw/main/LeadMeEdu-TermsAndConditions.pdf";
                 TOF.loadUrl("https://drive.google.com/viewerng/viewer?embedded=true&url=" + pdf);
 
